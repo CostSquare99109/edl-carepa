@@ -38,27 +38,26 @@ class ApiClient {
     try {
       res = await fetch(`${API_BASE}${path}`, opts);
     } catch {
-      throw new Error('No se puede conectar con el servidor. Verifique que el backend esté corriendo.');
+      throw new Error('No se puede conectar con el servidor. Verifique que el backend este corriendo en localhost:8000');
     }
 
-    // Si la respuesta no tiene contenido o no es JSON
     const text = await res.text();
     if (!text) {
-      throw new Error('El servidor no respondió. Verifique que el backend esté corriendo en localhost:8000');
+      throw new Error('El servidor no respondio. Verifique que el backend este corriendo en localhost:8000');
     }
 
     let json: ApiResponse<T>;
     try {
       json = JSON.parse(text);
     } catch {
-      throw new Error('Respuesta inválida del servidor. ¿El backend está corriendo?');
+      throw new Error('Respuesta invalida del servidor. El backend esta corriendo? Respuesta: ' + text.substring(0, 200));
     }
 
     if (res.status === 401) {
       localStorage.removeItem('edl_token');
       localStorage.removeItem('edl_user');
       window.location.href = '/edl-cnsc/login';
-      throw new Error('Sesión expirada');
+      throw new Error('Sesion expirada');
     }
 
     if (json.code !== '01') {

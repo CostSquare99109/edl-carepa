@@ -39,13 +39,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles(perfilData.roles);
       setMenu(menuData);
       localStorage.setItem('edl_user', JSON.stringify(perfilData.usuario));
-    } catch {
-      localStorage.removeItem('edl_token');
-      localStorage.removeItem('edl_user');
-      setToken(null);
-      setUsuario(null);
-      setRoles([]);
-      setMenu([]);
+    } catch (err) {
+      // No borrar token automaticamente - puede ser error de red
+      // Solo borrar si es explicitamente 401
+      const msg = err instanceof Error ? err.message : '';
+      if (msg === 'Sesion expirada') {
+        setToken(null);
+        setUsuario(null);
+        setRoles([]);
+        setMenu([]);
+      }
+      console.warn('Error cargando sesion:', msg);
     }
   }, []);
 
@@ -64,8 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(resp.token);
       setUsuario(resp.usuario);
       setRoles(resp.roles);
-      const menuData = await authApi.menu();
-      setMenu(menuData);
+      // Cargar menu despues del login
+      try {
+        const menuData = await authApi.menu();
+        setMenu(menuData);
+      } catch {
+        // Si falla el menu, no impedir el login
+        console.warn('No se pudo cargar el menu');
+      }
     } finally {
       setLoading(false);
     }
