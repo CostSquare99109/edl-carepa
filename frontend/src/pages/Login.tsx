@@ -18,6 +18,7 @@ export default function Login() {
   const [documento, setDocumento] = useState('');
   const [tipoDocumento, setTipoDocumento] = useState('CC');
   const [password, setPassword] = useState('');
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
@@ -117,15 +118,28 @@ export default function Login() {
               <label className="block text-sm font-medium text-inst-texto mb-1">
                 Contraseña
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="edl-input"
-                placeholder="Ingrese su contraseña"
-                required
-                autoComplete="current-password"
-              />
+              <div className="relative">
+                <input
+                  type={mostrarPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="edl-input pr-10"
+                  placeholder="Ingrese su contraseña"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarPassword(!mostrarPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-inst-texto-claro hover:text-inst-texto p-1"
+                  tabIndex={-1}
+                  aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                >
+                  <span className="material-icons text-xl">
+                    {mostrarPassword ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* Botón */}
