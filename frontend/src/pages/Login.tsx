@@ -136,7 +136,7 @@ export default function Login() {
                   aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   <span className="material-icons text-xl">
-                    {mostrarPassword ? 'visibility_off' : 'visibility'}
+                    {mostrarPassword ? 'visibility' : 'visibility_off'}
                   </span>
                 </button>
               </div>
