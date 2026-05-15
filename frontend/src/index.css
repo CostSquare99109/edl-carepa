@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white text-inst-texto font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading text-inst-azul;
+  }
+}
+
+@layer components {
+  .edl-card {
+    @apply bg-white rounded-lg border border-inst-borde p-6 shadow-sm;
+  }
+  .edl-btn {
+    @apply px-4 py-2 rounded font-medium transition-colors duration-150 text-sm;
+  }
+  .edl-btn-primary {
+    @apply edl-btn bg-inst-azul text-white hover:bg-inst-azul/90;
+  }
+  .edl-btn-danger {
+    @apply edl-btn bg-inst-rojo text-white hover:bg-inst-rojo/90;
+  }
+  .edl-btn-outline {
+    @apply edl-btn border border-inst-azul text-inst-azul hover:bg-inst-azul/5;
+  }
+  .edl-input {
+    @apply w-full px-3 py-2 border border-inst-borde rounded text-sm focus:outline-none focus:ring-2 focus:ring-inst-azul/30 focus:border-inst-azul transition;
+  }
+  .edl-table {
+    @apply w-full text-sm;
+  }
+  .edl-table thead {
+    @apply bg-inst-gris;
+  }
+  .edl-table th {
+    @apply px-4 py-3 text-left font-semibold text-inst-azul border-b border-inst-borde;
+  }
+  .edl-table td {
+    @apply px-4 py-3 border-b border-inst-borde;
+  }
+  .edl-table tbody tr:hover {
+    @apply bg-inst-gris/50;
+  }
+  .edl-divider {
+    @apply border-t-2 border-inst-azul mt-2 mb-1;
+  }
+  .edl-divider-accent {
+    @apply border-t border-inst-rojo mb-4;
+  }
+  .edl-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
+  .edl-badge-activo {
+    @apply edl-badge bg-green-50 text-inst-verde;
+  }
+  .edl-badge-inactivo {
+    @apply edl-badge bg-red-50 text-inst-rojo;
+  }
+  .edl-badge-pendiente {
+    @apply edl-badge bg-amber-50 text-amber-700;
+  }
+  .edl-section-title {
+    @apply text-lg font-heading font-semibold text-inst-azul flex items-center gap-2;
+  }
+  .edl-section-title::before {
+    content: '';
+    @apply w-1 h-5 bg-inst-rojo rounded-full;
+  }
+}

@@ -1,0 +1,99 @@
+<?php
+
+namespace App\Controller;
+
+use App\Service\AuthService;
+use App\Helper\ResponseHelper;
+use App\Helper\SanitizerHelper;
+use App\Helper\ValidatorHelper;
+use App\Middleware\AuthMiddleware;
+
+class AuthController
+{
+    private AuthService $service;
+
+    public function __construct()
+    {
+        $this->service = new AuthService();
+    }
+
+    public function login(): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $input = SanitizerHelper::sanitizeArray($input);
+
+        $v = new ValidatorHelper();
+        if (!$v->validate($input, ['documento' => 'required', 'tipo_documento' => 'required', 'password' => 'required'])) {
+            ResponseHelper::error('Datos incompletos: ' . implode(', ', $v->errors()), 422);
+        }
+
+        $resultado = $this->service->login($input['documento'], $input['tipo_documento'], $input['password']);
+        ResponseHelper::success($resultado, 'Autenticacion exitosa');
+    }
+
+    public function logout(): void
+    {
+        $user = AuthMiddleware::user();
+        $this->service->logout($user['id']);
+        ResponseHelper::success(null, 'Sesion cerrada');
+    }
+
+    public function recuperar(): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $input = SanitizerHelper::sanitizeArray($input);
+
+        $v = new ValidatorHelper();
+        if (!$v->validate($input, ['email' => 'required|email'])) {
+            ResponseHelper::error('Correo invalido', 422);
+        }
+
+        $token = $this->service->recuperarPassword($input['email']);
+        ResponseHelper::success(['token' => $token], 'Se genero un enlace de recuperacion');
+    }
+
+    public function resetPassword(string $token): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $input = SanitizerHelper::sanitizeArray($input);
+
+        $v = new ValidatorHelper();
+        if (!$v->validate($input, ['password' => 'required|min:8'])) {
+            ResponseHelper::error('Contrasena invalida: minimo 8 caracteres', 422);
+        }
+
+        $this->service->resetPassword($token, $input['password']);
+        ResponseHelper::success(null, 'Contrasena actualizada');
+    }
+
+    public function perfil(): void
+    {
+        $user = AuthMiddleware::user();
+        $resultado = $this->service->obtenerPerfil($user['id']);
+        ResponseHelper::success($resultado);
+    }
+
+    public function actualizarPerfil(): void
+    {
+        $user = AuthMiddleware::user();
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $input = SanitizerHelper::sanitizeArray($input);
+        $this->service->actualizarPerfil($user['id'], $input);
+        ResponseHelper::success(null, 'Perfil actualizado');
+    }
+
+    public function cambiarPassword(): void
+    {
+        $user = AuthMiddleware::user();
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $input = SanitizerHelper::sanitizeArray($input);
+
+        $v = new ValidatorHelper();
+        if (!$v->validate($input, ['password_actual' => 'required', 'password_nueva' => 'required|min:8'])) {
+            ResponseHelper::error('Datos invalidos', 422);
+        }
+
+        $this->service->cambiarPassword($user['id'], $input['password_actual'], $input['password_nueva']);
+        ResponseHelper::success(null, 'Contrasena actualizada');
+    }
+}

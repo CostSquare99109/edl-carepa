@@ -1,0 +1,20 @@
+{
+    "name": "edl-cnsc/backend",
+    "description": "EDL-CNSC Evaluacion del Desempeno Laboral - Backend API",
+    "type": "project",
+    "require": {
+        "php": ">=8.4",
+        "firebase/php-jwt": "^6.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "audit": {
+            "block-insecure": false
+        }
+    }
+}
