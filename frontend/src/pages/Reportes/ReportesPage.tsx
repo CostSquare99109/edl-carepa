@@ -5,7 +5,7 @@ export default function ReportesPage() {
   const [periodoId, setPeriodoId] = useState('')
   const [entidadId, setEntidadId] = useState('')
   const [loading, setLoading] = useState(false)
-  const [reporte, setReporte] = useState<unknown>(null)
+  const [reporte, setReporte] = useState<Record<string, unknown> | null>(null)
   const [tipo, setTipo] = useState('concertacion')
   const [error, setError] = useState('')
 
