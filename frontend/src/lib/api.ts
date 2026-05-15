@@ -34,14 +34,31 @@ class ApiClient {
     };
     if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
 
-    const res = await fetch(`${API_BASE}${path}`, opts);
-    const json: ApiResponse<T> = await res.json();
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}${path}`, opts);
+    } catch {
+      throw new Error('No se puede conectar con el servidor. Verifique que el backend esté corriendo.');
+    }
+
+    // Si la respuesta no tiene contenido o no es JSON
+    const text = await res.text();
+    if (!text) {
+      throw new Error('El servidor no respondió. Verifique que el backend esté corriendo en localhost:8000');
+    }
+
+    let json: ApiResponse<T>;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error('Respuesta inválida del servidor. ¿El backend está corriendo?');
+    }
 
     if (res.status === 401) {
       localStorage.removeItem('edl_token');
       localStorage.removeItem('edl_user');
-      window.location.href = '/login';
-      throw new Error('Sesion expirada');
+      window.location.href = '/edl-cnsc/login';
+      throw new Error('Sesión expirada');
     }
 
     if (json.code !== '01') {
