@@ -4,3 +4,5 @@ dist/
 *.log
 .DS_Store
 vendor/
+node_modules/
+vendor/
