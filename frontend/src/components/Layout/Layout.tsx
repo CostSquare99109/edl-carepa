@@ -13,7 +13,7 @@ export default function Layout() {
           {/* Escudo CNSC */}
           <div className="flex-shrink-0">
             <img
-              src="/escudo.png"
+              src={`${import.meta.env.BASE_URL}escudo.png`}
               alt="CNSC"
               className="h-12 w-auto"
               onError={(e) => {

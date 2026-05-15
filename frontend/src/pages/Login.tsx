@@ -41,7 +41,7 @@ export default function Login() {
           {/* Logo CNSC */}
           <div className="flex justify-center mb-6">
             <img
-              src="/escudo.png"
+              src={`${import.meta.env.BASE_URL}escudo.png`}
               alt="CNSC"
               className="h-20 w-auto"
               onError={(e) => {
