@@ -92,9 +92,14 @@ $router->group('/api/v1', function (Router $r) {
         $r->get('/evaluaciones/{id}/compromisos', [\App\Controller\EvaluacionController::class, 'compromisos'], ['permiso:compromisos.listar']);
         $r->post('/evaluaciones/{id}/compromisos', [\App\Controller\EvaluacionController::class, 'crearCompromiso'], ['permiso:compromisos.crear']);
 
-        // Compromisos
-        $r->get('/compromisos', [\App\Controller\CompromisoController::class, 'listar'], ['permiso:compromisos.listar']);
-        $r->put('/compromisos/{id}', [\App\Controller\CompromisoController::class, 'actualizar'], ['permiso:compromisos.editar']);
+    // Compromisos
+    $r->get('/compromisos', [\App\Controller\CompromisoController::class, 'listar'], ['permiso:compromisos.listar']);
+    $r->post('/compromisos/enviar', [\App\Controller\CompromisoController::class, 'enviar'], ['permiso:compromisos.enviar']);
+    $r->get('/compromisos/pendientes', [\App\Controller\CompromisoController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
+    $r->put('/compromisos/{id}/aprobar', [\App\Controller\CompromisoController::class, 'aprobar'], ['permiso:compromisos.aprobar']);
+    $r->put('/compromisos/{id}/rechazar', [\App\Controller\CompromisoController::class, 'rechazar'], ['permiso:compromisos.aprobar']);
+    $r->get('/compromisos/{id}/pesos', [\App\Controller\CompromisoController::class, 'resumenPesos'], ['permiso:compromisos.listar']);
+    $r->put('/compromisos/{id}', [\App\Controller\CompromisoController::class, 'actualizar'], ['permiso:compromisos.editar']);
 
         // Evidencias
         $r->get('/evidencias', [\App\Controller\EvidenciaController::class, 'listar'], ['permiso:evidencias.listar']);

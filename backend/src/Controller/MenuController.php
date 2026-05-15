@@ -39,31 +39,42 @@ class MenuController
       $modulos[$p['modulo']][] = ['codigo' => $p['codigo'], 'nombre' => $p['nombre']];
     }
 
-    $menu = [];
-    $menuMap = [
-      'entidades' => ['label' => 'Entidades', 'icon' => 'business', 'ruta' => '/entidades'],
-      'dependencias' => ['label' => 'Dependencias', 'icon' => 'account_tree', 'ruta' => '/dependencias'],
-      'usuarios' => ['label' => 'Usuarios', 'icon' => 'people', 'ruta' => '/usuarios'],
-      'periodos' => ['label' => 'Periodos', 'icon' => 'calendar_today', 'ruta' => '/periodos'],
-      'metas' => ['label' => 'Metas', 'icon' => 'flag', 'ruta' => '/metas'],
-      'concertaciones' => ['label' => 'Concertaciones', 'icon' => 'handshake', 'ruta' => '/concertaciones'],
-      'evaluaciones' => ['label' => 'Evaluaciones', 'icon' => 'assessment', 'ruta' => '/evaluaciones'],
-      'compromisos' => ['label' => 'Compromisos', 'icon' => 'task_alt', 'ruta' => '/compromisos'],
-      'evidencias' => ['label' => 'Evidencias', 'icon' => 'attach_file', 'ruta' => '/evidencias'],
-      'ausentismos' => ['label' => 'Ausentismos', 'icon' => 'event_busy', 'ruta' => '/ausentismos'],
-      'movilidades' => ['label' => 'Movilidad', 'icon' => 'swap_horiz', 'ruta' => '/movilidad'],
-      'reportes' => ['label' => 'Reportes', 'icon' => 'summarize', 'ruta' => '/reportes'],
-      'cargas' => ['label' => 'Cargas Masivas', 'icon' => 'upload_file', 'ruta' => '/cargas'],
-      'auditoria' => ['label' => 'Auditoria', 'icon' => 'history', 'ruta' => '/auditoria'],
-      'parametros' => ['label' => 'Parametros', 'icon' => 'settings', 'ruta' => '/parametros'],
-    ];
+ $menu = [];
+ $menuMap = [
+ 'entidades' => ['label' => 'Entidades', 'icon' => 'business', 'ruta' => '/entidades'],
+ 'dependencias' => ['label' => 'Dependencias', 'icon' => 'account_tree', 'ruta' => '/dependencias'],
+ 'usuarios' => ['label' => 'Usuarios', 'icon' => 'people', 'ruta' => '/usuarios'],
+ 'periodos' => ['label' => 'Periodos', 'icon' => 'calendar_today', 'ruta' => '/periodos'],
+ 'metas' => ['label' => 'Metas', 'icon' => 'flag', 'ruta' => '/metas'],
+ 'concertaciones' => ['label' => 'Concertaciones', 'icon' => 'handshake', 'ruta' => '/concertaciones'],
+ 'evaluaciones' => ['label' => 'Evaluaciones', 'icon' => 'assessment', 'ruta' => '/evaluaciones'],
+ 'compromisos' => ['label' => 'Mis Compromisos', 'icon' => 'task_alt', 'ruta' => '/compromisos/mios'],
+ 'evidencias' => ['label' => 'Evidencias', 'icon' => 'attach_file', 'ruta' => '/evidencias'],
+ 'ausentismos' => ['label' => 'Ausentismos', 'icon' => 'event_busy', 'ruta' => '/ausentismos'],
+ 'movilidades' => ['label' => 'Movilidad', 'icon' => 'swap_horiz', 'ruta' => '/movilidad'],
+ 'reportes' => ['label' => 'Reportes', 'icon' => 'summarize', 'ruta' => '/reportes'],
+ 'cargas' => ['label' => 'Cargas Masivas', 'icon' => 'upload_file', 'ruta' => '/cargas'],
+ 'auditoria' => ['label' => 'Auditoria', 'icon' => 'history', 'ruta' => '/auditoria'],
+ 'parametros' => ['label' => 'Parametros', 'icon' => 'settings', 'ruta' => '/parametros'],
+ ];
 
-    foreach ($modulos as $modulo => $permisosModulo) {
-      if (isset($menuMap[$modulo])) {
-        $menu[] = array_merge($menuMap[$modulo], ['permisos' => $permisosModulo]);
-      }
-    }
+ foreach ($modulos as $modulo => $permisosModulo) {
+ if (isset($menuMap[$modulo])) {
+ $menu[] = array_merge($menuMap[$modulo], ['permisos' => $permisosModulo]);
+ }
+ }
 
-    ResponseHelper::success($menu);
+ // Agregar item "Aprobar Compromisos" para evaluadores
+ $puedeAprobar = !empty(array_intersect($rolCodigos, ['evaluador', 'jefe_entidad', 'jefe_dependencia', 'admin']));
+ if ($puedeAprobar) {
+ $menu[] = [
+ 'label' => 'Aprobar Compromisos',
+ 'icon' => 'fact_check',
+ 'ruta' => '/compromisos/aprobar',
+ 'permisos' => [['codigo' => 'compromisos.aprobar', 'nombre' => 'Aprobar compromiso']],
+ ];
+ }
+
+ ResponseHelper::success($menu);
   }
 }
