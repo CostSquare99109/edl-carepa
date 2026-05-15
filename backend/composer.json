@@ -3,7 +3,7 @@
     "description": "EDL-CNSC Evaluacion del Desempeno Laboral - Backend API",
     "type": "project",
     "require": {
-        "php": ">=8.4",
+        "php": ">=8.2",
         "firebase/php-jwt": "^6.11"
     },
     "autoload": {
