@@ -1,42 +1,23 @@
 -- Migración: Agregar peso y evaluador a compromisos, cambiar estados
--- Ejecutar en MySQL de XAMPP
+-- Ejecutar en MySQL
 
 USE edl_cnsc;
 
 -- Agregar columna peso (porcentaje del compromiso)
-ALTER TABLE compromisos ADD COLUMN peso DECIMAL(5,2) NOT NULL DEFAULT 0.00 AFTER tipo;
+ALTER TABLE compromisos ADD COLUMN peso DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Porcentaje de peso del compromiso (0-100)' AFTER plazo;
 
--- Agregar columna evaluador_id (quien aprueba el compromiso)
-ALTER TABLE compromisos ADD COLUMN evaluador_id BIGINT UNSIGNED DEFAULT NULL AFTER responsable_id;
-ALTER TABLE compromisos ADD CONSTRAINT fk_comp_evaluador FOREIGN KEY (evaluador_id) REFERENCES usuarios(id) ON DELETE SET NULL;
+-- Agregar columna evaluador_id (quien aprueba)
+ALTER TABLE compromisos ADD COLUMN evaluador_id BIGINT UNSIGNED NULL DEFAULT NULL COMMENT 'Evaluador que aprueba el compromiso' AFTER responsable_id;
 
--- Agregar columna observaciones_evaluador
-ALTER TABLE compromisos ADD COLUMN observaciones_evaluador TEXT DEFAULT NULL AFTER observaciones;
+-- Agregar columna observaciones_evaluador 
+ALTER TABLE compromisos ADD COLUMN observaciones_evaluador TEXT DEFAULT NULL AFTER evaluador_id;
 
--- Modificar estados: agregar 'enviado', 'aprobado', 'rechazado'
+-- Modificar enum de estado para incluir 'enviado', 'aprobado', 'rechazado'
 ALTER TABLE compromisos MODIFY COLUMN estado ENUM('pendiente','enviado','aprobado','rechazado','en_progreso','cumplido','incumplido','vencido') NOT NULL DEFAULT 'pendiente';
 
--- Agregar permisos nuevos para compromisos
-INSERT INTO permisos (codigo, nombre, modulo, descripcion) VALUES
-('compromisos.enviar', 'Enviar compromiso', 'compromisos', 'Funcionario envia compromiso para aprobacion'),
-('compromisos.aprobar', 'Aprobar compromiso', 'compromisos', 'Evaluador aprueba compromiso con peso');
+-- Agregar foreign key para evaluador_id
+ALTER TABLE compromisos ADD CONSTRAINT fk_compromiso_evaluador FOREIGN KEY (evaluador_id) REFERENCES usuarios(id) ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Dar permisos al evaluador
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'evaluador' AND p.codigo IN ('compromisos.enviar', 'compromisos.aprobar');
-
--- Dar permisos al funcionario
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'funcionario' AND p.codigo IN ('compromisos.enviar');
-
--- Dar permisos al jefe de entidad
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'jefe_entidad' AND p.codigo IN ('compromisos.enviar', 'compromisos.aprobar');
-
--- Dar permisos al jefe de dependencia
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'jefe_dependencia' AND p.codigo IN ('compromisos.enviar', 'compromisos.aprobar');
+-- Agregar índice para consultas de evaluador
+CREATE INDEX idx_compromisos_evaluador ON compromisos(evaluador_id);
+CREATE INDEX idx_compromisos_estado ON compromisos(estado);
