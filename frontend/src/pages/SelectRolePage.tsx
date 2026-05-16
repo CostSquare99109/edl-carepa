@@ -13,41 +13,27 @@ interface RolConfig {
 }
 
 const ROLES_CONFIG: Record<string, RolConfig> = {
-  evaluado: {
-    icon: 'person',
-    descripcion: 'Consulte sus metas, compromisos, evidencias y resultados de evaluación.',
-    colorBarra: 'border-l-blue-600',
-    colorFondo: 'bg-blue-100',
-    colorTexto: 'text-blue-800',
-  },
-  evaluador: {
-    icon: 'rate_review',
-    descripcion: 'Evalúe el desempeño de los funcionarios a su cargo y gestione concertaciones.',
-    colorBarra: 'border-l-green-600',
-    colorFondo: 'bg-green-100',
-    colorTexto: 'text-green-800',
-  },
-  admin_entidad: {
-    icon: 'admin_panel_settings',
-    descripcion: 'Administre usuarios, entidades y configuraciones de su organización.',
-    colorBarra: 'border-l-purple-600',
-    colorFondo: 'bg-purple-100',
-    colorTexto: 'text-purple-800',
-  },
-  comision_evaluadora: {
-    icon: 'groups',
-    descripcion: 'Participe en las comisiones de evaluación y revise procesos institucionales.',
-    colorBarra: 'border-l-amber-600',
-    colorFondo: 'bg-amber-100',
-    colorTexto: 'text-amber-800',
-  },
-  admin_cnsc: {
-    icon: 'shield',
-    descripcion: 'Acceso total al sistema: gestión de periodos, entidades, reportes y configuración global.',
-    colorBarra: 'border-l-red-600',
-    colorFondo: 'bg-red-100',
-    colorTexto: 'text-red-800',
-  },
+ admin: {
+ icon: 'shield',
+ descripcion: 'Acceso total al sistema: gestión de usuarios, dependencias, evaluaciones, reportes.',
+ colorBarra: 'border-l-red-600',
+ colorFondo: 'bg-red-100',
+ colorTexto: 'text-red-800',
+ },
+ evaluado: {
+ icon: 'person',
+ descripcion: 'Consulte sus metas, compromisos, evidencias y resultados de evaluación.',
+ colorBarra: 'border-l-blue-600',
+ colorFondo: 'bg-blue-100',
+ colorTexto: 'text-blue-800',
+ },
+ evaluador: {
+ icon: 'rate_review',
+ descripcion: 'Evalúe el desempeño de los funcionarios a su cargo y gestione concertaciones.',
+ colorBarra: 'border-l-green-600',
+ colorFondo: 'bg-green-100',
+ colorTexto: 'text-green-800',
+ },
 };
 
 /* fallback para roles no previstos */
@@ -76,7 +62,7 @@ export default function SelectRolePage() {
     try {
       await cambiarRol(rol.codigo);
       // Redirigir según el rol seleccionado
-      if (['admin_cnsc', 'admin_entidad'].includes(rol.codigo)) {
+      if (['admin', 'admin_cnsc', 'admin_entidad'].includes(rol.codigo)) {
         navigate('/admin', { replace: true });
       } else {
         navigate('/', { replace: true });

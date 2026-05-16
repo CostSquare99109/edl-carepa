@@ -24,7 +24,7 @@ import AdminUsuarios from './pages/Admin/AdminUsuarios'
 import AdminDependencias from './pages/Admin/AdminDependencias'
 import AdminEvaluaciones from './pages/Admin/AdminEvaluaciones'
 import AdminReportes from './pages/Admin/AdminReportes'
-import AdminConfiguracion from './pages/Admin/AdminConfiguracion'
+import AdminNotificaciones from './pages/Admin/AdminNotificaciones'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuth()
@@ -54,14 +54,14 @@ export default function App() {
         <Route path="panel-evaluador" element={<PanelEvaluador />} />
         <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
       </Route>
-      {/* Admin panel — layout con sidebar + Outlet */}
+      {/* Admin panel */}
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>}>
         <Route index element={<AdminHome />} />
         <Route path="usuarios" element={<AdminUsuarios />} />
         <Route path="dependencias" element={<AdminDependencias />} />
         <Route path="evaluaciones" element={<AdminEvaluaciones />} />
         <Route path="reportes" element={<AdminReportes />} />
-        <Route path="configuracion" element={<AdminConfiguracion />} />
+        <Route path="notificaciones" element={<AdminNotificaciones />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

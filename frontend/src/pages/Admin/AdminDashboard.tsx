@@ -1,29 +1,42 @@
-import { useState } from 'react';
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { api } from '../../lib/api';
 
-/* ─────────────────────────────────────────────
- Menú lateral
- ───────────────────────────────────────────── */
+/* ─── Tipos ─── */
+interface Notificacion {
+  id: number;
+  titulo: string;
+  mensaje: string;
+  tipo: string;
+  leida: boolean;
+  creado_en: string;
+}
 
+/* ─── Menú lateral (sin Configuración) ─── */
 const SIDEBAR_MENU = [
   { key: 'dashboard', label: 'Tablero de Control', icon: 'dashboard', path: '/admin' },
   { key: 'usuarios', label: 'Usuarios', icon: 'people', path: '/admin/usuarios' },
   { key: 'dependencias', label: 'Dependencias', icon: 'account_tree', path: '/admin/dependencias' },
   { key: 'evaluaciones', label: 'Evaluaciones', icon: 'assessment', path: '/admin/evaluaciones' },
   { key: 'reportes', label: 'Reportes', icon: 'summarize', path: '/admin/reportes' },
-  { key: 'configuracion', label: 'Configuración', icon: 'settings', path: '/admin/configuracion' },
 ];
 
-/* ─────────────────────────────────────────────
- Layout AdminLTE — Sidebar + Header + Outlet
- ───────────────────────────────────────────── */
+const NOTIF_ICON: Record<string, string> = {
+  info: 'info', alerta: 'warning', exito: 'check_circle', error: 'error',
+};
+const NOTIF_COLOR: Record<string, string> = {
+  info: 'border-inst-azul', alerta: 'border-amber-500', exito: 'border-inst-verde', error: 'border-inst-rojo',
+};
 
 export default function AdminDashboard() {
   const { usuario, roles, rolActivo, cambiarRol, logout } = useAuth();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notificacionesOpen, setNotificacionesOpen] = useState(false);
   const [rolDropdownOpen, setRolDropdownOpen] = useState(false);
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [noLeidas, setNoLeidas] = useState(0);
   const location = useLocation();
 
   const nombreCompleto = usuario
@@ -31,8 +44,30 @@ export default function AdminDashboard() {
     : 'Administrador';
 
   const rolesAdmin = roles?.filter(r =>
-    ['admin_cnsc', 'admin_entidad'].includes(r.codigo)
+    ['admin_cnsc', 'admin_entidad', 'admin'].includes(r.codigo)
   ) || [];
+
+  /* Cargar notificaciones reales */
+  useEffect(() => {
+    const cargarNotif = async () => {
+      try {
+        const res = await api.get<any>('/notificaciones?por_pagina=10');
+        const items = res.data || res.items || res || [];
+        setNotificaciones(Array.isArray(items) ? items : []);
+        const noLeidasCount = items.filter?.((n: Notificacion) => !n.leida)?.length || 0;
+        setNoLeidas(noLeidasCount);
+      } catch { /* silencioso */ }
+    };
+    cargarNotif();
+    const interval = setInterval(cargarNotif, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const marcarLeida = async (id: number) => {
+    try { await api.put(`/notificaciones/${id}/leer`); } catch {}
+    setNotificaciones(prev => prev.map(n => n.id === id ? {...n, leida: true} : n));
+    setNoLeidas(prev => Math.max(0, prev - 1));
+  };
 
   /* Detectar menú activo según la ruta */
   const activeMenu = SIDEBAR_MENU.find(m => {
@@ -40,20 +75,23 @@ export default function AdminDashboard() {
     return location.pathname.startsWith(m.path);
   })?.key || 'dashboard';
 
+  /* Año dinámico */
+  const currentYear = new Date().getFullYear();
+
   /* ── Sidebar ── */
   const sidebar = (
     <aside
       className={`
-        fixed top-0 left-0 h-full z-40
-        w-[250px] bg-[#003366] text-white
-        flex flex-col
-        transition-transform duration-300 ease-in-out
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
-      `}
+      fixed top-0 left-0 h-full z-40
+      w-[250px] bg-[#003366] text-white
+      flex flex-col
+      transition-transform duration-300 ease-in-out
+      ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      lg:translate-x-0
+    `}
     >
       {/* Logo */}
-      <div className="h-[60px] flex items-center justify-center border-b border-white/10 px-4">
+      <div className="h-[60px] flex items-center justify-between border-b border-white/10 px-4">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
             <span className="material-icons text-2xl text-amber-400">account_balance</span>
@@ -68,14 +106,12 @@ export default function AdminDashboard() {
       {/* Perfil breve */}
       <div className="px-4 py-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-inst-azul flex items-center justify-center text-sm font-bold">
+          <div className="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-sm font-bold">
             {nombreCompleto.split(' ').map(n => n[0]).slice(0, 2).join('')}
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">{nombreCompleto}</p>
-            <p className="text-[11px] text-white/50 truncate">
-              {rolActivo === 'admin_cnsc' ? 'Admin CNSC' : 'Admin Entidad'}
-            </p>
+            <p className="text-[11px] text-white/50 truncate">Admin</p>
           </div>
         </div>
       </div>
@@ -92,12 +128,12 @@ export default function AdminDashboard() {
               key={item.key}
               to={item.path}
               className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5
-                text-sm transition-all duration-150
-                ${isActive
-                  ? 'bg-white/15 text-white font-semibold shadow-sm'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'}
-              `}
+              flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5
+              text-sm transition-all duration-150
+              ${isActive
+                ? 'bg-white/15 text-white font-semibold shadow-sm'
+                : 'text-white/70 hover:bg-white/10 hover:text-white'}
+            `}
             >
               <span className="material-icons text-lg">{item.icon}</span>
               <span>{item.label}</span>
@@ -122,14 +158,7 @@ export default function AdminDashboard() {
       {/* Toggle sidebar */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="p-2 rounded-lg hover:bg-inst-gris transition-colors mr-3 lg:hidden"
-        aria-label="Toggle sidebar"
-      >
-        <span className="material-icons text-inst-texto">menu</span>
-      </button>
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="p-2 rounded-lg hover:bg-inst-gris transition-colors mr-3 hidden lg:inline-flex"
+        className="p-2 rounded-lg hover:bg-inst-gris transition-colors mr-3"
         aria-label="Toggle sidebar"
       >
         <span className="material-icons text-inst-texto">
@@ -158,7 +187,7 @@ export default function AdminDashboard() {
           >
             <span className="material-icons text-base text-inst-azul">admin_panel_settings</span>
             <span className="hidden sm:inline text-inst-texto font-medium">
-              {rolActivo === 'admin_cnsc' ? 'Admin CNSC' : 'Admin Entidad'}
+              {rolActivo === 'admin_cnsc' ? 'Admin CNSC' : rolActivo === 'admin' ? 'Admin' : 'Admin Entidad'}
             </span>
             <span className="material-icons text-base text-inst-texto-claro">
               {rolDropdownOpen ? 'expand_less' : 'expand_more'}
@@ -176,9 +205,9 @@ export default function AdminDashboard() {
                       setRolDropdownOpen(false);
                     }}
                     className={`
-                      w-full text-left px-4 py-2 text-sm hover:bg-inst-gris transition-colors
-                      ${rolActivo === r.codigo ? 'font-semibold text-inst-azul' : 'text-inst-texto'}
-                    `}
+                    w-full text-left px-4 py-2 text-sm hover:bg-inst-gris transition-colors
+                    ${rolActivo === r.codigo ? 'font-semibold text-inst-azul' : 'text-inst-texto'}
+                  `}
                   >
                     {r.nombre}
                   </button>
@@ -189,41 +218,58 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Notificaciones */}
+      {/* Notificaciones reales */}
       <div className="relative mr-2">
         <button
           onClick={() => { setNotificacionesOpen(!notificacionesOpen); setRolDropdownOpen(false); }}
           className="relative p-2 rounded-lg hover:bg-inst-gris transition-colors"
         >
           <span className="material-icons text-inst-texto">notifications</span>
-          <span className="absolute top-1 right-1 w-2 h-2 bg-inst-rojo rounded-full" />
+          {noLeidas > 0 && (
+            <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-inst-rojo rounded-full text-white text-[10px] flex items-center justify-center font-bold px-1">
+              {noLeidas}
+            </span>
+          )}
         </button>
         {notificacionesOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setNotificacionesOpen(false)} />
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-inst-borde z-20">
-              <div className="px-4 py-3 border-b border-inst-borde">
+              <div className="px-4 py-3 border-b border-inst-borde flex items-center justify-between">
                 <p className="font-heading font-semibold text-inst-azul text-sm">Notificaciones</p>
+                {noLeidas > 0 && <span className="text-xs bg-inst-rojo text-white rounded-full px-2 py-0.5">{noLeidas} nueva(s)</span>}
               </div>
               <div className="py-2 max-h-64 overflow-y-auto">
-                <div className="px-4 py-3 hover:bg-inst-gris transition-colors cursor-pointer border-l-4 border-inst-azul">
-                  <p className="text-sm font-medium text-inst-texto">Nuevo evaluador registrado</p>
-                  <p className="text-xs text-inst-texto-claro mt-0.5">Hace 5 minutos</p>
-                </div>
-                <div className="px-4 py-3 hover:bg-inst-gris transition-colors cursor-pointer border-l-4 border-amber-500">
-                  <p className="text-sm font-medium text-inst-texto">Evaluación pendiente de aprobación</p>
-                  <p className="text-xs text-inst-texto-claro mt-0.5">Hace 1 hora</p>
-                </div>
-                <div className="px-4 py-3 hover:bg-inst-gris transition-colors cursor-pointer border-l-4 border-inst-verde">
-                  <p className="text-sm font-medium text-inst-texto">Periodo 2025-I activado</p>
-                  <p className="text-xs text-inst-texto-claro mt-0.5">Hace 3 horas</p>
-                </div>
+                {notificaciones.length === 0 ? (
+                  <p className="text-center text-gray-400 text-sm py-6">No hay notificaciones</p>
+                ) : (
+                  notificaciones.map(n => (
+                    <div
+                      key={n.id}
+                      onClick={() => { if (!n.leida) marcarLeida(n.id); }}
+                      className={`px-4 py-3 hover:bg-inst-gris transition-colors cursor-pointer border-l-4 ${NOTIF_COLOR[n.tipo] || 'border-gray-300'} ${!n.leida ? 'bg-blue-50/50' : ''}`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="material-icons text-base mt-0.5 text-inst-texto-claro">{NOTIF_ICON[n.tipo] || 'notifications'}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm ${!n.leida ? 'font-semibold text-inst-texto' : 'text-inst-texto'}`}>{n.titulo}</p>
+                          <p className="text-xs text-inst-texto-claro mt-0.5 line-clamp-2">{n.mensaje}</p>
+                          <p className="text-[10px] text-inst-texto-claro/60 mt-1">
+                            {new Date(n.creado_en).toLocaleString('es-CO')}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
               <div className="px-4 py-2 border-t border-inst-borde text-center">
-                <Link to="/admin/reportes" onClick={() => setNotificacionesOpen(false)}
-                  className="text-xs text-inst-azul hover:underline font-medium">
+                <button
+                  onClick={() => { setNotificacionesOpen(false); navigate('/admin/notificaciones'); }}
+                  className="text-xs text-inst-azul hover:underline font-medium"
+                >
                   Ver todas las notificaciones
-                </Link>
+                </button>
               </div>
             </div>
           </>
@@ -264,19 +310,19 @@ export default function AdminDashboard() {
       {/* Contenedor derecho */}
       <div
         className={`
-          transition-all duration-300
-          ${sidebarOpen ? 'lg:ml-[250px]' : 'lg:ml-0'}
-        `}
+        transition-all duration-300
+        ${sidebarOpen ? 'lg:ml-[250px]' : 'lg:ml-0'}
+      `}
       >
         {/* Header */}
         {header}
 
-        {/* Contenido dinámico — aquí se renderizan las sub-páginas */}
+        {/* Contenido dinámico */}
         <Outlet />
 
-        {/* Footer */}
+        {/* Footer con año dinámico */}
         <footer className="text-center py-4 border-t border-inst-borde text-xs text-inst-texto-claro">
-          EDL-CNSC © 2025 — Comisión Nacional del Servicio Civil
+          EDL-CNSC © {currentYear} — Comisión Nacional del Servicio Civil
         </footer>
       </div>
     </div>

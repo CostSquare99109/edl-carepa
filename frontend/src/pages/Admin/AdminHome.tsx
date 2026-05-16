@@ -1,167 +1,185 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 
-/* ─────────────────────────────────────────────
- Tipos
- ───────────────────────────────────────────── */
-interface AdminStats {
+interface Stats {
   evaluados_activos: number;
   evaluadores_registrados: number;
   evaluaciones_completadas: number;
   evaluaciones_pendientes: number;
-  progreso_dependencia: { nombre: string; porcentaje: number; total: number; completadas: number }[];
-  periodo_activo: { id: number; nombre: string; fecha_inicio: string; fecha_fin: string; estado: string } | null;
-  evaluaciones_recientes: { id: number; tipo: string; estado: string; puntaje: string | null; fecha_evaluacion: string | null; evaluado: string; evaluador: string }[];
+  periodo_activo: { id: number; nombre: string } | null;
+  progreso_dependencias: { dependencia: string; progreso: number }[];
+  evaluaciones_recientes: { id: number; evaluado: string; tipo: string; estado: string; fecha: string }[];
   entidades_activas: number;
 }
 
-interface SmallBox { label: string; value: number; icon: string; color: string; link: string }
-
-const TIPO_LABEL: Record<string, string> = { autoevaluacion: 'Autoevaluación', coevaluacion: 'Coevaluación', heteroevaluacion: 'Heteroevaluación' };
-const ESTADO_BADGE: Record<string, string> = {
-  pendiente: 'bg-yellow-100 text-yellow-800',
-  en_proceso: 'bg-blue-100 text-blue-800',
-  calificada: 'bg-green-100 text-green-800',
-  revisada: 'bg-indigo-100 text-indigo-800',
-  cerrada: 'bg-gray-100 text-gray-800',
+const ROLE_MAP: Record<string, string> = {
+  admin: 'Admin',
+  evaluador: 'Evaluador',
+  evaluado: 'Evaluado',
 };
 
 export default function AdminHome() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const navigate = useNavigate();
+  const [stats, setStats] = useState<Stats | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    api.get<AdminStats>('/dashboard/admin-stats')
-      .then(setStats)
-      .catch(e => setError(e.message))
-      .finally(() => setCargando(false));
+  const cargar = useCallback(async () => {
+    setCargando(true); setError('');
+    try {
+      const res = await api.get<Stats>('/dashboard/admin-stats');
+      setStats(res);
+    } catch (e: any) { setError(e.message); }
+    setCargando(false);
   }, []);
 
-  if (cargando) return <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003366]" /></div>;
-  if (error) return <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg">{error}</div>;
-  if (!stats) return <div className="text-gray-500 text-center py-10">No hay datos disponibles</div>;
+  useEffect(() => { cargar(); }, [cargar]);
 
-  const boxes: SmallBox[] = [
-    { label: 'Evaluados Activos', value: stats.evaluados_activos, icon: 'fa-users', color: 'bg-[#003366]', link: '/admin/usuarios' },
-    { label: 'Evaluadores', value: stats.evaluadores_registrados, icon: 'fa-user-tie', color: 'bg-[#1E5A3C]', link: '/admin/evaluaciones' },
-    { label: 'Evaluaciones Completadas', value: stats.evaluaciones_completadas, icon: 'fa-check-circle', color: 'bg-[#28a745]', link: '/admin/evaluaciones' },
-    { label: 'Evaluaciones Pendientes', value: stats.evaluaciones_pendientes, icon: 'fa-clock', color: 'bg-[#C4282B]', link: '/admin/evaluaciones' },
+  if (cargando) return (
+    <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+  );
+
+  if (error) return (
+    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg m-4">
+      <p className="font-medium">Error al cargar estadísticas</p><p className="text-sm mt-1">{error}</p>
+    </div>
+  );
+
+  const smallBoxes = [
+    { label: 'Evaluados Activos', value: stats?.evaluados_activos ?? 0, icon: 'person', color: 'bg-blue-600', filter: 'evaluado', route: '/admin/usuarios' },
+    { label: 'Evaluadores', value: stats?.evaluadores_registrados ?? 0, icon: 'rate_review', color: 'bg-green-600', filter: 'evaluador', route: '/admin/usuarios' },
+    { label: 'Evaluaciones Completadas', value: stats?.evaluaciones_completadas ?? 0, icon: 'task_alt', color: 'bg-[#1E5A3C]', filter: 'completada', route: '/admin/evaluaciones' },
+    { label: 'Evaluaciones Pendientes', value: stats?.evaluaciones_pendientes ?? 0, icon: 'pending', color: 'bg-[#C4282B]', filter: 'pendiente', route: '/admin/evaluaciones' },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Small-boxes */}
+    <div className="space-y-6 p-4 lg:p-6">
+      <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-tachometer-alt mr-2" />Tablero de Control</h2>
+
+      {/* Periodo activo */}
+      {stats?.periodo_activo && (
+        <div className="bg-white rounded-lg shadow-sm border-l-4 border-[#003366] px-4 py-3">
+          <span className="material-icons text-sm align-middle mr-1 text-[#003366]">event</span>
+          <span className="text-sm font-medium text-[#003366]">Periodo activo: {stats.periodo_activo.nombre}</span>
+        </div>
+      )}
+
+      {/* Roles del sistema */}
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <h3 className="text-sm font-semibold text-[#003366] mb-3">
+          <span className="material-icons text-sm align-middle mr-1">admin_panel_settings</span>
+          Roles del Sistema
+        </h3>
+        <div className="flex gap-3 flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+            <span className="material-icons text-sm">shield</span>Admin
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+            <span className="material-icons text-sm">rate_review</span>Evaluador
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+            <span className="material-icons text-sm">person</span>Evaluado
+          </span>
+        </div>
+      </div>
+
+      {/* Small-boxes clickeables */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {boxes.map((b, i) => (
-          <a key={i} href={b.link} className="block group">
-            <div className={`${b.color} rounded-lg shadow-md p-5 text-white transition-transform group-hover:scale-105`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium opacity-90">{b.label}</p>
-                  <p className="text-3xl font-bold mt-1">{b.value.toLocaleString('es-CO')}</p>
-                </div>
-                <i className={`fas ${b.icon} text-4xl opacity-30`} />
+        {smallBoxes.map((box, idx) => (
+          <div
+            key={idx}
+            onClick={() => navigate(`${box.route}?filtro=${box.filter}`)}
+            className={`${box.color} rounded-lg shadow-md p-4 text-white cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-3xl font-bold">{box.value}</p>
+                <p className="text-sm opacity-90 mt-1">{box.label}</p>
               </div>
+              <span className="material-icons text-4xl opacity-80">{box.icon}</span>
             </div>
-          </a>
+            <div className="mt-2 flex items-center text-xs opacity-75">
+              <span className="material-icons text-xs mr-1">open_in_new</span>
+              Ver detalle
+            </div>
+          </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Progreso por dependencia */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-5">
-          <h3 className="text-lg font-semibold text-[#003366] mb-4">
-            <i className="fas fa-chart-bar mr-2" />Progreso por Dependencia
+      {/* Progreso por dependencia */}
+      {stats?.progreso_dependencias && stats.progreso_dependencias.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <h3 className="text-sm font-semibold text-[#003366] mb-3">
+            <span className="material-icons text-sm align-middle mr-1">account_tree</span>
+            Progreso por Dependencia
           </h3>
-          {stats.progreso_dependencia.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">No hay dependencias registradas</p>
-          ) : (
-            <div className="space-y-3">
-              {stats.progreso_dependencia.map((d, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="font-medium text-gray-700 truncate max-w-[200px]">{d.nombre}</span>
-                    <span className="text-gray-500">{d.completadas}/{d.total} ({d.porcentaje}%)</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className="h-3 rounded-full bg-[#003366] transition-all duration-500"
-                      style={{ width: `${d.porcentaje}%` }}
-                    />
-                  </div>
+          <div className="space-y-3">
+            {stats.progreso_dependencias.map((dep, i) => (
+              <div key={i}>
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-inst-texto truncate max-w-[200px]">{dep.dependencia}</span>
+                  <span className="font-semibold text-[#003366]">{dep.progreso}%</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Periodo activo */}
-        <div className="bg-white rounded-lg shadow-md p-5">
-          <h3 className="text-lg font-semibold text-[#003366] mb-4">
-            <i className="fas fa-calendar-alt mr-2" />Periodo Activo
-          </h3>
-          {stats.periodo_activo ? (
-            <div className="space-y-3 text-sm">
-              <div><span className="text-gray-500">Nombre:</span> <span className="font-semibold">{stats.periodo_activo.nombre}</span></div>
-              <div><span className="text-gray-500">Estado:</span> <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{stats.periodo_activo.estado.replace(/_/g,' ')}</span></div>
-              <div><span className="text-gray-500">Inicio:</span> {stats.periodo_activo.fecha_inicio}</div>
-              <div><span className="text-gray-500">Fin:</span> {stats.periodo_activo.fecha_fin}</div>
-              <div className="pt-3 border-t">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-gray-500">Entidades activas</span>
-                  <span className="font-bold text-[#003366]">{stats.entidades_activas}</span>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className={`h-2.5 rounded-full transition-all ${dep.progreso >= 75 ? 'bg-[#1E5A3C]' : dep.progreso >= 50 ? 'bg-amber-500' : 'bg-[#C4282B]'}`}
+                    style={{ width: `${dep.progreso}%` }}
+                  />
                 </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8">No hay periodo activo</p>
-          )}
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Entidades activas */}
+      <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
+        <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+          <span className="material-icons text-2xl text-purple-700">business</span>
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-inst-texto">{stats?.entidades_activas ?? 0}</p>
+          <p className="text-sm text-inst-texto-claro">Entidades Activas</p>
         </div>
       </div>
 
       {/* Evaluaciones recientes */}
-      <div className="bg-white rounded-lg shadow-md p-5">
-        <h3 className="text-lg font-semibold text-[#003366] mb-4">
-          <i className="fas fa-list-alt mr-2" />Evaluaciones Recientes
-        </h3>
-        {stats.evaluaciones_recientes.length === 0 ? (
-          <p className="text-gray-400 text-center py-8">No hay evaluaciones registradas</p>
-        ) : (
+      {stats?.evaluaciones_recientes && stats.evaluaciones_recientes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm p-4">
+          <h3 className="text-sm font-semibold text-[#003366] mb-3">
+            <span className="material-icons text-sm align-middle mr-1">history</span>
+            Evaluaciones Recientes
+          </h3>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">ID</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Evaluado</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Evaluador</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Tipo</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Estado</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Puntaje</th>
-                  <th className="px-4 py-3 text-left font-semibold text-gray-600">Fecha</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {stats.evaluaciones_recientes.map(e => (
-                  <tr key={e.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-mono text-xs">#{e.id}</td>
-                    <td className="px-4 py-3">{e.evaluado}</td>
-                    <td className="px-4 py-3">{e.evaluador}</td>
-                    <td className="px-4 py-3">{TIPO_LABEL[e.tipo] || e.tipo}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_BADGE[e.estado] || 'bg-gray-100 text-gray-800'}`}>
-                        {e.estado.replace(/_/g,' ')}
+            <table className="w-full text-sm">
+              <thead><tr className="border-b bg-inst-gris">
+                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Evaluado</th>
+                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Tipo</th>
+                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Estado</th>
+                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Fecha</th>
+              </tr></thead>
+              <tbody>
+                {stats.evaluaciones_recientes.map((ev, i) => (
+                  <tr key={i} className="border-b hover:bg-inst-gris/50 transition">
+                    <td className="px-3 py-2">{ev.evaluado}</td>
+                    <td className="px-3 py-2">{ev.tipo}</td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium
+                        ${ev.estado === 'completada' ? 'bg-green-100 text-green-800' :
+                          ev.estado === 'pendiente' ? 'bg-amber-100 text-amber-800' :
+                          'bg-gray-100 text-gray-700'}`}>
+                        {ev.estado}
                       </span>
                     </td>
-                    <td className="px-4 py-3">{e.puntaje ?? '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">{e.fecha_evaluacion ? new Date(e.fecha_evaluacion).toLocaleDateString('es-CO') : '—'}</td>
+                    <td className="px-3 py-2 text-inst-texto-claro">{new Date(ev.fecha).toLocaleDateString('es-CO')}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

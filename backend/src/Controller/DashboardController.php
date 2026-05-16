@@ -58,13 +58,13 @@ class DashboardController
         $db = Database::getInstance();
 
         // Small-boxes
-        $evaluadosActivos = (int) $db->query("
-            SELECT COUNT(DISTINCT u.id) FROM usuarios u
-            INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
-            INNER JOIN roles r ON r.id = ur.rol_id
-            WHERE r.codigo IN ('funcionario','jefe_dependencia','jefe_entidad')
-            AND u.estado = 'activo' AND u.eliminado_en IS NULL
-        ")->fetchColumn();
+    $evaluadosActivos = (int) $db->query("
+        SELECT COUNT(DISTINCT u.id) FROM usuarios u
+        INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
+        INNER JOIN roles r ON r.id = ur.rol_id
+        WHERE r.codigo = 'evaluado'
+        AND u.estado = 'activo' AND u.eliminado_en IS NULL
+    ")->fetchColumn();
 
         $evaluadoresRegistrados = (int) $db->query("
             SELECT COUNT(DISTINCT u.id) FROM usuarios u
@@ -74,15 +74,15 @@ class DashboardController
             AND u.estado = 'activo' AND u.eliminado_en IS NULL
         ")->fetchColumn();
 
-        $evaluacionesCompletadas = (int) $db->query("
-            SELECT COUNT(*) FROM evaluaciones
-            WHERE estado IN ('calificada','revisada','cerrada') AND eliminado_en IS NULL
-        ")->fetchColumn();
+    $evaluacionesCompletadas = (int) $db->query("
+        SELECT COUNT(*) FROM evaluaciones
+        WHERE estado IN ('completada','calificada','revisada','cerrada') AND eliminado_en IS NULL
+    ")->fetchColumn();
 
-        $evaluacionesPendientes = (int) $db->query("
-            SELECT COUNT(*) FROM evaluaciones
-            WHERE estado IN ('pendiente','en_proceso') AND eliminado_en IS NULL
-        ")->fetchColumn();
+    $evaluacionesPendientes = (int) $db->query("
+        SELECT COUNT(*) FROM evaluaciones
+        WHERE estado IN ('pendiente','en_progreso','en_proceso') AND eliminado_en IS NULL
+    ")->fetchColumn();
 
         // Progreso por dependencia (top 10)
         $progresoDep = $db->query("
@@ -98,16 +98,16 @@ class DashboardController
             LIMIT 10
         ")->fetchAll(\PDO::FETCH_ASSOC);
 
-        $progresoDependencia = array_map(function($row) {
-            $total = max((int)$row['total'], 1);
-            $completadas = (int)$row['completadas'];
-            return [
-                'nombre' => $row['nombre'],
-                'porcentaje' => round(($completadas / $total) * 100),
-                'total' => $total,
-                'completadas' => $completadas,
-            ];
-        }, $progresoDep);
+    $progresoDependencia = array_map(function($row) {
+        $total = max((int)$row['total'], 1);
+        $completadas = (int)$row['completadas'];
+        return [
+            'dependencia' => $row['nombre'],
+            'progreso' => round(($completadas / $total) * 100),
+            'total' => $total,
+            'completadas' => $completadas,
+        ];
+    }, $progresoDep);
 
         // Periodo activo
         $periodoActivo = $db->query("

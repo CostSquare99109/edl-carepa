@@ -97,7 +97,7 @@ export default function Login() {
       const roles = await login(documento, tipoDocumento, password)
       if (roles.length > 1) {
         navigate('/seleccionar-rol', { replace: true })
-      } else if (roles.length === 1 && ['admin_cnsc', 'admin_entidad'].includes(roles[0].codigo)) {
+      } else if (roles.length === 1 && ['admin', 'admin_cnsc', 'admin_entidad'].includes(roles[0].codigo)) {
         navigate('/admin', { replace: true })
       } else {
         navigate('/', { replace: true })
