@@ -11,6 +11,7 @@ export interface LoginResponse {
   expiracion: string;
   usuario: Usuario;
   roles: Rol[];
+  rol_activo: string;
 }
 
 export interface Usuario {
@@ -46,4 +47,5 @@ export const authApi = {
   menu: () => api.get<MenuItem[]>('/menu'),
   cambiarPassword: (data: { password_actual: string; password_nueva: string }) =>
     api.put('/auth/password', data),
+  cambiarRol: (rolCodigo: string) => api.put<{ rol_activo: string }>('/auth/rol', { rol_codigo: rolCodigo }),
 };

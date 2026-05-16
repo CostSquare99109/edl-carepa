@@ -1,9 +1,59 @@
+import { useState, useRef, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from './Sidebar';
 
+const ROL_COLORS: Record<string, string> = {
+  evaluado: 'bg-blue-100 text-blue-800',
+  evaluador: 'bg-green-100 text-green-800',
+  admin_entidad: 'bg-purple-100 text-purple-800',
+  comision_evaluadora: 'bg-amber-100 text-amber-800',
+  admin_cnsc: 'bg-red-100 text-red-800',
+};
+
+const ROL_ICONS: Record<string, string> = {
+  evaluado: 'person',
+  evaluador: 'rate_review',
+  admin_entidad: 'admin_panel_settings',
+  comision_evaluadora: 'groups',
+  admin_cnsc: 'shield',
+};
+
 export default function Layout() {
-  const { usuario, menu, logout } = useAuth();
+  const { usuario, roles, rolActivo, menu, logout, cambiarRol } = useAuth();
+  const [rolDropdownOpen, setRolDropdownOpen] = useState(false);
+  const [cambiandoRol, setCambiandoRol] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setRolDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const rolActivoData = roles.find(r => r.codigo === rolActivo);
+  const tieneMultiplesRoles = roles.length > 1;
+
+  async function handleCambiarRol(codigo: string) {
+    if (codigo === rolActivo) {
+      setRolDropdownOpen(false);
+      return;
+    }
+    setCambiandoRol(true);
+    try {
+      await cambiarRol(codigo);
+      setRolDropdownOpen(false);
+    } catch (err) {
+      console.error('Error al cambiar rol:', err);
+    } finally {
+      setCambiandoRol(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -37,6 +87,57 @@ export default function Layout() {
               Comisión Nacional del Servicio Civil
             </p>
           </div>
+
+          {/* Selector de rol activo */}
+          <div className="relative flex-shrink-0" ref={dropdownRef}>
+            <button
+              onClick={() => tieneMultiplesRoles && setRolDropdownOpen(!rolDropdownOpen)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                tieneMultiplesRoles ? 'cursor-pointer hover:bg-inst-gris' : 'cursor-default'
+              } ${ROL_COLORS[rolActivo || ''] || 'bg-gray-100 text-gray-700'}`}
+              title={tieneMultiplesRoles ? 'Cambiar rol activo' : `Rol: ${rolActivoData?.nombre || rolActivo}`}
+              disabled={cambiandoRol}
+            >
+              <span className="material-icons text-sm">
+                {cambiandoRol ? 'refresh' : (ROL_ICONS[rolActivo || ''] || 'badge')}
+              </span>
+              {cambiandoRol ? 'Cambiando...' : (rolActivoData?.nombre || rolActivo || 'Sin rol')}
+              {tieneMultiplesRoles && (
+                <span className="material-icons text-sm">
+                  {rolDropdownOpen ? 'expand_less' : 'expand_more'}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown de roles */}
+            {rolDropdownOpen && tieneMultiplesRoles && (
+              <div className="absolute right-0 top-full mt-1 w-56 bg-white border border-inst-borde rounded-lg shadow-lg z-50 py-1">
+                <p className="px-3 py-2 text-xs font-medium text-inst-texto-claro border-b border-inst-borde">
+                  Cambiar rol activo
+                </p>
+                {roles.map(rol => (
+                  <button
+                    key={rol.codigo}
+                    onClick={() => handleCambiarRol(rol.codigo)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors ${
+                      rol.codigo === rolActivo
+                        ? 'bg-inst-azul/5 text-inst-azul font-medium'
+                        : 'text-inst-texto hover:bg-inst-gris'
+                    }`}
+                  >
+                    <span className="material-icons text-base">
+                      {ROL_ICONS[rol.codigo] || 'badge'}
+                    </span>
+                    <span className="flex-1">{rol.nombre}</span>
+                    {rol.codigo === rolActivo && (
+                      <span className="material-icons text-sm text-inst-azul">check</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Nombre usuario + cerrar sesión */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="text-right">

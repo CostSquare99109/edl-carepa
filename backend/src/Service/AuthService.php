@@ -47,33 +47,37 @@ class AuthService
             ResponseHelper::error('Credenciales invalidas', 401);
         }
 
-        $roles = $this->usuarioRepo->obtenerRoles($usuario['id']);
-        $rolCodigos = array_column($roles, 'codigo');
-        $entidadId = $usuario['entidad_id'];
+ $roles = $this->usuarioRepo->obtenerRoles($usuario['id']);
+ $rolCodigos = array_column($roles, 'codigo');
+ $entidadId = $usuario['entidad_id'];
 
-        $token = JwtHelper::generate($usuario['id'], $usuario['documento'], $rolCodigos, $entidadId);
-        $tokenHash = hash('sha256', $token);
-        $expiracion = date('Y-m-d H:i:s', time() + ((int) Env::get('JWT_EXPIRACION_MINUTOS', 120)) * 60);
+ // Por defecto el primer rol como rol activo
+ $rolActivo = $rolCodigos[0] ?? null;
 
-        $this->sesionRepo->crearSesion(
-            $usuario['id'],
-            $tokenHash,
-            $_SERVER['REMOTE_ADDR'] ?? '',
-            $_SERVER['HTTP_USER_AGENT'] ?? '',
-            $expiracion
-        );
+ $token = JwtHelper::generate($usuario['id'], $usuario['documento'], $rolCodigos, $entidadId, $rolActivo);
+ $tokenHash = hash('sha256', $token);
+ $expiracion = date('Y-m-d H:i:s', time() + ((int) Env::get('JWT_EXPIRACION_MINUTOS', 120)) * 60);
 
-        $this->usuarioRepo->actualizarUltimoAcceso($usuario['id']);
+ $this->sesionRepo->crearSesion(
+ $usuario['id'],
+ $tokenHash,
+ $_SERVER['REMOTE_ADDR'] ?? '',
+ $_SERVER['HTTP_USER_AGENT'] ?? '',
+ $expiracion
+ );
 
-        unset($usuario['password_hash']);
-        AuditoriaService::registrar('login', 'usuarios', $usuario['id']);
+ $this->usuarioRepo->actualizarUltimoAcceso($usuario['id']);
 
-        return [
-            'token' => $token,
-            'expiracion' => $expiracion,
-            'usuario' => $usuario,
-            'roles' => $roles
-        ];
+ unset($usuario['password_hash']);
+ AuditoriaService::registrar('login', 'usuarios', $usuario['id']);
+
+ return [
+ 'token' => $token,
+ 'expiracion' => $expiracion,
+ 'usuario' => $usuario,
+ 'roles' => $roles,
+ 'rol_activo' => $rolActivo
+ ];
     }
 
     public function logout(int $usuarioId): void
@@ -142,18 +146,61 @@ class AuthService
         $this->usuarioRepo->actualizar($usuarioId, $datosFiltrados);
     }
 
-    public function cambiarPassword(int $usuarioId, string $passwordActual, string $nuevaPassword): void
-    {
-        $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
-        if (!$usuario) {
-            ResponseHelper::error('Usuario no encontrado', 404);
-        }
+ public function cambiarPassword(int $usuarioId, string $passwordActual, string $nuevaPassword): void
+ {
+ $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
+ if (!$usuario) {
+ ResponseHelper::error('Usuario no encontrado', 404);
+ }
 
-        if (!password_verify($passwordActual, $usuario['password_hash'])) {
-            ResponseHelper::error('Contrasena actual incorrecta', 400);
-        }
+ if (!password_verify($passwordActual, $usuario['password_hash'])) {
+ ResponseHelper::error('Contrasena actual incorrecta', 400);
+ }
 
-        $hash = password_hash($nuevaPassword, PASSWORD_BCRYPT);
-        $this->usuarioRepo->actualizar($usuarioId, ['password_hash' => $hash]);
-    }
+ $hash = password_hash($nuevaPassword, PASSWORD_BCRYPT);
+ $this->usuarioRepo->actualizar($usuarioId, ['password_hash' => $hash]);
+ }
+
+ /**
+ * Cambia el rol activo del usuario, genera nuevo JWT con el rol seleccionado
+ */
+ public function cambiarRolActivo(int $usuarioId, string $rolCodigo): array
+ {
+ // Verificar que el usuario tenga ese rol asignado
+ $roles = $this->usuarioRepo->obtenerRoles($usuarioId);
+ $rolCodigos = array_column($roles, 'codigo');
+
+ if (!in_array($rolCodigo, $rolCodigos)) {
+ ResponseHelper::error('El usuario no tiene asignado el rol ' . $rolCodigo, 403);
+ }
+
+ $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
+ if (!$usuario) {
+ ResponseHelper::error('Usuario no encontrado', 404);
+ }
+
+ // Generar nuevo JWT con el rol_activo actualizado
+ $entidadId = $usuario['entidad_id'];
+ $token = JwtHelper::generate($usuarioId, $usuario['documento'], $rolCodigos, $entidadId, $rolCodigo);
+ $tokenHash = hash('sha256', $token);
+ $expiracion = date('Y-m-d H:i:s', time() + ((int) Env::get('JWT_EXPIRACION_MINUTOS', 120)) * 60);
+
+ // Revocar sesion anterior y crear nueva
+ $this->sesionRepo->revocarPorUsuario($usuarioId);
+ $this->sesionRepo->crearSesion(
+ $usuarioId,
+ $tokenHash,
+ $_SERVER['REMOTE_ADDR'] ?? '',
+ $_SERVER['HTTP_USER_AGENT'] ?? '',
+ $expiracion
+ );
+
+ AuditoriaService::registrar('cambiar_rol', 'usuarios', $usuarioId, null, ['rol_activo' => $rolCodigo]);
+
+ return [
+ 'token' => $token,
+ 'expiracion' => $expiracion,
+ 'rol_activo' => $rolCodigo
+ ];
+ }
 }

@@ -82,18 +82,36 @@ class AuthController
         ResponseHelper::success(null, 'Perfil actualizado');
     }
 
-    public function cambiarPassword(): void
-    {
-        $user = AuthMiddleware::user();
-        $input = json_decode(file_get_contents('php://input'), true) ?: [];
-        $input = SanitizerHelper::sanitizeArray($input);
+ public function cambiarPassword(): void
+ {
+ $user = AuthMiddleware::user();
+ $input = json_decode(file_get_contents('php://input'), true) ?: [];
+ $input = SanitizerHelper::sanitizeArray($input);
 
-        $v = new ValidatorHelper();
-        if (!$v->validate($input, ['password_actual' => 'required', 'password_nueva' => 'required|min:8'])) {
-            ResponseHelper::error('Datos invalidos', 422);
-        }
+ $v = new ValidatorHelper();
+ if (!$v->validate($input, ['password_actual' => 'required', 'password_nueva' => 'required|min:8'])) {
+ ResponseHelper::error('Datos invalidos', 422);
+ }
 
-        $this->service->cambiarPassword($user['id'], $input['password_actual'], $input['password_nueva']);
-        ResponseHelper::success(null, 'Contrasena actualizada');
-    }
+ $this->service->cambiarPassword($user['id'], $input['password_actual'], $input['password_nueva']);
+ ResponseHelper::success(null, 'Contrasena actualizada');
+ }
+
+ /**
+ * Cambia el rol activo del usuario autenticado
+ */
+ public function cambiarRol(): void
+ {
+ $user = AuthMiddleware::user();
+ $input = json_decode(file_get_contents('php://input'), true) ?: [];
+ $input = SanitizerHelper::sanitizeArray($input);
+
+ $v = new ValidatorHelper();
+ if (!$v->validate($input, ['rol_codigo' => 'required'])) {
+ ResponseHelper::error('Debe especificar rol_codigo', 422);
+ }
+
+ $resultado = $this->service->cambiarRolActivo($user['id'], $input['rol_codigo']);
+ ResponseHelper::success($resultado, 'Rol activo actualizado');
+ }
 }

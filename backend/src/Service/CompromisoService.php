@@ -23,36 +23,39 @@ class CompromisoService
     return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
   }
 
-  /** Funcionario envía compromiso → estado 'enviado', notifica al evaluador */
-  public function enviar(array $datos, array $funcionario): int
-  {
-    $pdo = Database::getInstance();
+ /** Evaluado propone compromiso → estado 'propuesto', notifica al evaluador (Concertación EDL-CNSC) */
+ public function enviar(array $datos, array $funcionario): int
+ {
+ $pdo = Database::getInstance();
 
-    // Verificar que la evaluación existe y pertenece al funcionario
-    $stmt = $pdo->prepare("SELECT e.*, p.nombre as periodo_nombre FROM evaluaciones e INNER JOIN periodos p ON p.id = e.periodo_id WHERE e.id = ? AND e.eliminado_en IS NULL");
-    $stmt->execute([$datos['evaluacion_id']]);
-    $evaluacion = $stmt->fetch(\PDO::FETCH_ASSOC);
-    if (!$evaluacion) {
-      ResponseHelper::error('Evaluacion no encontrada', 404);
-    }
-    if ((int) $evaluacion['evaluado_id'] !== $funcionario['id']) {
-      ResponseHelper::error('No tiene permiso para enviar compromisos en esta evaluacion', 403);
-    }
+ // Verificar que la evaluación existe y pertenece al evaluado
+ $stmt = $pdo->prepare("SELECT e.*, p.nombre as periodo_nombre FROM evaluaciones e INNER JOIN periodos p ON p.id = e.periodo_id WHERE e.id = ? AND e.eliminado_en IS NULL");
+ $stmt->execute([$datos['evaluacion_id']]);
+ $evaluacion = $stmt->fetch(\PDO::FETCH_ASSOC);
+ if (!$evaluacion) {
+ ResponseHelper::error('Evaluacion no encontrada', 404);
+ }
+ if ((int) $evaluacion['evaluado_id'] !== $funcionario['id']) {
+ ResponseHelper::error('No tiene permiso para proponer compromisos en esta evaluacion', 403);
+ }
 
-    // Insertar compromiso
-    $stmt = $pdo->prepare("
-      INSERT INTO compromisos (evaluacion_id, tipo, descripcion, plazo, responsable_id, evaluador_id, estado, peso)
-      VALUES (?, ?, ?, ?, ?, ?, 'enviado', 0.00)
-    ");
-    $stmt->execute([
-      $datos['evaluacion_id'],
-      $datos['tipo'],
-      $datos['descripcion'],
-      $datos['plazo'],
-      $datos['responsable_id'],
-      $datos['evaluador_id'],
-    ]);
-    $compromisoId = (int) $pdo->lastInsertId();
+ // Insertar compromiso con estado 'propuesto' (terminología EDL-CNSC Acuerdo 6176)
+ $stmt = $pdo->prepare("
+ INSERT INTO compromisos (evaluacion_id, tipo, descripcion, resultado_esperado, medio_verificacion, observaciones_evaluado, plazo, responsable_id, evaluador_id, estado, peso)
+ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'propuesto', 0.00)
+ ");
+ $stmt->execute([
+ $datos['evaluacion_id'],
+ $datos['tipo'],
+ $datos['descripcion'],
+ $datos['resultado_esperado'] ?? null,
+ $datos['medio_verificacion'] ?? null,
+ $datos['observaciones_evaluado'] ?? null,
+ $datos['plazo'],
+ $datos['responsable_id'],
+ $datos['evaluador_id'],
+ ]);
+ $compromisoId = (int) $pdo->lastInsertId();
 
     // Auditar
     AuditoriaService::registrar('crear', 'compromisos', $compromisoId, null, $datos);
@@ -78,12 +81,12 @@ class CompromisoService
     if (!$comp) {
       ResponseHelper::error('Compromiso no encontrado', 404);
     }
-    if ($comp['estado'] !== 'enviado') {
-      ResponseHelper::error('Solo se pueden aprobar compromisos en estado enviado', 400);
-    }
-    if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
-      ResponseHelper::error('Solo el evaluador asignado puede aprobar este compromiso', 403);
-    }
+ if ($comp['estado'] !== 'propuesto') {
+ ResponseHelper::error('Solo se pueden aprobar compromisos en estado propuesto', 400);
+ }
+ if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
+ ResponseHelper::error('Solo el evaluador asignado puede aprobar este compromiso', 403);
+ }
 
     // Validar que la suma de pesos aprobados + este nuevo peso no supere 100%
     $evaluacionId = (int) $comp['evaluacion_id'];
@@ -137,37 +140,37 @@ class CompromisoService
     }
   }
 
-  /** Evaluador rechaza compromiso */
-  public function rechazar(int $id, string $observaciones, array $evaluador): void
-  {
-    $pdo = Database::getInstance();
+ /** Evaluador devuelve compromiso al evaluado (Concertación EDL-CNSC) */
+ public function rechazar(int $id, string $observaciones, array $evaluador): void
+ {
+ $pdo = Database::getInstance();
 
-    $comp = $this->repo->buscarPorId($id);
-    if (!$comp) {
-      ResponseHelper::error('Compromiso no encontrado', 404);
-    }
-    if ($comp['estado'] !== 'enviado') {
-      ResponseHelper::error('Solo se pueden rechazar compromisos en estado enviado', 400);
-    }
-    if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
-      ResponseHelper::error('Solo el evaluador asignado puede rechazar este compromiso', 403);
-    }
+ $comp = $this->repo->buscarPorId($id);
+ if (!$comp) {
+ ResponseHelper::error('Compromiso no encontrado', 404);
+ }
+ if ($comp['estado'] !== 'propuesto') {
+ ResponseHelper::error('Solo se pueden devolver compromisos en estado propuesto', 400);
+ }
+ if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
+ ResponseHelper::error('Solo el evaluador asignado puede devolver este compromiso', 403);
+ }
 
-    $stmt = $pdo->prepare("
-      UPDATE compromisos SET estado = 'rechazado', observaciones_evaluador = ?, actualizado_en = NOW()
-      WHERE id = ?
-    ");
-    $stmt->execute([$observaciones, $id]);
+ $stmt = $pdo->prepare("
+ UPDATE compromisos SET estado = 'devuelto', observaciones_evaluador = ?, actualizado_en = NOW()
+ WHERE id = ?
+ ");
+ $stmt->execute([$observaciones, $id]);
 
-    AuditoriaService::registrar('rechazar', 'compromisos', $id, $comp, ['estado' => 'rechazado']);
+ AuditoriaService::registrar('devolver', 'compromisos', $id, $comp, ['estado' => 'devuelto']);
 
-    // Notificar al funcionario
-    $this->notificacionService->notificarCompromisoRechazado(
-      (int) $comp['responsable_id'],
-      $id,
-      $observaciones
-    );
-  }
+ // Notificar al evaluado
+ $this->notificacionService->notificarCompromisoRechazado(
+ (int) $comp['responsable_id'],
+ $id,
+ $observaciones
+ );
+ }
 
   /** Resumen de pesos de compromisos para una evaluación */
   public function resumenPesos(int $evaluacionId, array $user): array
@@ -200,9 +203,9 @@ class CompromisoService
       if ($c['estado'] === 'aprobado') {
         $totalAprobado += (float) $c['peso'];
       }
-      if ($c['estado'] === 'enviado') {
-        $pendientes++;
-      }
+ if ($c['estado'] === 'propuesto') {
+ $pendientes++;
+ }
     }
 
     return [
@@ -221,15 +224,71 @@ class CompromisoService
     return $this->repo->pendientesPorEvaluador((int) $evaluador['id'], $pagina, $porPagina);
   }
 
-  public function actualizar(int $id, array $datos): void
-  {
-    $comp = $this->repo->buscarPorId($id);
-    if (!$comp) {
-      ResponseHelper::error('Compromiso no encontrado', 404);
-    }
-    $permitidos = ['descripcion', 'plazo', 'estado'];
-    $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
-    $this->repo->actualizar($id, $datosFiltrados);
-    AuditoriaService::registrar('actualizar', 'compromisos', $id, $comp, $datosFiltrados);
-  }
+ public function actualizar(int $id, array $datos): void
+ {
+ $comp = $this->repo->buscarPorId($id);
+ if (!$comp) {
+ ResponseHelper::error('Compromiso no encontrado', 404);
+ }
+ $permitidos = ['descripcion', 'plazo', 'estado', 'resultado_esperado', 'medio_verificacion', 'observaciones_evaluado', 'calificacion'];
+ $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
+ $this->repo->actualizar($id, $datosFiltrados);
+ AuditoriaService::registrar('actualizar', 'compromisos', $id, $comp, $datosFiltrados);
+ }
+
+ /** Evaluador califica un compromiso (puntaje 0-100) */
+ public function calificar(int $id, float $puntaje, string $observaciones, array $evaluador): void
+ {
+ $comp = $this->repo->buscarPorId($id);
+ if (!$comp) {
+ ResponseHelper::error('Compromiso no encontrado', 404);
+ }
+ if ($comp['estado'] !== 'aprobado') {
+ ResponseHelper::error('Solo se pueden calificar compromisos aprobados', 400);
+ }
+ if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
+ ResponseHelper::error('Solo el evaluador asignado puede calificar este compromiso', 403);
+ }
+
+ $pdo = Database::getInstance();
+ $nuevoEstado = $puntaje >= 60 ? 'cumplido' : 'incumplido';
+ $stmt = $pdo->prepare("
+ UPDATE compromisos SET calificacion = ?, estado = ?, observaciones_evaluador = CONCAT(COALESCE(observaciones_evaluador, ''), ?), actualizado_en = NOW()
+ WHERE id = ?
+ ");
+ $obsStr = $observaciones ? "\n[Calificacion]: " . $observaciones : '';
+ $stmt->execute([$puntaje, $nuevoEstado, $obsStr, $id]);
+
+ AuditoriaService::registrar('calificar', 'compromisos', $id, $comp, ['calificacion' => $puntaje, 'estado' => $nuevoEstado]);
+ }
+
+ /** Evaluador devuelve compromiso al evaluado con observaciones (Concertación EDL-CNSC) */
+ public function devolver(int $id, string $observaciones, array $evaluador): void
+ {
+ $comp = $this->repo->buscarPorId($id);
+ if (!$comp) {
+ ResponseHelper::error('Compromiso no encontrado', 404);
+ }
+ if ($comp['estado'] !== 'propuesto') {
+ ResponseHelper::error('Solo se pueden devolver compromisos en estado propuesto', 400);
+ }
+ if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
+ ResponseHelper::error('Solo el evaluador asignado puede devolver este compromiso', 403);
+ }
+
+ $pdo = Database::getInstance();
+ $stmt = $pdo->prepare("
+ UPDATE compromisos SET estado = 'devuelto', observaciones_evaluador = ?, actualizado_en = NOW()
+ WHERE id = ?
+ ");
+ $stmt->execute([$observaciones, $id]);
+
+ AuditoriaService::registrar('devolver', 'compromisos', $id, $comp, ['estado' => 'devuelto', 'observaciones' => $observaciones]);
+
+ $this->notificacionService->notificarCompromisoRechazado(
+ (int) $comp['responsable_id'],
+ $id,
+ $observaciones
+ );
+ }
 }

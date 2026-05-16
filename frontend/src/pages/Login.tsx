@@ -107,7 +107,7 @@ export default function Login() {
                 value={documento}
                 onChange={(e) => setDocumento(e.target.value)}
                 className="edl-input"
-                placeholder="Ingrese su número de documento"
+				placeholder="Número de cédula"
                 required
                 autoComplete="username"
               />
@@ -160,10 +160,15 @@ export default function Login() {
           </form>
         </div>
 
-        {/* Pie */}
-        <p className="text-center text-xs text-inst-texto-claro mt-6">
-          Comisión Nacional del Servicio Civil -- Sistema EDL-CNSC
-        </p>
+	{/* Pie */}
+			<p className="text-center text-xs text-inst-texto-claro mt-6">
+				Comisión Nacional del Servicio Civil — Sistema EDL-CNSC
+			</p>
+			<p className="text-center text-xs text-inst-texto-claro mt-2">
+				<a href="mailto:edlsoporte@cnsc.gov.co" className="text-inst-azul hover:underline">
+					Soporte: edlsoporte@cnsc.gov.co
+				</a>
+			</p>
       </div>
     </div>
   );

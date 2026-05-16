@@ -40,18 +40,28 @@ class AuthMiddleware
             ResponseHelper::error('Sesion expirada', 401);
         }
 
-        self::$user = [
-            'id' => $payload['sub'],
-            'documento' => $payload['documento'] ?? '',
-            'roles' => $payload['roles'] ?? [],
-            'entidad_id' => $payload['entidad_id'] ?? null,
-        ];
+ self::$user = [
+ 'id' => $payload['sub'],
+ 'documento' => $payload['documento'] ?? '',
+ 'roles' => $payload['roles'] ?? [],
+ 'entidad_id' => $payload['entidad_id'] ?? null,
+ 'rol_activo' => $payload['rol_activo'] ?? ($payload['roles'][0] ?? null),
+ ];
 
-        $GLOBALS['auth_user'] = self::$user;
-    }
+ $GLOBALS['auth_user'] = self::$user;
+ }
 
-    public static function user(): array
-    {
-        return $GLOBALS['auth_user'] ?? self::$user;
-    }
+ public static function user(): array
+ {
+ return $GLOBALS['auth_user'] ?? self::$user;
+ }
+
+ /**
+ * Devuelve el rol activo del token actual
+ */
+ public static function rolActivo(): string
+ {
+ $userData = $GLOBALS['auth_user'] ?? self::$user;
+ return $userData['rol_activo'] ?? '';
+ }
 }

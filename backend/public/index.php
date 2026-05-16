@@ -33,6 +33,7 @@ $router->group('/api/v1', function (Router $r) {
         $r->get('/auth/perfil', [\App\Controller\AuthController::class, 'perfil']);
         $r->put('/auth/perfil', [\App\Controller\AuthController::class, 'actualizarPerfil']);
         $r->put('/auth/password', [\App\Controller\AuthController::class, 'cambiarPassword']);
+        $r->put('/auth/rol', [\App\Controller\AuthController::class, 'cambiarRol']);
         $r->get('/menu', [\App\Controller\MenuController::class, 'obtener']);
         $r->get('/notificaciones', [\App\Controller\NotificacionController::class, 'listar']);
         $r->put('/notificaciones/{id}/leer', [\App\Controller\NotificacionController::class, 'marcarLeida']);
@@ -84,22 +85,28 @@ $router->group('/api/v1', function (Router $r) {
         $r->get('/concertaciones', [\App\Controller\ConcertacionController::class, 'listar'], ['permiso:concertaciones.listar']);
         $r->put('/concertaciones/{id}', [\App\Controller\ConcertacionController::class, 'actualizar'], ['permiso:concertaciones.crear']);
 
-        // Evaluaciones
+        // Evaluaciones (EDL-CNSC Acuerdo 6176)
         $r->get('/evaluaciones', [\App\Controller\EvaluacionController::class, 'listar'], ['permiso:evaluaciones.listar']);
         $r->post('/evaluaciones', [\App\Controller\EvaluacionController::class, 'crear'], ['permiso:evaluaciones.crear']);
         $r->get('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'ver'], ['permiso:evaluaciones.listar']);
         $r->put('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'calificar'], ['permiso:evaluaciones.evaluar']);
         $r->get('/evaluaciones/{id}/compromisos', [\App\Controller\EvaluacionController::class, 'compromisos'], ['permiso:compromisos.listar']);
         $r->post('/evaluaciones/{id}/compromisos', [\App\Controller\EvaluacionController::class, 'crearCompromiso'], ['permiso:compromisos.crear']);
+        $r->post('/evaluaciones/{id}/parcial', [\App\Controller\EvaluacionController::class, 'crearParcial'], ['permiso:evaluaciones.crear']);
+        $r->put('/evaluaciones/{id}/definitiva', [\App\Controller\EvaluacionController::class, 'calificarDefinitiva'], ['permiso:evaluaciones.evaluar']);
+        $r->put('/evaluaciones/{id}/comision', [\App\Controller\EvaluacionController::class, 'aprobarComision'], ['permiso:evaluaciones.comision']);
+        $r->get('/evaluaciones/pendientes-calificar', [\App\Controller\EvaluacionController::class, 'pendientesCalificar'], ['permiso:evaluaciones.evaluar']);
 
-    // Compromisos
-    $r->get('/compromisos', [\App\Controller\CompromisoController::class, 'listar'], ['permiso:compromisos.listar']);
-    $r->post('/compromisos/enviar', [\App\Controller\CompromisoController::class, 'enviar'], ['permiso:compromisos.enviar']);
-    $r->get('/compromisos/pendientes', [\App\Controller\CompromisoController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
-    $r->put('/compromisos/{id}/aprobar', [\App\Controller\CompromisoController::class, 'aprobar'], ['permiso:compromisos.aprobar']);
-    $r->put('/compromisos/{id}/rechazar', [\App\Controller\CompromisoController::class, 'rechazar'], ['permiso:compromisos.aprobar']);
-    $r->get('/compromisos/{id}/pesos', [\App\Controller\CompromisoController::class, 'resumenPesos'], ['permiso:compromisos.listar']);
-    $r->put('/compromisos/{id}', [\App\Controller\CompromisoController::class, 'actualizar'], ['permiso:compromisos.editar']);
+        // Compromisos (EDL-CNSC: concertación compromisos funcionales + comportamentales)
+        $r->get('/compromisos', [\App\Controller\CompromisoController::class, 'listar'], ['permiso:compromisos.listar']);
+        $r->post('/compromisos/enviar', [\App\Controller\CompromisoController::class, 'enviar'], ['permiso:compromisos.enviar']);
+        $r->get('/compromisos/pendientes', [\App\Controller\CompromisoController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
+        $r->put('/compromisos/{id}/aprobar', [\App\Controller\CompromisoController::class, 'aprobar'], ['permiso:compromisos.aprobar']);
+        $r->put('/compromisos/{id}/rechazar', [\App\Controller\CompromisoController::class, 'rechazar'], ['permiso:compromisos.aprobar']);
+ $r->put('/compromisos/{id}/devolver', [\App\Controller\CompromisoController::class, 'devolver'], ['permiso:compromisos.aprobar']);
+ $r->put('/compromisos/{id}/calificar', [\App\Controller\CompromisoController::class, 'calificar'], ['permiso:evaluaciones.evaluar']);
+ $r->get('/compromisos/{id}/pesos', [\App\Controller\CompromisoController::class, 'resumenPesos'], ['permiso:compromisos.listar']);
+ $r->put('/compromisos/{id}', [\App\Controller\CompromisoController::class, 'actualizar'], ['permiso:compromisos.editar']);
 
         // Evidencias
         $r->get('/evidencias', [\App\Controller\EvidenciaController::class, 'listar'], ['permiso:evidencias.listar']);

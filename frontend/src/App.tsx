@@ -11,8 +11,10 @@ import ConcertacionList from './pages/Concertaciones/ConcertacionList'
 import EvaluacionList from './pages/Evaluaciones/EvaluacionList'
 import EvidenciaList from './pages/Evidencias/EvidenciaList'
 import ReportesPage from './pages/Reportes/ReportesPage'
+import CompromisosYCompetencias from './pages/Compromisos/CompromisosYCompetencias'
 import MisCompromisos from './pages/Compromisos/MisCompromisos'
 import AprobarCompromisos from './pages/Compromisos/AprobarCompromisos'
+import EvaluarPage from './pages/Evaluaciones/EvaluarPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuth()
@@ -34,8 +36,10 @@ export default function App() {
         <Route path="evaluaciones" element={<EvaluacionList />} />
         <Route path="evidencias" element={<EvidenciaList />} />
         <Route path="reportes" element={<ReportesPage />} />
-        <Route path="compromisos/mios" element={<MisCompromisos />} />
-        <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
+ <Route path="compromisos-y-competencias" element={<CompromisosYCompetencias />} />
+ <Route path="compromisos/mios" element={<MisCompromisos />} />
+ <Route path="evaluar" element={<EvaluarPage />} />
+ <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

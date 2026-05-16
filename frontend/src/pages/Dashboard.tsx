@@ -58,9 +58,9 @@ export default function Dashboard() {
   const [actividad, setActividad] = useState<Actividad[]>([]);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
 
-  const puedeAprobar = roles?.some(r =>
-    ['evaluador', 'jefe_entidad', 'jefe_dependencia', 'admin'].includes(r.codigo)
-  );
+ const puedeAprobar = roles?.some(r =>
+ ['evaluador', 'comision_evaluadora', 'admin_entidad', 'admin_cnsc'].includes(r.codigo)
+ );
 
   useEffect(() => {
     api.get<Resumen>('/dashboard/resumen').then(setResumen).catch(() => {});
