@@ -1,184 +1,150 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
+import { api, PaginatedData } from '../../lib/api';
 
-/* ─── Tipos & datos mock ─── */
-interface EvaluacionItem {
+interface Evaluacion {
   id: number;
-  evaluado: string;
-  evaluador: string;
+  periodo_id: number;
+  evaluado_id: number;
+  evaluador_id: number;
   tipo: string;
-  periodo: string;
-  estado: 'Completada' | 'En proceso' | 'Pendiente' | 'Rechazada';
-  puntaje: string;
-  fecha: string;
+  puntaje: string | null;
+  estado: string;
+  fecha_evaluacion: string | null;
+  observaciones: string | null;
+  evaluado?: string;
+  evaluador?: string;
 }
 
-const EVALUACIONES_MOCK: EvaluacionItem[] = [
-  { id: 1, evaluado: 'María López', evaluador: 'Carlos Ramírez', tipo: 'Heteroevaluación', periodo: '2025-I', estado: 'Completada', puntaje: '4.5', fecha: '2025-05-15' },
-  { id: 2, evaluado: 'Ana Martínez', evaluador: 'Pedro Gómez', tipo: 'Autoevaluación', periodo: '2025-I', estado: 'En proceso', puntaje: '—', fecha: '2025-05-14' },
-  { id: 3, evaluado: 'Laura Sánchez', evaluador: 'Jorge Hernández', tipo: 'Heteroevaluación', periodo: '2025-I', estado: 'Pendiente', puntaje: '—', fecha: '2025-05-13' },
-  { id: 4, evaluado: 'Pedro Gómez', evaluador: 'María López', tipo: 'Heteroevaluación', periodo: '2025-I', estado: 'Completada', puntaje: '4.8', fecha: '2025-05-12' },
-  { id: 5, evaluado: 'Jorge Hernández', evaluador: 'Ana Martínez', tipo: 'Coevaluación', periodo: '2025-I', estado: 'Rechazada', puntaje: '—', fecha: '2025-05-11' },
-  { id: 6, evaluado: 'Carlos Ramírez', evaluador: 'Laura Sánchez', tipo: 'Heteroevaluación', periodo: '2024-II', estado: 'Completada', puntaje: '3.9', fecha: '2024-12-20' },
-];
-
+const TIPO_LABEL: Record<string, string> = { autoevaluacion: 'Autoevaluación', coevaluacion: 'Coevaluación', heteroevaluacion: 'Heteroevaluación' };
 const ESTADO_BADGE: Record<string, string> = {
-  Completada: 'bg-green-100 text-green-800',
-  'En proceso': 'bg-blue-100 text-blue-800',
-  Pendiente: 'bg-amber-100 text-amber-800',
-  Rechazada: 'bg-red-100 text-red-800',
+  pendiente: 'bg-yellow-100 text-yellow-800', en_proceso: 'bg-blue-100 text-blue-800',
+  calificada: 'bg-green-100 text-green-800', revisada: 'bg-indigo-100 text-indigo-800', cerrada: 'bg-gray-100 text-gray-800',
 };
 
-const TIPOS = ['Todos', 'Heteroevaluación', 'Autoevaluación', 'Coevaluación'];
-const ESTADOS_FILTRO = ['Todos', 'Completada', 'En proceso', 'Pendiente', 'Rechazada'];
-const PERIODOS = ['Todos', '2025-I', '2024-II'];
-
 export default function AdminEvaluaciones() {
-  const [filtroTipo, setFiltroTipo] = useState('Todos');
-  const [filtroEstado, setFiltroEstado] = useState('Todos');
-  const [filtroPeriodo, setFiltroPeriodo] = useState('Todos');
-  const [expandida, setExpandida] = useState<number | null>(null);
+  const [evaluaciones, setEvaluaciones] = useState<Evaluacion[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [porPagina] = useState(15);
+  const [filtros, setFiltros] = useState({ tipo: '', estado: '' });
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
 
-  const filtradas = EVALUACIONES_MOCK.filter(e => {
-    if (filtroTipo !== 'Todos' && e.tipo !== filtroTipo) return false;
-    if (filtroEstado !== 'Todos' && e.estado !== filtroEstado) return false;
-    if (filtroPeriodo !== 'Todos' && e.periodo !== filtroPeriodo) return false;
-    return true;
-  });
+  // Stats rápidos
+  const [stats, setStats] = useState<{ completadas: number; pendientes: number; en_proceso: number; total: number } | null>(null);
 
-  const totalCompletadas = EVALUACIONES_MOCK.filter(e => e.estado === 'Completada').length;
-  const totalEnProceso = EVALUACIONES_MOCK.filter(e => e.estado === 'En proceso').length;
-  const totalPendientes = EVALUACIONES_MOCK.filter(e => e.estado === 'Pendiente').length;
-  const totalRechazadas = EVALUACIONES_MOCK.filter(e => e.estado === 'Rechazada').length;
+  const cargar = useCallback(async () => {
+    setCargando(true); setError('');
+    try {
+      const params = new URLSearchParams({ pagina: String(pagina), por_pagina: String(porPagina) });
+      if (filtros.tipo) params.set('tipo', filtros.tipo);
+      if (filtros.estado) params.set('estado', filtros.estado);
+      const res = await api.get<PaginatedData<Evaluacion>>(`/evaluaciones?${params}`);
+      setEvaluaciones(res.data || []); setTotal(res.total);
+    } catch (e: any) { setError(e.message); }
+    setCargando(false);
+  }, [pagina, porPagina, filtros]);
 
-  const SMALL_BOXES = [
-    { value: totalCompletadas, label: 'Completadas', icon: 'task_alt', bg: 'bg-inst-verde' },
-    { value: totalEnProceso, label: 'En Proceso', icon: 'sync', bg: 'bg-blue-600' },
-    { value: totalPendientes, label: 'Pendientes', icon: 'pending', bg: 'bg-amber-600' },
-    { value: totalRechazadas, label: 'Rechazadas', icon: 'cancel', bg: 'bg-inst-rojo' },
-  ];
+  const cargarStats = useCallback(async () => {
+    try {
+      const s = await api.get<any>('/dashboard/admin-stats');
+      setStats({ completadas: s.evaluaciones_completadas, pendientes: s.evaluaciones_pendientes, en_proceso: 0, total: s.evaluaciones_completadas + s.evaluaciones_pendientes });
+    } catch {}
+  }, []);
+
+  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { cargarStats(); }, [cargarStats]);
+
+  const totalPages = Math.ceil(total / porPagina);
 
   return (
-    <div className="p-4 lg:p-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1 text-sm text-inst-texto-claro mb-4">
-        <span className="material-icons text-base text-inst-azul">home</span>
-        <span>/</span><span>Admin</span><span>/</span>
-        <span className="text-inst-texto font-medium">Evaluaciones</span>
-      </div>
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-file-alt mr-2" />Gestión de Evaluaciones</h2>
 
-      {/* Título */}
-      <h1 className="text-2xl font-heading font-bold text-inst-azul flex items-center gap-2 mb-6">
-        <span className="material-icons text-3xl">assessment</span>
-        Gestión de Evaluaciones
-      </h1>
-
-      {/* ── Small-boxes resumen ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {SMALL_BOXES.map((box, i) => (
-          <div key={i} className={`${box.bg} rounded-lg overflow-hidden text-white shadow-md`}>
-            <div className="px-4 py-3 flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-heading font-bold">{box.value}</p>
-                <p className="text-xs text-white/80">{box.label}</p>
-              </div>
-              <span className="material-icons text-4xl text-white/20">{box.icon}</span>
-            </div>
+      {/* Stats rápidos */}
+      {stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-green-700">{stats.completadas}</p><p className="text-xs text-green-600">Completadas</p>
           </div>
-        ))}
-      </div>
-
-      {/* ── Filtros ── */}
-      <div className="bg-white rounded-lg border border-inst-borde shadow-sm mb-6">
-        <div className="px-5 py-3 border-b border-inst-borde">
-          <h2 className="font-heading font-semibold text-inst-azul flex items-center gap-2">
-            <span className="material-icons text-lg">filter_list</span>
-            Filtros
-          </h2>
-        </div>
-        <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-xs font-medium text-inst-texto mb-1">Tipo</label>
-            <select value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)} className="edl-input">
-              {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-yellow-700">{stats.pendientes}</p><p className="text-xs text-yellow-600">Pendientes</p>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-inst-texto mb-1">Estado</label>
-            <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="edl-input">
-              {ESTADOS_FILTRO.map(e => <option key={e} value={e}>{e}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-inst-texto mb-1">Periodo</label>
-            <select value={filtroPeriodo} onChange={e => setFiltroPeriodo(e.target.value)} className="edl-input">
-              {PERIODOS.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <p className="text-2xl font-bold text-blue-700">{stats.total}</p><p className="text-xs text-blue-600">Total</p>
           </div>
         </div>
+      )}
+
+      {/* Filtros */}
+      <div className="flex flex-wrap items-center gap-3">
+        <select value={filtros.tipo} onChange={e => { setFiltros({...filtros, tipo: e.target.value}); setPagina(1); }}
+          className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#003366] focus:outline-none">
+          <option value="">Todos los tipos</option>
+          <option value="autoevaluacion">Autoevaluación</option>
+          <option value="coevaluacion">Coevaluación</option>
+          <option value="heteroevaluacion">Heteroevaluación</option>
+        </select>
+        <select value={filtros.estado} onChange={e => { setFiltros({...filtros, estado: e.target.value}); setPagina(1); }}
+          className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#003366] focus:outline-none">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="en_proceso">En proceso</option>
+          <option value="calificada">Calificada</option>
+          <option value="revisada">Revisada</option>
+          <option value="cerrada">Cerrada</option>
+        </select>
       </div>
 
-      {/* ── Tabla ── */}
-      <div className="bg-white rounded-lg border border-inst-borde shadow-sm">
-        <div className="px-5 py-4 border-b border-inst-borde flex items-center justify-between">
-          <h2 className="font-heading font-semibold text-inst-azul">Listado de Evaluaciones</h2>
-          <span className="text-sm text-inst-texto-claro">{filtradas.length} resultados</span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="edl-table">
-            <thead>
-              <tr><th>Evaluado</th><th>Evaluador</th><th>Tipo</th><th>Periodo</th><th>Estado</th><th>Puntaje</th><th>Fecha</th><th>Acciones</th></tr>
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
+
+      {/* Tabla */}
+      {cargando ? (
+        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+      ) : evaluaciones.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-md p-10 text-center text-gray-400">No hay evaluaciones registradas</div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">ID</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Evaluado</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Evaluador</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Tipo</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Estado</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Puntaje</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Fecha</th>
+              </tr>
             </thead>
-            <tbody>
-              {filtradas.map(e => (
-                <>
-                  <tr key={e.id} className={expandida === e.id ? 'bg-inst-gris/30' : ''}>
-                    <td className="font-medium">{e.evaluado}</td>
-                    <td className="text-inst-texto-claro">{e.evaluador}</td>
-                    <td className="text-sm">{e.tipo}</td>
-                    <td className="text-sm">{e.periodo}</td>
-                    <td>
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${ESTADO_BADGE[e.estado]}`}>
-                        {e.estado}
-                      </span>
-                    </td>
-                    <td className="font-semibold">{e.puntaje}</td>
-                    <td className="text-inst-texto-claro text-sm">{e.fecha}</td>
-                    <td>
-                      <button onClick={() => setExpandida(expandida === e.id ? null : e.id)}
-                        className="p-1.5 rounded hover:bg-blue-50 text-inst-azul" title="Ver detalle">
-                        <span className="material-icons text-lg">
-                          {expandida === e.id ? 'expand_less' : 'expand_more'}
-                        </span>
-                      </button>
-                    </td>
-                  </tr>
-                  {expandida === e.id && (
-                    <tr key={`${e.id}-detail`}>
-                      <td colSpan={8} className="bg-inst-gris/20 px-6 py-4">
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                          <div><span className="text-inst-texto-claro">Evaluado:</span><br /><strong>{e.evaluado}</strong></div>
-                          <div><span className="text-inst-texto-claro">Evaluador:</span><br /><strong>{e.evaluador}</strong></div>
-                          <div><span className="text-inst-texto-claro">Tipo evaluación:</span><br /><strong>{e.tipo}</strong></div>
-                          <div><span className="text-inst-texto-claro">Puntaje:</span><br /><strong className="text-inst-azul text-lg">{e.puntaje}</strong></div>
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <button className="edl-btn-primary text-sm py-1.5 px-4 flex items-center gap-1">
-                            <span className="material-icons text-sm">visibility</span> Ver completo
-                          </button>
-                          <button className="edl-btn-outline text-sm py-1.5 px-4 flex items-center gap-1">
-                            <span className="material-icons text-sm">description</span> Descargar PDF
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
+            <tbody className="divide-y divide-gray-100">
+              {evaluaciones.map(e => (
+                <tr key={e.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-mono text-xs">#{e.id}</td>
+                  <td className="px-4 py-3">{e.evaluado || `#${e.evaluado_id}`}</td>
+                  <td className="px-4 py-3">{e.evaluador || `#${e.evaluador_id}`}</td>
+                  <td className="px-4 py-3">{TIPO_LABEL[e.tipo] || e.tipo}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${ESTADO_BADGE[e.estado] || 'bg-gray-100'}`}>{e.estado.replace(/_/g,' ')}</span>
+                  </td>
+                  <td className="px-4 py-3">{e.puntaje ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">{e.fecha_evaluacion ? new Date(e.fecha_evaluacion).toLocaleDateString('es-CO') : '—'}</td>
+                </tr>
               ))}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+              <span className="text-sm text-gray-500">{total} evaluación(es)</span>
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
+                  <button key={p} onClick={() => setPagina(p)} className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-[#003366] text-white' : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

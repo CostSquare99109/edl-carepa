@@ -39,9 +39,18 @@ $router->group('/api/v1', function (Router $r) {
         $r->get('/notificaciones', [\App\Controller\NotificacionController::class, 'listar']);
         $r->put('/notificaciones/{id}/leer', [\App\Controller\NotificacionController::class, 'marcarLeida']);
 
-        // Dashboard
-        $r->get('/dashboard/resumen', [\App\Controller\DashboardController::class, 'resumen']);
-        $r->get('/dashboard/actividad', [\App\Controller\DashboardController::class, 'actividad']);
+ // Dashboard
+ $r->get('/dashboard/resumen', [\App\Controller\DashboardController::class, 'resumen']);
+ $r->get('/dashboard/admin-stats', [\App\Controller\DashboardController::class, 'adminStats']);
+ $r->get('/dashboard/actividad', [\App\Controller\DashboardController::class, 'actividad']);
+
+ // Parámetros / Configuración
+ $r->get('/parametros', [\App\Controller\ParametroController::class, 'listar']);
+ $r->get('/parametros/{clave}', [\App\Controller\ParametroController::class, 'verPorClave']);
+ $r->post('/parametros', [\App\Controller\ParametroController::class, 'upsert']);
+ $r->put('/parametros/masivo', [\App\Controller\ParametroController::class, 'actualizarMasivo']);
+ $r->put('/parametros/{id}', [\App\Controller\ParametroController::class, 'upsert']);
+ $r->delete('/parametros/{id}', [\App\Controller\ParametroController::class, 'eliminar']);
 
         // Usuarios
         $r->get('/usuarios', [\App\Controller\UsuarioController::class, 'listar'], ['permiso:usuarios.listar']);

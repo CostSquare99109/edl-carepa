@@ -9,67 +9,160 @@ use App\Service\NotificacionService;
 
 class DashboardController
 {
-  public function resumen(): void
-  {
-    $db = Database::getInstance();
-    $user = AuthMiddleware::user();
+    public function resumen(): void
+    {
+        $db = Database::getInstance();
+        $user = AuthMiddleware::user();
 
-    $entidades = $db->query("SELECT COUNT(*) as c FROM entidades")->fetch(\PDO::FETCH_ASSOC)['c'] ?? 0;
-    $usuarios = $db->query("SELECT COUNT(*) as c FROM usuarios")->fetch(\PDO::FETCH_ASSOC)['c'] ?? 0;
-    $evaluaciones = $db->query("SELECT COUNT(*) as c FROM evaluaciones")->fetch(\PDO::FETCH_ASSOC)['c'] ?? 0;
-    $periodos = $db->query("SELECT COUNT(*) as c FROM periodos WHERE estado = 'activo'")->fetch(\PDO::FETCH_ASSOC)['c'] ?? 0;
+        // Estadísticas generales
+        $entidades = (int) $db->query("SELECT COUNT(*) FROM entidades WHERE eliminado_en IS NULL")->fetchColumn();
+        $usuarios = (int) $db->query("SELECT COUNT(*) FROM usuarios WHERE eliminado_en IS NULL")->fetchColumn();
+        $evaluaciones = (int) $db->query("SELECT COUNT(*) FROM evaluaciones WHERE eliminado_en IS NULL")->fetchColumn();
+        $periodos = (int) $db->query("SELECT COUNT(*) FROM periodos WHERE estado IN ('abierto','en_concertacion','en_evaluacion') AND eliminado_en IS NULL")->fetchColumn();
 
-    // Notificaciones no leídas
-    $notiService = new NotificacionService();
-    $notificacionesNoLeidas = $notiService->contarNoLeidas((int) $user['id']);
+        // Notificaciones no leídas
+        $notiService = new NotificacionService();
+        $notificacionesNoLeidas = $notiService->contarNoLeidas((int) $user['id']);
 
-    // Compromisos pendientes de aprobación (si es evaluador)
-    $compromisosPendientes = 0;
-    $rolCodigos = [];
-    foreach (($user['roles'] ?? []) as $r) {
-      if (is_array($r) && isset($r['codigo'])) {
-        $rolCodigos[] = $r['codigo'];
-      } elseif (is_string($r)) {
-        $rolCodigos[] = $r;
-      }
+        // Compromisos pendientes de aprobación
+        $compromisosPendientes = 0;
+        $rolCodigos = [];
+        foreach (($user['roles'] ?? []) as $r) {
+            if (is_array($r) && isset($r['codigo'])) { $rolCodigos[] = $r['codigo']; }
+            elseif (is_string($r)) { $rolCodigos[] = $r; }
+        }
+        $puedeAprobar = !empty(array_intersect($rolCodigos, ['evaluador', 'jefe_entidad', 'jefe_dependencia', 'admin']));
+        if ($puedeAprobar) {
+            $compromisosPendientes = $notiService->compromisosPendientesPorAprobar((int) $user['id']);
+        }
+
+        // Mis compromisos enviados
+        $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos WHERE responsable_id = ? AND estado = 'enviado' AND eliminado_en IS NULL");
+        $stmt->execute([(int) $user['id']]);
+        $misCompromisosEnviados = (int) $stmt->fetchColumn();
+
+        ResponseHelper::success([
+            'entidades' => $entidades,
+            'usuarios' => $usuarios,
+            'evaluaciones' => $evaluaciones,
+            'periodos' => $periodos,
+            'notificaciones_no_leidas' => $notificacionesNoLeidas,
+            'compromisos_pendientes_aprobacion' => $compromisosPendientes,
+            'mis_compromisos_enviados' => $misCompromisosEnviados,
+        ]);
     }
-    $puedeAprobar = !empty(array_intersect($rolCodigos, ['evaluador', 'jefe_entidad', 'jefe_dependencia', 'admin']));
-    if ($puedeAprobar) {
-      $compromisosPendientes = $notiService->compromisosPendientesPorAprobar((int) $user['id']);
+
+    /** Estadísticas detalladas para el panel admin */
+    public function adminStats(): void
+    {
+        $db = Database::getInstance();
+
+        // Small-boxes
+        $evaluadosActivos = (int) $db->query("
+            SELECT COUNT(DISTINCT u.id) FROM usuarios u
+            INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
+            INNER JOIN roles r ON r.id = ur.rol_id
+            WHERE r.codigo IN ('funcionario','jefe_dependencia','jefe_entidad')
+            AND u.estado = 'activo' AND u.eliminado_en IS NULL
+        ")->fetchColumn();
+
+        $evaluadoresRegistrados = (int) $db->query("
+            SELECT COUNT(DISTINCT u.id) FROM usuarios u
+            INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
+            INNER JOIN roles r ON r.id = ur.rol_id
+            WHERE r.codigo = 'evaluador'
+            AND u.estado = 'activo' AND u.eliminado_en IS NULL
+        ")->fetchColumn();
+
+        $evaluacionesCompletadas = (int) $db->query("
+            SELECT COUNT(*) FROM evaluaciones
+            WHERE estado IN ('calificada','revisada','cerrada') AND eliminado_en IS NULL
+        ")->fetchColumn();
+
+        $evaluacionesPendientes = (int) $db->query("
+            SELECT COUNT(*) FROM evaluaciones
+            WHERE estado IN ('pendiente','en_proceso') AND eliminado_en IS NULL
+        ")->fetchColumn();
+
+        // Progreso por dependencia (top 10)
+        $progresoDep = $db->query("
+            SELECT d.nombre,
+                   COUNT(e.id) AS total,
+                   SUM(CASE WHEN e.estado IN ('calificada','revisada','cerrada') THEN 1 ELSE 0 END) AS completadas
+            FROM dependencias d
+            LEFT JOIN usuarios u ON u.dependencia_id = d.id AND u.eliminado_en IS NULL
+            LEFT JOIN evaluaciones e ON e.evaluado_id = u.id AND e.eliminado_en IS NULL
+            WHERE d.eliminado_en IS NULL AND d.estado = 'activa'
+            GROUP BY d.id, d.nombre
+            ORDER BY total DESC
+            LIMIT 10
+        ")->fetchAll(\PDO::FETCH_ASSOC);
+
+        $progresoDependencia = array_map(function($row) {
+            $total = max((int)$row['total'], 1);
+            $completadas = (int)$row['completadas'];
+            return [
+                'nombre' => $row['nombre'],
+                'porcentaje' => round(($completadas / $total) * 100),
+                'total' => $total,
+                'completadas' => $completadas,
+            ];
+        }, $progresoDep);
+
+        // Periodo activo
+        $periodoActivo = $db->query("
+            SELECT id, nombre, fecha_inicio, fecha_fin, estado
+            FROM periodos
+            WHERE estado IN ('abierto','en_concertacion','en_evaluacion') AND eliminado_en IS NULL
+            ORDER BY fecha_inicio DESC LIMIT 1
+        ")->fetch(\PDO::FETCH_ASSOC) ?: null;
+
+        // Evaluaciones recientes
+        $evalRecientes = $db->query("
+            SELECT e.id, e.tipo, e.estado, e.puntaje, e.fecha_evaluacion,
+                   CONCAT(u.nombres, ' ', u.apellidos) AS evaluado,
+                   CONCAT(ev.nombres, ' ', ev.apellidos) AS evaluador
+            FROM evaluaciones e
+            INNER JOIN usuarios u ON u.id = e.evaluado_id
+            INNER JOIN usuarios ev ON ev.id = e.evaluador_id
+            WHERE e.eliminado_en IS NULL
+            ORDER BY e.creado_en DESC LIMIT 8
+        ")->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Entidades activas
+        $entidadesActivas = (int) $db->query("SELECT COUNT(*) FROM entidades WHERE estado = 'activa' AND eliminado_en IS NULL")->fetchColumn();
+
+        ResponseHelper::success([
+            'evaluados_activos' => $evaluadosActivos,
+            'evaluadores_registrados' => $evaluadoresRegistrados,
+            'evaluaciones_completadas' => $evaluacionesCompletadas,
+            'evaluaciones_pendientes' => $evaluacionesPendientes,
+            'progreso_dependencia' => $progresoDependencia,
+            'periodo_activo' => $periodoActivo,
+            'evaluaciones_recientes' => $evalRecientes,
+            'entidades_activas' => $entidadesActivas,
+        ]);
     }
 
-    // Mis compromisos enviados pendientes (si es funcionario)
-    $misCompromisosEnviados = 0;
-    $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos WHERE responsable_id = ? AND estado = 'enviado' AND eliminado_en IS NULL");
-    $stmt->execute([(int) $user['id']]);
-    $misCompromisosEnviados = (int) $stmt->fetchColumn();
+    public function actividad(): void
+    {
+        $db = Database::getInstance();
+        $porPagina = min((int)($_GET['por_pagina'] ?? 10), 50);
+        $pagina = (int)($_GET['pagina'] ?? 1);
+        $offset = ($pagina - 1) * $porPagina;
 
-    ResponseHelper::success([
-      'entidades' => (int)$entidades,
-      'usuarios' => (int)$usuarios,
-      'evaluaciones' => (int)$evaluaciones,
-      'periodos' => (int)$periodos,
-      'notificaciones_no_leidas' => $notificacionesNoLeidas,
-      'compromisos_pendientes_aprobacion' => $compromisosPendientes,
-      'mis_compromisos_enviados' => $misCompromisosEnviados,
-    ]);
-  }
+        $total = (int) $db->query("SELECT COUNT(*) FROM auditoria")->fetchColumn();
 
-  public function actividad(): void
-  {
-    $db = Database::getInstance();
-    $porPagina = min((int)($_GET['por_pagina'] ?? 10), 50);
+        $stmt = $db->prepare("SELECT id, accion, entidad, registro_id, datos_nuevos, ip_address, creado_en as fecha FROM auditoria ORDER BY creado_en DESC LIMIT ? OFFSET ?");
+        $stmt->execute([$porPagina, $offset]);
+        $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-    $stmt = $db->prepare("SELECT id, accion as descripcion, fecha, tabla_afectada as tipo FROM auditoria ORDER BY fecha DESC LIMIT ?");
-    $stmt->execute([$porPagina]);
-    $data = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-    ResponseHelper::success([
-      'data' => $data ?: [],
-      'total' => count($data),
-      'pagina' => 1,
-      'por_pagina' => $porPagina,
-      'total_paginas' => 1,
-    ]);
-  }
+        ResponseHelper::success([
+            'items' => $data ?: [],
+            'total' => $total,
+            'pagina' => $pagina,
+            'por_pagina' => $porPagina,
+            'total_paginas' => (int) ceil($total / max($porPagina, 1)),
+        ]);
+    }
 }

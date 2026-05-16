@@ -1,154 +1,155 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
+import { api } from '../../lib/api';
 
-/* ─── Configuraciones ─── */
-interface ConfigItem {
-  id: string;
-  categoria: string;
-  label: string;
+interface Parametro {
+  id: number;
+  clave: string;
   valor: string;
-  tipo: 'text' | 'number' | 'select' | 'boolean';
-  opciones?: string[];
+  tipo: string;
+  descripcion: string | null;
 }
 
-const CONFIG_ITEMS: ConfigItem[] = [
-  { id: 'periodo_activo', categoria: 'Evaluación', label: 'Periodo activo', valor: '2025-I', tipo: 'text' },
-  { id: 'intentos_login', categoria: 'Seguridad', label: 'Intentos máximos de login', valor: '5', tipo: 'number' },
-  { id: 'expiracion_jwt', categoria: 'Seguridad', label: 'Expiración JWT (minutos)', valor: '120', tipo: 'number' },
-  { id: 'eval_autoactiva', categoria: 'Evaluación', label: 'Autoevaluación habilitada', valor: 'true', tipo: 'boolean' },
-  { id: 'coevaluacion', categoria: 'Evaluación', label: 'Coevaluación habilitada', valor: 'false', tipo: 'boolean' },
-  { id: 'notificaciones_email', categoria: 'Notificaciones', label: 'Notificaciones por correo', valor: 'true', tipo: 'boolean' },
-  { id: 'escala_evaluacion', categoria: 'Evaluación', label: 'Escala de evaluación', valor: '1-5', tipo: 'select', opciones: ['1-5', '1-10', '1-100'] },
-  { id: 'formato_reporte', categoria: 'Reportes', label: 'Formato por defecto', valor: 'Excel', tipo: 'select', opciones: ['Excel', 'PDF'] },
-];
-
 export default function AdminConfiguracion() {
-  const [configs, setConfigs] = useState(CONFIG_ITEMS);
+  const [params, setParams] = useState<Parametro[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const [editando, setEditando] = useState<Record<string, string>>({});
   const [guardando, setGuardando] = useState(false);
-  const [guardado, setGuardado] = useState(false);
 
-  function actualizarValor(id: string, valor: string) {
-    setConfigs(prev => prev.map(c => c.id === id ? { ...c, valor } : c));
-    setGuardado(false);
-  }
+  const cargar = useCallback(async () => {
+    setCargando(true); setError('');
+    try {
+      const res = await api.get<Parametro[]>('/parametros');
+      setParams(res);
+      // Inicializar valores editables
+      const ed: Record<string, string> = {};
+      res.forEach(p => { ed[p.clave] = p.valor; });
+      setEditando(ed);
+    } catch (e: any) { setError(e.message); }
+    setCargando(false);
+  }, []);
 
-  async function guardarTodo() {
+  useEffect(() => { cargar(); }, [cargar]);
+
+  const guardarParametro = async (clave: string) => {
     setGuardando(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    try {
+      const p = params.find(x => x.clave === clave);
+      await api.post('/parametros', { clave, valor: editando[clave], tipo: p?.tipo || 'texto', descripcion: p?.descripcion || null });
+      cargar();
+    } catch (e: any) { alert(e.message); }
     setGuardando(false);
-    setGuardado(true);
-  }
+  };
 
-  const categorias = [...new Set(configs.map(c => c.categoria))];
+  const guardarTodos = async () => {
+    setGuardando(true);
+    try {
+      const parametros = Object.entries(editando).map(([clave, valor]) => {
+        const p = params.find(x => x.clave === clave);
+        return { clave, valor, tipo: p?.tipo || 'texto', descripcion: p?.descripcion || null };
+      });
+      await api.put('/parametros/masivo', { parametros });
+      cargar();
+    } catch (e: any) { alert(e.message); }
+    setGuardando(false);
+  };
+
+  // Nuevo parámetro
+  const [nuevo, setNuevo] = useState({ clave: '', valor: '', tipo: 'texto', descripcion: '' });
+  const [mostrarNuevo, setMostrarNuevo] = useState(false);
+
+  const crearParametro = async () => {
+    if (!nuevo.clave || !nuevo.valor) { alert('Clave y valor son requeridos'); return; }
+    setGuardando(true);
+    try {
+      await api.post('/parametros', nuevo);
+      setNuevo({ clave: '', valor: '', tipo: 'texto', descripcion: '' });
+      setMostrarNuevo(false);
+      cargar();
+    } catch (e: any) { alert(e.message); }
+    setGuardando(false);
+  };
+
+  const eliminarParametro = async (id: number) => {
+    if (!confirm('¿Eliminar este parámetro?')) return;
+    try { await api.delete(`/parametros/${id}`); cargar(); }
+    catch (e: any) { alert(e.message); }
+  };
 
   return (
-    <div className="p-4 lg:p-6">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1 text-sm text-inst-texto-claro mb-4">
-        <span className="material-icons text-base text-inst-azul">home</span>
-        <span>/</span><span>Admin</span><span>/</span>
-        <span className="text-inst-texto font-medium">Configuración</span>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-cogs mr-2" />Configuración del Sistema</h2>
+        <div className="flex gap-2">
+          <button onClick={() => setMostrarNuevo(true)} className="bg-[#003366] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"><i className="fas fa-plus mr-1" />Nuevo</button>
+          <button onClick={guardarTodos} disabled={guardando} className="bg-[#1E5A3C] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"><i className="fas fa-save mr-1" />Guardar Todo</button>
+        </div>
       </div>
 
-      {/* Título */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-heading font-bold text-inst-azul flex items-center gap-2">
-          <span className="material-icons text-3xl">settings</span>
-          Configuración del Sistema
-        </h1>
-        <button onClick={guardarTodo} disabled={guardando}
-          className="edl-btn-primary flex items-center gap-2 disabled:opacity-50">
-          {guardando ? (
-            <><span className="material-icons text-base animate-spin">sync</span>Guardando...</>
-          ) : (
-            <><span className="material-icons text-base">save</span>Guardar Cambios</>
-          )}
-        </button>
-      </div>
+      {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
 
-      {/* Mensaje de éxito */}
-      {guardado && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-300/40 rounded-lg text-sm text-inst-verde flex items-center gap-2">
-          <span className="material-icons text-base">check_circle</span>
-          Configuración guardada exitosamente
+      {cargando ? (
+        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+      ) : params.length === 0 ? (
+        <div className="bg-white rounded-lg shadow-md p-10 text-center text-gray-400">No hay parámetros configurados. Agregue el primero.</div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Clave</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Valor</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Tipo</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Descripción</th>
+                <th className="px-4 py-3 text-left font-semibold text-gray-600">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {params.map(p => (
+                <tr key={p.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-mono text-xs font-semibold">{p.clave}</td>
+                  <td className="px-4 py-3">
+                    {p.tipo === 'booleano' ? (
+                      <input type="checkbox" checked={editando[p.clave] === 'true'} onChange={e => setEditando({...editando, [p.clave]: e.target.checked ? 'true' : 'false'})} className="rounded" />
+                    ) : p.tipo === 'numero' ? (
+                      <input type="number" value={editando[p.clave] || ''} onChange={e => setEditando({...editando, [p.clave]: e.target.value})} className="border rounded px-2 py-1 text-sm w-24" />
+                    ) : (
+                      <input type="text" value={editando[p.clave] || ''} onChange={e => setEditando({...editando, [p.clave]: e.target.value})} className="border rounded px-2 py-1 text-sm w-full max-w-xs" />
+                    )}
+                  </td>
+                  <td className="px-4 py-3"><span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">{p.tipo}</span></td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{p.descripcion || '—'}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-green-600 hover:text-green-800" title="Guardar"><i className="fas fa-save" /></button>
+                      <button onClick={() => eliminarParametro(p.id)} className="text-red-600 hover:text-red-800" title="Eliminar"><i className="fas fa-trash" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* ── Cards por categoría ── */}
-      {categorias.map(cat => {
-        const items = configs.filter(c => c.categoria === cat);
-        return (
-          <div key={cat} className="bg-white rounded-lg border border-inst-borde shadow-sm mb-6">
-            <div className="px-5 py-4 border-b border-inst-borde flex items-center gap-2">
-              <span className="material-icons text-lg text-inst-azul">
-                {cat === 'Evaluación' ? 'assessment' : cat === 'Seguridad' ? 'security' : cat === 'Notificaciones' ? 'notifications' : 'description'}
-              </span>
-              <h2 className="font-heading font-semibold text-inst-azul">{cat}</h2>
+      {/* Nuevo parámetro modal */}
+      {mostrarNuevo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setMostrarNuevo(false)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="p-5 border-b"><h3 className="text-lg font-bold text-[#003366]">Nuevo Parámetro</h3></div>
+            <div className="p-5 space-y-3">
+              <div><label className="text-xs text-gray-500">Clave</label><input value={nuevo.clave} onChange={e => setNuevo({...nuevo, clave: e.target.value})} placeholder="ej: app.nombre" className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
+              <div><label className="text-xs text-gray-500">Valor</label><input value={nuevo.valor} onChange={e => setNuevo({...nuevo, valor: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
+              <div><label className="text-xs text-gray-500">Tipo</label><select value={nuevo.tipo} onChange={e => setNuevo({...nuevo, tipo: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm"><option>texto</option><option>numero</option><option>booleano</option><option>json</option></select></div>
+              <div><label className="text-xs text-gray-500">Descripción</label><input value={nuevo.descripcion} onChange={e => setNuevo({...nuevo, descripcion: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
             </div>
-            <div className="p-5 space-y-5">
-              {items.map(item => (
-                <div key={item.id} className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-inst-texto min-w-[250px]">{item.label}</label>
-                  <div className="flex-1 max-w-xs">
-                    {item.tipo === 'text' && (
-                      <input type="text" value={item.valor} onChange={e => actualizarValor(item.id, e.target.value)} className="edl-input" />
-                    )}
-                    {item.tipo === 'number' && (
-                      <input type="number" value={item.valor} onChange={e => actualizarValor(item.id, e.target.value)} className="edl-input" />
-                    )}
-                    {item.tipo === 'boolean' && (
-                      <button
-                        onClick={() => actualizarValor(item.id, item.valor === 'true' ? 'false' : 'true')}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          item.valor === 'true' ? 'bg-inst-verde' : 'bg-gray-300'
-                        }`}
-                      >
-                        <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform shadow ${
-                          item.valor === 'true' ? 'translate-x-6' : 'translate-x-1'
-                        }`} />
-                      </button>
-                    )}
-                    {item.tipo === 'select' && item.opciones && (
-                      <select value={item.valor} onChange={e => actualizarValor(item.id, e.target.value)} className="edl-input">
-                        {item.opciones.map(o => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="p-5 border-t flex justify-end gap-3">
+              <button onClick={() => setMostrarNuevo(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
+              <button onClick={crearParametro} disabled={guardando} className="bg-[#003366] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">{guardando ? 'Guardando...' : 'Crear'}</button>
             </div>
-          </div>
-        );
-      })}
-
-      {/* ── Zona peligrosa ── */}
-      <div className="bg-white rounded-lg border border-inst-rojo/30 shadow-sm mb-6">
-        <div className="px-5 py-4 border-b border-inst-rojo/20 flex items-center gap-2">
-          <span className="material-icons text-lg text-inst-rojo">warning</span>
-          <h2 className="font-heading font-semibold text-inst-rojo">Zona Peligrosa</h2>
-        </div>
-        <div className="p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-inst-texto">Reiniciar datos del periodo</p>
-              <p className="text-xs text-inst-texto-claro">Elimina todas las evaluaciones y compromisos del periodo activo</p>
-            </div>
-            <button className="px-4 py-2 bg-red-50 text-inst-rojo text-sm font-medium rounded-lg hover:bg-red-100 transition-colors border border-inst-rojo/20">
-              Reiniciar
-            </button>
-          </div>
-          <div className="border-t border-inst-borde" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-inst-texto">Mantenimiento del sistema</p>
-              <p className="text-xs text-inst-texto-claro">Pone el sistema en modo mantenimiento temporalmente</p>
-            </div>
-            <button className="px-4 py-2 bg-amber-50 text-amber-700 text-sm font-medium rounded-lg hover:bg-amber-100 transition-colors border border-amber-300/30">
-              Activar
-            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
