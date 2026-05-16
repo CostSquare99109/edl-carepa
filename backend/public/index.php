@@ -22,10 +22,11 @@ $router = new Router();
 
 $router->group('/api/v1', function (Router $r) {
 
-    // Rutas públicas
-    $r->post('/auth/login', [\App\Controller\AuthController::class, 'login']);
-    $r->post('/auth/recuperar', [\App\Controller\AuthController::class, 'recuperar']);
-    $r->put('/auth/recuperar/{token}', [\App\Controller\AuthController::class, 'resetPassword']);
+ // Rutas públicas
+ $r->post('/auth/login', [\App\Controller\AuthController::class, 'login']);
+ $r->post('/auth/registro', [\App\Controller\AuthController::class, 'registro']);
+ $r->post('/auth/recuperar', [\App\Controller\AuthController::class, 'recuperar']);
+ $r->put('/auth/recuperar/{token}', [\App\Controller\AuthController::class, 'resetPassword']);
 
     // Rutas protegidas
     $r->group('', function (Router $r) {

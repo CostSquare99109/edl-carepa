@@ -31,7 +31,28 @@ class AuthController
         ResponseHelper::success($resultado, 'Autenticacion exitosa');
     }
 
-    public function logout(): void
+    public function registro(): void
+ {
+ $input = json_decode(file_get_contents('php://input'), true) ?: [];
+ $input = SanitizerHelper::sanitizeArray($input);
+
+ $v = new ValidatorHelper();
+ if (!$v->validate($input, [
+ 'documento' => 'required',
+ 'tipo_documento' => 'required',
+ 'nombres' => 'required',
+ 'apellidos' => 'required',
+ 'email' => 'required|email',
+ 'password' => 'required|min:8',
+ ])) {
+ ResponseHelper::error('Datos incompletos: ' . implode(', ', $v->errors()), 422);
+ }
+
+ $resultado = $this->service->registrar($input);
+ ResponseHelper::success($resultado, 'Usuario registrado exitosamente');
+ }
+
+ public function logout(): void
     {
         $user = AuthMiddleware::user();
         $this->service->logout($user['id']);

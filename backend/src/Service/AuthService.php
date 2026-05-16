@@ -80,7 +80,51 @@ class AuthService
  ];
     }
 
-    public function logout(int $usuarioId): void
+    public function registrar(array $datos): array
+ {
+ // Verificar si ya existe documento o email
+ $existente = $this->usuarioRepo->buscarPorDocumento($datos['documento'], $datos['tipo_documento']);
+ if ($existente) {
+ ResponseHelper::error('Ya existe un usuario con ese documento', 409);
+ }
+
+ $existenteEmail = $this->usuarioRepo->buscarPorEmail($datos['email']);
+ if ($existenteEmail) {
+ ResponseHelper::error('Ya existe un usuario con ese correo', 409);
+ }
+
+ $hash = password_hash($datos['password'], PASSWORD_BCRYPT);
+
+ $this->usuarioRepo->crear([
+ 'documento' => $datos['documento'],
+ 'tipo_documento' => $datos['tipo_documento'],
+ 'nombres' => $datos['nombres'],
+ 'apellidos' => $datos['apellidos'],
+ 'email' => $datos['email'],
+ 'password_hash' => $hash,
+ 'estado' => 'activo',
+ 'telefono' => $datos['telefono'] ?? null,
+ 'cargo' => $datos['cargo'] ?? null,
+ 'entidad_id' => $datos['entidad_id'] ?? null,
+ ]);
+
+ // Asignar rol funcionario por defecto
+ $pdo = Database::getInstance();
+ $usuarioId = (int) $pdo->lastInsertId();
+ $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = 'funcionario' LIMIT 1");
+ $stmt->execute();
+ $rol = $stmt->fetch();
+ if ($rol) {
+ $stmt = $pdo->prepare("INSERT IGNORE INTO usuario_roles (usuario_id, rol_id) VALUES (?, ?)");
+ $stmt->execute([$usuarioId, $rol['id']]);
+ }
+
+ AuditoriaService::registrar('registro', 'usuarios', $usuarioId);
+
+ return ['usuario_id' => $usuarioId];
+ }
+
+ public function logout(int $usuarioId): void
     {
         $this->sesionRepo->revocarPorUsuario($usuarioId);
         AuditoriaService::registrar('logout', 'usuarios', $usuarioId);
