@@ -8,7 +8,7 @@ interface AuthContextType {
   menu: MenuItem[];
   token: string | null;
   loading: boolean;
-  login: (documento: string, tipo_documento: string, password: string) => Promise<void>;
+  login: (documento: string, tipo_documento: string, password: string) => Promise<Rol[]>;
   logout: () => void;
   cambiarRol: (rolCodigo: string) => Promise<void>;
 }
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [rolActivo, token]);
 
-  const login = useCallback(async (documento: string, tipo_documento: string, password: string) => {
+  const login = useCallback(async (documento: string, tipo_documento: string, password: string): Promise<Rol[]> => {
     setLoading(true);
     try {
       const resp = await authApi.login({ documento, tipo_documento, password });
@@ -97,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         console.warn('No se pudo cargar el menu');
       }
+      return resp.roles;
     } finally {
       setLoading(false);
     }
@@ -107,6 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const resp = await authApi.cambiarRol(rolCodigo);
       setRolActivo(resp.rol_activo);
       localStorage.setItem('edl_rol_activo', resp.rol_activo);
+      // El backend genera un nuevo JWT con el rol activo — actualizarlo
+      if (resp.token) {
+        localStorage.setItem('edl_token', resp.token);
+        setToken(resp.token);
+      }
       // Recargar menú con el nuevo rol
       const menuData = await authApi.menu();
       setMenu(menuData);

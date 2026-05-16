@@ -90,16 +90,22 @@ export default function Login() {
  }
 
   // --- LOGIN ---
- async function handleLogin(e: FormEvent) {
- e.preventDefault()
- setError('')
- try {
- await login(documento, tipoDocumento, password)
- navigate('/')
- } catch (err: unknown) {
- showError(err instanceof Error ? err.message : 'Usuario o contraseña incorrectos')
- }
- }
+  async function handleLogin(e: FormEvent) {
+    e.preventDefault()
+    setError('')
+    try {
+      const roles = await login(documento, tipoDocumento, password)
+      if (roles.length > 1) {
+        navigate('/seleccionar-rol', { replace: true })
+      } else if (roles.length === 1 && ['admin_cnsc', 'admin_entidad'].includes(roles[0].codigo)) {
+        navigate('/admin', { replace: true })
+      } else {
+        navigate('/', { replace: true })
+      }
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : 'Usuario o contraseña incorrectos')
+    }
+  }
 
   // --- REGISTRO ---
   async function handleRegistro(e: FormEvent) {
