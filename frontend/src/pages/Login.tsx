@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, useCallback, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../lib/api'
@@ -18,8 +18,41 @@ export default function Login() {
   const { login, loading } = useAuth()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('login')
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+ const [error, setError] = useState('')
+ const [success, setSuccess] = useState('')
+ const [fadingError, setFadingError] = useState(false)
+ const [fadingSuccess, setFadingSuccess] = useState(false)
+
+ // Auto-ocultar errores después de 10 segundos con fade
+ const showError = useCallback((msg: string) => {
+ setError(msg)
+ setFadingError(false)
+ }, [])
+ const hideError = useCallback(() => {
+ setFadingError(true)
+ setTimeout(() => { setError(''); setFadingError(false) }, 500)
+ }, [])
+
+ useEffect(() => {
+ if (!error) return
+ const t = setTimeout(hideError, 10000)
+ return () => clearTimeout(t)
+ }, [error, hideError])
+
+ const showSuccess = useCallback((msg: string) => {
+ setSuccess(msg)
+ setFadingSuccess(false)
+ }, [])
+ const hideSuccess = useCallback(() => {
+ setFadingSuccess(true)
+ setTimeout(() => { setSuccess(''); setFadingSuccess(false) }, 500)
+ }, [])
+
+ useEffect(() => {
+ if (!success) return
+ const t = setTimeout(hideSuccess, 10000)
+ return () => clearTimeout(t)
+ }, [success, hideSuccess])
 
   // Login
   const [documento, setDocumento] = useState('')
@@ -48,23 +81,25 @@ export default function Login() {
   const [recPaso, setRecPaso] = useState<1 | 2>(1)
   const [saving, setSaving] = useState(false)
 
-  function switchTab(t: Tab) {
-    setTab(t)
-    setError('')
-    setSuccess('')
-  }
+ function switchTab(t: Tab) {
+ setTab(t)
+ setError('')
+ setSuccess('')
+ setFadingError(false)
+ setFadingSuccess(false)
+ }
 
   // --- LOGIN ---
-  async function handleLogin(e: FormEvent) {
-    e.preventDefault()
-    setError('')
-    try {
-      await login(documento, tipoDocumento, password)
-      navigate('/')
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión')
-    }
-  }
+ async function handleLogin(e: FormEvent) {
+ e.preventDefault()
+ setError('')
+ try {
+ await login(documento, tipoDocumento, password)
+ navigate('/')
+ } catch (err: unknown) {
+ showError(err instanceof Error ? err.message : 'Usuario o contraseña incorrectos')
+ }
+ }
 
   // --- REGISTRO ---
   async function handleRegistro(e: FormEvent) {
@@ -73,11 +108,11 @@ export default function Login() {
     setSuccess('')
 
     if (regPassword !== regPassword2) {
-      setError('Las contraseñas no coinciden')
+      showError('Las contraseñas no coinciden')
       return
     }
     if (regPassword.length < 8) {
-      setError('La contraseña debe tener mínimo 8 caracteres')
+      showError('La contraseña debe tener mínimo 8 caracteres')
       return
     }
 
@@ -93,12 +128,12 @@ export default function Login() {
         telefono: regTelefono || undefined,
         cargo: regCargo || undefined,
       })
-      setSuccess('Cuenta creada exitosamente. Ahora puede iniciar sesión.')
+      showSuccess('Cuenta creada exitosamente. Ahora puede iniciar sesión.')
       setTab('login')
       setDocumento(regDocumento)
       setTipoDocumento(regTipoDoc)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error al registrarse')
+      showError(err instanceof Error ? err.message : 'Error al registrarse')
     } finally {
       setSaving(false)
     }
@@ -114,19 +149,19 @@ export default function Login() {
     try {
       if (recPaso === 1) {
         await api.post('/auth/recuperar', { email: recEmail })
-        setSuccess('Se envió un enlace de recuperación. Ingrese el token recibido.')
+        showSuccess('Se envió un enlace de recuperación. Ingrese el token recibido.')
         setRecPaso(2)
       } else {
         if (recPassword !== recPassword2) {
-          setError('Las contraseñas no coinciden')
+          showError('Las contraseñas no coinciden')
           return
         }
         if (recPassword.length < 8) {
-          setError('La contraseña debe tener mínimo 8 caracteres')
+          showError('La contraseña debe tener mínimo 8 caracteres')
           return
         }
         await api.put(`/auth/recuperar/${recToken}`, { password: recPassword })
-        setSuccess('Contraseña actualizada. Puede iniciar sesión.')
+        showSuccess('Contraseña actualizada. Puede iniciar sesión.')
         setTab('login')
         setRecPaso(1)
         setRecEmail('')
@@ -135,7 +170,7 @@ export default function Login() {
         setRecPassword2('')
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error en recuperación')
+      showError(err instanceof Error ? err.message : 'Error en recuperación')
     } finally {
       setSaving(false)
     }
@@ -197,19 +232,29 @@ export default function Login() {
             {tabBtn('recuperar', 'Recuperar')}
           </div>
 
-          {/* Alertas */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-inst-rojo/20 rounded-lg text-sm text-inst-rojo flex items-center gap-2">
-              <span className="material-icons text-base">error</span>
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-300/40 rounded-lg text-sm text-inst-verde flex items-center gap-2">
-              <span className="material-icons text-base">check_circle</span>
-              {success}
-            </div>
-          )}
+ {/* Alertas */}
+ {error && (
+ <div
+ className={`mb-4 p-3 bg-red-50 border border-inst-rojo/20 rounded-lg text-sm text-inst-rojo flex items-center gap-2 transition-opacity duration-500 ${fadingError ? 'opacity-0' : 'opacity-100'}`}
+ >
+ <span className="material-icons text-base">error</span>
+ <span className="flex-1">{error}</span>
+ <button type="button" onClick={hideError} className="p-0.5 rounded hover:bg-inst-rojo/10 text-inst-rojo/60 hover:text-inst-rojo" aria-label="Cerrar">
+ <span className="material-icons text-sm">close</span>
+ </button>
+ </div>
+ )}
+ {success && (
+ <div
+ className={`mb-4 p-3 bg-green-50 border border-green-300/40 rounded-lg text-sm text-inst-verde flex items-center gap-2 transition-opacity duration-500 ${fadingSuccess ? 'opacity-0' : 'opacity-100'}`}
+ >
+ <span className="material-icons text-base">check_circle</span>
+ <span className="flex-1">{success}</span>
+ <button type="button" onClick={hideSuccess} className="p-0.5 rounded hover:bg-inst-verde/10 text-inst-verde/60 hover:text-inst-verde" aria-label="Cerrar">
+ <span className="material-icons text-sm">close</span>
+ </button>
+ </div>
+ )}
 
           {/* ====== LOGIN ====== */}
           {tab === 'login' && (
