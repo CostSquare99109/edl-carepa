@@ -61,7 +61,7 @@ class EvaluacionController
         ResponseHelper::success(['id' => $compId], 'Compromiso creado', 201);
     }
 
-    /** Crear evaluación parcial (semestral o eventual) - EDL-CNSC Acuerdo 6176 */
+	/** Crear evaluación parcial (semestral o eventual) - EDL-CAREPA Acuerdo 6176 */
     public function crearParcial(int $id): void
     {
         $input = json_decode(file_get_contents('php://input'), true) ?: [];

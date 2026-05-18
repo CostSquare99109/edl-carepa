@@ -120,7 +120,7 @@ export default function EvaluarPage() {
     }
   }
 
-  const esComision = rolActivo === 'comision_evaluadora' || rolActivo === 'admin_cnsc';
+  const esComision = rolActivo === 'comision_evaluadora' || rolActivo === 'admin_carepa';
 
   return (
     <div>

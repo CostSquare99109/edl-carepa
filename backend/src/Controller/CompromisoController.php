@@ -40,7 +40,7 @@ class CompromisoController
  }
  }
 
- // Validar tipo de compromiso CNSC: 'funcional' o 'comportamental'
+	// Validar tipo de compromiso CAREPA: 'funcional' o 'comportamental'
  $tiposValidos = ['funcional', 'comportamental'];
  if (!in_array($input['tipo'], $tiposValidos)) {
  ResponseHelper::error('Tipo de compromiso invalido. Debe ser: funcional o comportamental', 422);

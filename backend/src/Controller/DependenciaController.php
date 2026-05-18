@@ -15,14 +15,16 @@ class DependenciaController
         $this->service = new DependenciaService();
     }
 
-    public function listar(): void
-    {
-        $filtros = SanitizerHelper::sanitizeArray($_GET);
-        $pagina = (int) ($_GET['pagina'] ?? 1);
-        $porPagina = (int) ($_GET['por_pagina'] ?? 20);
-        $resultado = $this->service->listar($filtros, $pagina, $porPagina);
-        ResponseHelper::success($resultado);
-    }
+	public function listar(): void
+	{
+		$filtros = SanitizerHelper::sanitizeArray($_GET);
+		$pagina = (int) ($_GET['pagina'] ?? 1);
+		$porPagina = (int) ($_GET['por_pagina'] ?? 20);
+		// Limpiar parámetros de paginación y orden que no son columnas de filtro
+		unset($filtros['pagina'], $filtros['por_pagina'], $filtros['orden'], $filtros['direccion'], $filtros['page'], $filtros['per_page']);
+		$resultado = $this->service->listar($filtros, $pagina, $porPagina);
+		ResponseHelper::success($resultado);
+	}
 
     public function crear(): void
     {

@@ -72,14 +72,9 @@ export default function Login() {
   const [regCargo, setRegCargo] = useState('')
   const [regMostrarPass, setRegMostrarPass] = useState(false)
 
-  // Recuperar
-  const [recEmail, setRecEmail] = useState('')
-  const [recToken, setRecToken] = useState('')
-  const [recPassword, setRecPassword] = useState('')
-  const [recPassword2, setRecPassword2] = useState('')
-  const [recMostrarPass, setRecMostrarPass] = useState(false)
-  const [recPaso, setRecPaso] = useState<1 | 2>(1)
-  const [saving, setSaving] = useState(false)
+	// Recuperar
+	const [recEmail, setRecEmail] = useState('')
+	const [saving, setSaving] = useState(false)
 
  function switchTab(t: Tab) {
  setTab(t)
@@ -94,14 +89,15 @@ export default function Login() {
     e.preventDefault()
     setError('')
     try {
-      const roles = await login(documento, tipoDocumento, password)
-      if (roles.length > 1) {
-        navigate('/seleccionar-rol', { replace: true })
-      } else if (roles.length === 1 && ['admin', 'admin_cnsc', 'admin_entidad'].includes(roles[0].codigo)) {
-        navigate('/admin', { replace: true })
-      } else {
-        navigate('/', { replace: true })
-      }
+    const roles = await login(documento, tipoDocumento, password)
+    if (roles.length > 1) {
+      // Siempre ir a seleccionar rol cuando tiene más de uno
+      navigate('/seleccionar-rol', { replace: true })
+    } else if (roles.length === 1 && ['admin', 'admin_carepa', 'admin_entidad'].includes(roles[0].codigo)) {
+      navigate('/admin', { replace: true })
+    } else {
+      navigate('/', { replace: true })
+    }
     } catch (err: unknown) {
       showError(err instanceof Error ? err.message : 'Usuario o contraseña incorrectos')
     }
@@ -145,100 +141,67 @@ export default function Login() {
     }
   }
 
-  // --- RECUPERAR ---
-  async function handleRecuperar(e: FormEvent) {
-    e.preventDefault()
-    setError('')
-    setSuccess('')
-    setSaving(true)
+	// --- RECUPERAR ---
+	async function handleRecuperar(e: FormEvent) {
+		e.preventDefault()
+		setError('')
+		setSuccess('')
+		setSaving(true)
 
-    try {
-      if (recPaso === 1) {
-        await api.post('/auth/recuperar', { email: recEmail })
-        showSuccess('Se envió un enlace de recuperación. Ingrese el token recibido.')
-        setRecPaso(2)
-      } else {
-        if (recPassword !== recPassword2) {
-          showError('Las contraseñas no coinciden')
-          return
-        }
-        if (recPassword.length < 8) {
-          showError('La contraseña debe tener mínimo 8 caracteres')
-          return
-        }
-        await api.put(`/auth/recuperar/${recToken}`, { password: recPassword })
-        showSuccess('Contraseña actualizada. Puede iniciar sesión.')
-        setTab('login')
-        setRecPaso(1)
-        setRecEmail('')
-        setRecToken('')
-        setRecPassword('')
-        setRecPassword2('')
-      }
-    } catch (err: unknown) {
-      showError(err instanceof Error ? err.message : 'Error en recuperación')
-    } finally {
-      setSaving(false)
-    }
-  }
+		try {
+			await api.post('/auth/recuperar', { email: recEmail })
+			navigate(`/verificar-codigo?email=${encodeURIComponent(recEmail)}`)
+		} catch (err: unknown) {
+			showError(err instanceof Error ? err.message : 'Error en recuperación')
+		} finally {
+			setSaving(false)
+		}
+	}
 
-  const tabBtn = (t: Tab, label: string) => (
-    <button
-      type="button"
-      onClick={() => switchTab(t)}
-      className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-        tab === t
-          ? 'border-inst-azul text-inst-azul'
-          : 'border-transparent text-inst-texto-claro hover:text-inst-texto hover:border-inst-borde'
-      }`}
-    >
-      {label}
-    </button>
-  )
+ // Título y subtítulo según el tab activo
+ const tabInfo: Record<Tab, { titulo: string; subtitulo: string }> = {
+		login: { titulo: 'Evaluación del Desempeño Laboral', subtitulo: 'Alcaldía de Carepa' },
+	registro: { titulo: 'Crear cuenta', subtitulo: 'Regístrese en el sistema EDL-CAREPA' },
+ recuperar: { titulo: 'Recuperar contraseña', subtitulo: 'Restablezca el acceso a su cuenta' },
+ }
+ const { titulo, subtitulo } = tabInfo[tab]
 
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="edl-card">
-          {/* Logo CNSC */}
-          <div className="flex justify-center mb-6">
-            <img
-              src={`${import.meta.env.BASE_URL}escudo.png`}
-              alt="CNSC"
-              className="h-20 w-auto"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none'
-                const parent = (e.target as HTMLImageElement).parentElement
-                if (parent && !parent.querySelector('.escudo-fallback')) {
-                  const span = document.createElement('span')
-                  span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul'
-                  span.textContent = 'CNSC'
-                  parent.appendChild(span)
-                }
-              }}
-            />
-          </div>
+ return (
+ <div className="min-h-screen bg-white flex items-center justify-center px-4">
+ <div className="w-full max-w-md">
+ <div className="edl-card">
+ {/* Logo Carepa */}
+ <div className="flex justify-center mb-6">
+ <img
+ src={`${import.meta.env.BASE_URL}escudo.png`}
+ alt="Carepa"
+ className="h-20 w-auto"
+ onError={(e) => {
+ (e.target as HTMLImageElement).style.display = 'none'
+ const parent = (e.target as HTMLImageElement).parentElement
+ if (parent && !parent.querySelector('.escudo-fallback')) {
+ const span = document.createElement('span')
+span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul'
+span.textContent = 'CAREPA'
+ parent.appendChild(span)
+ }
+ }}
+ />
+ </div>
 
-          {/* Título */}
-          <h1 className="text-lg font-heading font-bold text-inst-azul text-center mb-1">
-            Evaluación del Desempeño Laboral
-          </h1>
-          <p className="text-sm text-inst-texto-claro text-center mb-4">
-            Comisión Nacional del Servicio Civil
-          </p>
+ {/* Título dinámico según tab */}
+ <h1 className="text-lg font-heading font-bold text-inst-azul text-center mb-1">
+ {titulo}
+ </h1>
+ <p className="text-sm text-inst-texto-claro text-center mb-4">
+ {subtitulo}
+ </p>
 
-          {/* Doble línea */}
-          <div className="edl-divider" />
-          <div className="edl-divider-accent" />
+ {/* Doble línea */}
+	<div className="edl-divider" />
+	<div className="edl-divider-accent" />
 
-          {/* Pestañas */}
-          <div className="flex border-b border-inst-borde mb-4">
-            {tabBtn('login', 'Iniciar Sesión')}
-            {tabBtn('registro', 'Registrarse')}
-            {tabBtn('recuperar', 'Recuperar')}
-          </div>
-
- {/* Alertas */}
+	{/* Alertas */}
  {error && (
  <div
  className={`mb-4 p-3 bg-red-50 border border-inst-rojo/20 rounded-lg text-sm text-inst-rojo flex items-center gap-2 transition-opacity duration-500 ${fadingError ? 'opacity-0' : 'opacity-100'}`}
@@ -262,10 +225,11 @@ export default function Login() {
  </div>
  )}
 
-          {/* ====== LOGIN ====== */}
-          {tab === 'login' && (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
+	{/* ====== LOGIN ====== */}
+	{tab === 'login' && (
+	<form onSubmit={handleLogin} className="space-y-4">
+	<h2 className="text-base font-heading font-semibold text-inst-azul text-center mb-2">Iniciar Sesión</h2>
+	<div>
                 <label className="block text-sm font-medium text-inst-texto mb-1">
                   Tipo de documento
                 </label>
@@ -289,7 +253,7 @@ export default function Login() {
                   value={documento}
                   onChange={(e) => setDocumento(e.target.value)}
                   className="edl-input"
-                  placeholder="Número de cédula"
+                  placeholder="Ingrese su Documento"
                   required
                   autoComplete="username"
                 />
@@ -464,15 +428,14 @@ export default function Login() {
             </form>
           )}
 
-          {/* ====== RECUPERAR CONTRASEÑA ====== */}
-          {tab === 'recuperar' && (
-            <form onSubmit={handleRecuperar} className="space-y-4">
-              {recPaso === 1 ? (
-                <>
-                  <div className="bg-inst-gris rounded-lg p-3 text-sm text-inst-texto-claro flex items-start gap-2">
-                    <span className="material-icons text-base mt-0.5">info</span>
-                    <p>Ingrese el correo electrónico asociado a su cuenta. Recibirá un token para restablecer su contraseña.</p>
-                  </div>
+	{/* ====== RECUPERAR CONTRASEÑA ====== */}
+	{tab === 'recuperar' && (
+	<form onSubmit={handleRecuperar} className="space-y-4">
+	<>
+	<div className="bg-inst-gris rounded-lg p-3 text-sm text-inst-texto-claro flex items-start gap-2">
+	<span className="material-icons text-base mt-0.5">info</span>
+	<p>Ingrese el correo electrónico asociado a su cuenta. Recibirá un código de 6 caracteres para restablecer su contraseña.</p>
+	</div>
 
                   <div>
                     <label className="block text-sm font-medium text-inst-texto mb-1">
@@ -483,123 +446,43 @@ export default function Login() {
                       value={recEmail}
                       onChange={(e) => setRecEmail(e.target.value)}
                       className="edl-input"
-                      placeholder="correo@ejemplo.com"
-                      required
-                    />
-                  </div>
+	placeholder="Ingrese su correo"
+								required
+							/>
+						</div>
 
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="edl-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60"
-                  >
-                    {saving ? (
-                      <>
-                        <span className="material-icons text-base animate-spin">sync</span>
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-icons text-base">mail</span>
-                        Enviar token de recuperación
-                      </>
-                    )}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="bg-green-50 border border-green-300/40 rounded-lg p-3 text-sm text-inst-verde flex items-start gap-2">
-                    <span className="material-icons text-base mt-0.5">mark_email_read</span>
-                    <p>Token enviado a <strong>{recEmail}</strong>. Revíselo e ingréselo abajo con su nueva contraseña.</p>
-                  </div>
+						<button
+							type="submit"
+							disabled={saving}
+							className="edl-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60"
+						>
+							{saving ? (
+								<>
+									<span className="material-icons text-base animate-spin">sync</span>
+									Enviando código...
+								</>
+							) : (
+								<>
+									<span className="material-icons text-base">mail</span>
+									Enviar código de recuperación
+								</>
+							)}
+						</button>
 
-                  <div>
-                    <label className="block text-sm font-medium text-inst-texto mb-1">
-                      Token de recuperación
-                    </label>
-                    <input
-                      type="text"
-                      value={recToken}
-                      onChange={(e) => setRecToken(e.target.value)}
-                      className="edl-input font-mono text-xs"
-                      placeholder="Pegue el token recibido"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-inst-texto mb-1">
-                      Nueva contraseña
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={recMostrarPass ? 'text' : 'password'}
-                        value={recPassword}
-                        onChange={(e) => setRecPassword(e.target.value)}
-                        className="edl-input pr-10"
-                        placeholder="Mínimo 8 caracteres"
-                        required
-                        minLength={8}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setRecMostrarPass(!recMostrarPass)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-inst-texto-claro hover:text-inst-texto p-1"
-                        tabIndex={-1}
-                      >
-                        <span className="material-icons text-xl">{recMostrarPass ? 'visibility' : 'visibility_off'}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-inst-texto mb-1">
-                      Confirmar nueva contraseña
-                    </label>
-                    <input
-                      type="password"
-                      value={recPassword2}
-                      onChange={(e) => setRecPassword2(e.target.value)}
-                      className="edl-input"
-                      placeholder="Repita la nueva contraseña"
-                      required
-                      minLength={8}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="edl-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60"
-                  >
-                    {saving ? (
-                      <>
-                        <span className="material-icons text-base animate-spin">sync</span>
-                        Actualizando...
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-icons text-base">lock_reset</span>
-                        Cambiar contraseña
-                      </>
-                    )}
-                  </button>
-                </>
-              )}
-
-              <p className="text-center text-xs text-inst-texto-claro">
-                ¿Recuerda su contraseña?{' '}
-                <button type="button" onClick={() => { switchTab('login'); setRecPaso(1) }} className="text-inst-azul hover:underline font-medium">
-                  Inicie sesión
-                </button>
-              </p>
-            </form>
-          )}
+						<p className="text-center text-xs text-inst-texto-claro">
+							¿Recuerda su contraseña?{' '}
+							<button type="button" onClick={() => switchTab('login')} className="text-inst-azul hover:underline font-medium">
+								Inicie sesión
+							</button>
+						</p>
+					</>
+				</form>
+				)}
         </div>
 
         {/* Pie - SIN correo de soporte */}
         <p className="text-center text-xs text-inst-texto-claro mt-6">
-          Comisión Nacional del Servicio Civil — Sistema EDL-CNSC
+		Alcaldía de Carepa — Sistema EDL-CAREPA
         </p>
       </div>
     </div>

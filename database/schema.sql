@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS edl_cnsc;
-CREATE DATABASE edl_cnsc CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE edl_cnsc;
+DROP DATABASE IF EXISTS edl_carepa;
+CREATE DATABASE edl_carepa CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE edl_carepa;
 
 CREATE TABLE usuarios (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -431,6 +431,6 @@ BEGIN
 END//
 DELIMITER ;
 
-CREATE USER IF NOT EXISTS 'edl_user'@'localhost' IDENTIFIED BY 'EdlCnsc2026!Sec';
-GRANT SELECT, INSERT, UPDATE, DELETE ON edl_cnsc.* TO 'edl_user'@'localhost';
+CREATE USER IF NOT EXISTS 'edl_user'@'localhost' IDENTIFIED BY 'EdlCarepa2026!Sec';
+GRANT SELECT, INSERT, UPDATE, DELETE ON edl_carepa.* TO 'edl_user'@'localhost';
 FLUSH PRIVILEGES;

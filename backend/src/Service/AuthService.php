@@ -51,8 +51,16 @@ class AuthService
  $rolCodigos = array_column($roles, 'codigo');
  $entidadId = $usuario['entidad_id'];
 
- // Por defecto el primer rol como rol activo
- $rolActivo = $rolCodigos[0] ?? null;
+ // Priorizar rol admin si lo tiene, si no el primer rol
+ $prioridad = ['admin', 'evaluador', 'evaluado'];
+ $rolActivo = null;
+ foreach ($prioridad as $p) {
+ if (in_array($p, $rolCodigos)) {
+ $rolActivo = $p;
+ break;
+ }
+ }
+ $rolActivo = $rolActivo ?? ($rolCodigos[0] ?? null);
 
  $token = JwtHelper::generate($usuario['id'], $usuario['documento'], $rolCodigos, $entidadId, $rolActivo);
  $tokenHash = hash('sha256', $token);
@@ -108,14 +116,14 @@ class AuthService
  'entidad_id' => $datos['entidad_id'] ?? null,
  ]);
 
- // Asignar rol funcionario por defecto
+ // Asignar rol evaluado por defecto
  $pdo = Database::getInstance();
  $usuarioId = (int) $pdo->lastInsertId();
- $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = 'funcionario' LIMIT 1");
+ $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = 'evaluado' LIMIT 1");
  $stmt->execute();
  $rol = $stmt->fetch();
  if ($rol) {
- $stmt = $pdo->prepare("INSERT IGNORE INTO usuario_roles (usuario_id, rol_id) VALUES (?, ?)");
+ $stmt = $pdo->prepare("INSERT IGNORE INTO usuario_rol (usuario_id, rol_id) VALUES (?, ?)");
  $stmt->execute([$usuarioId, $rol['id']]);
  }
 
@@ -130,22 +138,50 @@ class AuthService
         AuditoriaService::registrar('logout', 'usuarios', $usuarioId);
     }
 
-    public function recuperarPassword(string $email): string
-    {
-        $usuario = $this->usuarioRepo->buscarPorEmail($email);
-        if (!$usuario) {
-            ResponseHelper::error('No existe cuenta con ese correo', 404);
-        }
+	public function recuperarPassword(string $email): string
+	{
+		$usuario = $this->usuarioRepo->buscarPorEmail($email);
+		if (!$usuario) {
+			ResponseHelper::error('No existe cuenta con ese correo', 404);
+		}
 
-        $token = bin2hex(random_bytes(32));
-        $expiracion = date('Y-m-d H:i:s', time() + 3600);
+		// Generar código de 6 caracteres: mayúsculas + números
+		$chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+		$codigo = '';
+		for ($i = 0; $i < 6; $i++) {
+			$codigo .= $chars[random_int(0, strlen($chars) - 1)];
+		}
 
-        $pdo = Database::getInstance();
-        $stmt = $pdo->prepare("INSERT INTO recuperaciones (usuario_id, token, fecha_expiracion) VALUES (?, ?, ?)");
-        $stmt->execute([$usuario['id'], $token, $expiracion]);
+		$expiracion = date('Y-m-d H:i:s', time() + 3600);
 
-        return $token;
-    }
+		$pdo = Database::getInstance();
+		$stmt = $pdo->prepare("INSERT INTO recuperaciones (usuario_id, token, fecha_expiracion) VALUES (?, ?, ?)");
+		$stmt->execute([$usuario['id'], $codigo, $expiracion]);
+
+		// Enviar correo con el código
+		$nombre = trim(($usuario['nombres'] ?? '') . ' ' . ($usuario['apellidos'] ?? ''));
+		$enviado = \App\Helper\MailHelper::enviarRecuperacion($email, $nombre, $codigo);
+
+		if (!$enviado) {
+			ResponseHelper::error('No se pudo enviar el correo de recuperación. Intente más tarde.', 500);
+		}
+
+		return $codigo;
+	}
+
+	public function verificarCodigo(string $codigo): array
+	{
+		$pdo = Database::getInstance();
+		$stmt = $pdo->prepare("SELECT * FROM recuperaciones WHERE token = ? AND utilizado = 0 AND fecha_expiracion > NOW() ORDER BY id DESC LIMIT 1");
+		$stmt->execute([strtoupper($codigo)]);
+		$rec = $stmt->fetch();
+
+		if (!$rec) {
+			ResponseHelper::error('Código inválido o expirado', 400);
+		}
+
+		return ['codigo_valido' => true, 'recuperacion_id' => $rec['id']];
+	}
 
     public function resetPassword(string $token, string $nuevaPassword): void
     {
@@ -229,9 +265,10 @@ class AuthService
  $tokenHash = hash('sha256', $token);
  $expiracion = date('Y-m-d H:i:s', time() + ((int) Env::get('JWT_EXPIRACION_MINUTOS', 120)) * 60);
 
- // Revocar sesion anterior y crear nueva
- $this->sesionRepo->revocarPorUsuario($usuarioId);
- $this->sesionRepo->crearSesion(
+	// NO revocar sesiones anteriores — las peticiones en vuelo con el token
+	// viejo seguirían funcionando hasta que expiren naturalmente.
+	// Solo crear la nueva sesión con el token actualizado.
+	$this->sesionRepo->crearSesion(
  $usuarioId,
  $tokenHash,
  $_SERVER['REMOTE_ADDR'] ?? '',

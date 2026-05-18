@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Sidebar from './Sidebar';
 
@@ -8,7 +8,7 @@ const ROL_COLORS: Record<string, string> = {
   evaluador: 'bg-green-100 text-green-800',
   admin_entidad: 'bg-purple-100 text-purple-800',
   comision_evaluadora: 'bg-amber-100 text-amber-800',
-  admin_cnsc: 'bg-red-100 text-red-800',
+	admin_carepa: 'bg-red-100 text-red-800',
 };
 
 const ROL_ICONS: Record<string, string> = {
@@ -16,11 +16,12 @@ const ROL_ICONS: Record<string, string> = {
   evaluador: 'rate_review',
   admin_entidad: 'admin_panel_settings',
   comision_evaluadora: 'groups',
-  admin_cnsc: 'shield',
+	admin_carepa: 'shield',
 };
 
 export default function Layout() {
-  const { usuario, roles, rolActivo, menu, logout, cambiarRol } = useAuth();
+ const { usuario, roles, rolActivo, menu, logout, cambiarRol } = useAuth();
+ const navigate = useNavigate();
   const [rolDropdownOpen, setRolDropdownOpen] = useState(false);
   const [cambiandoRol, setCambiandoRol] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -39,40 +40,47 @@ export default function Layout() {
   const rolActivoData = roles.find(r => r.codigo === rolActivo);
   const tieneMultiplesRoles = roles.length > 1;
 
-  async function handleCambiarRol(codigo: string) {
-    if (codigo === rolActivo) {
-      setRolDropdownOpen(false);
-      return;
-    }
-    setCambiandoRol(true);
-    try {
-      await cambiarRol(codigo);
-      setRolDropdownOpen(false);
-    } catch (err) {
-      console.error('Error al cambiar rol:', err);
-    } finally {
-      setCambiandoRol(false);
-    }
-  }
+	async function handleCambiarRol(codigo: string) {
+		if (codigo === rolActivo) {
+			setRolDropdownOpen(false);
+			return;
+		}
+		setCambiandoRol(true);
+		try {
+			await cambiarRol(codigo);
+			setRolDropdownOpen(false);
+			// Navegar al layout correcto según el rol
+			if (['admin', 'admin_carepa', 'admin_entidad'].includes(codigo)) {
+				navigate('/admin', { replace: true });
+			} else if (['admin', 'admin_carepa', 'admin_entidad'].includes(rolActivo || '')) {
+				// Venía de un rol admin y cambió a no-admin
+				navigate('/', { replace: true });
+			}
+		} catch (err) {
+			console.error('Error al cambiar rol:', err);
+		} finally {
+			setCambiandoRol(false);
+		}
+	}
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* Header institucional */}
       <header className="bg-white">
         <div className="flex items-center gap-4 px-6 py-4">
-          {/* Escudo CNSC */}
+          {/* Escudo Carepa */}
           <div className="flex-shrink-0">
             <img
               src={`${import.meta.env.BASE_URL}escudo.png`}
-              alt="CNSC"
+              alt="Carepa"
               className="h-12 w-auto"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = 'none';
                 const parent = (e.target as HTMLImageElement).parentElement;
                 if (parent && !parent.querySelector('.escudo-fallback')) {
                   const span = document.createElement('span');
-                  span.className = 'escudo-fallback text-2xl font-heading font-bold text-inst-azul';
-                  span.textContent = 'CNSC';
+	span.className = 'escudo-fallback text-2xl font-heading font-bold text-inst-azul';
+	span.textContent = 'CAREPA';
                   parent.appendChild(span);
                 }
               }}
@@ -84,7 +92,7 @@ export default function Layout() {
               Evaluación del Desempeño Laboral
             </h1>
             <p className="text-xs text-inst-texto-claro font-sans">
-              Comisión Nacional del Servicio Civil
+		Alcaldía de Carepa
             </p>
           </div>
 

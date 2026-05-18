@@ -23,7 +23,7 @@ class CompromisoService
     return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
   }
 
- /** Evaluado propone compromiso → estado 'propuesto', notifica al evaluador (Concertación EDL-CNSC) */
+	/** Evaluado propone compromiso → estado 'propuesto', notifica al evaluador (Concertación EDL-CAREPA) */
  public function enviar(array $datos, array $funcionario): int
  {
  $pdo = Database::getInstance();
@@ -39,7 +39,7 @@ class CompromisoService
  ResponseHelper::error('No tiene permiso para proponer compromisos en esta evaluacion', 403);
  }
 
- // Insertar compromiso con estado 'propuesto' (terminología EDL-CNSC Acuerdo 6176)
+	// Insertar compromiso con estado 'propuesto' (terminología EDL-CAREPA Acuerdo 6176)
  $stmt = $pdo->prepare("
  INSERT INTO compromisos (evaluacion_id, tipo, descripcion, resultado_esperado, medio_verificacion, observaciones_evaluado, plazo, responsable_id, evaluador_id, estado, peso)
  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'propuesto', 0.00)
@@ -140,7 +140,7 @@ class CompromisoService
     }
   }
 
- /** Evaluador devuelve compromiso al evaluado (Concertación EDL-CNSC) */
+ /** Evaluador devuelve compromiso al evaluado (Concertación EDL-CAREPA) */
  public function rechazar(int $id, string $observaciones, array $evaluador): void
  {
  $pdo = Database::getInstance();
@@ -262,7 +262,7 @@ class CompromisoService
  AuditoriaService::registrar('calificar', 'compromisos', $id, $comp, ['calificacion' => $puntaje, 'estado' => $nuevoEstado]);
  }
 
- /** Evaluador devuelve compromiso al evaluado con observaciones (Concertación EDL-CNSC) */
+ /** Evaluador devuelve compromiso al evaluado con observaciones (Concertación EDL-CAREPA) */
  public function devolver(int $id, string $observaciones, array $evaluador): void
  {
  $comp = $this->repo->buscarPorId($id);

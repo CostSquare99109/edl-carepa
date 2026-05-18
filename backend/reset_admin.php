@@ -3,7 +3,7 @@
 // O desde el navegador: http://localhost:8000/reset_admin.php
 
 $host = 'localhost';
-$dbname = 'edl_cnsc';
+$dbname = 'edl_carepa';
 $user = 'root';
 $pass = '';
 

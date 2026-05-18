@@ -1,142 +1,171 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { authApi, type Usuario, type Rol, type MenuItem } from '../lib/auth';
 
 interface AuthContextType {
-  usuario: Usuario | null;
-  roles: Rol[];
-  rolActivo: string | null;
-  menu: MenuItem[];
-  token: string | null;
-  loading: boolean;
-  login: (documento: string, tipo_documento: string, password: string) => Promise<Rol[]>;
-  logout: () => void;
-  cambiarRol: (rolCodigo: string) => Promise<void>;
+	usuario: Usuario | null;
+	roles: Rol[];
+	rolActivo: string | null;
+	menu: MenuItem[];
+	token: string | null;
+	loading: boolean;
+	login: (documento: string, tipo_documento: string, password: string) => Promise<Rol[]>;
+	logout: () => void;
+	cambiarRol: (rolCodigo: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function useAuth(): AuthContextType {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth debe usarse dentro de AuthProvider');
-  return ctx;
+	const ctx = useContext(AuthContext);
+	if (!ctx) throw new Error('useAuth debe usarse dentro de AuthProvider');
+	return ctx;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('edl_token'));
-  const [usuario, setUsuario] = useState<Usuario | null>(() => {
-    const saved = localStorage.getItem('edl_user');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [roles, setRoles] = useState<Rol[]>([]);
-  const [rolActivo, setRolActivo] = useState<string | null>(() =>
-    localStorage.getItem('edl_rol_activo')
-  );
-  const [menu, setMenu] = useState<MenuItem[]>([]);
-  const [loading, setLoading] = useState(false);
+	const [token, setToken] = useState<string | null>(() => localStorage.getItem('edl_token'));
+	const [usuario, setUsuario] = useState<Usuario | null>(() => {
+		const saved = localStorage.getItem('edl_user');
+		try { return saved ? JSON.parse(saved) : null; } catch { return null; }
+	});
+	const [roles, setRoles] = useState<Rol[]>([]);
+	const [rolActivo, setRolActivo] = useState<string | null>(() =>
+		localStorage.getItem('edl_rol_activo')
+	);
+	const [menu, setMenu] = useState<MenuItem[]>([]);
+	const [loading, setLoading] = useState(false);
 
-  const cargarSesion = useCallback(async () => {
-    try {
-      const [perfilData, menuData] = await Promise.all([
-        authApi.perfil(),
-        authApi.menu(),
-      ]);
-      setUsuario(perfilData.usuario);
-      setRoles(perfilData.roles);
-      setMenu(menuData);
-      localStorage.setItem('edl_user', JSON.stringify(perfilData.usuario));
-      // Si no hay rol activo, usar el primero
-      if (!rolActivo && perfilData.roles.length > 0) {
-        const primerRol = perfilData.roles[0].codigo;
-        setRolActivo(primerRol);
-        localStorage.setItem('edl_rol_activo', primerRol);
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : '';
-      if (msg === 'Sesion expirada') {
-        setToken(null);
-        setUsuario(null);
-        setRoles([]);
-        setRolActivo(null);
-        setMenu([]);
-        localStorage.removeItem('edl_rol_activo');
-      }
-      console.warn('Error cargando sesion:', msg);
-    }
-  }, [rolActivo]);
+	// Ref para evitar efectos duplicados al cambiar rol
+	const skipNextRolEffect = useRef(false);
+	const sessionLoadedRef = useRef(false);
 
-  useEffect(() => {
-    if (token) {
-      cargarSesion();
-    }
-  }, [token, cargarSesion]);
+	// Efecto principal: cargar sesión SOLO al montar o cuando cambia el token
+	// (no cuando cambia rolActivo — eso lo maneja cambiarRol directamente)
+	useEffect(() => {
+		if (!token) {
+			sessionLoadedRef.current = false;
+			return;
+		}
 
-  // Recargar menú cuando cambie el rol activo
-  useEffect(() => {
-    if (token && rolActivo) {
-      authApi.menu().then(setMenu).catch(() => {
-        console.warn('No se pudo cargar el menu al cambiar rol');
-      });
-    }
-  }, [rolActivo, token]);
+		// Evitar recargar si ya cargamos sesión con este token
+		// (el cambiarRol actualiza token y los datos, no necesitamos recargar)
+		if (sessionLoadedRef.current) return;
 
-  const login = useCallback(async (documento: string, tipo_documento: string, password: string): Promise<Rol[]> => {
-    setLoading(true);
-    try {
-      const resp = await authApi.login({ documento, tipo_documento, password });
-      localStorage.setItem('edl_token', resp.token);
-      localStorage.setItem('edl_user', JSON.stringify(resp.usuario));
-      localStorage.setItem('edl_rol_activo', resp.rol_activo);
-      setToken(resp.token);
-      setUsuario(resp.usuario);
-      setRoles(resp.roles);
-      setRolActivo(resp.rol_activo);
-      // Cargar menu despues del login
-      try {
-        const menuData = await authApi.menu();
-        setMenu(menuData);
-      } catch {
-        console.warn('No se pudo cargar el menu');
-      }
-      return resp.roles;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+		let cancelled = false;
 
-  const cambiarRol = useCallback(async (rolCodigo: string) => {
-    try {
-      const resp = await authApi.cambiarRol(rolCodigo);
-      setRolActivo(resp.rol_activo);
-      localStorage.setItem('edl_rol_activo', resp.rol_activo);
-      // El backend genera un nuevo JWT con el rol activo — actualizarlo
-      if (resp.token) {
-        localStorage.setItem('edl_token', resp.token);
-        setToken(resp.token);
-      }
-      // Recargar menú con el nuevo rol
-      const menuData = await authApi.menu();
-      setMenu(menuData);
-    } catch (err) {
-      console.error('Error cambiando rol:', err);
-      throw err;
-    }
-  }, []);
+		async function load() {
+			try {
+				const [perfilData, menuData] = await Promise.all([
+					authApi.perfil(),
+					authApi.menu(),
+				]);
+				if (cancelled) return;
 
-  const logout = useCallback(() => {
-    authApi.logout().catch(() => {});
-    localStorage.removeItem('edl_token');
-    localStorage.removeItem('edl_user');
-    localStorage.removeItem('edl_rol_activo');
-    setToken(null);
-    setUsuario(null);
-    setRoles([]);
-    setRolActivo(null);
-    setMenu([]);
-  }, []);
+				setUsuario(perfilData.usuario);
+				setRoles(perfilData.roles);
+				setMenu(menuData);
+				localStorage.setItem('edl_user', JSON.stringify(perfilData.usuario));
 
-  return (
-    <AuthContext.Provider value={{ usuario, roles, rolActivo, menu, token, loading, login, logout, cambiarRol }}>
-      {children}
-    </AuthContext.Provider>
-  );
+				// Solo setear rolActivo si no hay uno guardado
+				const savedRol = localStorage.getItem('edl_rol_activo');
+				if (!savedRol && perfilData.roles.length > 0) {
+					const primerRol = perfilData.roles[0].codigo;
+					setRolActivo(primerRol);
+					localStorage.setItem('edl_rol_activo', primerRol);
+				}
+
+				sessionLoadedRef.current = true;
+			} catch (err) {
+				if (cancelled) return;
+				const msg = err instanceof Error ? err.message : '';
+				if (msg === 'Sesion expirada') {
+					// Token inválido — limpiar todo
+					localStorage.removeItem('edl_token');
+					localStorage.removeItem('edl_user');
+					localStorage.removeItem('edl_rol_activo');
+					setToken(null);
+					setUsuario(null);
+					setRoles([]);
+					setRolActivo(null);
+					setMenu([]);
+				}
+				console.warn('Error cargando sesion:', msg);
+			}
+		}
+
+		load();
+		return () => { cancelled = true; };
+	}, [token]);
+
+	// No hay efecto separado para rolActivo — cambiarRol se encarga de todo
+
+	const login = useCallback(async (documento: string, tipo_documento: string, password: string): Promise<Rol[]> => {
+		setLoading(true);
+		try {
+			const resp = await authApi.login({ documento, tipo_documento, password });
+			localStorage.setItem('edl_token', resp.token);
+			localStorage.setItem('edl_user', JSON.stringify(resp.usuario));
+			localStorage.setItem('edl_rol_activo', resp.rol_activo);
+			setToken(resp.token);
+			setUsuario(resp.usuario);
+			setRoles(resp.roles);
+			setRolActivo(resp.rol_activo);
+
+			// Cargar menú directamente con el token nuevo
+			try {
+				const menuData = await authApi.menu();
+				setMenu(menuData);
+			} catch {
+				console.warn('No se pudo cargar el menu despues de login');
+			}
+
+			sessionLoadedRef.current = true;
+			return resp.roles;
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	const cambiarRol = useCallback(async (rolCodigo: string) => {
+		// Marcar para saltar el efecto de rolActivo si existiera
+		skipNextRolEffect.current = true;
+
+		try {
+			const resp = await authApi.cambiarRol(rolCodigo);
+
+			// Actualizar TODO el estado de una vez
+			setRolActivo(resp.rol_activo);
+			localStorage.setItem('edl_rol_activo', resp.rol_activo);
+
+			if (resp.token) {
+				localStorage.setItem('edl_token', resp.token);
+				setToken(resp.token);
+			}
+
+			// Cargar menú con el nuevo token (ya está en localStorage)
+			const menuData = await authApi.menu();
+			setMenu(menuData);
+		} catch (err) {
+			console.error('Error cambiando rol:', err);
+			throw err;
+		}
+	}, []);
+
+	const logout = useCallback(() => {
+		authApi.logout().catch(() => {});
+		localStorage.removeItem('edl_token');
+		localStorage.removeItem('edl_user');
+		localStorage.removeItem('edl_rol_activo');
+		sessionLoadedRef.current = false;
+		setToken(null);
+		setUsuario(null);
+		setRoles([]);
+		setRolActivo(null);
+		setMenu([]);
+	}, []);
+
+	return (
+		<AuthContext.Provider value={{ usuario, roles, rolActivo, menu, token, loading, login, logout, cambiarRol }}>
+			{children}
+		</AuthContext.Provider>
+	);
 }

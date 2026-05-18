@@ -93,7 +93,7 @@ class EvaluacionService
  return $id;
  }
 
- /** Crear evaluación parcial (semestral o eventual) - EDL-CNSC Acuerdo 6176 */
+	/** Crear evaluación parcial (semestral o eventual) - EDL-CAREPA Acuerdo 6176 */
  public function crearParcial(int $evaluacionId, string $tipoParcial, array $evaluador): int
  {
  if (!in_array($tipoParcial, ['parcial_semestral', 'parcial_eventual'])) {

@@ -80,10 +80,14 @@ class UsuarioRepository extends BaseRepository
             $conditions[] = "u.dependencia_id = ?";
             $params[] = $filtros['dependencia_id'];
         }
-        if (!empty($filtros['estado'])) {
-            $conditions[] = "u.estado = ?";
-            $params[] = $filtros['estado'];
-        }
+	if (!empty($filtros['estado'])) {
+		$conditions[] = "u.estado = ?";
+		$params[] = $filtros['estado'];
+	}
+	if (!empty($filtros['rol'])) {
+		$conditions[] = "EXISTS (SELECT 1 FROM usuario_rol ur2 INNER JOIN roles r2 ON r2.id = ur2.rol_id WHERE ur2.usuario_id = u.id AND r2.codigo = ?)";
+		$params[] = $filtros['rol'];
+	}
 
         $where = implode(' AND ', $conditions);
 
@@ -97,10 +101,11 @@ class UsuarioRepository extends BaseRepository
         $params[] = $offset;
         $stmt->execute($params);
 
-        $usuarios = $stmt->fetchAll();
-        foreach ($usuarios as &$u) {
-            unset($u['password_hash']);
-        }
+	$usuarios = $stmt->fetchAll();
+	foreach ($usuarios as &$u) {
+		unset($u['password_hash']);
+		$u['roles'] = $this->obtenerRoles((int) $u['id']);
+	}
 
         return [
             'data' => $usuarios,

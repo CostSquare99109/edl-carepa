@@ -23,11 +23,11 @@ class AuthController
         $input = SanitizerHelper::sanitizeArray($input);
 
         $v = new ValidatorHelper();
-        if (!$v->validate($input, ['documento' => 'required', 'tipo_documento' => 'required', 'password' => 'required'])) {
-            ResponseHelper::error('Datos incompletos: ' . implode(', ', $v->errors()), 422);
-        }
+		if (!$v->validate($input, ['documento' => 'required', 'tipo_documento' => 'required', 'password' => 'required'])) {
+			ResponseHelper::error('Datos incompletos: ' . implode(', ', $v->getErrors()), 422);
+		}
 
-        $resultado = $this->service->login($input['documento'], $input['tipo_documento'], $input['password']);
+		$resultado = $this->service->login($input['documento'], $input['tipo_documento'], $input['password']);
         ResponseHelper::success($resultado, 'Autenticacion exitosa');
     }
 
@@ -37,16 +37,16 @@ class AuthController
  $input = SanitizerHelper::sanitizeArray($input);
 
  $v = new ValidatorHelper();
- if (!$v->validate($input, [
- 'documento' => 'required',
- 'tipo_documento' => 'required',
- 'nombres' => 'required',
- 'apellidos' => 'required',
- 'email' => 'required|email',
- 'password' => 'required|min:8',
- ])) {
- ResponseHelper::error('Datos incompletos: ' . implode(', ', $v->errors()), 422);
- }
+		if (!$v->validate($input, [
+			'documento' => 'required',
+			'tipo_documento' => 'required',
+			'nombres' => 'required',
+			'apellidos' => 'required',
+			'email' => 'required|email',
+			'password' => 'required|min:8',
+		])) {
+			ResponseHelper::error('Datos incompletos: ' . implode(', ', $v->getErrors()), 422);
+		}
 
  $resultado = $this->service->registrar($input);
  ResponseHelper::success($resultado, 'Usuario registrado exitosamente');
@@ -59,19 +59,33 @@ class AuthController
         ResponseHelper::success(null, 'Sesion cerrada');
     }
 
-    public function recuperar(): void
-    {
-        $input = json_decode(file_get_contents('php://input'), true) ?: [];
-        $input = SanitizerHelper::sanitizeArray($input);
+	public function recuperar(): void
+	{
+		$input = json_decode(file_get_contents('php://input'), true) ?: [];
+		$input = SanitizerHelper::sanitizeArray($input);
 
-        $v = new ValidatorHelper();
-        if (!$v->validate($input, ['email' => 'required|email'])) {
-            ResponseHelper::error('Correo invalido', 422);
-        }
+		$v = new ValidatorHelper();
+		if (!$v->validate($input, ['email' => 'required|email'])) {
+			ResponseHelper::error('Correo invalido', 422);
+		}
 
-        $token = $this->service->recuperarPassword($input['email']);
-        ResponseHelper::success(['token' => $token], 'Se genero un enlace de recuperacion');
-    }
+		$codigo = $this->service->recuperarPassword($input['email']);
+		ResponseHelper::success(['codigo' => $codigo], 'Se envió un código de recuperación a su correo');
+	}
+
+	public function verificarCodigo(): void
+	{
+		$input = json_decode(file_get_contents('php://input'), true) ?: [];
+		$input = SanitizerHelper::sanitizeArray($input);
+
+		$v = new ValidatorHelper();
+		if (!$v->validate($input, ['codigo' => 'required'])) {
+			ResponseHelper::error('Código requerido', 422);
+		}
+
+		$resultado = $this->service->verificarCodigo($input['codigo']);
+		ResponseHelper::success($resultado, 'Código verificado correctamente');
+	}
 
     public function resetPassword(string $token): void
     {

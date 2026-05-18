@@ -1,7 +1,7 @@
 -- Migración: Agregar peso y evaluador a compromisos, cambiar estados
 -- Ejecutar en MySQL
 
-USE edl_cnsc;
+USE edl_carepa;
 
 -- Agregar columna peso (porcentaje del compromiso)
 ALTER TABLE compromisos ADD COLUMN peso DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT 'Porcentaje de peso del compromiso (0-100)' AFTER plazo;

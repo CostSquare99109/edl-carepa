@@ -1,10 +1,11 @@
 {
-    "name": "edl-cnsc/backend",
-    "description": "EDL-CNSC Evaluacion del Desempeno Laboral - Backend API",
+	"name": "edl-carepa/backend",
+	"description": "EDL-CAREPA Evaluacion del Desempeno Laboral - Backend API",
     "type": "project",
     "require": {
         "php": ">=8.2",
-        "firebase/php-jwt": "^6.11"
+        "firebase/php-jwt": "^6.11",
+        "phpmailer/phpmailer": "^7.1"
     },
     "autoload": {
         "psr-4": {

@@ -1,4 +1,4 @@
-USE edl_cnsc;
+USE edl_carepa;
 
 INSERT INTO roles (codigo, nombre, descripcion) VALUES
 ('admin', 'Administrador', 'Acceso total al sistema'),

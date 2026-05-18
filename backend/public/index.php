@@ -25,8 +25,9 @@ $router->group('/api/v1', function (Router $r) {
  // Rutas públicas
  $r->post('/auth/login', [\App\Controller\AuthController::class, 'login']);
  $r->post('/auth/registro', [\App\Controller\AuthController::class, 'registro']);
- $r->post('/auth/recuperar', [\App\Controller\AuthController::class, 'recuperar']);
- $r->put('/auth/recuperar/{token}', [\App\Controller\AuthController::class, 'resetPassword']);
+	$r->post('/auth/recuperar', [\App\Controller\AuthController::class, 'recuperar']);
+	$r->post('/auth/verificar-codigo', [\App\Controller\AuthController::class, 'verificarCodigo']);
+	$r->put('/auth/recuperar/{token}', [\App\Controller\AuthController::class, 'resetPassword']);
 
     // Rutas protegidas
     $r->group('', function (Router $r) {
@@ -95,7 +96,7 @@ $router->group('/api/v1', function (Router $r) {
         $r->get('/concertaciones', [\App\Controller\ConcertacionController::class, 'listar'], ['permiso:concertaciones.listar']);
         $r->put('/concertaciones/{id}', [\App\Controller\ConcertacionController::class, 'actualizar'], ['permiso:concertaciones.crear']);
 
-        // Evaluaciones (EDL-CNSC Acuerdo 6176)
+	// Evaluaciones (EDL-CAREPA Acuerdo 6176)
         $r->get('/evaluaciones', [\App\Controller\EvaluacionController::class, 'listar'], ['permiso:evaluaciones.listar']);
         $r->post('/evaluaciones', [\App\Controller\EvaluacionController::class, 'crear'], ['permiso:evaluaciones.crear']);
         $r->get('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'ver'], ['permiso:evaluaciones.listar']);
@@ -107,7 +108,7 @@ $router->group('/api/v1', function (Router $r) {
         $r->put('/evaluaciones/{id}/comision', [\App\Controller\EvaluacionController::class, 'aprobarComision'], ['permiso:evaluaciones.comision']);
         $r->get('/evaluaciones/pendientes-calificar', [\App\Controller\EvaluacionController::class, 'pendientesCalificar'], ['permiso:evaluaciones.evaluar']);
 
-        // Compromisos (EDL-CNSC: concertación compromisos funcionales + comportamentales)
+	// Compromisos (EDL-CAREPA: concertación compromisos funcionales + comportamentales)
         $r->get('/compromisos', [\App\Controller\CompromisoController::class, 'listar'], ['permiso:compromisos.listar']);
         $r->post('/compromisos/enviar', [\App\Controller\CompromisoController::class, 'enviar'], ['permiso:compromisos.enviar']);
         $r->get('/compromisos/pendientes', [\App\Controller\CompromisoController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
@@ -153,4 +154,11 @@ $router->group('/api/v1', function (Router $r) {
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$router->dispatch($method, $uri);
+
+// Ejecutar CORS antes del dispatch para que OPTIONS preflight funcione
+CorsMiddleware::handle();
+
+// Si es OPTIONS, CORS ya respondió con 204 y exit
+if ($method !== 'OPTIONS') {
+	$router->dispatch($method, $uri);
+}

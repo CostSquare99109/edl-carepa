@@ -16,23 +16,35 @@ class BaseRepository
         $this->pdo = $pdo ?? Database::getInstance();
     }
 
-    public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20, string $orden = 'id', string $direccion = 'ASC'): array
-    {
-        $conditions = ['eliminado_en IS NULL'];
-        $params = [];
+	protected array $allowedFilterFields = [];
 
-        foreach ($filtros as $campo => $valor) {
-            if ($valor !== null && $valor !== '') {
-                if (is_array($valor)) {
-                    $placeholders = implode(',', array_fill(0, count($valor), '?'));
-                    $conditions[] = "{$campo} IN ({$placeholders})";
-                    $params = array_merge($params, $valor);
-                } else {
-                    $conditions[] = "{$campo} LIKE ?";
-                    $params[] = "%{$valor}%";
-                }
-            }
-        }
+	public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20, string $orden = 'id', string $direccion = 'ASC'): array
+	{
+		$conditions = ['eliminado_en IS NULL'];
+		$params = [];
+
+		// Parámetros que nunca son columnas de filtro
+		$ignoreKeys = ['pagina', 'por_pagina', 'orden', 'direccion', 'page', 'per_page'];
+
+		foreach ($filtros as $campo => $valor) {
+			if (in_array($campo, $ignoreKeys, true)) {
+				continue;
+			}
+			// Si se definió allowedFilterFields, solo filtrar por campos permitidos
+			if (!empty($this->allowedFilterFields) && !in_array($campo, $this->allowedFilterFields, true)) {
+				continue;
+			}
+			if ($valor !== null && $valor !== '') {
+				if (is_array($valor)) {
+					$placeholders = implode(',', array_fill(0, count($valor), '?'));
+					$conditions[] = "{$campo} IN ({$placeholders})";
+					$params = array_merge($params, $valor);
+				} else {
+					$conditions[] = "{$campo} LIKE ?";
+					$params[] = "%{$valor}%";
+				}
+			}
+		}
 
         $where = implode(' AND ', $conditions);
 

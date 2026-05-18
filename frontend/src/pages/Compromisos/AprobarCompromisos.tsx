@@ -287,7 +287,7 @@ export default function AprobarCompromisos() {
                   </div>
                 )}
 
-                {/* Panel de devolucion (reemplaza "rechazo" por terminologia EDL-CNSC) */}
+                {/* Panel de devolucion (reemplaza "rechazo" por terminologia EDL-CAREPA) */}
                 {devolverId === c.id && (
                   <div className="mt-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
                     <h4 className="font-heading font-bold text-orange-700 text-sm mb-2">Devolver Compromiso al Evaluado</h4>

@@ -154,7 +154,7 @@ export default function MisCompromisos() {
         ))}
       </div>
 
-      {/* Formulario nuevo compromiso (Concertación EDL-CNSC) */}
+      {/* Formulario nuevo compromiso (Concertación EDL-CAREPA) */}
       {showForm && (
         <div className="edl-card mb-6">
           <h3 className="font-heading font-bold text-inst-azul mb-1">

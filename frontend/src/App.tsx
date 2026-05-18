@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import Layout from './components/Layout/Layout'
 import Login from './pages/Login'
+import VerificarCodigo from './pages/VerificarCodigo'
+import NuevaContrasena from './pages/NuevaContrasena'
 import SelectRolePage from './pages/SelectRolePage'
 import Dashboard from './pages/Dashboard'
 import EntidadList from './pages/Entidades/EntidadList'
@@ -35,7 +37,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+		<Route path="/login" element={<Login />} />
+		<Route path="/verificar-codigo" element={<VerificarCodigo />} />
+		<Route path="/nueva-contrasena" element={<NuevaContrasena />} />
       <Route path="/seleccionar-rol" element={<ProtectedRoute><SelectRolePage /></ProtectedRoute>} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />

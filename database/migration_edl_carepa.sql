@@ -1,9 +1,9 @@
 -- ============================================================
--- MIGRACIÓN EDL-CNSC: Adaptación al Acuerdo 6176 de 2018
+-- MIGRACIÓN EDL-CAREPA: Adaptación al Acuerdo 6176 de 2018
 -- Sistema Tipo de Evaluación del Desempeño Laboral
 -- ============================================================
 
-USE edl_cnsc;
+USE edl_carepa;
 
 -- ============================================================
 -- 1. ROLES: Renombrar y agregar nuevos
@@ -13,7 +13,7 @@ UPDATE roles SET codigo = 'evaluado', nombre = 'Evaluado', descripcion = 'Servid
 UPDATE roles SET codigo = 'admin_entidad', nombre = 'Administrador Entidad', descripcion = 'Jefe de Personal. Crea y gestiona usuarios de su entidad, restablece contraseñas.' WHERE codigo = 'admin';
 
 INSERT IGNORE INTO roles (codigo, nombre, descripcion) VALUES
-('admin_cnsc', 'Administrador CNSC', 'Superadministrador global. Habilita entidades, gestiona parametros del sistema y atiende soporte.'),
+('admin_carepa', 'Administrador CAREPA', 'Superadministrador global. Habilita entidades, gestiona parametros del sistema y atiende soporte.'),
 ('comision_evaluadora', 'Comisión Evaluadora', 'Organo evaluador colegiado. Realiza evaluaciones conjuntas y aprueba calificaciones definitivas.');
 
 -- ============================================================
@@ -35,16 +35,16 @@ INSERT IGNORE INTO permisos (modulo, codigo, nombre) VALUES
 -- 3. ASIGNAR PERMISOS A NUEVOS ROLES
 -- ============================================================
 
--- admin_cnsc: TODOS los permisos
+-- admin_carepa: TODOS los permisos
 INSERT IGNORE INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r CROSS JOIN permisos p WHERE r.codigo = 'admin_cnsc';
+SELECT r.id, p.id FROM roles r CROSS JOIN permisos p WHERE r.codigo = 'admin_carepa';
 
 -- comision_evaluadora
 INSERT IGNORE INTO rol_permiso (rol_id, permiso_id)
 SELECT r.id, p.id FROM roles r CROSS JOIN permisos p
 WHERE r.codigo = 'comision_evaluadora' AND p.codigo IN (
-    'evaluaciones.listar', 'evaluaciones.evaluar', 'evaluaciones.aprobar',
-    'compromisos.listar', 'evidencias.listar', 'reportes.ver'
+	'evaluaciones.listar', 'evaluaciones.evaluar', 'evaluaciones.aprobar',
+	'compromisos.listar', 'evidencias.listar', 'reportes.ver'
 );
 
 -- admin_entidad: aprobar calificación + restablecer passwords
@@ -73,18 +73,18 @@ UPDATE evaluaciones SET tipo = 'parcial_semestral' WHERE tipo = 'autoevaluacion'
 
 -- Ahora sí cambiar el enum
 ALTER TABLE evaluaciones MODIFY COLUMN tipo ENUM(
-    'parcial_semestral',
-    'parcial_eventual',
-    'definitiva'
+	'parcial_semestral',
+	'parcial_eventual',
+	'definitiva'
 ) NOT NULL;
 
 -- Agregar columnas nuevas
 ALTER TABLE evaluaciones
-    ADD COLUMN IF NOT EXISTS es_comision_evaluadora TINYINT(1) DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS comision_evaluadora_id BIGINT UNSIGNED NULL,
-    ADD COLUMN IF NOT EXISTS calificacion_definitiva DECIMAL(5,2) NULL,
-    ADD COLUMN IF NOT EXISTS fecha_concertacion DATE NULL,
-    ADD COLUMN IF NOT EXISTS fecha_calificacion DATE NULL;
+	ADD COLUMN IF NOT EXISTS es_comision_evaluadora TINYINT(1) DEFAULT 0,
+	ADD COLUMN IF NOT EXISTS comision_evaluadora_id BIGINT UNSIGNED NULL,
+	ADD COLUMN IF NOT EXISTS calificacion_definitiva DECIMAL(5,2) NULL,
+	ADD COLUMN IF NOT EXISTS fecha_concertacion DATE NULL,
+	ADD COLUMN IF NOT EXISTS fecha_calificacion DATE NULL;
 
 -- Cambiar estado enum (primero actualizar existentes)
 UPDATE evaluaciones SET estado = 'concertacion' WHERE estado = 'pendiente';
@@ -93,12 +93,12 @@ UPDATE evaluaciones SET estado = 'calificada' WHERE estado = 'calificada' OR est
 UPDATE evaluaciones SET estado = 'cerrada' WHERE estado = 'cerrada';
 
 ALTER TABLE evaluaciones MODIFY COLUMN estado ENUM(
-    'pendiente',
-    'concertacion',
-    'en_proceso',
-    'calificada',
-    'aprobada_comision',
-    'cerrada'
+	'pendiente',
+	'concertacion',
+	'en_proceso',
+	'calificada',
+	'aprobada_comision',
+	'cerrada'
 ) NOT NULL DEFAULT 'pendiente';
 
 -- ============================================================
@@ -112,45 +112,45 @@ UPDATE compromisos SET estado = 'devuelto' WHERE estado = 'rechazado';
 
 -- Cambiar tipo enum
 ALTER TABLE compromisos MODIFY COLUMN tipo ENUM(
-    'funcional',
-    'comportamental'
+	'funcional',
+	'comportamental'
 ) NOT NULL DEFAULT 'funcional';
 
 -- Cambiar estado enum
 ALTER TABLE compromisos MODIFY COLUMN estado ENUM(
-    'propuesto',
-    'aprobado',
-    'devuelto',
-    'en_progreso',
-    'cumplido',
-    'incumplido',
-    'vencido'
+	'propuesto',
+	'aprobado',
+	'devuelto',
+	'en_progreso',
+	'cumplido',
+	'incumplido',
+	'vencido'
 ) NOT NULL DEFAULT 'propuesto';
 
 -- Agregar columnas nuevas
 ALTER TABLE compromisos
-    ADD COLUMN IF NOT EXISTS resultado_esperado TEXT NULL,
-    ADD COLUMN IF NOT EXISTS medio_verificacion VARCHAR(500) NULL,
-    ADD COLUMN IF NOT EXISTS calificacion DECIMAL(5,2) NULL,
-    ADD COLUMN IF NOT EXISTS observaciones_evaluado TEXT NULL;
+	ADD COLUMN IF NOT EXISTS resultado_esperado TEXT NULL,
+	ADD COLUMN IF NOT EXISTS medio_verificacion VARCHAR(500) NULL,
+	ADD COLUMN IF NOT EXISTS calificacion DECIMAL(5,2) NULL,
+	ADD COLUMN IF NOT EXISTS observaciones_evaluado TEXT NULL;
 
 -- ============================================================
 -- 6. EVIDENCIAS
 -- ============================================================
 
 ALTER TABLE evidencias
-    ADD COLUMN IF NOT EXISTS tipo ENUM('compromiso', 'competencia', 'general') DEFAULT 'general',
-    ADD COLUMN IF NOT EXISTS compromiso_id BIGINT UNSIGNED NULL;
+	ADD COLUMN IF NOT EXISTS tipo ENUM('compromiso', 'competencia', 'general') DEFAULT 'general',
+	ADD COLUMN IF NOT EXISTS compromiso_id BIGINT UNSIGNED NULL;
 
 -- ============================================================
 -- 7. PERIODOS
 -- ============================================================
 
 ALTER TABLE periodos
-    ADD COLUMN IF NOT EXISTS fecha_inicio_concertacion DATE NULL,
-    ADD COLUMN IF NOT EXISTS fecha_fin_concertacion DATE NULL,
-    ADD COLUMN IF NOT EXISTS fecha_inicio_evaluacion DATE NULL,
-    ADD COLUMN IF NOT EXISTS fecha_fin_evaluacion DATE NULL;
+	ADD COLUMN IF NOT EXISTS fecha_inicio_concertacion DATE NULL,
+	ADD COLUMN IF NOT EXISTS fecha_fin_concertacion DATE NULL,
+	ADD COLUMN IF NOT EXISTS fecha_inicio_evaluacion DATE NULL,
+	ADD COLUMN IF NOT EXISTS fecha_fin_evaluacion DATE NULL;
 
 -- Actualizar datos existentes antes de cambiar enum
 UPDATE periodos SET estado = 'concertacion' WHERE estado = 'en_evaluacion';
@@ -158,12 +158,12 @@ UPDATE periodos SET estado = 'seguimiento' WHERE estado = 'activa';
 UPDATE periodos SET estado = 'configuracion' WHERE estado = 'inactiva';
 
 ALTER TABLE periodos MODIFY COLUMN estado ENUM(
-    'configuracion',
-    'concertacion',
-    'seguimiento',
-    'evaluacion',
-    'calificacion',
-    'cerrado'
+	'configuracion',
+	'concertacion',
+	'seguimiento',
+	'evaluacion',
+	'calificacion',
+	'cerrado'
 ) NOT NULL DEFAULT 'configuracion';
 
 -- ============================================================

@@ -18,11 +18,9 @@ class MenuController
  }
 
  $menu = match ($rolActivo) {
- 'admin_entidad' => $this->menuAdminEntidad(),
+ 'admin' => $this->menuAdmin(),
  'evaluador' => $this->menuEvaluador(),
  'evaluado' => $this->menuEvaluado(),
- 'comision_evaluadora' => $this->menuComisionEvaluadora(),
- 'admin_cnsc' => $this->menuAdminCnsc(),
  default => $this->menuPorPermisos($user),
  };
 
@@ -30,31 +28,103 @@ class MenuController
  }
 
  /**
- * Menú para admin_entidad: [Usuarios]
+ * Menú para admin: acceso total al sistema
  */
- private function menuAdminEntidad(): array
+ private function menuAdmin(): array
  {
  return [
+ [
+ 'label' => 'Inicio',
+ 'icon' => 'dashboard',
+ 'ruta' => '/admin',
+ 'permisos' => ['dashboard.ver'],
+ ],
  [
  'label' => 'Usuarios',
  'icon' => 'people',
  'ruta' => '/usuarios',
  'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],
  ],
+ [
+ 'label' => 'Entidades',
+ 'icon' => 'business',
+ 'ruta' => '/entidades',
+ 'permisos' => ['entidades.listar', 'entidades.crear', 'entidades.editar', 'entidades.habilitar'],
+ ],
+ [
+ 'label' => 'Dependencias',
+ 'icon' => 'account_tree',
+ 'ruta' => '/dependencias',
+ 'permisos' => ['dependencias.listar', 'dependencias.crear', 'dependencias.editar'],
+ ],
+ [
+ 'label' => 'Periodos',
+ 'icon' => 'calendar_today',
+ 'ruta' => '/periodos',
+ 'permisos' => ['periodos.listar', 'periodos.crear', 'periodos.editar'],
+ ],
+ [
+ 'label' => 'Evaluaciones',
+ 'icon' => 'assessment',
+ 'ruta' => '/evaluaciones',
+ 'permisos' => ['evaluaciones.listar', 'evaluaciones.crear', 'evaluaciones.evaluar'],
+ ],
+ [
+ 'label' => 'Aprobar Compromisos',
+ 'icon' => 'fact_check',
+ 'ruta' => '/compromisos/aprobar',
+ 'permisos' => ['compromisos.aprobar'],
+ ],
+ [
+ 'label' => 'Evidencias',
+ 'icon' => 'attach_file',
+ 'ruta' => '/evidencias',
+ 'permisos' => ['evidencias.listar', 'evidencias.verificar'],
+ ],
+ [
+ 'label' => 'Parametros',
+ 'icon' => 'settings',
+ 'ruta' => '/parametros',
+ 'permisos' => ['parametros.listar', 'parametros.editar'],
+ ],
+ [
+ 'label' => 'Reportes',
+ 'icon' => 'summarize',
+ 'ruta' => '/reportes',
+ 'permisos' => ['reportes.generar'],
+ ],
+ [
+ 'label' => 'Auditoria',
+ 'icon' => 'history',
+ 'ruta' => '/auditoria',
+ 'permisos' => ['auditoria.ver'],
+ ],
  ];
  }
 
  /**
- * Menú para evaluador: [Evaluar, Evidencias, Ver Evaluaciones]
+ * Menú para evaluador: evaluar, aprobar compromisos, evidencias
  */
  private function menuEvaluador(): array
  {
  return [
  [
+ 'label' => 'Inicio',
+ 'icon' => 'dashboard',
+ 'ruta' => '/',
+ 'permisos' => ['dashboard.ver'],
+ ],
+ [
  'label' => 'Evaluar',
  'icon' => 'rate_review',
  'ruta' => '/evaluar',
  'permisos' => ['evaluaciones.evaluar'],
+ ],
+ [
+ 'label' => 'Mis Compromisos',
+ 'icon' => 'task_alt',
+ 'ruta' => '/compromisos/mios',
+ 'permisos' => ['compromisos.listar', 'compromisos.crear'],
  ],
  [
  'label' => 'Aprobar Compromisos',
@@ -78,11 +148,17 @@ class MenuController
  }
 
  /**
- * Menú para evaluado: [Compromisos y Competencias, Evidencias, Ver Evaluaciones]
+ * Menú para evaluado: compromisos, evidencias, evaluaciones
  */
  private function menuEvaluado(): array
  {
  return [
+ [
+ 'label' => 'Inicio',
+ 'icon' => 'dashboard',
+ 'ruta' => '/',
+ 'permisos' => ['dashboard.ver'],
+ ],
  [
  'label' => 'Compromisos y Competencias',
  'icon' => 'task_alt',
@@ -100,67 +176,6 @@ class MenuController
  'icon' => 'assessment',
  'ruta' => '/evaluaciones',
  'permisos' => ['evaluaciones.listar'],
- ],
- ];
- }
-
- /**
- * Menú para comisión evaluadora: [Evaluar (con marca Comisión), Aprobar Evaluaciones]
- */
- private function menuComisionEvaluadora(): array
- {
- return [
- [
- 'label' => 'Evaluar',
- 'icon' => 'rate_review',
- 'ruta' => '/evaluar',
- 'permisos' => ['evaluaciones.evaluar'],
- 'marca' => 'Comisión',
- ],
- [
- 'label' => 'Aprobar Compromisos',
- 'icon' => 'fact_check',
- 'ruta' => '/compromisos/aprobar',
- 'permisos' => ['compromisos.aprobar'],
- ],
- ];
- }
-
- /**
- * Menú para admin_cnsc: [Entidades, Parámetros, Usuarios, Reportes, Soporte]
- */
- private function menuAdminCnsc(): array
- {
- return [
- [
- 'label' => 'Entidades',
- 'icon' => 'business',
- 'ruta' => '/entidades',
- 'permisos' => ['entidades.listar', 'entidades.crear', 'entidades.editar', 'entidades.habilitar'],
- ],
- [
- 'label' => 'Parametros',
- 'icon' => 'settings',
- 'ruta' => '/parametros',
- 'permisos' => ['parametros.listar', 'parametros.editar'],
- ],
- [
- 'label' => 'Usuarios',
- 'icon' => 'people',
- 'ruta' => '/usuarios',
- 'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],
- ],
- [
- 'label' => 'Reportes',
- 'icon' => 'summarize',
- 'ruta' => '/reportes',
- 'permisos' => ['reportes.generar'],
- ],
- [
- 'label' => 'Soporte',
- 'icon' => 'support_agent',
- 'ruta' => '/soporte',
- 'permisos' => ['soporte.acceso'],
  ],
  ];
  }
