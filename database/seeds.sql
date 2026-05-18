@@ -1,113 +1,159 @@
+-- ============================================================================
+-- EDL-CAREPA - Datos Semilla
+-- Sistema de Evaluacion del Desempeno Laboral
+-- Alcaldia de Carepa, Antioquia
+-- ============================================================================
+-- Contenido:
+--   - 3 roles: admin, evaluador, evaluado
+--   - 51 permisos organizados por modulo
+--   - 84 asignaciones rol-permiso
+--   - 7 parametros de configuracion del sistema
+-- ============================================================================
+
 USE edl_carepa;
 
-INSERT INTO roles (codigo, nombre, descripcion) VALUES
-('admin', 'Administrador', 'Acceso total al sistema'),
-('evaluador', 'Evaluador', 'Realiza evaluaciones de desempeno'),
-('funcionario', 'Funcionario', 'Consulta y autoevaluacion'),
-('jefe_entidad', 'Jefe de Entidad', 'Administra usuarios y procesos de su entidad'),
-('jefe_dependencia', 'Jefe de Dependencia', 'Gestiona dependencia y evaluaciones');
-
-INSERT INTO permisos (codigo, nombre, modulo, descripcion) VALUES
-('entidades.listar', 'Listar entidades', 'entidades', 'Ver listado de entidades'),
-('entidades.crear', 'Crear entidad', 'entidades', 'Registrar nueva entidad'),
-('entidades.editar', 'Editar entidad', 'entidades', 'Modificar datos de entidad'),
-('entidades.eliminar', 'Eliminar entidad', 'entidades', 'Inactivar entidad'),
-('dependencias.listar', 'Listar dependencias', 'dependencias', 'Ver dependencias'),
-('dependencias.crear', 'Crear dependencia', 'dependencias', 'Registrar dependencia'),
-('dependencias.editar', 'Editar dependencia', 'dependencias', 'Modificar dependencia'),
-('usuarios.listar', 'Listar usuarios', 'usuarios', 'Ver listado de usuarios'),
-('usuarios.crear', 'Crear usuario', 'usuarios', 'Registrar nuevo usuario'),
-('usuarios.editar', 'Editar usuario', 'usuarios', 'Modificar datos de usuario'),
-('usuarios.cargar', 'Carga masiva usuarios', 'usuarios', 'Cargar usuarios via archivo'),
-('periodos.listar', 'Listar periodos', 'periodos', 'Ver periodos evaluativos'),
-('periodos.crear', 'Crear periodo', 'periodos', 'Abrir nuevo periodo'),
-('periodos.editar', 'Editar periodo', 'periodos', 'Modificar periodo'),
-('metas.listar', 'Listar metas', 'metas', 'Ver metas de desempeno'),
-('metas.crear', 'Crear meta', 'metas', 'Definir meta de desempeno'),
-('metas.editar', 'Editar meta', 'metas', 'Modificar meta'),
-('concertaciones.listar', 'Listar concertaciones', 'concertaciones', 'Ver concertaciones'),
-('concertaciones.crear', 'Crear concertacion', 'concertaciones', 'Registrar concertacion'),
-('concertaciones.cargar', 'Carga masiva concertaciones', 'concertaciones', 'Cargar concertaciones via archivo'),
-('evaluaciones.listar', 'Listar evaluaciones', 'evaluaciones', 'Ver evaluaciones'),
-('evaluaciones.crear', 'Crear evaluacion', 'evaluaciones', 'Iniciar evaluacion'),
-('evaluaciones.evaluar', 'Evaluar', 'evaluaciones', 'Calificar evaluacion'),
-('evaluaciones.cargar', 'Carga masiva evaluaciones', 'evaluaciones', 'Cargar evaluaciones via archivo'),
-('compromisos.listar', 'Listar compromisos', 'compromisos', 'Ver compromisos'),
-('compromisos.crear', 'Crear compromiso', 'compromisos', 'Registrar compromiso'),
-('compromisos.editar', 'Editar compromiso', 'compromisos', 'Modificar compromiso'),
-('evidencias.listar', 'Listar evidencias', 'evidencias', 'Ver evidencias'),
-('evidencias.subir', 'Subir evidencia', 'evidencias', 'Cargar archivo de evidencia'),
-('evidencias.verificar', 'Verificar evidencia', 'evidencias', 'Aprobar o rechazar evidencia'),
-('ausentismos.listar', 'Listar ausentismos', 'ausentismos', 'Ver ausentismos'),
-('ausentismos.crear', 'Registrar ausentismo', 'ausentismos', 'Crear registro de ausentismo'),
-('ausentismos.editar', 'Editar ausentismo', 'ausentismos', 'Modificar ausentismo'),
-('movilidades.listar', 'Listar movilidades', 'movilidades', 'Ver movilidades'),
-('movilidades.crear', 'Registrar movilidad', 'movilidades', 'Crear registro de movilidad'),
-('movilidades.editar', 'Editar movilidad', 'movilidades', 'Modificar movilidad'),
-('reportes.ver', 'Ver reportes', 'reportes', 'Acceder a reportes'),
-('reportes.generar', 'Generar reportes', 'reportes', 'Generar reportes del sistema'),
-('cargas.listar', 'Ver cargas masivas', 'cargas', 'Ver historial de cargas masivas'),
-('cargas.ejecutar', 'Ejecutar carga masiva', 'cargas', 'Procesar archivos de carga'),
-('auditoria.ver', 'Ver auditoria', 'auditoria', 'Consultar registro de auditoria'),
-('parametros.editar', 'Editar parametros', 'parametros', 'Modificar configuracion del sistema');
-
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p WHERE r.codigo = 'admin';
-
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'evaluador' AND p.codigo IN (
-    'entidades.listar','dependencias.listar','usuarios.listar',
-    'periodos.listar','metas.listar','metas.crear','metas.editar',
-    'concertaciones.listar','concertaciones.crear',
-    'evaluaciones.listar','evaluaciones.crear','evaluaciones.evaluar',
-    'compromisos.listar','compromisos.crear',
-    'evidencias.listar','evidencias.subir','evidencias.verificar',
-    'reportes.ver'
-);
-
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'funcionario' AND p.codigo IN (
-    'metas.listar','concertaciones.listar',
-    'evaluaciones.listar','evaluaciones.crear',
-    'compromisos.listar','evidencias.listar','evidencias.subir',
-    'ausentismos.listar','movilidades.listar','reportes.ver'
-);
-
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'jefe_entidad' AND p.codigo IN (
-    'entidades.listar','dependencias.listar','dependencias.crear','dependencias.editar',
-    'usuarios.listar','usuarios.crear','usuarios.editar','usuarios.cargar',
-    'periodos.listar','metas.listar','metas.crear','metas.editar',
-    'concertaciones.listar','concertaciones.crear','concertaciones.cargar',
-    'evaluaciones.listar','evaluaciones.crear','evaluaciones.evaluar','evaluaciones.cargar',
-    'compromisos.listar','compromisos.crear','compromisos.editar',
-    'evidencias.listar','evidencias.subir','evidencias.verificar',
-    'ausentismos.listar','ausentismos.crear','ausentismos.editar',
-    'movilidades.listar','movilidades.crear',
-    'reportes.ver','reportes.generar','cargas.listar','cargas.ejecutar'
-);
-
-INSERT INTO rol_permiso (rol_id, permiso_id)
-SELECT r.id, p.id FROM roles r, permisos p
-WHERE r.codigo = 'jefe_dependencia' AND p.codigo IN (
-    'dependencias.listar','usuarios.listar',
-    'periodos.listar','metas.listar','metas.crear','metas.editar',
-    'concertaciones.listar','concertaciones.crear',
-    'evaluaciones.listar','evaluaciones.crear','evaluaciones.evaluar',
-    'compromisos.listar','compromisos.crear','compromisos.editar',
-    'evidencias.listar','evidencias.subir','evidencias.verificar',
-    'ausentismos.listar','ausentismos.crear',
-    'reportes.ver'
-);
-
-INSERT INTO parametros (clave, valor, tipo, descripcion) VALUES
-('jwt_secret', '', 'texto', 'Clave secreta para JWT (generar con openssl rand -hex 32)'),
-('jwt_expiracion_minutos', '120', 'numero', 'Tiempo de expiracion del token JWT en minutos'),
-('intentos_login_maximos', '5', 'numero', 'Maximo de intentos de login antes de bloquear cuenta'),
-('password_longitud_minima', '8', 'numero', 'Longitud minima de contrasena'),
-('cors_origen_permitido', 'http://localhost:5173', 'texto', 'Origen permitido para CORS'),
-('upload_tamano_maximo_mb', '10', 'numero', 'Tamano maximo de archivo en megabytes'),
-('upload_extensiones_permitidas', 'pdf,doc,docx,xls,xlsx,jpg,png', 'texto', 'Extensiones permitidas para carga de archivos');
+INSERT INTO `roles` VALUES (2,'evaluador','Evaluador','Evalua el desempeno de funcionarios. Aprueba compromisos y califica resultados.','2026-05-14 22:53:15','2026-05-16 23:13:48',NULL);
+INSERT INTO `roles` VALUES (3,'evaluado','Evaluado','Servidor publico sujeto a evaluacion. Propone compromisos y registra evidencias.','2026-05-14 22:53:15','2026-05-15 18:38:47',NULL);
+INSERT INTO `roles` VALUES (12,'admin','Administrador','Administrador del sistema. Gestion completa de usuarios, evaluaciones y configuracion.','2026-05-16 13:25:24','2026-05-16 23:13:48',NULL);
+INSERT INTO `permisos` VALUES (1,'entidades.listar','Listar entidades','entidades','Ver listado de entidades','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (2,'entidades.crear','Crear entidad','entidades','Registrar nueva entidad','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (3,'entidades.editar','Editar entidad','entidades','Modificar datos de entidad','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (4,'entidades.eliminar','Eliminar entidad','entidades','Inactivar entidad','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (5,'dependencias.listar','Listar dependencias','dependencias','Ver dependencias','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (6,'dependencias.crear','Crear dependencia','dependencias','Registrar dependencia','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (7,'dependencias.editar','Editar dependencia','dependencias','Modificar dependencia','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (8,'usuarios.listar','Listar usuarios','usuarios','Ver listado de usuarios','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (9,'usuarios.crear','Crear usuario','usuarios','Registrar nuevo usuario','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (10,'usuarios.editar','Editar usuario','usuarios','Modificar datos de usuario','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (11,'usuarios.cargar','Carga masiva usuarios','usuarios','Cargar usuarios via archivo','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (12,'periodos.listar','Listar periodos','periodos','Ver periodos evaluativos','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (13,'periodos.crear','Crear periodo','periodos','Abrir nuevo periodo','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (14,'periodos.editar','Editar periodo','periodos','Modificar periodo','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (15,'metas.listar','Listar metas','metas','Ver metas de desempeno','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (16,'metas.crear','Crear meta','metas','Definir meta de desempeno','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (17,'metas.editar','Editar meta','metas','Modificar meta','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (18,'concertaciones.listar','Listar concertaciones','concertaciones','Ver concertaciones','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (19,'concertaciones.crear','Crear concertacion','concertaciones','Registrar concertacion','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (20,'concertaciones.cargar','Carga masiva concertaciones','concertaciones','Cargar concertaciones via archivo','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (21,'evaluaciones.listar','Listar evaluaciones','evaluaciones','Ver evaluaciones','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (22,'evaluaciones.crear','Crear evaluacion','evaluaciones','Iniciar evaluacion','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (23,'evaluaciones.evaluar','Evaluar','evaluaciones','Calificar evaluacion','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (24,'evaluaciones.cargar','Carga masiva evaluaciones','evaluaciones','Cargar evaluaciones via archivo','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (25,'compromisos.listar','Listar compromisos','compromisos','Ver compromisos','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (26,'compromisos.crear','Crear compromiso','compromisos','Registrar compromiso','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (27,'compromisos.editar','Editar compromiso','compromisos','Modificar compromiso','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (28,'evidencias.listar','Listar evidencias','evidencias','Ver evidencias','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (29,'evidencias.subir','Subir evidencia','evidencias','Cargar archivo de evidencia','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (30,'evidencias.verificar','Verificar evidencia','evidencias','Aprobar o rechazar evidencia','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (31,'ausentismos.listar','Listar ausentismos','ausentismos','Ver ausentismos','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (32,'ausentismos.crear','Registrar ausentismo','ausentismos','Crear registro de ausentismo','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (33,'ausentismos.editar','Editar ausentismo','ausentismos','Modificar ausentismo','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (34,'movilidades.listar','Listar movilidades','movilidades','Ver movilidades','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (35,'movilidades.crear','Registrar movilidad','movilidades','Crear registro de movilidad','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (36,'movilidades.editar','Editar movilidad','movilidades','Modificar movilidad','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (37,'reportes.ver','Ver reportes','reportes','Acceder a reportes','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (38,'reportes.generar','Generar reportes','reportes','Generar reportes del sistema','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (39,'cargas.listar','Ver cargas masivas','cargas','Ver historial de cargas masivas','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (40,'cargas.ejecutar','Ejecutar carga masiva','cargas','Procesar archivos de carga','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (41,'auditoria.ver','Ver auditoria','auditoria','Consultar registro de auditoria','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (42,'parametros.editar','Editar parametros','parametros','Modificar configuracion del sistema','2026-05-14 22:53:16','2026-05-14 22:53:16',NULL);
+INSERT INTO `permisos` VALUES (43,'evaluaciones.aprobar','Aprobar calificación definitiva','evaluaciones',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (44,'compromisos.devolver','Devolver compromiso al evaluado','compromisos',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (45,'compromisos.aprobar','Aprobar compromiso en concertación','compromisos',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (46,'usuarios.restablecer','Restablecer contraseña de usuario','usuarios',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (47,'entidades.habilitar','Habilitar entidad en el sistema','entidades',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (48,'parametros.listar','Listar parametros del sistema','parametros',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (49,'soporte.gestionar','Gestionar solicitudes de soporte','soporte',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (51,'compromisos.enviar','Proponer compromiso','compromisos',NULL,'2026-05-15 18:38:48','2026-05-15 18:38:48',NULL);
+INSERT INTO `permisos` VALUES (70,'evaluaciones.comision','Aprobar Comisión Evaluadora','evaluaciones','Permite a la Comisión Evaluadora aprobar calificaciones definitivas','2026-05-15 19:17:00','2026-05-15 19:17:00',NULL);
+INSERT INTO `rol_permiso` VALUES (2,1,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,5,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,8,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,12,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,15,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,16,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,17,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,18,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,19,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,21,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,22,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,23,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,25,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,26,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,28,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,29,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,30,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,37,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (2,43,'2026-05-16 23:13:47');
+INSERT INTO `rol_permiso` VALUES (2,44,'2026-05-15 18:38:48');
+INSERT INTO `rol_permiso` VALUES (2,45,'2026-05-15 18:38:48');
+INSERT INTO `rol_permiso` VALUES (2,70,'2026-05-16 23:13:47');
+INSERT INTO `rol_permiso` VALUES (3,15,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,18,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,21,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,22,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,25,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,28,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,29,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,31,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,34,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,37,'2026-05-14 22:53:16');
+INSERT INTO `rol_permiso` VALUES (3,51,'2026-05-15 18:38:48');
+INSERT INTO `rol_permiso` VALUES (12,1,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,2,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,3,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,4,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,5,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,6,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,7,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,8,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,9,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,10,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,11,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,12,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,13,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,14,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,15,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,16,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,17,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,18,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,19,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,20,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,21,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,22,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,23,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,24,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,25,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,26,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,27,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,28,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,29,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,30,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,31,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,32,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,33,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,34,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,35,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,36,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,37,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,38,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,39,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,40,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,41,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,42,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,43,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,44,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,45,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,46,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,47,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,48,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,49,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,51,'2026-05-16 15:40:55');
+INSERT INTO `rol_permiso` VALUES (12,70,'2026-05-16 15:40:55');
+INSERT INTO `parametros` VALUES (1,'jwt_secret','{jwt_secret}','texto','Clave secreta para JWT (generar con openssl rand -hex 32)','2026-05-14 22:53:16','2026-05-15 05:33:11');
+INSERT INTO `parametros` VALUES (2,'jwt_expiracion_minutos','120','numero','Tiempo de expiracion del token JWT en minutos','2026-05-14 22:53:16','2026-05-14 22:53:16');
+INSERT INTO `parametros` VALUES (3,'intentos_login_maximos','5','numero','Maximo de intentos de login antes de bloquear cuenta','2026-05-14 22:53:16','2026-05-14 22:53:16');
+INSERT INTO `parametros` VALUES (4,'password_longitud_minima','8','numero','Longitud minima de contrasena','2026-05-14 22:53:16','2026-05-14 22:53:16');
+INSERT INTO `parametros` VALUES (5,'cors_origen_permitido','http://localhost:5174','texto','Origen permitido para CORS','2026-05-14 22:53:16','2026-05-16 12:30:39');
+INSERT INTO `parametros` VALUES (6,'upload_tamano_maximo_mb','50','numero','Tamano maximo de archivo en megabytes','2026-05-14 22:53:16','2026-05-16 12:16:24');
+INSERT INTO `parametros` VALUES (7,'upload_extensiones_permitidas','pdf,doc,docx,xls,xlsx,jpg,png','texto','Extensiones permitidas para carga de archivos','2026-05-14 22:53:16','2026-05-14 22:53:16');
