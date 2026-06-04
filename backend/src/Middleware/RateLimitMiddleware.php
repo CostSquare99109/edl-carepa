@@ -3,35 +3,47 @@
 namespace App\Middleware;
 
 use App\Helper\ResponseHelper;
+use App\Helper\IpHelper;
 
 class RateLimitMiddleware
 {
-    private static array $attempts = [];
-    private static int $maxAttempts = 60;
-    private static int $windowSeconds = 60;
+ private static int $maxAttempts = 60;
+ private static int $windowSeconds = 60;
 
-    public static function handle(): void
-    {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        $key = $ip;
-        $now = time();
+ public static function handle(): void
+ {
+ $ip = IpHelper::clientIp();
+ $key = 'rate_limit_' . md5($ip);
 
-        if (!isset(self::$attempts[$key])) {
-            self::$attempts[$key] = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
-        }
+		$tempDir = sys_get_temp_dir() . '/edl_rate_limit';
+		if (!is_dir($tempDir)) {
+			@mkdir($tempDir, 0700, true);
+		}
 
-        if ($now > self::$attempts[$key]['reset_at']) {
-            self::$attempts[$key] = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
-        }
+		$file = $tempDir . '/' . $key;
+		$now = time();
 
-        self::$attempts[$key]['count']++;
+		if (file_exists($file)) {
+			$data = json_decode(file_get_contents($file), true);
+		} else {
+			$data = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
+		}
 
-        $remaining = self::$maxAttempts - self::$attempts[$key]['count'];
-        header("X-RateLimit-Limit: " . self::$maxAttempts);
-        header("X-RateLimit-Remaining: " . max(0, $remaining));
+		if ($now > ($data['reset_at'] ?? 0)) {
+			$data = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
+		}
 
-        if (self::$attempts[$key]['count'] > self::$maxAttempts) {
-            ResponseHelper::error('Demasiadas solicitudes. Intente nuevamente mas tarde.', 429);
-        }
-    }
+		$data['count']++;
+
+		file_put_contents($file, json_encode($data), LOCK_EX);
+
+		$remaining = self::$maxAttempts - $data['count'];
+		header("X-RateLimit-Limit: " . self::$maxAttempts);
+		header("X-RateLimit-Remaining: " . max(0, $remaining));
+
+		if ($data['count'] > self::$maxAttempts) {
+			header('Retry-After: ' . ($data['reset_at'] - $now));
+			ResponseHelper::error('Demasiadas solicitudes. Intente nuevamente mas tarde.', 429);
+		}
+	}
 }

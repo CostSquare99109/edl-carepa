@@ -43,7 +43,7 @@ class CompromisoRepository extends BaseRepository
   /** Compromisos pendientes de aprobación para un evaluador específico */
   public function pendientesPorEvaluador(int $evaluadorId, int $pagina = 1, int $porPagina = 20): array
   {
-    $conditions = ['c.eliminado_en IS NULL', 'c.evaluador_id = ?', "c.estado = 'enviado'"];
+    $conditions = ['c.eliminado_en IS NULL', 'c.evaluador_id = ?', "c.estado = 'propuesto'"];
     $params = [$evaluadorId];
 
     $where = implode(' AND ', $conditions);

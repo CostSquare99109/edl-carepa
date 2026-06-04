@@ -93,27 +93,25 @@ class EvaluacionService
  return $id;
  }
 
-	/** Crear evaluación parcial (semestral o eventual) - EDL-CAREPA Acuerdo 6176 */
- public function crearParcial(int $evaluacionId, string $tipoParcial, array $evaluador): int
- {
- if (!in_array($tipoParcial, ['parcial_semestral', 'parcial_eventual'])) {
- ResponseHelper::error('Tipo de evaluacion parcial invalido. Debe ser: parcial_semestral o parcial_eventual', 422);
- }
+	public function crearParcial(int $evaluacionId, string $tipoParcial, array $evaluador): int
+	{
+		if (!in_array($tipoParcial, ['parcial_semestral', 'parcial_eventual'])) {
+			ResponseHelper::error('Tipo de evaluacion parcial invalido. Debe ser: parcial_semestral o parcial_eventual', 422);
+		}
 
- $eval = $this->repo->buscarPorId($evaluacionId);
- if (!$eval) {
- ResponseHelper::error('Evaluacion no encontrada', 404);
- }
+		$eval = $this->repo->buscarPorId($evaluacionId);
+		if (!$eval) {
+			ResponseHelper::error('Evaluacion no encontrada', 404);
+		}
 
- $user = AuthMiddleware::user();
- $datos = [
- 'periodo_id' => $eval['periodo_id'],
- 'evaluado_id' => $eval['evaluado_id'],
- 'tipo' => $tipoParcial,
- 'evaluador_id' => $user['id'],
- 'estado' => 'en_proceso',
- 'es_comision_evaluadora' => ($user['rol_activo'] ?? '') === 'comision_evaluadora' ? 1 : 0,
- ];
+		$datos = [
+			'periodo_id' => $eval['periodo_id'],
+			'evaluado_id' => $eval['evaluado_id'],
+			'tipo' => $tipoParcial,
+			'evaluador_id' => $evaluador['id'],
+			'estado' => 'en_proceso',
+			'es_comision_evaluadora' => ($evaluador['rol_activo'] ?? '') === 'comision_evaluadora' ? 1 : 0,
+		];
 
  $id = $this->repo->crear($datos);
  AuditoriaService::registrar('crear_parcial', 'evaluaciones', $id, null, $datos);

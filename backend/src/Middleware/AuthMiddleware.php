@@ -56,21 +56,15 @@ class AuthMiddleware
  'entidad_id' => $payload['entidad_id'] ?? null,
  'rol_activo' => $payload['rol_activo'] ?? ($payload['roles'][0] ?? null),
  ];
-
- $GLOBALS['auth_user'] = self::$user;
  }
 
  public static function user(): array
  {
- return $GLOBALS['auth_user'] ?? self::$user;
+ return self::$user;
  }
 
- /**
- * Devuelve el rol activo del token actual
- */
  public static function rolActivo(): string
  {
- $userData = $GLOBALS['auth_user'] ?? self::$user;
- return $userData['rol_activo'] ?? '';
+ return self::$user['rol_activo'] ?? '';
  }
 }

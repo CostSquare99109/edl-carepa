@@ -6,18 +6,17 @@ class SanitizerHelper
 {
     public static function sanitize(mixed $value): mixed
     {
-        if (is_array($value)) {
-            return array_map([self::class, 'sanitize'], $value);
-        }
+    if (is_array($value)) {
+    return array_map([self::class, 'sanitize'], $value);
+    }
 
-        if (is_string($value)) {
-            $value = trim($value);
-            $value = stripslashes($value);
-            $value = htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            return $value;
-        }
+    if (is_string($value)) {
+    $value = trim($value);
+    $value = stripslashes($value);
+    return $value;
+    }
 
-        return $value;
+    return $value;
     }
 
     public static function sanitizeArray(array $data): array
@@ -41,9 +40,17 @@ class SanitizerHelper
 
     public static function cleanString(mixed $value): string
     {
-        if (!is_string($value)) {
-            return '';
-        }
-        return trim(strip_tags($value));
+    if (!is_string($value)) {
+    return '';
     }
-}
+    return trim(strip_tags($value));
+    }
+
+    public static function escapeOutput(mixed $value): string
+    {
+    if (!is_string($value)) {
+    return '';
+    }
+    return htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+    }

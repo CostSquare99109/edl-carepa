@@ -10,7 +10,7 @@ class Compromiso
     public ?string $descripcion = null;
     public ?string $plazo = null;
     public ?int $responsable_id = null;
-    public string $estado = 'pendiente';
+    public string $estado = 'propuesto';
 
     public static function fromArray(array $data): self
     {

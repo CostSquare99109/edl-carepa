@@ -28,10 +28,13 @@ import AdminEvaluaciones from './pages/Admin/AdminEvaluaciones'
 import AdminReportes from './pages/Admin/AdminReportes'
 import AdminNotificaciones from './pages/Admin/AdminNotificaciones'
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { token } = useAuth()
-  if (!token) return <Navigate to="/login" replace />
-  return <>{children}</>
+function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
+ const { token, rolActivo } = useAuth()
+ if (!token) return <Navigate to="/login" replace />
+ if (allowedRoles && allowedRoles.length > 0 && rolActivo && !allowedRoles.includes(rolActivo)) {
+ return <Navigate to="/" replace />
+ }
+ return <>{children}</>
 }
 
 export default function App() {
@@ -59,7 +62,7 @@ export default function App() {
         <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
       </Route>
       {/* Admin panel */}
-      <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>}>
+      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'jefe_entidad', 'jefe_dependencia']}><AdminDashboard /></ProtectedRoute>}>
         <Route index element={<AdminHome />} />
         <Route path="usuarios" element={<AdminUsuarios />} />
         <Route path="dependencias" element={<AdminDependencias />} />

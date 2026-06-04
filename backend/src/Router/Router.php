@@ -71,49 +71,60 @@ class Router
 
     public function dispatch(string $method, string $uri): void
     {
-        $uri = '/' . trim(parse_url($uri, PHP_URL_PATH), '/');
-        if ($uri !== '/' && $uri !== '') {
-            $uri = rtrim($uri, '/');
-        }
+    $uri = '/' . trim(parse_url($uri, PHP_URL_PATH), '/');
+    if ($uri !== '/' && $uri !== '') {
+    $uri = rtrim($uri, '/');
+    }
 
-        foreach ($this->routes as $route) {
-            if ($route['method'] !== $method) {
-                continue;
-            }
+    try {
+    foreach ($this->routes as $route) {
+    if ($route['method'] !== $method) {
+    continue;
+    }
 
-            if (!preg_match($route['pattern'], $uri, $matches)) {
-                continue;
-            }
+    if (!preg_match($route['pattern'], $uri, $matches)) {
+    continue;
+    }
 
-            $params = [];
-            foreach ($route['paramNames'] as $name) {
-                $params[$name] = $matches[$name] ?? null;
-            }
+    $params = [];
+    foreach ($route['paramNames'] as $name) {
+    $params[$name] = $matches[$name] ?? null;
+    }
 
-            foreach ($route['middleware'] as $mw) {
-                if (is_string($mw) && str_starts_with($mw, 'permiso:')) {
-                    $permisoCodigo = substr($mw, 8);
-                    \App\Middleware\PermissionMiddleware::check($permisoCodigo);
-                } elseif (is_string($mw) && class_exists($mw)) {
-                    if (method_exists($mw, 'handle')) {
-                        $mw::handle();
-                    }
-                }
-            }
+    foreach ($route['middleware'] as $mw) {
+    if (is_string($mw) && str_starts_with($mw, 'permiso:')) {
+    $permisoCodigo = substr($mw, 8);
+    \App\Middleware\PermissionMiddleware::check($permisoCodigo);
+    } elseif (is_string($mw) && class_exists($mw)) {
+    if (method_exists($mw, 'handle')) {
+    $mw::handle();
+    }
+    }
+    }
 
-            [$controllerClass, $action] = $route['handler'];
-            $controller = new $controllerClass();
+    [$controllerClass, $action] = $route['handler'];
+    $controller = new $controllerClass();
 
-            if (!empty($params)) {
-                $args = array_values($params);
-                $controller->$action(...$args);
-            } else {
-                $controller->$action();
-            }
+    if (!empty($params)) {
+    $args = array_values($params);
+    $controller->$action(...$args);
+    } else {
+    $controller->$action();
+    }
 
-            return;
-        }
+    return;
+    }
 
-        \App\Helper\ResponseHelper::error('Ruta no encontrada', 404);
+    \App\Helper\ResponseHelper::error('Ruta no encontrada', 404);
+    } catch (\App\Helper\HttpException $e) {
+    \App\Helper\ResponseHelper::error($e->getMessage(), $e->getCode());
+    } catch (\Throwable $e) {
+    error_log('[EDL ERROR] ' . get_class($e) . ': ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
+    $debug = getenv('APP_DEBUG') === 'true';
+    \App\Helper\ResponseHelper::error(
+    $debug ? $e->getMessage() . ' en ' . basename($e->getFile()) . ':' . $e->getLine() : 'Error interno del servidor',
+    500
+    );
+    }
     }
 }
