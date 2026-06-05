@@ -5,44 +5,83 @@ namespace App\Service;
 use App\Repository\MovilidadRepository;
 use App\Helper\ValidatorHelper;
 use App\Helper\ResponseHelper;
+use App\Middleware\AuthMiddleware;
 
 class MovilidadService
 {
-    private MovilidadRepository $repo;
+ private MovilidadRepository $repo;
 
-    public function __construct()
-    {
-        $this->repo = new MovilidadRepository();
-    }
+ public function __construct()
+ {
+ $this->repo = new MovilidadRepository();
+ }
 
-    public function listar(array $filtros, int $pagina, int $porPagina): array
-    {
-        return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
-    }
+ public function listar(array $filtros, int $pagina, int $porPagina): array
+ {
+ return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
+ }
 
-    public function crear(array $datos): int
-    {
-        $v = new ValidatorHelper();
-        $v->validate($datos, [
-            'funcionario_id' => 'required',
-            'tipo' => 'required',
-            'fecha_movimiento' => 'required'
-        ]);
+ public function ver(int $id): array
+ {
+ $mov = $this->repo->buscarPorId($id);
+ if (!$mov) {
+ ResponseHelper::error('Movilidad no encontrada', 404);
+ }
+ return $mov;
+ }
 
-        $id = $this->repo->crear($datos);
-        AuditoriaService::registrar('crear', 'movilidades', $id, null, $datos);
-        return $id;
-    }
+ public function crear(array $datos): int
+ {
+ $v = new ValidatorHelper();
+ $v->validate($datos, [
+ 'funcionario_id' => 'required',
+ 'tipo' => 'required',
+ 'fecha_movimiento' => 'required'
+ ]);
 
-    public function actualizar(int $id, array $datos): void
-    {
-        $mov = $this->repo->buscarPorId($id);
-        if (!$mov) {
-            ResponseHelper::error('Movilidad no encontrada', 404);
-        }
-        $permitidos = ['tipo','entidad_origen_id','dependencia_origen_id','entidad_destino_id','dependencia_destino_id','fecha_movimiento','acto_administrativo','observaciones','estado'];
-        $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
-        $this->repo->actualizar($id, $datosFiltrados);
-        AuditoriaService::registrar('actualizar', 'movilidades', $id, $mov, $datosFiltrados);
-    }
+ $tiposValidos = ['traslado', 'promocion', 'encargo', 'comision', 'reintegracion', 'retiro', 'otro'];
+ if (!in_array($datos['tipo'], $tiposValidos)) {
+ ResponseHelper::error('Tipo de movilidad invalido', 422);
+ }
+
+ $id = $this->repo->crear($datos);
+ AuditoriaService::registrar('crear', 'movilidades', $id, null, $datos);
+ return $id;
+ }
+
+ public function actualizar(int $id, array $datos): void
+ {
+ $mov = $this->repo->buscarPorId($id);
+ if (!$mov) {
+ ResponseHelper::error('Movilidad no encontrada', 404);
+ }
+
+ $user = AuthMiddleware::user();
+ $roles = $user['roles'] ?? [];
+ if (!in_array('admin', $roles) && !in_array('jefe_personal', $roles)) {
+ ResponseHelper::forbidden();
+ }
+
+ $permitidos = ['tipo', 'entidad_origen_id', 'dependencia_origen_id', 'entidad_destino_id', 'dependencia_destino_id', 'fecha_movimiento', 'acto_administrativo', 'observaciones', 'estado'];
+ $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
+ $this->repo->actualizar($id, $datosFiltrados);
+ AuditoriaService::registrar('actualizar', 'movilidades', $id, $mov, $datosFiltrados);
+ }
+
+ public function eliminar(int $id): void
+ {
+ $mov = $this->repo->buscarPorId($id);
+ if (!$mov) {
+ ResponseHelper::error('Movilidad no encontrada', 404);
+ }
+
+ $user = AuthMiddleware::user();
+ $roles = $user['roles'] ?? [];
+ if (!in_array('admin', $roles)) {
+ ResponseHelper::forbidden();
+ }
+
+ $this->repo->eliminarLogico($id);
+ AuditoriaService::registrar('eliminar', 'movilidades', $id, $mov, null);
+ }
 }

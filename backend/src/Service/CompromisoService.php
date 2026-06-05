@@ -3,292 +3,276 @@
 namespace App\Service;
 
 use App\Repository\CompromisoRepository;
-use App\Service\NotificacionService;
+use App\Repository\ConcertacionRepository;
 use App\Helper\ResponseHelper;
 use App\Config\Database;
+use App\Config\Env;
+use App\Middleware\AuthMiddleware;
 
 class CompromisoService
 {
-  private CompromisoRepository $repo;
-  private NotificacionService $notificacionService;
+ private CompromisoRepository $compromisoRepo;
+ private ConcertacionRepository $concertacionRepo;
 
-  public function __construct()
-  {
-    $this->repo = new CompromisoRepository();
-    $this->notificacionService = new NotificacionService();
-  }
-
-  public function listar(array $filtros, int $pagina, int $porPagina): array
-  {
-    return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
-  }
-
-	/** Evaluado propone compromiso → estado 'propuesto', notifica al evaluador (Concertación EDL-CAREPA) */
- public function enviar(array $datos, array $funcionario): int
+ public function __construct()
  {
  $pdo = Database::getInstance();
-
- // Verificar que la evaluación existe y pertenece al evaluado
- $stmt = $pdo->prepare("SELECT e.*, p.nombre as periodo_nombre FROM evaluaciones e INNER JOIN periodos p ON p.id = e.periodo_id WHERE e.id = ? AND e.eliminado_en IS NULL");
- $stmt->execute([$datos['evaluacion_id']]);
- $evaluacion = $stmt->fetch(\PDO::FETCH_ASSOC);
- if (!$evaluacion) {
- ResponseHelper::error('Evaluacion no encontrada', 404);
- }
- if ((int) $evaluacion['evaluado_id'] !== $funcionario['id']) {
- ResponseHelper::error('No tiene permiso para proponer compromisos en esta evaluacion', 403);
+ $this->compromisoRepo = new CompromisoRepository($pdo);
+ $this->concertacionRepo = new ConcertacionRepository($pdo);
  }
 
-	// Insertar compromiso con estado 'propuesto' (terminología EDL-CAREPA Acuerdo 6176)
- $stmt = $pdo->prepare("
- INSERT INTO compromisos (evaluacion_id, tipo, descripcion, resultado_esperado, medio_verificacion, observaciones_evaluado, plazo, responsable_id, evaluador_id, estado, peso)
- VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'propuesto', 0.00)
- ");
- $stmt->execute([
- $datos['evaluacion_id'],
- $datos['tipo'],
- $datos['descripcion'],
- $datos['resultado_esperado'] ?? null,
- $datos['medio_verificacion'] ?? null,
- $datos['observaciones_evaluado'] ?? null,
- $datos['plazo'],
- $datos['responsable_id'],
- $datos['evaluador_id'],
- ]);
- $compromisoId = (int) $pdo->lastInsertId();
+ public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
+ {
+ $user = AuthMiddleware::user();
+ $rolActivo = AuthMiddleware::rolActivo();
 
-    // Auditar
-    AuditoriaService::registrar('crear', 'compromisos', $compromisoId, null, $datos);
+ if ($rolActivo === 'evaluador') {
+ $filtros['evaluador_id'] = $user['id'];
+ } elseif ($rolActivo === 'evaluado') {
+ $filtros['evaluado_id'] = $user['id'];
+ }
 
-    // Notificar al evaluador
-    $nombreFuncionario = trim($funcionario['nombres'] . ' ' . $funcionario['apellidos']);
-    $this->notificacionService->notificarCompromisoPendiente(
-      (int) $datos['evaluador_id'],
-      $nombreFuncionario,
-      $compromisoId
-    );
+ return $this->compromisoRepo->listarConRelaciones($filtros, $pagina, $porPagina);
+ }
 
-    return $compromisoId;
-  }
+ public function crear(array $datos): int
+ {
+ $user = AuthMiddleware::user();
+ $rolActivo = AuthMiddleware::rolActivo();
 
-  /** Evaluador aprueba compromiso con peso. Valida que la suma de pesos = 100% */
-  public function aprobar(int $id, float $peso, string $observaciones, array $evaluador): void
-  {
-    $pdo = Database::getInstance();
+ $concertacionId = $datos['concertacion_id'] ?? null;
+ if (!$concertacionId) {
+ ResponseHelper::error('concertacion_id es requerido', 422);
+ }
 
-    // Buscar compromiso
-    $comp = $this->repo->buscarPorId($id);
-    if (!$comp) {
-      ResponseHelper::error('Compromiso no encontrado', 404);
-    }
- if ($comp['estado'] !== 'propuesto') {
+ $concertacion = $this->concertacionRepo->buscarPorId((int) $concertacionId);
+ if (!$concertacion) {
+ ResponseHelper::notFound('Concertacion no encontrada');
+ }
+
+ $tipo = $datos['tipo'] ?? 'funcional';
+ if (!in_array($tipo, ['funcional', 'comportamental'])) {
+ ResponseHelper::error('Tipo invalido. Debe ser: funcional o comportamental', 422);
+ }
+
+ $this->validarLimitesCompromisos((int) $concertacionId, $tipo);
+
+ $crearDatos = [
+ 'concertacion_id' => $concertacionId,
+ 'tipo' => $tipo,
+ 'meta_id' => $datos['meta_id'] ?? null,
+ 'descripcion' => $datos['descripcion'],
+ 'peso' => $datos['peso'] ?? 0,
+ 'competencia_codigo' => $datos['competencia_codigo'] ?? null,
+ 'propuesto_por_jefe_entidad' => in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador']) ? 1 : 0,
+ 'estado' => 'propuesto',
+ ];
+
+ $id = $this->compromisoRepo->crear($crearDatos);
+ AuditoriaService::registrar('crear_compromiso', 'compromisos', $id);
+
+ return $id;
+ }
+
+ public function enviar(array $datos, array $user): int
+ {
+ $rolActivo = AuthMiddleware::rolActivo();
+
+ $concertacionId = $datos['concertacion_id'] ?? null;
+ if (!$concertacionId) {
+ $concertacionId = $datos['evaluacion_id'] ?? null;
+ if ($concertacionId) {
+ $concertacion = $this->concertacionRepo->buscarPorId((int) $concertacionId);
+ if (!$concertacion) {
+ $concertacionId = null;
+ }
+ }
+ }
+ if (!$concertacionId) {
+ ResponseHelper::error('concertacion_id es requerido', 422);
+ }
+
+ $tipo = $datos['tipo'] ?? 'funcional';
+ if (!in_array($tipo, ['funcional', 'comportamental'])) {
+ ResponseHelper::error('Tipo invalido. Debe ser: funcional o comportamental', 422);
+ }
+
+ $this->validarLimitesCompromisos((int) $concertacionId, $tipo);
+
+ $crearDatos = [
+ 'concertacion_id' => $concertacionId,
+ 'tipo' => $tipo,
+ 'descripcion' => $datos['descripcion'],
+ 'peso' => $datos['peso'] ?? 0,
+ 'competencia_codigo' => $datos['competencia_codigo'] ?? null,
+ 'propuesto_por_jefe_entidad' => 0,
+ 'estado' => 'propuesto',
+ 'observaciones_evaluado' => $datos['observaciones_evaluado'] ?? null,
+ ];
+
+ $id = $this->compromisoRepo->crear($crearDatos);
+ AuditoriaService::registrar('enviar_compromiso', 'compromisos', $id);
+
+ return $id;
+ }
+
+ public function aprobar(int $id, float $peso, string $observaciones, array $user): void
+ {
+ $compromiso = $this->compromisoRepo->buscarPorId($id);
+ if (!$compromiso) {
+ ResponseHelper::notFound('Compromiso no encontrado');
+ }
+
+ if ($compromiso['estado'] !== 'propuesto') {
  ResponseHelper::error('Solo se pueden aprobar compromisos en estado propuesto', 400);
  }
- if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
- ResponseHelper::error('Solo el evaluador asignado puede aprobar este compromiso', 403);
+
+ $concertacionId = (int) $compromiso['concertacion_id'];
+ $tipo = $compromiso['tipo'];
+
+ $sumaActual = $this->compromisoRepo->sumPesosPorConcertacionYTipo($concertacionId, $tipo);
+ $pesoActual = (float) $compromiso['peso'];
+ $nuevaSuma = $sumaActual - $pesoActual + $peso;
+
+ $maxPesos = $tipo === 'funcional' ? 85 : 15;
+ if ($nuevaSuma > $maxPesos) {
+ ResponseHelper::error("La suma de pesos {$tipo} excederia {$maxPesos}%. Actual: {$sumaActual}%, nuevo: {$nuevaSuma}%", 422);
  }
 
-    // Validar que la suma de pesos aprobados + este nuevo peso no supere 100%
-    $evaluacionId = (int) $comp['evaluacion_id'];
-    $stmt = $pdo->prepare("
-      SELECT COALESCE(SUM(peso), 0) as total_pesos
-      FROM compromisos
-      WHERE evaluacion_id = ? AND estado = 'aprobado' AND id != ? AND eliminado_en IS NULL
-    ");
-    $stmt->execute([$evaluacionId, $id]);
-    $pesoExistente = (float) $stmt->fetchColumn();
-    $pesoTotal = $pesoExistente + $peso;
+ $this->compromisoRepo->actualizar($id, [
+ 'peso' => $peso,
+ 'estado' => 'aprobado',
+ 'observaciones_evaluador' => $observaciones ?: null,
+ ]);
 
-    if ($pesoTotal > 100) {
-      ResponseHelper::error("La suma de pesos seria {$pesoTotal}%. El maximo permitido es 100%. Pesos ya asignados: {$pesoExistente}%", 400);
-    }
+ AuditoriaService::registrar('aprobar_compromiso', 'compromisos', $id);
+ }
 
-    // Aprobar compromiso
-    $stmt = $pdo->prepare("
-      UPDATE compromisos SET peso = ?, estado = 'aprobado', observaciones_evaluador = ?, actualizado_en = NOW()
-      WHERE id = ?
-    ");
-    $stmt->execute([$peso, $observaciones, $id]);
-
-    // Auditar
-    AuditoriaService::registrar('aprobar', 'compromisos', $id, $comp, ['peso' => $peso, 'estado' => 'aprobado']);
-
-    // Notificar al funcionario
-    $this->notificacionService->notificarCompromisoAprobado(
-      (int) $comp['responsable_id'],
-      $id,
-      $peso
-    );
-
-    // Verificar si ya suman 100% los pesos aprobados
-    $stmt = $pdo->prepare("
-      SELECT COALESCE(SUM(peso), 0) as total_pesos
-      FROM compromisos
-      WHERE evaluacion_id = ? AND estado = 'aprobado' AND eliminado_en IS NULL
-    ");
-    $stmt->execute([$evaluacionId]);
-    $totalAprobado = (float) $stmt->fetchColumn();
-
-    if (abs($totalAprobado - 100.0) < 0.01) {
-      // Todos los pesos asignados, notificar al evaluador
-      $this->notificacionService->notificar(
-        (int) $evaluador['id'],
-        'Distribucion de pesos completa',
-        "Los compromisos de la evaluacion #{$evaluacionId} suman exactamente 100%. La distribucion esta completa.",
-        'exito'
-      );
-    }
-  }
-
- /** Evaluador devuelve compromiso al evaluado (Concertación EDL-CAREPA) */
- public function rechazar(int $id, string $observaciones, array $evaluador): void
+ public function rechazar(int $id, string $observaciones, array $user): void
  {
- $pdo = Database::getInstance();
-
- $comp = $this->repo->buscarPorId($id);
- if (!$comp) {
- ResponseHelper::error('Compromiso no encontrado', 404);
+ $compromiso = $this->compromisoRepo->buscarPorId($id);
+ if (!$compromiso) {
+ ResponseHelper::notFound('Compromiso no encontrado');
  }
- if ($comp['estado'] !== 'propuesto') {
+
+ if ($compromiso['estado'] !== 'propuesto') {
+ ResponseHelper::error('Solo se pueden rechazar compromisos en estado propuesto', 400);
+ }
+
+ $this->compromisoRepo->actualizar($id, [
+ 'estado' => 'rechazado',
+ 'observaciones_evaluador' => $observaciones ?: null,
+ ]);
+
+ AuditoriaService::registrar('rechazar_compromiso', 'compromisos', $id);
+ }
+
+ public function devolver(int $id, string $observaciones, array $user): void
+ {
+ $compromiso = $this->compromisoRepo->buscarPorId($id);
+ if (!$compromiso) {
+ ResponseHelper::notFound('Compromiso no encontrado');
+ }
+
+ if ($compromiso['estado'] !== 'propuesto') {
  ResponseHelper::error('Solo se pueden devolver compromisos en estado propuesto', 400);
  }
- if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
- ResponseHelper::error('Solo el evaluador asignado puede devolver este compromiso', 403);
+
+ $this->compromisoRepo->actualizar($id, [
+ 'estado' => 'devuelto',
+ 'observaciones_evaluador' => $observaciones,
+ ]);
+
+ AuditoriaService::registrar('devolver_compromiso', 'compromisos', $id);
  }
 
- $stmt = $pdo->prepare("
- UPDATE compromisos SET estado = 'devuelto', observaciones_evaluador = ?, actualizado_en = NOW()
- WHERE id = ?
- ");
- $stmt->execute([$observaciones, $id]);
-
- AuditoriaService::registrar('devolver', 'compromisos', $id, $comp, ['estado' => 'devuelto']);
-
- // Notificar al evaluado
- $this->notificacionService->notificarCompromisoRechazado(
- (int) $comp['responsable_id'],
- $id,
- $observaciones
- );
+ public function calificar(int $id, float $puntaje, string $observaciones, array $user): void
+ {
+ $compromiso = $this->compromisoRepo->buscarPorId($id);
+ if (!$compromiso) {
+ ResponseHelper::notFound('Compromiso no encontrado');
  }
 
-  /** Resumen de pesos de compromisos para una evaluación */
-  public function resumenPesos(int $evaluacionId, array $user): array
-  {
-    $pdo = Database::getInstance();
-
-    // Verificar acceso
-    $stmt = $pdo->prepare("SELECT * FROM evaluaciones WHERE id = ? AND eliminado_en IS NULL");
-    $stmt->execute([$evaluacionId]);
-    $evaluacion = $stmt->fetch(\PDO::FETCH_ASSOC);
-    if (!$evaluacion) {
-      ResponseHelper::error('Evaluacion no encontrada', 404);
-    }
-
-    // Compromisos aprobados
-    $stmt = $pdo->prepare("
-      SELECT c.id, c.tipo, c.descripcion, c.peso, c.estado,
-             CONCAT(u.nombres, ' ', u.apellidos) as responsable_nombre
-      FROM compromisos c
-      INNER JOIN usuarios u ON u.id = c.responsable_id
-      WHERE c.evaluacion_id = ? AND c.eliminado_en IS NULL
-      ORDER BY c.estado, c.id
-    ");
-    $stmt->execute([$evaluacionId]);
-    $compromisos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-    $totalAprobado = 0;
-    $pendientes = 0;
-    foreach ($compromisos as $c) {
-      if ($c['estado'] === 'aprobado') {
-        $totalAprobado += (float) $c['peso'];
-      }
- if ($c['estado'] === 'propuesto') {
- $pendientes++;
+ if ($compromiso['estado'] !== 'aprobado' && $compromiso['estado'] !== 'en_progreso') {
+ ResponseHelper::error('Solo se pueden calificar compromisos aprobados o en progreso', 400);
  }
-    }
 
-    return [
-      'evaluacion_id' => $evaluacionId,
-      'compromisos' => $compromisos,
-      'total_peso_aprobado' => round($totalAprobado, 2),
-      'peso_restante' => round(100 - $totalAprobado, 2),
-      'compromisos_pendientes' => $pendientes,
-      'distribucion_completa' => abs($totalAprobado - 100.0) < 0.01,
-    ];
-  }
+ $actualizar = [
+ 'calificacion' => $puntaje,
+ 'estado' => $puntaje >= 65 ? 'cumplido' : 'incumplido',
+ 'observaciones_evaluador' => $observaciones ?: null,
+ ];
 
-  /** Compromisos pendientes de aprobación para el evaluador logueado */
-  public function pendientesAprobacion(array $evaluador, int $pagina = 1, int $porPagina = 20): array
-  {
-    return $this->repo->pendientesPorEvaluador((int) $evaluador['id'], $pagina, $porPagina);
-  }
+ if ($compromiso['tipo'] === 'comportamental') {
+ $actualizar['puntaje_comportamental'] = $puntaje;
+ $actualizar['nivel_comportamental'] = $puntaje >= 90 ? 'muy_alto' : ($puntaje >= 75 ? 'alto' : ($puntaje >= 50 ? 'aceptable' : 'bajo'));
+ }
+
+ $this->compromisoRepo->actualizar($id, $actualizar);
+ AuditoriaService::registrar('calificar_compromiso', 'compromisos', $id);
+ }
+
+ public function resumenPesos(int $id, array $user): array
+ {
+ $compromiso = $this->compromisoRepo->buscarPorId($id);
+ if (!$compromiso) {
+ $concertacion = $this->concertacionRepo->buscarPorId($id);
+ if ($concertacion) {
+ return $this->resumenPesosConcertacion($id);
+ }
+ ResponseHelper::notFound('Compromiso no encontrado');
+ }
+
+ $concertacionId = (int) $compromiso['concertacion_id'];
+ return $this->resumenPesosConcertacion($concertacionId);
+ }
+
+ private function resumenPesosConcertacion(int $concertacionId): array
+ {
+ $sumaFunc = $this->compromisoRepo->sumPesosPorConcertacionYTipo($concertacionId, 'funcional');
+ $sumaComp = $this->compromisoRepo->sumPesosPorConcertacionYTipo($concertacionId, 'comportamental');
+ $countFunc = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, 'funcional');
+ $countComp = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, 'comportamental');
+
+ return [
+ 'concertacion_id' => $concertacionId,
+ 'funcionales' => ['suma_pesos' => $sumaFunc, 'cantidad' => $countFunc, 'maximo_permitido' => 85],
+ 'comportamentales' => ['suma_pesos' => $sumaComp, 'cantidad' => $countComp, 'maximo_permitido' => 15],
+ 'total_pesos' => $sumaFunc + $sumaComp,
+ 'completo' => ($sumaFunc + $sumaComp) >= 100,
+ ];
+ }
+
+ public function pendientesAprobacion(array $user, int $pagina = 1, int $porPagina = 20): array
+ {
+ return $this->compromisoRepo->pendientesPorEvaluador((int) $user['id'], $pagina, $porPagina);
+ }
 
  public function actualizar(int $id, array $datos): void
  {
- $comp = $this->repo->buscarPorId($id);
- if (!$comp) {
- ResponseHelper::error('Compromiso no encontrado', 404);
+ $compromiso = $this->compromisoRepo->buscarPorId($id);
+ if (!$compromiso) {
+ ResponseHelper::notFound('Compromiso no encontrado');
  }
- $permitidos = ['descripcion', 'plazo', 'estado', 'resultado_esperado', 'medio_verificacion', 'observaciones_evaluado', 'calificacion'];
+
+ $permitidos = ['descripcion', 'peso', 'competencia_codigo', 'meta_id', 'frecuencia', 'nivel_comportamental', 'impacto_aporta_compromisos', 'impacto_excede_estipulado', 'justificacion_excede', 'observaciones_evaluador', 'observaciones_evaluado'];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
- $this->repo->actualizar($id, $datosFiltrados);
- AuditoriaService::registrar('actualizar', 'compromisos', $id, $comp, $datosFiltrados);
+
+ if (!empty($datosFiltrados)) {
+ $this->compromisoRepo->actualizar($id, $datosFiltrados);
+ AuditoriaService::registrar('actualizar_compromiso', 'compromisos', $id);
+ }
  }
 
- /** Evaluador califica un compromiso (puntaje 0-100) */
- public function calificar(int $id, float $puntaje, string $observaciones, array $evaluador): void
+ private function validarLimitesCompromisos(int $concertacionId, string $tipo): void
  {
- $comp = $this->repo->buscarPorId($id);
- if (!$comp) {
- ResponseHelper::error('Compromiso no encontrado', 404);
- }
- if ($comp['estado'] !== 'aprobado') {
- ResponseHelper::error('Solo se pueden calificar compromisos aprobados', 400);
- }
- if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
- ResponseHelper::error('Solo el evaluador asignado puede calificar este compromiso', 403);
- }
+ $count = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, $tipo);
+ $minKey = $tipo === 'funcional' ? 'MIN_COMPROMISOS_FUNCIONALES' : 'MIN_COMPROMISOS_COMPORTAMENTALES';
+ $maxKey = $tipo === 'funcional' ? 'MAX_COMPROMISOS_FUNCIONALES' : 'MAX_COMPROMISOS_COMPORTAMENTALES';
+ $max = (int) Env::get($maxKey, $tipo === 'funcional' ? 5 : 5);
 
- $pdo = Database::getInstance();
- $nuevoEstado = $puntaje >= 60 ? 'cumplido' : 'incumplido';
- $stmt = $pdo->prepare("
- UPDATE compromisos SET calificacion = ?, estado = ?, observaciones_evaluador = CONCAT(COALESCE(observaciones_evaluador, ''), ?), actualizado_en = NOW()
- WHERE id = ?
- ");
- $obsStr = $observaciones ? "\n[Calificacion]: " . $observaciones : '';
- $stmt->execute([$puntaje, $nuevoEstado, $obsStr, $id]);
-
- AuditoriaService::registrar('calificar', 'compromisos', $id, $comp, ['calificacion' => $puntaje, 'estado' => $nuevoEstado]);
+ if ($count >= $max) {
+ ResponseHelper::error("No se pueden agregar mas compromisos {$tipo}. Maximo permitido: {$max}", 422);
  }
-
- /** Evaluador devuelve compromiso al evaluado con observaciones (Concertación EDL-CAREPA) */
- public function devolver(int $id, string $observaciones, array $evaluador): void
- {
- $comp = $this->repo->buscarPorId($id);
- if (!$comp) {
- ResponseHelper::error('Compromiso no encontrado', 404);
- }
- if ($comp['estado'] !== 'propuesto') {
- ResponseHelper::error('Solo se pueden devolver compromisos en estado propuesto', 400);
- }
- if ((int) $comp['evaluador_id'] !== $evaluador['id']) {
- ResponseHelper::error('Solo el evaluador asignado puede devolver este compromiso', 403);
- }
-
- $pdo = Database::getInstance();
- $stmt = $pdo->prepare("
- UPDATE compromisos SET estado = 'devuelto', observaciones_evaluador = ?, actualizado_en = NOW()
- WHERE id = ?
- ");
- $stmt->execute([$observaciones, $id]);
-
- AuditoriaService::registrar('devolver', 'compromisos', $id, $comp, ['estado' => 'devuelto', 'observaciones' => $observaciones]);
-
- $this->notificacionService->notificarCompromisoRechazado(
- (int) $comp['responsable_id'],
- $id,
- $observaciones
- );
  }
 }

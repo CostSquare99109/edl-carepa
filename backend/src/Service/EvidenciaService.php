@@ -3,73 +3,96 @@
 namespace App\Service;
 
 use App\Repository\EvidenciaRepository;
+use App\Repository\ConcertacionRepository;
 use App\Helper\ResponseHelper;
-use App\Helper\ValidatorHelper;
-use App\Config\Env;
+use App\Config\Database;
 use App\Middleware\AuthMiddleware;
 
 class EvidenciaService
 {
-    private EvidenciaRepository $repo;
+ private EvidenciaRepository $evidenciaRepo;
+ private ConcertacionRepository $concertacionRepo;
 
-    public function __construct()
-    {
-        $this->repo = new EvidenciaRepository();
-    }
+ public function __construct()
+ {
+ $pdo = Database::getInstance();
+ $this->evidenciaRepo = new EvidenciaRepository($pdo);
+ $this->concertacionRepo = new ConcertacionRepository($pdo);
+ }
 
-    public function listar(array $filtros, int $pagina, int $porPagina): array
-    {
-        return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
-    }
+ public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
+ {
+ $user = AuthMiddleware::user();
+ $rolActivo = AuthMiddleware::rolActivo();
 
-    public function subir(array $datos, array $archivo): int
-    {
-        $maxMB = (int) Env::get('UPLOAD_TAMANO_MAXIMO_MB', 10);
-        $exts = explode(',', Env::get('UPLOAD_EXTENSIONES_PERMITIDAS', 'pdf,doc,docx,xls,xlsx,jpg,png'));
+ if (in_array($rolActivo, ['evaluador', 'evaluado'])) {
+ $filtros['registrado_por'] = $user['id'];
+ }
 
-        if ($archivo['error'] !== UPLOAD_ERR_OK) {
-            ResponseHelper::error('Error al subir archivo', 400);
-        }
+ return $this->evidenciaRepo->listarConRelaciones($filtros, $pagina, $porPagina);
+ }
 
-        if ($archivo['size'] > $maxMB * 1024 * 1024) {
-            ResponseHelper::error("Archivo excede {$maxMB}MB", 400);
-        }
+ public function registrar(array $datos): int
+ {
+ $user = AuthMiddleware::user();
 
-        $ext = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-        if (!in_array($ext, $exts)) {
-            ResponseHelper::error('Extension no permitida: ' . $ext, 400);
-        }
+ $concertacionId = $datos['concertacion_id'] ?? null;
+ if (!$concertacionId) {
+ ResponseHelper::error('concertacion_id es requerido', 422);
+ }
 
-        $user = AuthMiddleware::user();
-        $nombreSeguro = bin2hex(random_bytes(16)) . '.' . $ext;
-        $ruta = EDL_ROOT . '/storage/evidencias/' . $nombreSeguro;
+ $concertacion = $this->concertacionRepo->buscarPorId((int) $concertacionId);
+ if (!$concertacion) {
+ ResponseHelper::notFound('Concertacion no encontrada');
+ }
 
-        if (!move_uploaded_file($archivo['tmp_name'], $ruta)) {
-            ResponseHelper::error('Error al guardar archivo', 500);
-        }
+ $crearDatos = [
+ 'concertacion_id' => $concertacionId,
+ 'compromiso_id' => $datos['compromiso_id'] ?? null,
+ 'registrado_por' => $user['id'],
+ 'compromiso_competencia' => $datos['compromiso_competencia'] ?? '',
+ 'descripcion' => $datos['descripcion'],
+ 'ubicacion' => $datos['ubicacion'] ?? null,
+ 'observacion' => $datos['observacion'] ?? null,
+ 'tipo' => $datos['tipo'] ?? 'general',
+ ];
 
-        $datos['subido_por'] = $user['id'];
-        $datos['nombre_archivo'] = $archivo['name'];
-        $datos['ruta_archivo'] = $nombreSeguro;
-        $datos['tipo_mime'] = $archivo['type'];
-        $datos['tamano_bytes'] = $archivo['size'];
-        $datos['estado'] = 'pendiente';
+ $id = $this->evidenciaRepo->crear($crearDatos);
+ AuditoriaService::registrar('registrar_evidencia', 'evidencias', $id);
 
-        $id = $this->repo->crear($datos);
-        AuditoriaService::registrar('subir', 'evidencias', $id, null, ['nombre' => $archivo['name']]);
-        return $id;
-    }
+ return $id;
+ }
 
-    public function verificar(int $id, string $estado): void
-    {
-        $evidencia = $this->repo->buscarPorId($id);
-        if (!$evidencia) {
-            ResponseHelper::error('Evidencia no encontrada', 404);
-        }
-        if (!in_array($estado, ['verificada', 'rechazada'])) {
-            ResponseHelper::error('Estado invalido', 400);
-        }
-        $this->repo->actualizar($id, ['estado' => $estado]);
-        AuditoriaService::registrar('verificar', 'evidencias', $id, $evidencia, ['estado' => $estado]);
-    }
+ public function ver(int $id): array
+ {
+ $evidencia = $this->evidenciaRepo->buscarPorId($id);
+ if (!$evidencia) {
+ ResponseHelper::notFound('Evidencia no encontrada');
+ }
+ return $evidencia;
+ }
+
+ public function actualizar(int $id, array $datos): void
+ {
+ $evidencia = $this->evidenciaRepo->buscarPorId($id);
+ if (!$evidencia) {
+ ResponseHelper::notFound('Evidencia no encontrada');
+ }
+
+ $user = AuthMiddleware::user();
+ $rolActivo = AuthMiddleware::rolActivo();
+
+ if (!in_array($rolActivo, ['admin', 'jefe_personal']) &&
+ (int) $evidencia['registrado_por'] !== $user['id']) {
+ ResponseHelper::forbidden('Solo puede modificar evidencias propias');
+ }
+
+ $permitidos = ['descripcion', 'ubicacion', 'observacion', 'compromiso_competencia', 'tipo'];
+ $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
+
+ if (!empty($datosFiltrados)) {
+ $this->evidenciaRepo->actualizar($id, $datosFiltrados);
+ AuditoriaService::registrar('actualizar_evidencia', 'evidencias', $id);
+ }
+ }
 }

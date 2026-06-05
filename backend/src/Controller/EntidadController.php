@@ -60,7 +60,13 @@ class EntidadController
 
     public function dependencias(int $id): void
     {
-        $deps = $this->service->dependencias($id);
-        ResponseHelper::success($deps);
+    $deps = $this->service->dependencias($id);
+    ResponseHelper::success($deps);
     }
-}
+
+    public function habilitar(int $id): void
+    {
+    $this->service->habilitar($id);
+    ResponseHelper::success(null, 'Entidad habilitada');
+    }
+    }

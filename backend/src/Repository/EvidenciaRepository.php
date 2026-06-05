@@ -2,31 +2,67 @@
 
 namespace App\Repository;
 
+use App\Config\Database;
+use PDO;
+
 class EvidenciaRepository extends BaseRepository
 {
-    protected string $table = 'evidencias';
+ protected string $table = 'evidencias';
 
-    public function listarConRelaciones(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
-    {
-        $conditions = ['e.eliminado_en IS NULL'];
-        $params = [];
+ public function listarConRelaciones(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
+ {
+ $conditions = ['e.eliminado_en IS NULL'];
+ $params = [];
 
-        if (!empty($filtros['meta_id'])) { $conditions[] = "e.meta_id = ?"; $params[] = $filtros['meta_id']; }
-        if (!empty($filtros['compromiso_id'])) { $conditions[] = "e.compromiso_id = ?"; $params[] = $filtros['compromiso_id']; }
-        if (!empty($filtros['subido_por'])) { $conditions[] = "e.subido_por = ?"; $params[] = $filtros['subido_por']; }
-        if (!empty($filtros['estado'])) { $conditions[] = "e.estado = ?"; $params[] = $filtros['estado']; }
+ if (!empty($filtros['concertacion_id'])) {
+ $conditions[] = "e.concertacion_id = ?";
+ $params[] = $filtros['concertacion_id'];
+ }
+ if (!empty($filtros['compromiso_id'])) {
+ $conditions[] = "e.compromiso_id = ?";
+ $params[] = $filtros['compromiso_id'];
+ }
+ if (!empty($filtros['registrado_por'])) {
+ $conditions[] = "e.registrado_por = ?";
+ $params[] = $filtros['registrado_por'];
+ }
+ if (!empty($filtros['tipo'])) {
+ $conditions[] = "e.tipo = ?";
+ $params[] = $filtros['tipo'];
+ }
 
-        $where = implode(' AND ', $conditions);
-        $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM evidencias e WHERE {$where}");
-        $countStmt->execute($params);
-        $total = (int) $countStmt->fetchColumn();
+ $where = implode(' AND ', $conditions);
 
-        $offset = ($pagina - 1) * $porPagina;
-        $stmt = $this->pdo->prepare("SELECT e.*, CONCAT(u.nombres, ' ', u.apellidos) as subido_por_nombre FROM evidencias e INNER JOIN usuarios u ON u.id = e.subido_por WHERE {$where} ORDER BY e.id DESC LIMIT ? OFFSET ?");
-        $params[] = $porPagina;
-        $params[] = $offset;
-        $stmt->execute($params);
+ $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM evidencias e WHERE {$where}");
+ $countStmt->execute($params);
+ $total = (int) $countStmt->fetchColumn();
 
-        return ['data' => $stmt->fetchAll(), 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
-    }
+ $offset = ($pagina - 1) * $porPagina;
+ $stmt = $this->pdo->prepare("
+ SELECT e.*,
+ u.primer_nombre as reg_nombre, u.primer_apellido as reg_apellido
+ FROM evidencias e
+ INNER JOIN usuarios u ON u.id = e.registrado_por
+ WHERE {$where}
+ ORDER BY e.id DESC
+ LIMIT ? OFFSET ?
+ ");
+ $params[] = $porPagina;
+ $params[] = $offset;
+ $stmt->execute($params);
+
+ $evidencias = $stmt->fetchAll();
+ foreach ($evidencias as &$ev) {
+ $ev['registrado_nombre'] = trim(($ev['reg_nombre'] ?? '') . ' ' . ($ev['reg_apellido'] ?? ''));
+ unset($ev['reg_nombre'], $ev['reg_apellido']);
+ }
+
+ return [
+ 'data' => $evidencias,
+ 'total' => $total,
+ 'pagina' => $pagina,
+ 'por_pagina' => $porPagina,
+ 'total_paginas' => ceil($total / $porPagina)
+ ];
+ }
 }

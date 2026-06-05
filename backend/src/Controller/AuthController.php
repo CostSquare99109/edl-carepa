@@ -132,9 +132,23 @@ class AuthController
  ResponseHelper::success(null, 'Contrasena actualizada');
  }
 
- /**
- * Cambia el rol activo del usuario autenticado
- */
+ public function refreshToken(): void
+ {
+ $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+ if (!preg_match('/^Bearer\s+(.+)$/', $header, $matches)) {
+ ResponseHelper::error('Token requerido', 401);
+ }
+
+ $resultado = $this->service->refreshToken($matches[1]);
+ ResponseHelper::success($resultado, 'Token renovado');
+ }
+
+ public function csrfToken(): void
+ {
+ $token = \App\Helper\CsrfHelper::generar();
+ ResponseHelper::success(['csrf_token' => $token]);
+ }
+
  public function cambiarRol(): void
  {
  $user = AuthMiddleware::user();

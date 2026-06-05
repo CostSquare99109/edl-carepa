@@ -2,17 +2,16 @@
 
 namespace App\Model;
 
-class Evidencia
+class CompromisoMejoramiento
 {
  public ?int $id = null;
  public ?int $concertacion_id = null;
  public ?int $compromiso_id = null;
  public ?int $registrado_por = null;
- public ?string $compromiso_competencia = null;
- public ?string $descripcion = null;
- public ?string $ubicacion = null;
+ public ?string $motivo = null;
+ public ?string $aspecto_corregir = null;
+ public ?string $acciones_mejoramiento = null;
  public ?string $observacion = null;
- public ?string $tipo = null;
  public ?string $creado_en = null;
  public ?string $actualizado_en = null;
  public ?string $eliminado_en = null;

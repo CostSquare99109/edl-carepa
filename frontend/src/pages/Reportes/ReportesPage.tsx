@@ -22,8 +22,8 @@ export default function ReportesPage() {
         ? `/reportes/concertacion?${params.toString()}`
         : `/reportes/evaluaciones?${params.toString()}`
       
-      const data = await api.get(path)
-      setReporte(data)
+      const data = await api.get<any>(path)
+      setReporte(data as Record<string, unknown>)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error al generar reporte')
     } finally {

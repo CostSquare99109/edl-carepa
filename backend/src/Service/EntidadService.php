@@ -77,7 +77,17 @@ class EntidadService
 
     public function dependencias(int $entidadId): array
     {
-        $this->ver($entidadId);
-        return $this->repo->listarDependencias($entidadId);
+    $this->ver($entidadId);
+    return $this->repo->listarDependencias($entidadId);
     }
-}
+
+    public function habilitar(int $id): void
+    {
+    $entidad = $this->repo->buscarPorId($id);
+    if (!$entidad) {
+    ResponseHelper::error('Entidad no encontrada', 404);
+    }
+    $this->repo->actualizar($id, ['estado' => 'activa']);
+    AuditoriaService::registrar('habilitar', 'entidades', $id);
+    }
+    }
