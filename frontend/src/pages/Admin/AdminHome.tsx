@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { COLORES, COLORES_TAILWIND } from '../../styles/colors';
 import { api } from '../../lib/api';
 
 interface Stats {
@@ -37,7 +38,7 @@ export default function AdminHome() {
   useEffect(() => { cargar(); }, [cargar]);
 
   if (cargando) return (
-    <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+    <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulClaroBorder}`} /></div>
   );
 
   if (error) return (
@@ -49,26 +50,26 @@ export default function AdminHome() {
   const smallBoxes = [
     { label: 'Evaluados Activos', value: stats?.evaluados_activos ?? 0, icon: 'person', color: 'bg-blue-600', filter: 'evaluado', route: '/admin/usuarios' },
     { label: 'Evaluadores', value: stats?.evaluadores_registrados ?? 0, icon: 'rate_review', color: 'bg-green-600', filter: 'evaluador', route: '/admin/usuarios' },
-    { label: 'Evaluaciones Completadas', value: stats?.evaluaciones_completadas ?? 0, icon: 'task_alt', color: 'bg-[#1E5A3C]', filter: 'completada', route: '/admin/evaluaciones' },
-    { label: 'Evaluaciones Pendientes', value: stats?.evaluaciones_pendientes ?? 0, icon: 'pending', color: 'bg-[#C4282B]', filter: 'pendiente', route: '/admin/evaluaciones' },
+    { label: 'Evaluaciones Completadas', value: stats?.evaluaciones_completadas ?? 0, icon: 'task_alt', color: COLORES_TAILWIND.verde, filter: 'completada', route: '/admin/evaluaciones' },
+    { label: 'Evaluaciones Pendientes', value: stats?.evaluaciones_pendientes ?? 0, icon: 'pending', color: COLORES_TAILWIND.rojo, filter: 'pendiente', route: '/admin/evaluaciones' },
   ];
 
   return (
     <div className="space-y-6 p-4 lg:p-6">
-      <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-tachometer-alt mr-2" />Tablero de Control</h2>
+      <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulClaroText}`}><i className="fas fa-tachometer-alt mr-2" />Tablero de Control</h2>
 
       {/* Periodo activo */}
       {stats?.periodo_activo && (
-        <div className="bg-white rounded-lg shadow-sm border-l-4 border-[#003366] px-4 py-3">
-          <span className="material-icons text-sm align-middle mr-1 text-[#003366]">event</span>
-          <span className="text-sm font-medium text-[#003366]">Periodo activo: {stats.periodo_activo.nombre}</span>
+        <div className={`bg-white rounded-lg shadow-sm border-l-4 ${COLORES_TAILWIND.azulClaroBorder} px-4 py-3`}>
+        <span className={`material-icons text-sm align-middle mr-1 ${COLORES_TAILWIND.azulClaroText}`}>event</span>
+        <span className={`text-sm font-medium ${COLORES_TAILWIND.azulClaroText}`}>Periodo activo: {stats.periodo_activo.nombre}</span>
         </div>
       )}
 
       {/* Roles del sistema */}
       <div className="bg-white rounded-lg shadow-sm p-4">
-        <h3 className="text-sm font-semibold text-[#003366] mb-3">
-          <span className="material-icons text-sm align-middle mr-1">admin_panel_settings</span>
+        <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>
+        <span className="material-icons text-sm align-middle mr-1">admin_panel_settings</span>
           Roles del Sistema
         </h3>
         <div className="flex gap-3 flex-wrap">
@@ -110,8 +111,8 @@ export default function AdminHome() {
       {/* Progreso por dependencia */}
       {stats?.progreso_dependencias && stats.progreso_dependencias.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm p-4">
-          <h3 className="text-sm font-semibold text-[#003366] mb-3">
-            <span className="material-icons text-sm align-middle mr-1">account_tree</span>
+          <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>
+          <span className="material-icons text-sm align-middle mr-1">account_tree</span>
             Progreso por Dependencia
           </h3>
           <div className="space-y-3">
@@ -119,11 +120,11 @@ export default function AdminHome() {
               <div key={i}>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="text-inst-texto truncate max-w-[200px]">{dep.dependencia}</span>
-                  <span className="font-semibold text-[#003366]">{dep.progreso}%</span>
+                  <span className={`font-semibold ${COLORES_TAILWIND.azulClaroText}`}>{dep.progreso}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
-                    className={`h-2.5 rounded-full transition-all ${dep.progreso >= 75 ? 'bg-[#1E5A3C]' : dep.progreso >= 50 ? 'bg-amber-500' : 'bg-[#C4282B]'}`}
+                    className={`h-2.5 rounded-full transition-all ${dep.progreso >= 75 ? COLORES_TAILWIND.verde : dep.progreso >= 50 ? 'bg-amber-500' : COLORES_TAILWIND.rojo}`}
                     style={{ width: `${dep.progreso}%` }}
                   />
                 </div>
@@ -147,8 +148,8 @@ export default function AdminHome() {
       {/* Evaluaciones recientes */}
       {stats?.evaluaciones_recientes && stats.evaluaciones_recientes.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm p-4">
-          <h3 className="text-sm font-semibold text-[#003366] mb-3">
-            <span className="material-icons text-sm align-middle mr-1">history</span>
+          <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>
+          <span className="material-icons text-sm align-middle mr-1">history</span>
             Evaluaciones Recientes
           </h3>
           <div className="overflow-x-auto">

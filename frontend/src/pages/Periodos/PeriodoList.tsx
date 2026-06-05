@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { COLORES_TAILWIND } from '../../styles/colors'
 import { api, type PaginatedData } from '../../lib/api'
 
 interface Periodo {
@@ -115,12 +116,12 @@ export default function PeriodoList() {
   return (
     <div className="space-y-4 p-4 lg:p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[#003366]">
-          <span className="material-icons text-lg align-middle mr-1">date_range</span>
-          Periodos de Evaluación
+        <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulClaroText}`}>
+        <span className="material-icons text-lg align-middle mr-1">date_range</span>
+        Periodos de Evaluacion
         </h2>
         <button onClick={() => setCreando(true)}
-          className="bg-[#003366] text-white text-sm px-4 py-2 rounded-lg hover:opacity-90 flex items-center gap-2">
+        className={`${COLORES_TAILWIND.azulClaro} text-white text-sm px-4 py-2 rounded-lg hover:opacity-90 flex items-center gap-2`}>
           <span className="material-icons text-base">add</span>
           Nuevo Periodo
         </button>
@@ -128,8 +129,8 @@ export default function PeriodoList() {
 
       {/* Crear nuevo periodo */}
       {creando && (
-        <div className="bg-white rounded-lg shadow-sm p-4 border-2 border-[#003366]/20">
-          <h3 className="text-sm font-semibold text-[#003366] mb-3">Crear Nuevo Periodo</h3>
+        <div className={`bg-white rounded-lg shadow-sm p-4 border-2 ${COLORES_TAILWIND.azulClaroBorder}/20`}>
+        <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>Crear Nuevo Periodo</h3>
           <div className="flex items-end gap-4">
             <div className="flex-1">
               <label className="block text-xs font-medium text-inst-texto-claro mb-1">Año de inicio</label>
@@ -144,7 +145,7 @@ export default function PeriodoList() {
               Del <strong>{nuevoAnio}-01-01</strong> al <strong>{nuevoAnio + 1}-12-31</strong>
             </div>
             <button onClick={crearPeriodo} disabled={saving}
-              className="bg-[#1E5A3C] text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 disabled:opacity-50 flex items-center gap-1">
+              className={`${COLORES_TAILWIND.verde} text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 disabled:opacity-50 flex items-center gap-1`}>
               {saving ? <span className="material-icons text-sm animate-spin">sync</span> : <span className="material-icons text-sm">check</span>}
               Crear
             </button>
@@ -207,7 +208,7 @@ export default function PeriodoList() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-inst-borde">
-              <h3 className="text-base font-bold text-[#003366]">Editar Periodo</h3>
+              <h3 className={`text-base font-bold ${COLORES_TAILWIND.azulClaroText}`}>Editar Periodo</h3>
               <button onClick={() => setEditando(null)} className="p-1 rounded hover:bg-inst-gris">
                 <span className="material-icons text-xl text-inst-texto-claro">close</span>
               </button>

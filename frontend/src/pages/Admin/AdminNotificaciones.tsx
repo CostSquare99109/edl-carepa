@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { COLORES_TAILWIND } from '../../styles/colors';
 import { api, PaginatedData } from '../../lib/api';
 
 interface Notificacion {
@@ -67,9 +68,9 @@ export default function AdminNotificaciones() {
   return (
     <div className="space-y-4 p-4 lg:p-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-bell mr-2" />Notificaciones</h2>
+        <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulClaroText}`}><i className="fas fa-bell mr-2" />Notificaciones</h2>
         <button onClick={marcarTodasLeidas} disabled={marcandoTodas}
-          className="text-sm bg-[#003366] text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50">
+        className={`text-sm ${COLORES_TAILWIND.azulClaro} text-white px-4 py-2 rounded-lg hover:opacity-90 disabled:opacity-50`}>
           {marcandoTodas ? 'Marcando...' : 'Marcar todas como leídas'}
         </button>
       </div>
@@ -77,7 +78,7 @@ export default function AdminNotificaciones() {
       {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
 
       {cargando ? (
-        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+        <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulClaroBorder}`} /></div>
       ) : notificaciones.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-10 text-center text-gray-400">
           <span className="material-icons text-5xl mb-2 block">notifications_off</span>
@@ -111,7 +112,7 @@ export default function AdminNotificaciones() {
             <div className="flex items-center justify-center gap-2 pt-4">
               {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
                 <button key={p} onClick={() => setPagina(p)}
-                  className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-[#003366] text-white' : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
+                  className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azulClaro} text-white` : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
               ))}
             </div>
           )}

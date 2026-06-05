@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { COLORES_TAILWIND } from '../../styles/colors';
 import { api } from '../../lib/api';
 
 interface Parametro {
@@ -79,17 +80,17 @@ export default function AdminConfiguracion() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-cogs mr-2" />Configuración del Sistema</h2>
+        <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulText}`}><i className="fas fa-cogs mr-2" />Configuración del Sistema</h2>
         <div className="flex gap-2">
-          <button onClick={() => setMostrarNuevo(true)} className="bg-[#003366] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"><i className="fas fa-plus mr-1" />Nuevo</button>
-          <button onClick={guardarTodos} disabled={guardando} className="bg-[#1E5A3C] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50"><i className="fas fa-save mr-1" />Guardar Todo</button>
+          <button onClick={() => setMostrarNuevo(true)} className={`${COLORES_TAILWIND.azul} text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90`}><i className="fas fa-plus mr-1" />Nuevo</button>
+          <button onClick={guardarTodos} disabled={guardando} className={`${COLORES_TAILWIND.verde} text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50`}><i className="fas fa-save mr-1" />Guardar Todo</button>
         </div>
       </div>
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
 
       {cargando ? (
-        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+        <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulBorder}`} /></div>
       ) : params.length === 0 ? (
         <div className="bg-white rounded-lg shadow-md p-10 text-center text-gray-400">No hay parámetros configurados. Agregue el primero.</div>
       ) : (
@@ -136,7 +137,7 @@ export default function AdminConfiguracion() {
       {mostrarNuevo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setMostrarNuevo(false)}>
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-            <div className="p-5 border-b"><h3 className="text-lg font-bold text-[#003366]">Nuevo Parámetro</h3></div>
+            <div className="p-5 border-b"><h3 className={`text-lg font-bold ${COLORES_TAILWIND.azulText}`}>Nuevo Parámetro</h3></div>
             <div className="p-5 space-y-3">
               <div><label className="text-xs text-gray-500">Clave</label><input value={nuevo.clave} onChange={e => setNuevo({...nuevo, clave: e.target.value})} placeholder="ej: app.nombre" className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
               <div><label className="text-xs text-gray-500">Valor</label><input value={nuevo.valor} onChange={e => setNuevo({...nuevo, valor: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" /></div>
@@ -145,7 +146,7 @@ export default function AdminConfiguracion() {
             </div>
             <div className="p-5 border-t flex justify-end gap-3">
               <button onClick={() => setMostrarNuevo(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
-              <button onClick={crearParametro} disabled={guardando} className="bg-[#003366] text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50">{guardando ? 'Guardando...' : 'Crear'}</button>
+              <button onClick={crearParametro} disabled={guardando} className={`${COLORES_TAILWIND.azul} text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50`}>{guardando ? 'Guardando...' : 'Crear'}</button>
             </div>
           </div>
         </div>

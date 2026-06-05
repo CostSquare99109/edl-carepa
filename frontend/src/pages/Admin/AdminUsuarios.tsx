@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { COLORES_TAILWIND } from '../../styles/colors';
 import { api, PaginatedData } from '../../lib/api';
 
 interface Usuario {
@@ -146,8 +147,8 @@ export default function AdminUsuarios() {
  return (
  <div className="space-y-4 p-4 lg:p-6">
  <div className="flex items-center justify-between flex-wrap gap-2">
- <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-users mr-2" />Usuarios</h2>
- <button onClick={abrirCrear} className="bg-[#003366] text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 flex items-center gap-1">
+ <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulClaroText}`}><i className="fas fa-users mr-2" />Usuarios</h2>
+ <button onClick={abrirCrear} className={`${COLORES_TAILWIND.azulClaro} text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 flex items-center gap-1`}>
  <span className="material-icons text-base">person_add</span> Nuevo Usuario
  </button>
  </div>
@@ -166,7 +167,7 @@ export default function AdminUsuarios() {
  {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
 
  {cargando ? (
- <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+ <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulClaroBorder}`} /></div>
  ) : (
  <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
  <table className="w-full text-sm">
@@ -207,12 +208,12 @@ export default function AdminUsuarios() {
  <td className="px-4 py-3 text-center">
  <div className="flex gap-1 justify-center">
  <button onClick={() => abrirEditar(u)}
- className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-[#003366] text-white hover:opacity-90 transition"
+ className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs ${COLORES_TAILWIND.azulClaro} text-white hover:opacity-90 transition`}
  title="Editar usuario">
  <span className="material-icons text-sm">edit</span> Editar
  </button>
  <button onClick={() => restablecerPassword(u)}
- className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-[#C4282B] text-white hover:opacity-90 transition"
+ className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs ${COLORES_TAILWIND.rojo} text-white hover:opacity-90 transition`}
  title="Restablecer contrasena">
  <span className="material-icons text-sm">lock_reset</span>
  </button>
@@ -230,7 +231,7 @@ export default function AdminUsuarios() {
  <div className="flex items-center justify-center gap-2 p-3 border-t">
  {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
  <button key={p} onClick={() => setPagina(p)}
- className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-[#003366] text-white' : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
+ className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azulClaro} text-white` : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
  ))}
  </div>
  )}
@@ -242,7 +243,7 @@ export default function AdminUsuarios() {
  <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalAbierto(false)}>
  <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
  <div className="px-6 py-4 border-b flex items-center justify-between">
- <h3 className="font-bold text-[#003366]">{editando ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
+ <h3 className={`font-bold ${COLORES_TAILWIND.azulClaroText}`}>{editando ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
  <button onClick={() => setModalAbierto(false)} className="text-gray-400 hover:text-gray-600"><span className="material-icons">close</span></button>
  </div>
  <div className="px-6 py-4 space-y-3">
@@ -320,7 +321,7 @@ export default function AdminUsuarios() {
  <div className="px-6 py-4 border-t flex justify-end gap-2">
  <button onClick={() => setModalAbierto(false)} className="px-4 py-2 rounded-lg text-sm border hover:bg-gray-50">Cancelar</button>
  <button onClick={guardar} disabled={guardando}
- className="px-4 py-2 rounded-lg text-sm bg-[#003366] text-white hover:opacity-90 disabled:opacity-50">
+ className={`px-4 py-2 rounded-lg text-sm ${COLORES_TAILWIND.azulClaro} text-white hover:opacity-90 disabled:opacity-50`}>
  {guardando ? 'Guardando...' : editando ? 'Actualizar' : 'Crear'}
  </button>
  </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { COLORES_TAILWIND } from '../../styles/colors';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import AppHeader from '../../components/Shared/AppHeader';
@@ -30,7 +31,7 @@ export default function AdminDashboard() {
  return (
   <div className="min-h-screen bg-inst-gris flex">
    <div className={`fixed top-0 left-0 h-full z-40 lg:relative lg:z-auto transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-[250px]' : 'w-0'} overflow-hidden`}>
-    <aside className="w-[250px] min-h-screen bg-[#003366] text-white flex flex-col flex-shrink-0">
+    <aside className={`w-[250px] min-h-screen ${COLORES_TAILWIND.azul} text-white flex flex-col flex-shrink-0`}>
      <div className="h-[60px] flex items-center justify-between border-b border-white/10 px-4">
       <div className="flex items-center gap-3">
        <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { COLORES_TAILWIND } from '../../styles/colors';
 import { useSearchParams } from 'react-router-dom';
 import { api, PaginatedData } from '../../lib/api';
 
@@ -58,12 +59,12 @@ export default function AdminEvaluaciones() {
 
   return (
     <div className="space-y-4 p-4 lg:p-6">
-      <h2 className="text-xl font-bold text-[#003366]"><i className="fas fa-clipboard-check mr-2" />Evaluaciones</h2>
+      <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulText}`}><i className="fas fa-clipboard-check mr-2" />Evaluaciones</h2>
 
       {/* Stats rápidos */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-[#003366]">
-          <p className="text-2xl font-bold text-[#003366]">{stats.total}</p>
+        <div className={`bg-white rounded-lg shadow-sm p-3 border-l-4 ${COLORES_TAILWIND.azulBorder}`}>
+          <p className={`text-2xl font-bold ${COLORES_TAILWIND.azulText}`}>{stats.total}</p>
           <p className="text-xs text-inst-texto-claro">Total</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-amber-500">
@@ -104,7 +105,7 @@ export default function AdminEvaluaciones() {
       {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
 
       {cargando ? (
-        <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#003366]" /></div>
+        <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulBorder}`} /></div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
@@ -141,7 +142,7 @@ export default function AdminEvaluaciones() {
             <div className="flex items-center justify-center gap-2 p-3 border-t">
               {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
                 <button key={p} onClick={() => setPagina(p)}
-                  className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-[#003366] text-white' : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
+                  className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azul} text-white` : 'bg-white border hover:bg-gray-100'}`}>  {p}</button>
               ))}
             </div>
           )}
