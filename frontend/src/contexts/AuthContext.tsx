@@ -2,15 +2,17 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef, ty
 import { authApi, type Usuario, type Rol, type MenuItem } from '../lib/auth';
 
 interface AuthContextType {
-	usuario: Usuario | null;
-	roles: Rol[];
-	rolActivo: string | null;
-	menu: MenuItem[];
-	token: string | null;
-	loading: boolean;
-	login: (documento: string, password: string) => Promise<Rol[]>;
-	logout: () => void;
-	cambiarRol: (rolCodigo: string) => Promise<void>;
+ usuario: Usuario | null;
+ roles: Rol[];
+ rolActivo: string | null;
+ menu: MenuItem[];
+ token: string | null;
+ loading: boolean;
+ debeCambiarPassword: boolean;
+ login: (documento: string, password: string) => Promise<Rol[]>;
+ logout: () => void;
+ cambiarRol: (rolCodigo: string) => Promise<void>;
+ limpiarDebeCambiar: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -33,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	);
 	const [menu, setMenu] = useState<MenuItem[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [debeCambiarPassword, setDebeCambiarPassword] = useState(false);
 
 	// Ref para evitar efectos duplicados al cambiar rol
 	const skipNextRolEffect = useRef(false);
@@ -99,16 +102,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	// No hay efecto separado para rolActivo — cambiarRol se encarga de todo
 
 	const login = useCallback(async (documento: string, password: string): Promise<Rol[]> => {
-		setLoading(true);
-		try {
-			const resp = await authApi.login({ documento, password });
-			localStorage.setItem('edl_token', resp.token);
-			localStorage.setItem('edl_user', JSON.stringify(resp.usuario));
-			localStorage.setItem('edl_rol_activo', resp.rol_activo);
-			setToken(resp.token);
-			setUsuario(resp.usuario);
-			setRoles(resp.roles);
-			setRolActivo(resp.rol_activo);
+	setLoading(true);
+	try {
+	const resp = await authApi.login({ documento, password });
+	localStorage.setItem('edl_token', resp.token);
+	localStorage.setItem('edl_user', JSON.stringify(resp.usuario));
+	localStorage.setItem('edl_rol_activo', resp.rol_activo);
+	setToken(resp.token);
+	setUsuario(resp.usuario);
+	setRoles(resp.roles);
+	setRolActivo(resp.rol_activo);
+	setDebeCambiarPassword(resp.debe_cambiar_password ?? false);
 
 			// Cargar menú directamente con el token nuevo
 			try {
@@ -151,21 +155,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, []);
 
 	const logout = useCallback(() => {
-		authApi.logout().catch(() => {});
-		localStorage.removeItem('edl_token');
-		localStorage.removeItem('edl_user');
-		localStorage.removeItem('edl_rol_activo');
-		sessionLoadedRef.current = false;
-		setToken(null);
-		setUsuario(null);
-		setRoles([]);
-		setRolActivo(null);
-		setMenu([]);
+	authApi.logout().catch(() => {});
+	localStorage.removeItem('edl_token');
+	localStorage.removeItem('edl_user');
+	localStorage.removeItem('edl_rol_activo');
+	sessionLoadedRef.current = false;
+	setToken(null);
+	setUsuario(null);
+	setRoles([]);
+	setRolActivo(null);
+	setMenu([]);
+	setDebeCambiarPassword(false);
+	}, []);
+
+	const limpiarDebeCambiar = useCallback(() => {
+	setDebeCambiarPassword(false);
 	}, []);
 
 	return (
-		<AuthContext.Provider value={{ usuario, roles, rolActivo, menu, token, loading, login, logout, cambiarRol }}>
-			{children}
-		</AuthContext.Provider>
+	<AuthContext.Provider value={{ usuario, roles, rolActivo, menu, token, loading, debeCambiarPassword, login, logout, cambiarRol, limpiarDebeCambiar }}>
+	{children}
+	</AuthContext.Provider>
 	);
-}
+	}

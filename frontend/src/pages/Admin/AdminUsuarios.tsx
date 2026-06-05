@@ -133,6 +133,14 @@ export default function AdminUsuarios() {
  catch (e: any) { alert(e.message); }
  };
 
+ const restablecerPassword = async (u: Usuario) => {
+ if (!confirm(`Restablecer contrasena de ${u.nombres} ${u.apellidos}?`)) return;
+ try {
+ const res = await api.put<{ password_temporal: string }>(`/usuarios/${u.id}/restablecer-password`);
+ alert(`Contrasena temporal: ${res.password_temporal}\n\nEl usuario debera cambiarla al iniciar sesion.`);
+ } catch (e: any) { alert(e.message); }
+ };
+
  const totalPages = Math.ceil(total / 20);
 
  return (
@@ -197,11 +205,18 @@ export default function AdminUsuarios() {
  </button>
  </td>
  <td className="px-4 py-3 text-center">
+ <div className="flex gap-1 justify-center">
  <button onClick={() => abrirEditar(u)}
  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-[#003366] text-white hover:opacity-90 transition"
  title="Editar usuario">
  <span className="material-icons text-sm">edit</span> Editar
  </button>
+ <button onClick={() => restablecerPassword(u)}
+ className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs bg-[#C4282B] text-white hover:opacity-90 transition"
+ title="Restablecer contrasena">
+ <span className="material-icons text-sm">lock_reset</span>
+ </button>
+ </div>
  </td>
  </tr>
  ))}

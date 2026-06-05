@@ -90,4 +90,18 @@ class ReporteController
  echo $csv;
  exit;
  }
+
+ public function pdfConcertacion(int $id): void
+ {
+ $data = $this->service->datosConcertacionPdf($id);
+ $html = \App\Helper\PdfHelper::concertacionPdf($data['concertacion'], $data['compromisos']);
+ \App\Helper\PdfHelper::generar($html, "concertacion_{$id}.pdf");
+ }
+
+ public function pdfEvaluacion(int $id): void
+ {
+ $data = $this->service->datosEvaluacionPdf($id);
+ $html = \App\Helper\PdfHelper::evaluacionPdf($data['evaluacion'], $data['detalles']);
+ \App\Helper\PdfHelper::generar($html, "evaluacion_{$id}.pdf");
+ }
 }

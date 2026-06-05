@@ -102,6 +102,18 @@ export default function AdminReportes() {
  api.download(`/reportes/excel/${tipo}?${params.toString()}`, `reporte_${tipo}.csv`);
  };
 
+ const descargarPdfConcertacion = () => {
+ const id = prompt('Ingrese el ID de la concertacion:');
+ if (!id) return;
+ api.download(`/reportes/concertacion-pdf/${id}`, `concertacion_${id}.pdf`);
+ };
+
+ const descargarPdfEvaluacion = () => {
+ const id = prompt('Ingrese el ID de la evaluacion:');
+ if (!id) return;
+ api.download(`/reportes/evaluacion-pdf/${id}`, `evaluacion_${id}.pdf`);
+ };
+
  const formatCell = (val: any): string => {
  if (val === null || val === undefined) return '-';
  if (typeof val === 'boolean') return val ? 'Si' : 'No';
@@ -151,6 +163,16 @@ export default function AdminReportes() {
  className="text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
  style={{ backgroundColor: COLORES.verde }}>
  Descargar CSV
+ </button>
+ <button onClick={descargarPdfConcertacion}
+ className="text-white px-4 py-2 rounded-lg text-sm hover:opacity-90"
+ style={{ backgroundColor: COLORES.rojo }}>
+ PDF Concertacion
+ </button>
+ <button onClick={descargarPdfEvaluacion}
+ className="text-white px-4 py-2 rounded-lg text-sm hover:opacity-90"
+ style={{ backgroundColor: COLORES.azul }}>
+ PDF Evaluacion
  </button>
  </div>
  </div>

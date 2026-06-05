@@ -1,5 +1,6 @@
 export const COLORES = {
  azul: '#0A2B5E',
+ azulClaro: '#003366',
  rojo: '#C4282B',
  verde: '#1E5A3C',
 } as const;

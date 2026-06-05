@@ -26,6 +26,7 @@ import AdminDependencias from './pages/Admin/AdminDependencias'
 import AdminEvaluaciones from './pages/Admin/AdminEvaluaciones'
 import AdminReportes from './pages/Admin/AdminReportes'
 import AdminNotificaciones from './pages/Admin/AdminNotificaciones'
+import AdminConfiguracion from './pages/Admin/AdminConfiguracion'
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
  const { token, rolActivo } = useAuth()
@@ -66,6 +67,7 @@ export default function App() {
  <Route path="evaluaciones" element={<AdminEvaluaciones />} />
  <Route path="reportes" element={<AdminReportes />} />
  <Route path="notificaciones" element={<AdminNotificaciones />} />
+ <Route path="configuracion" element={<AdminConfiguracion />} />
  </Route>
  <Route path="*" element={<Navigate to="/" replace />} />
  </Routes>

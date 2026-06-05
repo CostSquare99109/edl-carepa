@@ -50,8 +50,14 @@ class UsuarioRepository extends BaseRepository
 
  public function restablecerPassword(int $id, string $hash): void
  {
- $stmt = $this->pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0 WHERE id = ?");
+ $stmt = $this->pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0, debe_cambiar_password = 1 WHERE id = ?");
  $stmt->execute([$hash, $id]);
+ }
+
+ public function limpiarDebeCambiarPassword(int $id): void
+ {
+ $stmt = $this->pdo->prepare("UPDATE usuarios SET debe_cambiar_password = 0 WHERE id = ?");
+ $stmt->execute([$id]);
  }
 
  public function obtenerRoles(int $usuarioId): array

@@ -146,6 +146,8 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/reportes/dependencia/{id}', [\App\Controller\ReporteController::class, 'porDependencia'], ['permiso:reportes.generar']);
  $r->get('/reportes/compromisos', [\App\Controller\ReporteController::class, 'compromisos'], ['permiso:reportes.generar']);
  $r->get('/reportes/excel/{tipo}', [\App\Controller\ReporteController::class, 'descargarExcel'], ['permiso:reportes.generar']);
+ $r->get('/reportes/concertacion-pdf/{id}', [\App\Controller\ReporteController::class, 'pdfConcertacion'], ['permiso:reportes.generar']);
+ $r->get('/reportes/evaluacion-pdf/{id}', [\App\Controller\ReporteController::class, 'pdfEvaluacion'], ['permiso:reportes.generar']);
 
  $r->post('/cargas/usuarios', [\App\Controller\CargaMasivaController::class, 'usuarios'], ['permiso:cargas.ejecutar']);
  $r->post('/cargas/concertaciones', [\App\Controller\CargaMasivaController::class, 'concertaciones'], ['permiso:cargas.ejecutar']);

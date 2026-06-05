@@ -266,4 +266,91 @@ class ReporteService
 
  return $csv;
  }
+
+ public function datosConcertacionPdf(int $id): array
+ {
+ $pdo = Database::getInstance();
+
+ $stmt = $pdo->prepare("
+ SELECT c.*,
+ u.documento as evaluado_documento,
+ u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido,
+ u.denominacion_empleo as evaluado_cargo,
+ e.nombre as entidad_nombre,
+ p.nombre as periodo_nombre,
+ c.fecha_formalizacion, c.estado, c.creado_en
+ FROM concertaciones c
+ INNER JOIN usuarios u ON u.id = c.evaluado_id
+ LEFT JOIN entidades e ON e.id = u.entidad_id
+ LEFT JOIN periodos p ON p.id = c.periodo_id
+ WHERE c.id = ? AND c.eliminado_en IS NULL
+ ");
+ $stmt->execute([$id]);
+ $concertacion = $stmt->fetch();
+ if (!$concertacion) {
+ ResponseHelper::error('Concertacion no encontrada', 404);
+ }
+
+ $nombres = trim(($concertacion['primer_nombre'] ?? '') . ' ' . ($concertacion['segundo_nombre'] ?? '') . ' ' . ($concertacion['primer_apellido'] ?? '') . ' ' . ($concertacion['segundo_apellido'] ?? ''));
+ $concertacion['evaluado_nombre'] = $nombres;
+
+ $stmt = $pdo->prepare("
+ SELECT co.*, co.descripcion as texto_compromiso, co.peso, co.indicador as meta
+ FROM compromisos co
+ WHERE co.concertacion_id = ? AND co.eliminado_en IS NULL
+ ORDER BY co.tipo, co.id
+ ");
+ $stmt->execute([$id]);
+ $compromisos = $stmt->fetchAll();
+
+ return ['concertacion' => $concertacion, 'compromisos' => $compromisos];
+ }
+
+ public function datosEvaluacionPdf(int $id): array
+ {
+ $pdo = Database::getInstance();
+
+ $stmt = $pdo->prepare("
+ SELECT ev.*,
+ u.documento as evaluado_documento,
+ u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido,
+ u.denominacion_empleo as evaluado_cargo,
+ p.nombre as periodo_nombre
+ FROM evaluaciones ev
+ INNER JOIN usuarios u ON u.id = ev.evaluado_id
+ LEFT JOIN periodos p ON p.id = ev.periodo_id
+ WHERE ev.id = ? AND ev.eliminado_en IS NULL
+ ");
+ $stmt->execute([$id]);
+ $evaluacion = $stmt->fetch();
+ if (!$evaluacion) {
+ ResponseHelper::error('Evaluacion no encontrada', 404);
+ }
+
+ $nombres = trim(($evaluacion['primer_nombre'] ?? '') . ' ' . ($evaluacion['segundo_nombre'] ?? '') . ' ' . ($evaluacion['primer_apellido'] ?? '') . ' ' . ($evaluacion['segundo_apellido'] ?? ''));
+ $evaluacion['evaluado_nombre'] = $nombres;
+
+ $stmt = $pdo->prepare("
+ SELECT cd.nombre, cd.tipo, cd.peso, cd.calificacion, cd.puntaje
+ FROM calificaciones_detalle cd
+ WHERE cd.evaluacion_id = ?
+ ORDER BY cd.tipo, cd.id
+ ");
+ $stmt->execute([$id]);
+ $detalles = $stmt->fetchAll();
+
+ if (empty($detalles)) {
+ $stmt = $pdo->prepare("
+ SELECT co.descripcion as nombre, co.tipo, co.peso,
+ co.puntaje as calificacion, co.puntaje
+ FROM compromisos co
+ INNER JOIN concertaciones c ON c.id = co.concertacion_id
+ WHERE c.evaluado_id = ? AND c.periodo_id = ? AND co.eliminado_en IS NULL
+ ");
+ $stmt->execute([$evaluacion['evaluado_id'], $evaluacion['periodo_id']]);
+ $detalles = $stmt->fetchAll();
+ }
+
+ return ['evaluacion' => $evaluacion, 'detalles' => $detalles];
+ }
 }

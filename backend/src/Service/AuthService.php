@@ -84,6 +84,7 @@ class AuthService
 
  unset($usuario['password_hash']);
  $usuario['nombre_completo'] = trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? ''));
+ $usuario['debe_cambiar_password'] = (bool) ($usuario['debe_cambiar_password'] ?? false);
  AuditoriaService::registrar('login', 'usuarios', $usuario['id']);
 
  return [
@@ -91,7 +92,8 @@ class AuthService
  'expiracion' => $expiracion,
  'usuario' => $usuario,
  'roles' => $roles,
- 'rol_activo' => $rolActivo
+ 'rol_activo' => $rolActivo,
+ 'debe_cambiar_password' => $usuario['debe_cambiar_password']
  ];
  }
 
@@ -293,6 +295,7 @@ class AuthService
 
  $hash = password_hash($nuevaPassword, PASSWORD_BCRYPT);
  $this->usuarioRepo->actualizar($usuarioId, ['password_hash' => $hash]);
+ $this->usuarioRepo->limpiarDebeCambiarPassword($usuarioId);
  }
 
  public function refreshToken(string $oldToken): array

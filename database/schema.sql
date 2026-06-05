@@ -135,6 +135,7 @@ CREATE TABLE `usuarios` (
  `fecha_posesion` date DEFAULT NULL,
  `proposito_principal_empleo` text DEFAULT NULL,
  `evaluacion_inicio_febrero` tinyint(1) NOT NULL DEFAULT 1,
+ `debe_cambiar_password` tinyint(1) NOT NULL DEFAULT 0,
  `fecha_inicio_evaluacion` date DEFAULT NULL,
  `motivo_fecha_inicio_diferente` enum('terminacion_periodo_prueba','terminacion_vacancia_temporal','regreso_vacaciones','regreso_incapacidad','regreso_encargo','regreso_comision_servicios','regreso_licencia','suspension_ejercicio_cargo','otro') DEFAULT NULL,
  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),

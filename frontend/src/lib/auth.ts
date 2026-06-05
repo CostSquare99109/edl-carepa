@@ -6,11 +6,12 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  token: string;
-  expiracion: string;
-  usuario: Usuario;
-  roles: Rol[];
-  rol_activo: string;
+ token: string;
+ expiracion: string;
+ usuario: Usuario;
+ roles: Rol[];
+ rol_activo: string;
+ debe_cambiar_password: boolean;
 }
 
 export interface Usuario {
