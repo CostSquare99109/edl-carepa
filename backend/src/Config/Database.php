@@ -24,14 +24,22 @@ class Database
         $user = Env::require('DB_USER');
         $pass = Env::require('DB_PASS');
 
-        $dsn = "mysql:host={$host};dbname={$name};charset=utf8mb4";
+        $port = Env::get('DB_PORT', '3306');
+ $socket = Env::get('DB_SOCKET', '');
+
+ $dsn = "mysql:host={$host};dbname={$name};charset=utf8mb4";
+ if ($socket) {
+ $dsn .= ";unix_socket={$socket}";
+ } elseif ($port !== '3306') {
+ $dsn .= ";port={$port}";
+ }
 
         try {
             self::$instance = new PDO($dsn, $user, $pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::MYSQL_ATTR_FOUND_ROWS => true,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+            \Pdo\Mysql::ATTR_FOUND_ROWS => true,
             ]);
         } catch (PDOException $e) {
             throw new \RuntimeException('Database connection failed');

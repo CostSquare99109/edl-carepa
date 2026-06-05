@@ -1,5 +1,7 @@
 const API_BASE = '/api/v1';
 
+const DEBUG = import.meta.env.DEV;
+
 interface ApiResponse<T = unknown> {
 	code: string;
 	message: string;
@@ -34,36 +36,29 @@ class ApiClient {
 		};
 		if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
 
-		const tokenPreview = this.getToken()?.substring(0, 20) || 'NULL';
-		console.log(`[API] ${method} ${path} token=${tokenPreview}...`);
-
 		let res: Response;
 		try {
 			res = await fetch(`${API_BASE}${path}`, opts);
 		} catch {
-			console.error(`[API] ${method} ${path} → ERROR DE CONEXION`);
-			throw new Error('No se puede conectar con el servidor. Verifique que el backend este corriendo en localhost:8000');
+			throw new Error('No se puede conectar con el servidor. Verifique que el backend este corriendo.');
 		}
 
 		const text = await res.text();
 		if (!text) {
-			console.error(`[API] ${method} ${path} → RESPUESTA VACIA (status=${res.status})`);
-			throw new Error('El servidor no respondio. Verifique que el backend este corriendo en localhost:8000');
+			throw new Error('El servidor no respondio. Verifique que el backend este corriendo.');
 		}
 
 		let json: ApiResponse<T>;
 		try {
 			json = JSON.parse(text);
 		} catch {
-			console.error(`[API] ${method} ${path} → JSON INVALIDO: ${text.substring(0, 200)}`);
-			throw new Error('Respuesta invalida del servidor. El backend esta corriendo? Respuesta: ' + text.substring(0, 200));
+			if (DEBUG) console.error(`[API] ${method} ${path} JSON invalido:`, text.substring(0, 200));
+			throw new Error('Respuesta invalida del servidor.');
 		}
 
-		console.log(`[API] ${method} ${path} → status=${res.status} code=${json.code} msg=${json.message}`);
+		if (DEBUG) console.log(`[API] ${method} ${path} status=${res.status} code=${json.code}`);
 
 		if (res.status === 401) {
-			console.error(`[API] 401 DETECTADO en ${method} ${path} — redirigiendo a /login`);
-			console.trace('[API] Stack trace del 401');
 			localStorage.removeItem('edl_token');
 			localStorage.removeItem('edl_user');
 			localStorage.removeItem('edl_rol_activo');

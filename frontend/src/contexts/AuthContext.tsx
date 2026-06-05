@@ -8,7 +8,7 @@ interface AuthContextType {
 	menu: MenuItem[];
 	token: string | null;
 	loading: boolean;
-	login: (documento: string, tipo_documento: string, password: string) => Promise<Rol[]>;
+	login: (documento: string, password: string) => Promise<Rol[]>;
 	logout: () => void;
 	cambiarRol: (rolCodigo: string) => Promise<void>;
 }
@@ -98,10 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	// No hay efecto separado para rolActivo — cambiarRol se encarga de todo
 
-	const login = useCallback(async (documento: string, tipo_documento: string, password: string): Promise<Rol[]> => {
+	const login = useCallback(async (documento: string, password: string): Promise<Rol[]> => {
 		setLoading(true);
 		try {
-			const resp = await authApi.login({ documento, tipo_documento, password });
+			const resp = await authApi.login({ documento, password });
 			localStorage.setItem('edl_token', resp.token);
 			localStorage.setItem('edl_user', JSON.stringify(resp.usuario));
 			localStorage.setItem('edl_rol_activo', resp.rol_activo);

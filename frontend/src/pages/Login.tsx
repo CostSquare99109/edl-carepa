@@ -56,7 +56,6 @@ export default function Login() {
 
   // Login
   const [documento, setDocumento] = useState('')
-  const [tipoDocumento, setTipoDocumento] = useState('CC')
   const [password, setPassword] = useState('')
   const [mostrarPassword, setMostrarPassword] = useState(false)
 
@@ -89,7 +88,7 @@ export default function Login() {
     e.preventDefault()
     setError('')
     try {
-    const roles = await login(documento, tipoDocumento, password)
+    const roles = await login(documento, password)
     if (roles.length > 1) {
       // Siempre ir a seleccionar rol cuando tiene más de uno
       navigate('/seleccionar-rol', { replace: true })
@@ -133,7 +132,6 @@ export default function Login() {
       showSuccess('Cuenta creada exitosamente. Ahora puede iniciar sesión.')
       setTab('login')
       setDocumento(regDocumento)
-      setTipoDocumento(regTipoDoc)
     } catch (err: unknown) {
       showError(err instanceof Error ? err.message : 'Error al registrarse')
     } finally {
@@ -229,22 +227,8 @@ span.textContent = 'CAREPA'
 	{tab === 'login' && (
 	<form onSubmit={handleLogin} className="space-y-4">
 	<h2 className="text-base font-heading font-semibold text-inst-azul text-center mb-2">Iniciar Sesión</h2>
-	<div>
-                <label className="block text-sm font-medium text-inst-texto mb-1">
-                  Tipo de documento
-                </label>
-                <select
-                  value={tipoDocumento}
-                  onChange={(e) => setTipoDocumento(e.target.value)}
-                  className="edl-input"
-                >
-                  {TIPOS_DOCUMENTO.map((td) => (
-                    <option key={td.value} value={td.value}>{td.label}</option>
-                  ))}
-                </select>
-              </div>
 
-              <div>
+ <div>
                 <label className="block text-sm font-medium text-inst-texto mb-1">
                   Número de documento
                 </label>

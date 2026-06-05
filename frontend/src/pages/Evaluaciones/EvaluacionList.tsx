@@ -11,8 +11,8 @@ interface Evaluacion {
   observaciones: string | null
 }
 
-const ESTADOS_EVAL = ['pendiente', 'en_proceso', 'calificada', 'aprobada_comision', 'definitiva'] as const
-const TIPOS_EVAL = ['heteroevaluacion', 'coevaluacion', 'autoevaluacion', 'evaluacion_desempeno'] as const
+const ESTADOS_EVAL = ['pendiente', 'concertacion', 'en_proceso', 'calificada', 'aprobada_comision', 'cerrada'] as const
+const TIPOS_EVAL = ['parcial_semestral', 'parcial_eventual', 'definitiva'] as const
 
 export default function EvaluacionList() {
   const [items, setItems] = useState<Evaluacion[]>([])

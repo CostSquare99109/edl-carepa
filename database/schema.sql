@@ -414,7 +414,6 @@ CREATE TABLE `usuarios` (
   `grado` varchar(20) DEFAULT NULL,
   `tipo_vinculacion` enum('planta','contrato','provisional','encargo','comision') DEFAULT NULL,
   `fecha_vinculacion` date DEFAULT NULL,
-  `intentos_login` tinyint(3) unsigned DEFAULT 0,
   `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
   `actualizado_en` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `eliminado_en` datetime DEFAULT NULL,
@@ -428,11 +427,12 @@ CREATE TABLE `usuarios` (
   CONSTRAINT `fk_usu_entidad` FOREIGN KEY (`entidad_id`) REFERENCES `entidades` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 DELIMITER ;;
+CREATE TRIGGER trg_usuarios_audit AFTER UPDATE ON usuarios FOR EACH ROW
 BEGIN
-    INSERT INTO auditoria (usuario_id, accion, entidad, registro_id, datos_anteriores, datos_nuevos)
-    VALUES (NEW.id, 'actualizar', 'usuarios', NEW.id,
-        JSON_OBJECT('nombres', OLD.nombres, 'apellidos', OLD.apellidos, 'estado', OLD.estado, 'email', OLD.email),
-        JSON_OBJECT('nombres', NEW.nombres, 'apellidos', NEW.apellidos, 'estado', NEW.estado, 'email', NEW.email)
-    );
-END */;;
+ INSERT INTO auditoria (usuario_id, accion, entidad, registro_id, datos_anteriores, datos_nuevos)
+ VALUES (NEW.id, 'actualizar', 'usuarios', NEW.id,
+ JSON_OBJECT('nombres', OLD.nombres, 'apellidos', OLD.apellidos, 'estado', OLD.estado, 'email', OLD.email),
+ JSON_OBJECT('nombres', NEW.nombres, 'apellidos', NEW.apellidos, 'estado', NEW.estado, 'email', NEW.email)
+ );
+END;;
 DELIMITER ;

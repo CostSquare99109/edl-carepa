@@ -17,7 +17,7 @@ ON DUPLICATE KEY UPDATE nombre=VALUES(nombre);
 
 -- 3. Periodo activo
 INSERT INTO periodos (id, nombre, fecha_inicio, fecha_fin, estado) VALUES
-(1, 'Periodo de Evaluacion 2026-I', '2026-01-01', '2026-06-30', 'en_evaluacion')
+(1, 'Periodo de Evaluacion 2026-I', '2026-01-01', '2026-06-30', 'evaluacion')
 ON DUPLICATE KEY UPDATE nombre=VALUES(nombre);
 
 -- 4. Usuarios ficticios
@@ -47,9 +47,9 @@ INSERT IGNORE INTO usuario_rol (usuario_id, rol_id) VALUES
 
 -- 6. Evaluaciones
 INSERT INTO evaluaciones (id, periodo_id, evaluado_id, evaluador_id, tipo, estado) VALUES
-(1, 1, 6, 2, 'heteroevaluacion', 'en_proceso'),
-(2, 1, 7, 2, 'heteroevaluacion', 'en_proceso'),
-(3, 1, 8, 3, 'heteroevaluacion', 'en_proceso'),
-(4, 1, 9, 5, 'heteroevaluacion', 'en_proceso'),
-(5, 1, 10, 5, 'heteroevaluacion', 'en_proceso')
+(1, 1, 6, 2, 'parcial_semestral', 'en_proceso'),
+(2, 1, 7, 2, 'parcial_semestral', 'en_proceso'),
+(3, 1, 8, 3, 'parcial_semestral', 'en_proceso'),
+(4, 1, 9, 5, 'parcial_semestral', 'en_proceso'),
+(5, 1, 10, 5, 'parcial_semestral', 'en_proceso')
 ON DUPLICATE KEY UPDATE estado=VALUES(estado);

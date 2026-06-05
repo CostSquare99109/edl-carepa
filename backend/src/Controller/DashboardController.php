@@ -18,7 +18,7 @@ class DashboardController
         $entidades = (int) $db->query("SELECT COUNT(*) FROM entidades WHERE eliminado_en IS NULL")->fetchColumn();
         $usuarios = (int) $db->query("SELECT COUNT(*) FROM usuarios WHERE eliminado_en IS NULL")->fetchColumn();
         $evaluaciones = (int) $db->query("SELECT COUNT(*) FROM evaluaciones WHERE eliminado_en IS NULL")->fetchColumn();
-        $periodos = (int) $db->query("SELECT COUNT(*) FROM periodos WHERE estado IN ('abierto','en_concertacion','en_evaluacion') AND eliminado_en IS NULL")->fetchColumn();
+        $periodos = (int) $db->query("SELECT COUNT(*) FROM periodos WHERE estado IN ('configuracion','concertacion','seguimiento','evaluacion','calificacion') AND eliminado_en IS NULL")->fetchColumn();
 
         // Notificaciones no leídas
         $notiService = new NotificacionService();
@@ -37,7 +37,7 @@ class DashboardController
         }
 
         // Mis compromisos enviados
-        $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos WHERE responsable_id = ? AND estado = 'enviado' AND eliminado_en IS NULL");
+        $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos WHERE responsable_id = ? AND estado = 'propuesto' AND eliminado_en IS NULL");
         $stmt->execute([(int) $user['id']]);
         $misCompromisosEnviados = (int) $stmt->fetchColumn();
 
@@ -76,19 +76,19 @@ class DashboardController
 
     $evaluacionesCompletadas = (int) $db->query("
         SELECT COUNT(*) FROM evaluaciones
-        WHERE estado IN ('completada','calificada','revisada','cerrada') AND eliminado_en IS NULL
+        WHERE estado IN ('calificada','aprobada_comision','cerrada') AND eliminado_en IS NULL
     ")->fetchColumn();
 
     $evaluacionesPendientes = (int) $db->query("
         SELECT COUNT(*) FROM evaluaciones
-        WHERE estado IN ('pendiente','en_progreso','en_proceso') AND eliminado_en IS NULL
+        WHERE estado IN ('pendiente','concertacion','en_proceso') AND eliminado_en IS NULL
     ")->fetchColumn();
 
         // Progreso por dependencia (top 10)
         $progresoDep = $db->query("
             SELECT d.nombre,
                    COUNT(e.id) AS total,
-                   SUM(CASE WHEN e.estado IN ('calificada','revisada','cerrada') THEN 1 ELSE 0 END) AS completadas
+                   SUM(CASE WHEN e.estado IN ('calificada','aprobada_comision','cerrada') THEN 1 ELSE 0 END) AS completadas
             FROM dependencias d
             LEFT JOIN usuarios u ON u.dependencia_id = d.id AND u.eliminado_en IS NULL
             LEFT JOIN evaluaciones e ON e.evaluado_id = u.id AND e.eliminado_en IS NULL
@@ -113,7 +113,7 @@ class DashboardController
         $periodoActivo = $db->query("
             SELECT id, nombre, fecha_inicio, fecha_fin, estado
             FROM periodos
-            WHERE estado IN ('abierto','en_concertacion','en_evaluacion') AND eliminado_en IS NULL
+            WHERE estado IN ('configuracion','concertacion','seguimiento','evaluacion','calificacion') AND eliminado_en IS NULL
             ORDER BY fecha_inicio DESC LIMIT 1
         ")->fetch(\PDO::FETCH_ASSOC) ?: null;
 

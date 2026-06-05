@@ -8,10 +8,10 @@ class UsuarioRepository extends BaseRepository
 {
     protected string $table = 'usuarios';
 
-    public function buscarPorDocumento(string $documento, string $tipoDocumento): ?array
+    public function buscarPorDocumento(string $documento): ?array
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM usuarios WHERE documento = ? AND tipo_documento = ? AND eliminado_en IS NULL");
-        $stmt->execute([$documento, $tipoDocumento]);
+    	$stmt = $this->pdo->prepare("SELECT * FROM usuarios WHERE documento = ? AND eliminado_en IS NULL");
+    	$stmt->execute([$documento]);
         return $stmt->fetch() ?: null;
     }
 

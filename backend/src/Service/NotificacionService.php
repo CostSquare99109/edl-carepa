@@ -52,7 +52,7 @@ class NotificacionService
   public function compromisosPendientesPorAprobar(int $evaluadorId): int
   {
     $pdo = Database::getInstance();
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE evaluador_id = ? AND estado = 'enviado' AND eliminado_en IS NULL");
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE evaluador_id = ? AND estado = 'propuesto' AND eliminado_en IS NULL");
     $stmt->execute([$evaluadorId]);
     return (int) $stmt->fetchColumn();
   }

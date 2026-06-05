@@ -2,67 +2,36 @@
 
 namespace App\Helper;
 
+use App\Config\Env;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 class MailHelper
 {
-	private static ?array $config = null;
-
-	private static function loadConfig(): void
-	{
-		if (self::$config !== null) return;
-
-		$envFile = dirname(__DIR__, 2) . '/.env';
-		if (file_exists($envFile)) {
-			$lines = @parse_ini_file($envFile);
-			if ($lines === false) {
-				// Fallback: parsear manualmente si parse_ini_file falla (caracteres especiales en valores)
-				$lines = [];
-				foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-					$line = trim($line);
-					if ($line === '' || str_starts_with($line, '#') || str_starts_with($line, ';')) continue;
-					$eq = strpos($line, '=');
-					if ($eq !== false) {
-						$key = trim(substr($line, 0, $eq));
-						$val = trim(substr($line, $eq + 1));
-						$lines[$key] = $val;
-					}
-				}
-			}
-			self::$config = $lines;
-			return;
-		}
-
-		self::$config = [];
-	}
-
-	private static function env(string $key, string $default = ''): string
-	{
-		self::loadConfig();
-		return self::$config[$key] ?? $default;
-	}
-
 	public static function enviar(string $destinatario, string $nombreDest, string $asunto, string $cuerpoHTML, string $cuerpoTexto = ''): bool
 	{
 		$mail = new PHPMailer(true);
 
 		try {
-			// Configuración SMTP
 			$mail->isSMTP();
-			$mail->Host       = self::env('SMTP_HOST', 'smtp.gmail.com');
-			$mail->Port       = (int) self::env('SMTP_PORT', '587');
-			$mail->SMTPAuth   = true;
-			$mail->Username   = self::env('SMTP_USER', 'jhonfredymontalvocuadrado1@gmail.com');
-			$mail->Password   = self::env('SMTP_PASS', 'wwkvfjdbwjfqvlav');
+			$mail->Host = Env::get('SMTP_HOST', 'smtp.gmail.com');
+			$mail->Port = (int) Env::get('SMTP_PORT', '587');
+			$mail->SMTPAuth = true;
+			$mail->Username = Env::get('SMTP_USER', '');
+			$mail->Password = Env::get('SMTP_PASS', '');
 			$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-			$mail->CharSet    = 'UTF-8';
+			$mail->CharSet = 'UTF-8';
 
-			// Remitente
+			$fromEmail = Env::get('SMTP_FROM', '') ?: Env::get('SMTP_USER', '');
+			if (empty($fromEmail) || empty($mail->Username) || empty($mail->Password)) {
+				error_log('MailHelper: Credenciales SMTP no configuradas. Defina SMTP_USER y SMTP_PASS en .env');
+				return false;
+			}
+
 			$mail->setFrom(
-				self::env('SMTP_FROM', self::env('SMTP_USER', 'jhonfredymontalvocuadrado1@gmail.com')),
-				self::env('SMTP_FROM_NAME', 'EDL-CAREPA')
+				$fromEmail,
+				Env::get('SMTP_FROM_NAME', 'EDL-CAREPA')
 			);
 
 			// Destinatario
@@ -83,7 +52,7 @@ class MailHelper
 
 	public static function enviarRecuperacion(string $emailDest, string $nombreDest, string $codigo): bool
 	{
-		$frontendUrl = self::env('FRONTEND_URL', 'http://localhost:5173');
+		$frontendUrl = Env::get('FRONTEND_URL', 'http://localhost:5173');
 		$link = $frontendUrl . '/verificar-codigo?email=' . urlencode($emailDest);
 
 		$html = '

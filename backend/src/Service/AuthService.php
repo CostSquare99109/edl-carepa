@@ -21,9 +21,9 @@ class AuthService
         $this->sesionRepo = new SesionRepository($pdo);
     }
 
-    public function login(string $documento, string $tipoDocumento, string $password): array
+    public function login(string $documento, string $password): array
     {
-        $usuario = $this->usuarioRepo->buscarPorDocumento($documento, $tipoDocumento);
+    	$usuario = $this->usuarioRepo->buscarPorDocumento($documento);
 
         if (!$usuario) {
             ResponseHelper::error('Credenciales invalidas', 401);
@@ -91,7 +91,7 @@ class AuthService
     public function registrar(array $datos): array
  {
  // Verificar si ya existe documento o email
- $existente = $this->usuarioRepo->buscarPorDocumento($datos['documento'], $datos['tipo_documento']);
+ $existente = $this->usuarioRepo->buscarPorDocumento($datos['documento']);
  if ($existente) {
  ResponseHelper::error('Ya existe un usuario con ese documento', 409);
  }

@@ -1,9 +1,8 @@
 import { api } from '../lib/api';
 
 export interface LoginRequest {
-  documento: string;
-  tipo_documento: string;
-  password: string;
+ documento: string;
+ password: string;
 }
 
 export interface LoginResponse {
