@@ -107,13 +107,13 @@ export default function ConcertarCompromisos() {
     setLoading(true);
     try {
       const [periodosRes, competenciasRes] = await Promise.all([
-        api.get<{ id: number; nombre: string }[]>('/periodos'),
-        api.get<CompetenciaComportamental[]>('/compromisos/competencias-comportamentales'),
+       api.get('/periodos'),
+       api.get('/competencias'),
       ]);
-		const periodosArray = Array.isArray(periodosRes) ? periodosRes : (periodosRes?.data || []);
-		setPeriodos(periodosArray);
-		const competenciasArray = Array.isArray(competenciasRes) ? competenciasRes : (competenciasRes?.data || []);
-		setCompetencias(competenciasArray);
+       const periodosArray: any[] = Array.isArray(periodosRes) ? periodosRes : [];
+       setPeriodos(periodosArray);
+       const competenciasArray: any[] = Array.isArray(competenciasRes) ? competenciasRes : [];
+       setCompetencias(competenciasArray);
 
       // Si hay evaluado, setear periodo
       if (evaluado?.periodo_id) {

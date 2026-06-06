@@ -92,7 +92,7 @@ export default function VerCompromisos() {
                     {funcionales.map(c => (
                       <tr key={c.id} className="border-b border-inst-borde">
                         <td className="px-3 py-2 text-inst-texto">{c.descripcion}</td>
-                        <td className="px-3 py-2 text-center font-semibold">{parseFloat(c.peso)}%</td>
+                        <td className="px-3 py-2 text-center font-semibold">{Number(c.peso)}%</td>
                         <td className="px-3 py-2">
                           <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800">{c.estado}</span>
                         </td>
