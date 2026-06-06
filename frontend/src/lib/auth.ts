@@ -2,7 +2,6 @@ import { api } from '../lib/api';
 
 export interface LoginRequest {
  documento: string;
- tipo_documento: string;
  password: string;
 }
 
@@ -17,7 +16,6 @@ export interface LoginResponse {
 export interface Usuario {
  id: number;
  documento: string;
- tipo_documento: string;
  nombres: string;
  apellidos: string;
  email: string;
@@ -46,6 +44,6 @@ export const authApi = {
  perfil: () => api.get<{ usuario: Usuario; roles: Rol[] }>('/auth/perfil'),
  menu: () => api.get<MenuItem[]>('/menu'),
  cambiarPassword: (data: { password_actual: string; password_nueva: string }) =>
-  api.put('/auth/password', data),
+ api.put('/auth/password', data),
  cambiarRol: (rolCodigo: string) => api.put<{ rol_activo: string; token?: string }>('/auth/rol', { rol_codigo: rolCodigo }),
 };

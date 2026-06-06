@@ -618,7 +618,7 @@ export default function ConcertarCompromisos() {
                         <tr key={idx} className="border-b border-inst-borde">
                           <td className="px-3 py-2 text-inst-texto">
                             {c.competencia_nombre}
-                            <span className="text-xs text-inst-texto-claro ml-1">({c.decreto === '2539_2005' ? 'D.2539/2005' : 'D.815/2018'})</span>
+                            <span className="text-xs text-inst-texto-claro ml-1">({c.decreto === '2539/2005' ? 'D.2539/2005' : 'D.815/2018'})</span>
                           </td>
                           <td className="px-3 py-2 text-center">
                             <button
@@ -811,7 +811,7 @@ export default function ConcertarCompromisos() {
             {/* Decreto 2539/2005 */}
             <h4 className="text-sm font-bold text-inst-azul mb-2">Decreto 2539 de 2005</h4>
             <div className="space-y-2 mb-4">
-              {competencias.filter(c => c.decreto === '2539_2005').map(c => (
+              {competencias.filter(c => c.decreto === '2539/2005').map(c => (
                 <label key={c.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-inst-gris">
                   <input
                     type="checkbox"
@@ -843,7 +843,7 @@ export default function ConcertarCompromisos() {
             {/* Decreto 815/2018 */}
             <h4 className="text-sm font-bold text-inst-azul mb-2">Decreto 815 de 2018</h4>
             <div className="space-y-2 mb-4">
-              {competencias.filter(c => c.decreto === '815_2018').map(c => (
+              {competencias.filter(c => c.decreto === '815/2018').map(c => (
                 <label key={c.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-inst-gris">
                   <input
                     type="checkbox"

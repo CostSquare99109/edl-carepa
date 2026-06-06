@@ -21,7 +21,7 @@ class AuthService
   $this->sesionRepo = new SesionRepository($pdo);
  }
 
- public function login(string $documento, string $tipoDocumento, string $password): array
+ public function login(string $documento, string $password): array
  {
   $usuario = $this->usuarioRepo->buscarPorDocumento($documento);
 

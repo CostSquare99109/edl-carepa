@@ -23,11 +23,11 @@ class AuthController
         $input = SanitizerHelper::sanitizeArray($input);
 
         $v = new ValidatorHelper();
-		if (!$v->validate($input, ['documento' => 'required', 'tipo_documento' => 'required', 'password' => 'required'])) {
+		if (!$v->validate($input, ['documento' => 'required', 'password' => 'required'])) {
 		  ResponseHelper::error('Datos incompletos: ' . implode(', ', $v->getErrors()), 422);
 		 }
 
-		 $resultado = $this->service->login($input['documento'], $input['tipo_documento'], $input['password']);
+		 $resultado = $this->service->login($input['documento'], $input['password']);
         ResponseHelper::success($resultado, 'Autenticacion exitosa');
     }
 
