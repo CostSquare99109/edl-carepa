@@ -32,7 +32,7 @@ export default function CompromisosYCompetencias() {
   setEvaluado(null);
 
   try {
-   const data = await api.get(`/compromisos/buscar-evaluado?documento=${documento.trim()}`);
+   const data: any = await api.get(`/compromisos/buscar-evaluado?documento=${documento.trim()}`);
    setEvaluado(data);
   } catch (err: any) {
    setError(err.message || 'Error al buscar evaluado');
