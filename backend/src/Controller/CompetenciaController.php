@@ -11,12 +11,25 @@ class CompetenciaController
 
  public function __construct()
  {
- $this->repo = new CompetenciaRepository();
+  $this->repo = new CompetenciaRepository();
  }
 
  public function listar(): void
  {
- $resultado = $this->repo->listar([], 1, 50);
- ResponseHelper::success($resultado['data']);
+  $decreto = $_GET['decreto'] ?? null;
+
+  if ($decreto) {
+   $data = $this->repo->listarPorDecreto($decreto);
+  } else {
+   $data = $this->repo->listarTodas();
+  }
+
+  ResponseHelper::success($data);
+ }
+
+ public function decretos(): void
+ {
+  $decretos = $this->repo->decretosDisponibles();
+  ResponseHelper::success($decretos);
  }
 }

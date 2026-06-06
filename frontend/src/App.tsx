@@ -17,6 +17,10 @@ import ReportesPage from './pages/Reportes/ReportesPage'
 import CompromisosYCompetencias from './pages/Compromisos/CompromisosYCompetencias'
 import MisCompromisos from './pages/Compromisos/MisCompromisos'
 import AprobarCompromisos from './pages/Compromisos/AprobarCompromisos'
+import ConcertarCompromisos from './pages/Compromisos/ConcertarCompromisos'
+import VerCompromisos from './pages/Compromisos/VerCompromisos'
+import VerCompromisosPropuestos from './pages/Compromisos/VerCompromisosPropuestos'
+import AjustarCompromisos from './pages/Compromisos/AjustarCompromisos'
 import EvaluarPage from './pages/Evaluaciones/EvaluarPage'
 import PanelEvaluador from './pages/Evaluaciones/PanelEvaluador'
 import AdminDashboard from './pages/Admin/AdminDashboard'
@@ -32,44 +36,49 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
  const { token, rolActivo } = useAuth()
  if (!token) return <Navigate to="/login" replace />
  if (allowedRoles && allowedRoles.length > 0 && rolActivo && !allowedRoles.includes(rolActivo)) {
- return <Navigate to="/" replace />
+  return <Navigate to="/" replace />
  }
  return <>{children}</>
 }
 
 export default function App() {
  return (
- <Routes>
- <Route path="/login" element={<Login />} />
- <Route path="/verificar-codigo" element={<VerificarCodigo />} />
- <Route path="/nueva-contrasena" element={<NuevaContrasena />} />
- <Route path="/seleccionar-rol" element={<ProtectedRoute><SelectRolePage /></ProtectedRoute>} />
- <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
- <Route index element={<Dashboard />} />
- <Route path="entidades" element={<EntidadList />} />
- <Route path="usuarios" element={<UsuarioList />} />
- <Route path="periodos" element={<PeriodoList />} />
- <Route path="metas" element={<MetaList />} />
- <Route path="concertaciones" element={<ConcertacionList />} />
- <Route path="evaluaciones" element={<EvaluacionList />} />
- <Route path="evidencias" element={<EvidenciaList />} />
- <Route path="reportes" element={<ReportesPage />} />
- <Route path="compromisos-y-competencias" element={<CompromisosYCompetencias />} />
- <Route path="compromisos/mios" element={<MisCompromisos />} />
- <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
- <Route path="evaluar" element={<PanelEvaluador />} />
- <Route path="evaluar-simple" element={<EvaluarPage />} />
- </Route>
- <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'jefe_personal']}><AdminDashboard /></ProtectedRoute>}>
- <Route index element={<AdminHome />} />
- <Route path="usuarios" element={<AdminUsuarios />} />
- <Route path="dependencias" element={<AdminDependencias />} />
- <Route path="evaluaciones" element={<AdminEvaluaciones />} />
- <Route path="reportes" element={<AdminReportes />} />
- <Route path="notificaciones" element={<AdminNotificaciones />} />
- <Route path="configuracion" element={<AdminConfiguracion />} />
- </Route>
- <Route path="*" element={<Navigate to="/" replace />} />
- </Routes>
+  <Routes>
+   <Route path="/login" element={<Login />} />
+   <Route path="/verificar-codigo" element={<VerificarCodigo />} />
+   <Route path="/nueva-contrasena" element={<NuevaContrasena />} />
+   <Route path="/seleccionar-rol" element={<ProtectedRoute><SelectRolePage /></ProtectedRoute>} />
+   <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+    <Route index element={<Dashboard />} />
+    <Route path="entidades" element={<EntidadList />} />
+    <Route path="usuarios" element={<UsuarioList />} />
+    <Route path="periodos" element={<PeriodoList />} />
+    <Route path="metas" element={<MetaList />} />
+    <Route path="concertaciones" element={<ConcertacionList />} />
+    <Route path="evaluaciones" element={<EvaluacionList />} />
+    <Route path="evidencias" element={<EvidenciaList />} />
+    <Route path="reportes" element={<ReportesPage />} />
+    <Route path="compromisos-y-competencias" element={<CompromisosYCompetencias />} />
+    <Route path="compromisos/mios" element={<MisCompromisos />} />
+    <Route path="compromisos/concertar" element={<ConcertarCompromisos />} />
+    <Route path="compromisos/concertar/:evaluacionId" element={<ConcertarCompromisos />} />
+    <Route path="compromisos/ver/:evaluacionId" element={<VerCompromisos />} />
+    <Route path="compromisos/propuestos" element={<VerCompromisosPropuestos />} />
+    <Route path="compromisos/ajustar/:evaluacionId" element={<AjustarCompromisos />} />
+    <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
+    <Route path="evaluar" element={<PanelEvaluador />} />
+    <Route path="evaluar-simple" element={<EvaluarPage />} />
+   </Route>
+   <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'jefe_personal']}><AdminDashboard /></ProtectedRoute>}>
+    <Route index element={<AdminHome />} />
+    <Route path="usuarios" element={<AdminUsuarios />} />
+    <Route path="dependencias" element={<AdminDependencias />} />
+    <Route path="evaluaciones" element={<AdminEvaluaciones />} />
+    <Route path="reportes" element={<AdminReportes />} />
+    <Route path="notificaciones" element={<AdminNotificaciones />} />
+    <Route path="configuracion" element={<AdminConfiguracion />} />
+   </Route>
+   <Route path="*" element={<Navigate to="/" replace />} />
+  </Routes>
  )
 }

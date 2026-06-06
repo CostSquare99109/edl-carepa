@@ -158,6 +158,7 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/consulta-funcionario/{documento}', [\App\Controller\ConsultaFuncionarioController::class, 'consultar']);
 
  $r->get('/competencias', [\App\Controller\CompetenciaController::class, 'listar'], ['permiso:compromisos.listar']);
+ $r->get('/competencias/decretos', [\App\Controller\CompetenciaController::class, 'decretos'], ['permiso:compromisos.listar']);
 
  }, [AuthMiddleware::class]);
 }, [CorsMiddleware::class, SecurityHeadersMiddleware::class, RateLimitMiddleware::class]);
