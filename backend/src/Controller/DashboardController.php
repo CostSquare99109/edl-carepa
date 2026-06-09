@@ -132,15 +132,40 @@ class DashboardController
         // Entidades activas
         $entidadesActivas = (int) $db->query("SELECT COUNT(*) FROM entidades WHERE estado = 'activa' AND eliminado_en IS NULL")->fetchColumn();
 
+        $evalPorEstado = $db->query("
+        SELECT estado, COUNT(*) AS cantidad
+        FROM evaluaciones
+        WHERE eliminado_en IS NULL
+        GROUP BY estado
+        ORDER BY cantidad DESC
+        ")->fetchAll(\PDO::FETCH_ASSOC);
+
+        $evalPorDependencia = $db->query("
+        SELECT d.nombre AS dependencia,
+        SUM(CASE WHEN e.estado IN ('calificada','aprobada_comision','cerrada') THEN 1 ELSE 0 END) AS completadas,
+        SUM(CASE WHEN e.estado IN ('pendiente','concertacion','en_proceso') THEN 1 ELSE 0 END) AS pendientes
+        FROM dependencias d
+        LEFT JOIN usuarios u ON u.dependencia_id = d.id AND u.eliminado_en IS NULL
+        LEFT JOIN evaluaciones e ON e.evaluado_id = u.id AND e.eliminado_en IS NULL
+        WHERE d.eliminado_en IS NULL AND d.estado = 'activa'
+        GROUP BY d.id, d.nombre
+        HAVING SUM(CASE WHEN e.estado IN ('calificada','aprobada_comision','cerrada') THEN 1 ELSE 0 END) > 0
+        OR SUM(CASE WHEN e.estado IN ('pendiente','concertacion','en_proceso') THEN 1 ELSE 0 END) > 0
+        ORDER BY (SUM(CASE WHEN e.estado IN ('calificada','aprobada_comision','cerrada') THEN 1 ELSE 0 END) + SUM(CASE WHEN e.estado IN ('pendiente','concertacion','en_proceso') THEN 1 ELSE 0 END)) DESC
+        LIMIT 10
+        ")->fetchAll(\PDO::FETCH_ASSOC);
+
         ResponseHelper::success([
-            'evaluados_activos' => $evaluadosActivos,
-            'evaluadores_registrados' => $evaluadoresRegistrados,
-            'evaluaciones_completadas' => $evaluacionesCompletadas,
-            'evaluaciones_pendientes' => $evaluacionesPendientes,
-            'progreso_dependencia' => $progresoDependencia,
-            'periodo_activo' => $periodoActivo,
-            'evaluaciones_recientes' => $evalRecientes,
-            'entidades_activas' => $entidadesActivas,
+        'evaluados_activos' => $evaluadosActivos,
+        'evaluadores_registrados' => $evaluadoresRegistrados,
+        'evaluaciones_completadas' => $evaluacionesCompletadas,
+        'evaluaciones_pendientes' => $evaluacionesPendientes,
+        'progreso_dependencias' => $progresoDependencia,
+        'periodo_activo' => $periodoActivo,
+        'evaluaciones_recientes' => $evalRecientes,
+        'entidades_activas' => $entidadesActivas,
+        'evaluaciones_por_estado' => $evalPorEstado,
+        'evaluaciones_por_dependencia' => $evalPorDependencia,
         ]);
     }
 

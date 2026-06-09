@@ -2,16 +2,23 @@ import { useEffect, useState } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
 
 interface Meta {
-  id: number
-  periodo_id: number
-  funcionario_id: number
-  descripcion: string
-  tipo: string
-  peso: number
-  indicador: string
-  meta_numerica: number | null
-  unidad_medida: string
-  estado: string
+ id: number
+ periodo_id: number
+ funcionario_id: number
+ dependencia_id: number | null
+ descripcion: string
+ tipo: string
+ peso: number
+ indicador: string
+ meta_numerica: number | null
+ unidad_medida: string
+ estado: string
+}
+
+interface DependenciaOption {
+ id: number
+ nombre: string
+ codigo: string
 }
 
 const TIPOS_META = ['cualitativa', 'cuantitativa', 'mixta'] as const
@@ -24,23 +31,31 @@ export default function MetaList() {
   const [loading, setLoading] = useState(true)
   const [editando, setEditando] = useState<Meta | null>(null)
   const [saving, setSaving] = useState(false)
+  const [dependencias, setDependencias] = useState<DependenciaOption[]>([])
 
   function cargar() {
-    setLoading(true)
-    api.get<PaginatedData<Meta>>(`/metas?pagina=${pagina}&por_pagina=20`)
-      .then(d => { setItems(d.data || []); setTotal(d.total); })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+  setLoading(true)
+  api.get<PaginatedData<Meta>>(`/metas?pagina=${pagina}&por_pagina=20`)
+  .then(d => { setItems(d.data || []); setTotal(d.total); })
+  .catch(() => {})
+  .finally(() => setLoading(false))
   }
 
-  useEffect(() => { cargar() }, [pagina])
+  function cargarDependencias() {
+  api.get<PaginatedData<DependenciaOption>>('/dependencias?por_pagina=200')
+  .then(d => setDependencias(d.data || []))
+  .catch(() => {})
+  }
+
+  useEffect(() => { cargar(); cargarDependencias() }, [pagina])
 
   async function guardar() {
     if (!editando) return
     setSaving(true)
     try {
       await api.put(`/metas/${editando.id}`, {
-        descripcion: editando.descripcion,
+      dependencia_id: editando.dependencia_id,
+      descripcion: editando.descripcion,
         tipo: editando.tipo,
         peso: editando.peso,
         indicador: editando.indicador,
@@ -78,7 +93,8 @@ export default function MetaList() {
           <table className="edl-table">
             <thead>
               <tr>
-                <th>Descripcion</th>
+                <th>Dependencia</th>
+ <th>Descripcion</th>
                 <th>Tipo</th>
                 <th>Peso</th>
                 <th>Indicador</th>
@@ -89,7 +105,8 @@ export default function MetaList() {
             <tbody>
               {items.map(m => (
                 <tr key={m.id} className={m.estado === 'cerrada' ? 'opacity-60' : ''}>
-                  <td className="max-w-xs truncate">{m.descripcion}</td>
+                <td className="max-w-[150px] truncate">{dependencias.find(d => d.id === m.dependencia_id)?.nombre || '-'}</td>
+                <td className="max-w-xs truncate">{m.descripcion}</td>
                   <td>{m.tipo}</td>
                   <td className="font-mono">{m.peso}%</td>
                   <td className="max-w-xs truncate">{m.indicador}</td>
@@ -124,14 +141,22 @@ export default function MetaList() {
             </div>
 
             <div className="p-4 space-y-3">
-              {editando.estado === 'cerrada' && (
-                <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex items-center gap-2">
-                  <span className="material-icons text-yellow-600">lock</span>
-                  <p className="text-sm text-yellow-800 font-medium">Esta meta esta cerrada. Puede reabrirla cambiando el estado.</p>
-                </div>
-              )}
+            {editando.estado === 'cerrada' && (
+            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex items-center gap-2">
+            <span className="material-icons text-yellow-600">lock</span>
+            <p className="text-sm text-yellow-800 font-medium">Esta meta esta cerrada. Puede reabrirla cambiando el estado.</p>
+            </div>
+            )}
 
-              <div>
+            <div>
+            <label className="block text-xs font-medium text-inst-texto-claro mb-1">Dependencia</label>
+            <select value={editando.dependencia_id || ''} onChange={e => setEditando({ ...editando, dependencia_id: e.target.value ? Number(e.target.value) : null })} className="edl-input w-full">
+            <option value="">Sin dependencia</option>
+            {dependencias.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
+            </select>
+            </div>
+
+            <div>
                 <label className="block text-xs font-medium text-inst-texto-claro mb-1">Descripcion</label>
                 <textarea value={editando.descripcion} onChange={e => setEditando({ ...editando, descripcion: e.target.value })} className="edl-input w-full" rows={3} />
               </div>

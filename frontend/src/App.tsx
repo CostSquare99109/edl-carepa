@@ -4,6 +4,7 @@ import Layout from './components/Layout/Layout'
 import Login from './pages/Login'
 import VerificarCodigo from './pages/VerificarCodigo'
 import NuevaContrasena from './pages/NuevaContrasena'
+import CambioForzadoPassword from './pages/CambioForzadoPassword'
 import SelectRolePage from './pages/SelectRolePage'
 import Dashboard from './pages/Dashboard'
 import EntidadList from './pages/Entidades/EntidadList'
@@ -13,6 +14,7 @@ import MetaList from './pages/Metas/MetaList'
 import ConcertacionList from './pages/Concertaciones/ConcertacionList'
 import EvaluacionList from './pages/Evaluaciones/EvaluacionList'
 import EvidenciaList from './pages/Evidencias/EvidenciaList'
+import EvidenciasEvaluado from './pages/Evidencias/EvidenciasEvaluado'
 import ReportesPage from './pages/Reportes/ReportesPage'
 import CompromisosYCompetencias from './pages/Compromisos/CompromisosYCompetencias'
 import MisCompromisos from './pages/Compromisos/MisCompromisos'
@@ -21,11 +23,19 @@ import ConcertarCompromisos from './pages/Compromisos/ConcertarCompromisos'
 import VerCompromisos from './pages/Compromisos/VerCompromisos'
 import VerCompromisosPropuestos from './pages/Compromisos/VerCompromisosPropuestos'
 import AjustarCompromisos from './pages/Compromisos/AjustarCompromisos'
-import EvaluarPage from './pages/Evaluaciones/EvaluarPage'
+import CompromisosMejoramiento from './pages/Compromisos/CompromisosMejoramiento'
+import ProponerCompromisos from './pages/Compromisos/ProponerCompromisos'
+import FijacionUnilateral from './pages/Compromisos/FijacionUnilateral'
+import AusentismoList from './pages/Ausentismos/AusentismoList'
+import CargaUsuarios from './pages/Admin/CargaUsuarios'
+import ConsultaFuncionario from './pages/ConsultaFuncionario'
+import DependenciaList from './pages/Admin/DependenciaList'
+import MovilidadList from './pages/Admin/MovilidadList'
+import ComisionEvaluadora from './pages/Evaluaciones/ComisionEvaluadora'
 import PanelEvaluador from './pages/Evaluaciones/PanelEvaluador'
-import AdminDashboard from './pages/Admin/AdminDashboard'
 import AdminHome from './pages/Admin/AdminHome'
 import AdminUsuarios from './pages/Admin/AdminUsuarios'
+import AdminCompromisos from './pages/Admin/AdminCompromisos'
 import AdminDependencias from './pages/Admin/AdminDependencias'
 import AdminEvaluaciones from './pages/Admin/AdminEvaluaciones'
 import AdminReportes from './pages/Admin/AdminReportes'
@@ -46,18 +56,28 @@ export default function App() {
   <Routes>
    <Route path="/login" element={<Login />} />
    <Route path="/verificar-codigo" element={<VerificarCodigo />} />
-   <Route path="/nueva-contrasena" element={<NuevaContrasena />} />
+   <Route path="/nueva-contraseña" element={<NuevaContrasena />} />
+   <Route path="/cambio-forzado-password" element={<ProtectedRoute><CambioForzadoPassword /></ProtectedRoute>} />
    <Route path="/seleccionar-rol" element={<ProtectedRoute><SelectRolePage /></ProtectedRoute>} />
    <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
     <Route index element={<Dashboard />} />
     <Route path="entidades" element={<EntidadList />} />
     <Route path="usuarios" element={<UsuarioList />} />
+    <Route path="admin-usuarios" element={<AdminUsuarios />} />
     <Route path="periodos" element={<PeriodoList />} />
+    <Route path="dependencias" element={<DependenciaList />} />
+    <Route path="admin-dependencias" element={<AdminDependencias />} />
     <Route path="metas" element={<MetaList />} />
     <Route path="concertaciones" element={<ConcertacionList />} />
     <Route path="evaluaciones" element={<EvaluacionList />} />
+    <Route path="admin-evaluaciones" element={<AdminEvaluaciones />} />
     <Route path="evidencias" element={<EvidenciaList />} />
+    <Route path="mis-evidencias" element={<EvidenciasEvaluado />} />
     <Route path="reportes" element={<ReportesPage />} />
+    <Route path="admin-reportes" element={<AdminReportes />} />
+    <Route path="notificaciones" element={<AdminNotificaciones />} />
+    <Route path="configuracion" element={<AdminConfiguracion />} />
+    <Route path="consulta-funcionario" element={<ConsultaFuncionario />} />
     <Route path="compromisos-y-competencias" element={<CompromisosYCompetencias />} />
     <Route path="compromisos/mios" element={<MisCompromisos />} />
     <Route path="compromisos/concertar" element={<ConcertarCompromisos />} />
@@ -66,17 +86,15 @@ export default function App() {
     <Route path="compromisos/propuestos" element={<VerCompromisosPropuestos />} />
     <Route path="compromisos/ajustar/:evaluacionId" element={<AjustarCompromisos />} />
     <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
+    <Route path="compromisos/mejoramiento" element={<CompromisosMejoramiento />} />
+    <Route path="compromisos/proponer" element={<ProponerCompromisos />} />
+    <Route path="compromisos/fijacion-unilateral" element={<FijacionUnilateral />} />
+    <Route path="admin-compromisos" element={<AdminCompromisos />} />
+    <Route path="ausentismos" element={<AusentismoList />} />
+    <Route path="movilidad" element={<MovilidadList />} />
     <Route path="evaluar" element={<PanelEvaluador />} />
-    <Route path="evaluar-simple" element={<EvaluarPage />} />
-   </Route>
-   <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'jefe_personal']}><AdminDashboard /></ProtectedRoute>}>
-    <Route index element={<AdminHome />} />
-    <Route path="usuarios" element={<AdminUsuarios />} />
-    <Route path="dependencias" element={<AdminDependencias />} />
-    <Route path="evaluaciones" element={<AdminEvaluaciones />} />
-    <Route path="reportes" element={<AdminReportes />} />
-    <Route path="notificaciones" element={<AdminNotificaciones />} />
-    <Route path="configuracion" element={<AdminConfiguracion />} />
+    <Route path="comision-evaluadora" element={<ComisionEvaluadora />} />
+    <Route path="carga-usuarios" element={<CargaUsuarios />} />
    </Route>
    <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>

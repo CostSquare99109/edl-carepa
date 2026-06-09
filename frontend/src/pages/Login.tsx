@@ -63,16 +63,19 @@ export default function Login() {
  e.preventDefault()
  setError('')
  try {
- const roles = await login(documento, password)
- if (roles.length > 1) {
- navigate('/seleccionar-rol', { replace: true })
- } else if (roles.length === 1 && ['admin', 'admin_carepa', 'admin_entidad', 'jefe_personal'].includes(roles[0].codigo)) {
- navigate('/admin', { replace: true })
- } else {
- navigate('/', { replace: true })
- }
+  const roles = await login(documento, password)
+  if (localStorage.getItem('edl_forzar_cambio') === '1') {
+   localStorage.removeItem('edl_forzar_cambio')
+   navigate('/cambio-forzado-password', { replace: true })
+   return
+  }
+  if (roles.length > 1) {
+   navigate('/seleccionar-rol', { replace: true })
+  } else {
+   navigate('/', { replace: true })
+  }
  } catch {
- showError('Usuario o contrasena incorrectos')
+  showError('Usuario o contraseña incorrectos')
  }
  }
 
@@ -94,7 +97,7 @@ export default function Login() {
 
  const tabInfo: Record<Tab, { titulo: string; subtitulo: string }> = {
  login: { titulo: 'Evaluacion del Desempeno Laboral', subtitulo: 'Alcaldia de Carepa' },
- recuperar: { titulo: 'Recuperar contrasena', subtitulo: 'Restablezca el acceso a su cuenta' },
+ recuperar: { titulo: 'Recuperar contraseña', subtitulo: 'Restablezca el acceso a su cuenta' },
  }
  const { titulo, subtitulo } = tabInfo[tab]
 
@@ -159,14 +162,14 @@ export default function Login() {
 
  <div>
  <label className="block text-sm font-medium text-inst-texto mb-1">
- Numero de documento
+ Nombre de usuario
  </label>
  <input
  type="text"
  value={documento}
  onChange={(e) => setDocumento(e.target.value)}
  className="edl-input"
- placeholder="Ingrese su Documento"
+ placeholder="Ingrese su nombre de usuario"
  required
  autoComplete="username"
  />
@@ -182,7 +185,7 @@ export default function Login() {
  value={password}
  onChange={(e) => setPassword(e.target.value)}
  className="edl-input pr-10"
- placeholder="Ingrese su contrasena"
+ placeholder="Ingrese su contraseña"
  required
  autoComplete="current-password"
  />
@@ -191,7 +194,7 @@ export default function Login() {
  onClick={() => setMostrarPassword(!mostrarPassword)}
  className="absolute right-2 top-1/2 -translate-y-1/2 text-inst-texto-claro hover:text-inst-texto p-1"
  tabIndex={-1}
- aria-label={mostrarPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+ aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
  >
  <span className="material-icons text-xl">
  {mostrarPassword ? 'visibility' : 'visibility_off'}
@@ -219,9 +222,9 @@ export default function Login() {
  </button>
 
  <p className="text-center text-xs text-inst-texto-claro">
- Olvido su contrasena?{' '}
+ Olvido su contraseña?{' '}
  <button type="button" onClick={() => switchTab('recuperar')} className="text-inst-azul hover:underline font-medium">
- Recuperar contrasena
+ Recuperar contraseña
  </button>
  </p>
  </form>
@@ -231,7 +234,7 @@ export default function Login() {
  <form onSubmit={handleRecuperar} className="space-y-4">
  <div className="bg-inst-gris rounded-lg p-3 text-sm text-inst-texto-claro flex items-start gap-2">
  <span className="material-icons text-base mt-0.5">info</span>
- <p>Ingrese el correo electronico asociado a su cuenta. Recibira un codigo de 6 caracteres para restablecer su contrasena.</p>
+ <p>Ingrese el correo electronico asociado a su cuenta. Recibira un codigo de 6 caracteres para restablecer su contraseña.</p>
  </div>
 
  <div>
@@ -267,7 +270,7 @@ export default function Login() {
  </button>
 
  <p className="text-center text-xs text-inst-texto-claro">
- Recuerda su contrasena?{' '}
+ Recuerda su contraseña?{' '}
  <button type="button" onClick={() => switchTab('login')} className="text-inst-azul hover:underline font-medium">
  Inicie sesion
  </button>

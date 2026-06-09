@@ -9,8 +9,22 @@ interface Usuario {
  tipo_documento: string;
  nombres: string;
  apellidos: string;
+ genero: string;
+ municipio: string;
  email: string;
+ telefono: string;
+ telefono_secundario: string;
  cargo: string;
+ denominacion_empleo: string;
+ codigo_empleo: string;
+ grado: string;
+ tipo_vinculacion: string;
+ es_contratista: number;
+ nivel_carrera: string;
+ naturaleza: string;
+ tipo_nombramiento: string;
+ periodo_prueba: number;
+ proposito_empleo: string;
  estado: string;
  roles: { codigo: string; nombre: string }[];
 }
@@ -70,7 +84,12 @@ export default function AdminUsuarios() {
  const [guardando, setGuardando] = useState(false);
  const [form, setForm] = useState({
  documento: '', tipo_documento: 'CC', nombres: '', apellidos: '',
- email: '', cargo: '', password: '', estado: 'activo',
+ genero: '', municipio: '', email: '', telefono: '', telefono_secundario: '',
+ cargo: '', denominacion_empleo: '', codigo_empleo: '', grado: '',
+ tipo_vinculacion: 'planta', es_contratista: 0,
+ nivel_carrera: '', naturaleza: '', tipo_nombramiento: '',
+ periodo_prueba: 0, proposito_empleo: '',
+ password: '', estado: 'activo',
  roles: ['evaluado'] as string[],
  });
 
@@ -91,7 +110,13 @@ export default function AdminUsuarios() {
 
  const abrirCrear = () => {
  setEditando(null);
- setForm({ documento: '', tipo_documento: 'CC', nombres: '', apellidos: '', email: '', cargo: '', password: '', estado: 'activo', roles: ['evaluado'] });
+ setForm({ documento: '', tipo_documento: 'CC', nombres: '', apellidos: '',
+ genero: '', municipio: '', email: '', telefono: '', telefono_secundario: '',
+ cargo: '', denominacion_empleo: '', codigo_empleo: '', grado: '',
+ tipo_vinculacion: 'planta', es_contratista: 0,
+ nivel_carrera: '', naturaleza: '', tipo_nombramiento: '',
+ periodo_prueba: 0, proposito_empleo: '',
+ password: '', estado: 'activo', roles: ['evaluado'] });
  setModalAbierto(true);
  };
 
@@ -99,8 +124,16 @@ export default function AdminUsuarios() {
  setEditando(u);
  setForm({
  documento: u.documento, tipo_documento: u.tipo_documento || 'CC',
- nombres: u.nombres, apellidos: u.apellidos, email: u.email || '',
- cargo: u.cargo || '', password: '', estado: u.estado || 'activo',
+ nombres: u.nombres, apellidos: u.apellidos,
+ genero: u.genero || '', municipio: u.municipio || '',
+ email: u.email || '', telefono: u.telefono || '', telefono_secundario: u.telefono_secundario || '',
+ cargo: u.cargo || '', denominacion_empleo: u.denominacion_empleo || '',
+ codigo_empleo: u.codigo_empleo || '', grado: u.grado || '',
+ tipo_vinculacion: u.tipo_vinculacion || 'planta', es_contratista: u.es_contratista || 0,
+ nivel_carrera: u.nivel_carrera || '', naturaleza: u.naturaleza || '',
+ tipo_nombramiento: u.tipo_nombramiento || '',
+ periodo_prueba: u.periodo_prueba || 0, proposito_empleo: u.proposito_empleo || '',
+ password: '', estado: u.estado || 'activo',
  roles: u.roles?.map(r => r.codigo) || ['evaluado'],
  });
  setModalAbierto(true);
@@ -135,7 +168,7 @@ export default function AdminUsuarios() {
  };
 
  const restablecerPassword = async (u: Usuario) => {
- if (!confirm(`Restablecer contrasena de ${u.nombres} ${u.apellidos}?`)) return;
+ if (!confirm(`Restablecer contraseña de ${u.nombres} ${u.apellidos}?`)) return;
  try {
  const res = await api.put<{ password_temporal: string }>(`/usuarios/${u.id}/restablecer-password`);
  alert(`Contrasena temporal: ${res.password_temporal}\n\nEl usuario debera cambiarla al iniciar sesion.`);
@@ -214,7 +247,7 @@ export default function AdminUsuarios() {
  </button>
  <button onClick={() => restablecerPassword(u)}
  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs ${COLORES_TAILWIND.rojo} text-white hover:opacity-90 transition`}
- title="Restablecer contrasena">
+ title="Restablecer contraseña">
  <span className="material-icons text-sm">lock_reset</span>
  </button>
  </div>
@@ -252,9 +285,10 @@ export default function AdminUsuarios() {
  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo Documento</label>
  <select value={form.tipo_documento} onChange={e => setForm({...form, tipo_documento: e.target.value})}
  className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="CC">Cédula de Ciudadanía</option>
- <option value="CE">Cédula de Extranjería</option>
+ <option value="CC">Cedula de Ciudadania</option>
+ <option value="CE">Cedula de Extranjeria</option>
  <option value="TI">Tarjeta de Identidad</option>
+ <option value="PA">Pasaporte</option>
  </select>
  </div>
  <div>
@@ -263,7 +297,7 @@ export default function AdminUsuarios() {
  className="w-full border rounded-lg px-3 py-2 text-sm" disabled={!!editando} />
  </div>
  </div>
- <div className="grid grid-cols-2 gap-3">
+ <div className="grid grid-cols-3 gap-3">
  <div>
  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nombres</label>
  <input value={form.nombres} onChange={e => setForm({...form, nombres: e.target.value})}
@@ -274,12 +308,42 @@ export default function AdminUsuarios() {
  <input value={form.apellidos} onChange={e => setForm({...form, apellidos: e.target.value})}
  className="w-full border rounded-lg px-3 py-2 text-sm" />
  </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Genero</label>
+ <select value={form.genero} onChange={e => setForm({...form, genero: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm">
+ <option value="">Sin especificar</option>
+ <option value="M">Masculino</option>
+ <option value="F">Femenino</option>
+ <option value="O">Otro</option>
+ </select>
  </div>
+ </div>
+ <div className="grid grid-cols-2 gap-3">
  <div>
  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Email</label>
  <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
  className="w-full border rounded-lg px-3 py-2 text-sm" />
  </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Municipio</label>
+ <input value={form.municipio} onChange={e => setForm({...form, municipio: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Ej: Carepa" />
+ </div>
+ </div>
+ <div className="grid grid-cols-2 gap-3">
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Telefono principal</label>
+ <input value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm" />
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Telefono secundario</label>
+ <input value={form.telefono_secundario} onChange={e => setForm({...form, telefono_secundario: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm" />
+ </div>
+ </div>
+ <div className="grid grid-cols-2 gap-3">
  <div>
  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Cargo</label>
  <input list="cargos-list" value={form.cargo} onChange={e => setForm({...form, cargo: e.target.value})}
@@ -289,7 +353,93 @@ export default function AdminUsuarios() {
  </datalist>
  </div>
  <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Contraseña {editando ? '(dejar vacío para no cambiar)' : ''}</label>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Denominacion empleo</label>
+ <input value={form.denominacion_empleo} onChange={e => setForm({...form, denominacion_empleo: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Nombre del empleo" />
+ </div>
+ </div>
+ <div className="grid grid-cols-3 gap-3">
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Codigo empleo</label>
+ <input value={form.codigo_empleo} onChange={e => setForm({...form, codigo_empleo: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm" />
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Grado</label>
+ <input value={form.grado} onChange={e => setForm({...form, grado: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm" />
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo vinculacion</label>
+ <select value={form.tipo_vinculacion} onChange={e => setForm({...form, tipo_vinculacion: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm">
+ <option value="planta">Planta</option>
+ <option value="contrato">Contrato</option>
+ <option value="provisional">Provisional</option>
+ <option value="encargo">Encargo</option>
+ <option value="comision">Comision</option>
+ </select>
+ </div>
+ </div>
+ <div className="grid grid-cols-3 gap-3">
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nivel carrera</label>
+ <select value={form.nivel_carrera} onChange={e => setForm({...form, nivel_carrera: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm">
+ <option value="">Sin especificar</option>
+ <option value="operativo">Operativo</option>
+ <option value="tecnico">Tecnico</option>
+ <option value="profesional">Profesional</option>
+ <option value="directivo">Directivo</option>
+ <option value="asesor">Asesor</option>
+ </select>
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Naturaleza</label>
+ <select value={form.naturaleza} onChange={e => setForm({...form, naturaleza: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm">
+ <option value="">Sin especificar</option>
+ <option value="carrera">Carrera</option>
+ <option value="libre_nombramiento">Libre nombramiento</option>
+ <option value="provisional">Provisional</option>
+ <option value="temporal">Temporal</option>
+ <option value="contrato_obras">Contrato obra/obra</option>
+ </select>
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo nombramiento</label>
+ <select value={form.tipo_nombramiento} onChange={e => setForm({...form, tipo_nombramiento: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm">
+ <option value="">Sin especificar</option>
+ <option value="propiedad">Propiedad</option>
+ <option value="periodo_prueba">Periodo de prueba</option>
+ <option value="encargo">Encargo</option>
+ <option value="comision">Comision</option>
+ <option value="interinamente">Interinamente</option>
+ </select>
+ </div>
+ </div>
+ <div className="grid grid-cols-2 gap-3">
+ <div className="flex items-center gap-2 mt-5">
+ <input type="checkbox" checked={!!form.es_contratista}
+ onChange={e => setForm({...form, es_contratista: e.target.checked ? 1 : 0})}
+ className="w-4 h-4 rounded border-gray-300 text-inst-azul" />
+ <label className="text-sm text-inst-texto">Es contratista</label>
+ </div>
+ <div className="flex items-center gap-2 mt-5">
+ <input type="checkbox" checked={!!form.periodo_prueba}
+ onChange={e => setForm({...form, periodo_prueba: e.target.checked ? 1 : 0})}
+ className="w-4 h-4 rounded border-gray-300 text-inst-azul" />
+ <label className="text-sm text-inst-texto">En periodo de prueba</label>
+ </div>
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Proposito del empleo</label>
+ <input value={form.proposito_empleo} onChange={e => setForm({...form, proposito_empleo: e.target.value})}
+ className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Proposito del empleo" />
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-inst-texto-claro mb-1">Contrasena {editando ? '(dejar vacio para no cambiar)' : ''}</label>
  <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})}
  className="w-full border rounded-lg px-3 py-2 text-sm" />
  </div>

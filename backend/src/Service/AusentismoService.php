@@ -79,7 +79,7 @@ class AusentismoService
  'usuario_id' => $funcionario['jefe_id'],
  'tipo' => 'ausentismo_extendido',
  'titulo' => 'Ausentismo superior a 30 dias',
- 'mensaje' => "El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$diasHabiles} dias habiles. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeno.",
+ 'mensaje' => "El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$diasHabiles} dias habiles. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeño.",
  'url' => '/ausentismos'
  ]);
  }

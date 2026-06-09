@@ -57,11 +57,7 @@ export default function RoleSelector({ variant = 'header', onRolChange }: RoleSe
    if (onRolChange) {
     onRolChange(codigo);
    } else {
-    if (['admin', 'admin_carepa', 'admin_entidad'].includes(codigo)) {
-     navigate('/admin', { replace: true });
-    } else if (['admin', 'admin_carepa', 'admin_entidad'].includes(rolActivo || '')) {
-     navigate('/', { replace: true });
-    }
+    navigate('/', { replace: true });
    }
   } catch (err) {
    console.error('Error al cambiar rol:', err);

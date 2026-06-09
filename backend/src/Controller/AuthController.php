@@ -132,6 +132,21 @@ class AuthController
  ResponseHelper::success(null, 'Contrasena actualizada');
  }
 
+ public function forzarCambioPassword(): void
+ {
+  $user = AuthMiddleware::user();
+  $input = json_decode(file_get_contents('php://input'), true) ?: [];
+  $input = SanitizerHelper::sanitizeArray($input);
+
+  $v = new ValidatorHelper();
+  if (!$v->validate($input, ['password_nueva' => 'required|min:8'])) {
+   ResponseHelper::error('La nueva contraseña es requerida (minimo 8 caracteres)', 422);
+  }
+
+  $this->service->forzarCambioPassword($user['id'], $input['password_nueva']);
+  ResponseHelper::success(null, 'Contrasena actualizada exitosamente');
+ }
+
  public function refreshToken(): void
  {
  $header = $_SERVER['HTTP_AUTHORIZATION'] ?? '';

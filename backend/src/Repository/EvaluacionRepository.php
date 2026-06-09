@@ -28,8 +28,8 @@ class EvaluacionRepository extends BaseRepository
  $offset = ($pagina - 1) * $porPagina;
  $stmt = $this->pdo->prepare("
  SELECT ev.*,
- ed.primer_nombre as ed_nombre, ed.primer_apellido as ed_apellido, ed.documento as ed_documento,
- evr.primer_nombre as evr_nombre, evr.primer_apellido as evr_apellido,
+ ed.nombres as ed_nombre, ed.apellidos as ed_apellido, ed.documento as ed_documento,
+ evr.nombres as evr_nombre, evr.apellidos as evr_apellido,
  p.nombre as periodo_nombre
  FROM evaluaciones ev
  INNER JOIN usuarios ed ON ed.id = ev.evaluado_id
@@ -80,7 +80,7 @@ class EvaluacionRepository extends BaseRepository
 
  $offset = ($pagina - 1) * $porPagina;
  $stmt = $this->pdo->prepare("
- SELECT ev.*, ed.primer_nombre as ed_nombre, ed.primer_apellido as ed_apellido, p.nombre as periodo_nombre
+ SELECT ev.*, ed.nombres as ed_nombre, ed.apellidos as ed_apellido, p.nombre as periodo_nombre
  FROM evaluaciones ev
  INNER JOIN usuarios ed ON ed.id = ev.evaluado_id
  INNER JOIN periodos p ON p.id = ev.periodo_id

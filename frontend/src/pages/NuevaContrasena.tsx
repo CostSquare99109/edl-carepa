@@ -53,7 +53,7 @@ export default function NuevaContrasena() {
 			const data = await res.json()
 
 			if (data.code === '01') {
-				navigate('/login?msg=contrasena-actualizada')
+				navigate('/login?msg=contraseña-actualizada')
 			} else {
 				setError(data.message || 'Error al actualizar la contraseña')
 			}

@@ -14,7 +14,16 @@ class CargaMasivaController
         $this->service = new CargaMasivaService();
     }
 
-    public function historial(): void
+    public function plantillaUsuarios(): void
+ {
+  header('Content-Type: text/csv; charset=utf-8');
+  header('Content-Disposition: attachment; filename=plantilla_usuarios.csv');
+  echo "tipo_documento,documento,nombres,apellidos,email,cargo,dependencia,genero,es_evaluador,es_contratista\n";
+  echo "CC,12345678,Juan,Perez,juan@example.com,Profesional,Planeacion,Hombre,Si,No\n";
+  exit;
+ }
+
+ public function historial(): void
     {
         $pagina = (int) ($_GET['pagina'] ?? 1);
         $porPagina = (int) ($_GET['por_pagina'] ?? 20);

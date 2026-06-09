@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS `competencias_comportamentales` (
 
 -- Seed: Competencias Decreto 2539/2005
 INSERT INTO `competencias_comportamentales` (`nombre`, `decreto`, `descripcion`, `estado`) VALUES
-('Compromiso con el servicio', '2539/2005', 'Orientacion al cumplimiento de los objetivos organizacionales', 'activa'),
+('Compromiso con el servicio', '2539/2005', 'Orientacion al cumplimiento de los objetivos organizaciónales', 'activa'),
 ('Iniciativa', '2539/2005', 'Capacidad para actuar proactivamente y proponer soluciones', 'activa'),
 ('Trabajo en equipo', '2539/2005', 'Capacidad para colaborar y coordinar con otros', 'activa'),
 ('Orientacion al resultado', '2539/2005', 'Enfocado en el logro de metas y objetivos', 'activa'),
@@ -26,7 +26,7 @@ INSERT INTO `competencias_comportamentales` (`nombre`, `decreto`, `descripcion`,
 ('Negociacion', '2539/2005', 'Capacidad para llegar a acuerdos satisfactorios entre partes', 'activa'),
 ('Manejo de conflictos', '2539/2005', 'Habilidad para resolver diferencias de manera constructiva', 'activa'),
 -- Competencias Decreto 815/2018
-('Conocimiento del negocio', '815/2018', 'Comprension del entorno y los procesos organizacionales', 'activa'),
+('Conocimiento del negocio', '815/2018', 'Comprension del entorno y los procesos organizaciónales', 'activa'),
 ('Mejora continua', '815/2018', 'Busqueda permanente de optimizacion de procesos y resultados', 'activa'),
 ('Gestion de la informacion', '815/2018', 'Capacidad para obtener, analizar y utilizar informacion relevante', 'activa'),
 ('Relaciones interpersonales', '815/2018', 'Habilidad para establecer y mantener relaciones de trabajo efectivas', 'activa'),

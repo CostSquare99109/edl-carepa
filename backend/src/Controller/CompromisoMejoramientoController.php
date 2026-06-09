@@ -16,6 +16,15 @@ class CompromisoMejoramientoController
  $this->service = new CompromisoMejoramientoService();
  }
 
+ public function listarGlobal(): void
+ {
+  $filtros = SanitizerHelper::sanitizeArray($_GET);
+  $pagina = (int) ($_GET['pagina'] ?? 1);
+  $porPagina = (int) ($_GET['por_pagina'] ?? 20);
+  $resultado = $this->service->listar($filtros, $pagina, $porPagina);
+  ResponseHelper::success($resultado);
+ }
+
  public function crear(int $concertacionId): void
  {
  $input = json_decode(file_get_contents('php://input'), true) ?: [];

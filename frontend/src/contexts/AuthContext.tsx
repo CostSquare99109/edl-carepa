@@ -92,26 +92,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  const login = useCallback(async (documento: string, password: string): Promise<Rol[]> => {
  setLoading(true);
  try {
- const resp = await authApi.login({ documento, password });
- localStorage.setItem('edl_token', resp.token);
- localStorage.setItem('edl_user', JSON.stringify(resp.usuario));
- localStorage.setItem('edl_rol_activo', resp.rol_activo);
- setToken(resp.token);
- setUsuario(resp.usuario);
- setRoles(resp.roles);
- setRolActivo(resp.rol_activo);
+  const resp = await authApi.login({ documento, password });
+  localStorage.setItem('edl_token', resp.token);
+  localStorage.setItem('edl_user', JSON.stringify(resp.usuario));
+  localStorage.setItem('edl_rol_activo', resp.rol_activo);
+  setToken(resp.token);
+  setUsuario(resp.usuario);
+  setRoles(resp.roles);
+  setRolActivo(resp.rol_activo);
 
- try {
- const menuData = await authApi.menu();
- setMenu(menuData);
- } catch {
- console.warn('No se pudo cargar el menu despues de login');
- }
+  if (resp.debe_cambiar_password) {
+   localStorage.setItem('edl_forzar_cambio', '1');
+   return resp.roles;
+  }
 
- sessionLoadedRef.current = true;
- return resp.roles;
+  try {
+   const menuData = await authApi.menu();
+   setMenu(menuData);
+  } catch {
+   console.warn('No se pudo cargar el menu despues de login');
+  }
+
+  sessionLoadedRef.current = true;
+  return resp.roles;
  } finally {
- setLoading(false);
+  setLoading(false);
  }
  }, []);
 

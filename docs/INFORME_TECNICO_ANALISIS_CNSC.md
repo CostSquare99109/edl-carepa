@@ -23,14 +23,14 @@ La EDL APP es la plataforma oficial de la CNSC para gestionar el ciclo completo 
 | Rol | Descripcion | Permiso clave |
 |-----|-------------|---------------|
 | **Jefe de Personal** | Administrador principal de la entidad. Crea dependencias, metas, usuarios, ausentismos. Asigna roles. | CRUD completo de usuarios, dependencias, metas, ausentismos, reportes |
-| **Evaluador** | Concerta compromisos, registra evidencias, califica desempeno. Asignado por defecto si la naturaleza del cargo es "Libre Nombramiento" o "Gerencia Publica" | Concertar, evaluar, calificar |
+| **Evaluador** | Concerta compromisos, registra evidencias, califica desempeño. Asignado por defecto si la naturaleza del cargo es "Libre Nombramiento" o "Gerencia Publica" | Concertar, evaluar, calificar |
 | **Evaluado** | Servidor publico evaluado. Puede proponer compromisos si el evaluador no lo hace. Debe aprobar o rechazar compromisos concertados. Asignado por defecto si la naturaleza es "Carrera Administrativa" | Proponer compromisos, aprobar/rechazar concertacion |
 | **Cargador** | Rol de apoyo para contratistas. Carga informacion, registra metas y ausentismos | Carga de datos, metas, ausentismos |
 | **Comision Evaluadora** | Servidor de Libre Nombramiento y Remocion. Aprueba o rechaza evaluaciones realizadas por el evaluador | Aprobar/rechazar evaluaciones |
 
 ### 2.3 Modulos del Sistema (segun documento CNSC)
 
-1. **Inicio** - Cambio de contrasena
+1. **Inicio** - Cambio de contraseña
 2. **Periodos** - Visualizacion informativa de etapas del proceso EDL
 3. **Dependencias** - CRUD por Jefe de Personal (nombre + codigo, activo/inactivo, validacion de usuarios asociados)
 4. **Metas** - CRUD por Jefe de Personal (periodo + dependencia + descripcion)
@@ -121,9 +121,9 @@ La EDL APP es la plataforma oficial de la CNSC para gestionar el ciclo completo 
 
 **B10. No existe la funcionalidad "Restaurar password" por parte del admin**
 - Documento: El Jefe de Personal puede "Restaurar password" de un usuario desde la tabla de usuarios.
-- Estado actual: No existe endpoint para que un administrador resetee la contrasena de otro usuario. Solo existe recuperacion automatica por correo.
+- Estado actual: No existe endpoint para que un administrador resetee la contraseña de otro usuario. Solo existe recuperacion automatica por correo.
 - Impacto: El administrador no puede ayudar a usuarios que no tienen acceso a correo.
-- Solucion: Crear endpoint PUT /api/v1/usuarios/{id}/restaurar-password que genere una contrasena temporal y la envie por correo o la muestre en pantalla.
+- Solucion: Crear endpoint PUT /api/v1/usuarios/{id}/restaurar-password que genere una contraseña temporal y la envie por correo o la muestre en pantalla.
 
 **B11. No existe la funcionalidad "Ver evaluaciones" en formato PDF desde el modulo de usuarios**
 - Documento: Desde la tabla de usuarios, el Jefe de Personal puede "Ver evaluaciones" y descargar resultados en PDF.
@@ -167,11 +167,11 @@ La EDL APP es la plataforma oficial de la CNSC para gestionar el ciclo completo 
 - Impacto: El flujo de movilidad no esta integrado con la gestion de usuarios como lo define el CNSC.
 - Solucion: Integrar la funcionalidad de movilidad como subpestana dentro del modulo de usuarios. Buscar usuario inactivo, seleccionar "Movilizar", completar datos de destino.
 
-**B18. No existe "Cambio de contrasena" como modulo de Inicio**
-- Documento: La pestana Inicio permite al usuario cambiar su contrasena.
-- Estado actual: Existe endpoint PUT /api/v1/auth/password pero no hay pantalla de Inicio dedicada con esta funcion. El cambio de contrasena no esta accesible desde una pestana visible del menu.
-- Impacto: El usuario no tiene un lugar claro y visible para cambiar su contrasena.
-- Solucion: Agregar seccion de cambio de contrasena en el perfil del usuario o en la pagina de inicio del Dashboard.
+**B18. No existe "Cambio de contraseña" como modulo de Inicio**
+- Documento: La pestana Inicio permite al usuario cambiar su contraseña.
+- Estado actual: Existe endpoint PUT /api/v1/auth/password pero no hay pantalla de Inicio dedicada con esta funcion. El cambio de contraseña no esta accesible desde una pestana visible del menu.
+- Impacto: El usuario no tiene un lugar claro y visible para cambiar su contraseña.
+- Solucion: Agregar seccion de cambio de contraseña en el perfil del usuario o en la pagina de inicio del Dashboard.
 
 ---
 
@@ -184,7 +184,7 @@ La EDL APP es la plataforma oficial de la CNSC para gestionar el ciclo completo 
 
 **I2. Las evidencias permiten carga de archivos**
 - Documento CNSC: "No se permite la carga de archivos adjuntos. El registro es unicamente descriptivo."
-- Proyecto: EvidenciaService permite subir archivos (PDF, DOC, XLS, JPG, PNG) con tamano maximo configurable.
+- Proyecto: EvidenciaService permite subir archivos (PDF, DOC, XLS, JPG, PNG) con tamaño maximo configurable.
 - Divergencia: El proyecto MEJORA al CNSC permitiendo archivos adjuntos, pero esto contradice la documentacion oficial. Parece una decision deliberada de Carepa.
 - Recomendacion: Mantener la carga de archivos (es superior), pero documentar la diferencia con el CNSC.
 
@@ -276,7 +276,7 @@ Estos problemas impiden que los flujos del documento CNSC funcionen correctament
 | B11 | Ver evaluaciones en PDF desde modulo de usuarios | B6 | 3h |
 | B12 | Administrar roles desde tabla de usuarios | B2 | 3h |
 | B17 | Integrar movilidad como subpestana de usuarios | Ninguna | 3h |
-| B18 | Modulo de cambio de contrasena visible en Inicio | Ninguna | 1h |
+| B18 | Modulo de cambio de contraseña visible en Inicio | Ninguna | 1h |
 | I4 | Restringir edicion de periodos solo a rol central | B2 | 1h |
 
 ### FASE 4: Mejoras de calidad y UX

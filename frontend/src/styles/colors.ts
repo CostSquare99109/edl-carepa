@@ -26,7 +26,7 @@ export const ROLES_SISTEMA = [
  { codigo: 'evaluador', nombre: 'Evaluador' },
  { codigo: 'evaluado', nombre: 'Evaluado' },
  { codigo: 'cargador', nombre: 'Cargador' },
- { codigo: 'comision_evaluadora', nombre: 'Comision Evaluadora' },
+ { codigo: 'comision_evaluadora', nombre: 'Comisión Evaluadora' },
 ] as const;
 
 export const ROLE_COLORS: Record<string, string> = {

@@ -32,6 +32,7 @@ $router->group('/api/v1', function (Router $r) {
   $r->get('/auth/perfil', [\App\Controller\AuthController::class, 'perfil']);
   $r->put('/auth/perfil', [\App\Controller\AuthController::class, 'actualizarPerfil']);
   $r->put('/auth/password', [\App\Controller\AuthController::class, 'cambiarPassword']);
+  $r->put('/auth/forzar-password', [\App\Controller\AuthController::class, 'forzarCambioPassword']);
   $r->put('/auth/rol', [\App\Controller\AuthController::class, 'cambiarRol']);
   $r->post('/auth/refresh', [\App\Controller\AuthController::class, 'refreshToken']);
   $r->get('/auth/csrf', [\App\Controller\AuthController::class, 'csrfToken']);
@@ -92,6 +93,7 @@ $router->group('/api/v1', function (Router $r) {
   $r->put('/concertaciones/{id}', [\App\Controller\ConcertacionController::class, 'actualizar'], ['permiso:concertaciones.crear']);
   $r->put('/concertaciones/{id}/fijar', [\App\Controller\ConcertacionController::class, 'fijarCompromisos'], ['permiso:concertaciones.crear']);
   $r->get('/concertaciones/{id}/compromisos', [\App\Controller\ConcertacionController::class, 'compromisos'], ['permiso:compromisos.listar']);
+ $r->get('/concertaciones/{id}/validar-compromisos', [\App\Controller\CompromisoController::class, 'validarAntesDeFirmar'], ['permiso:compromisos.listar']);
   $r->post('/concertaciones/{id}/compromisos', [\App\Controller\CompromisoController::class, 'crear'], ['permiso:compromisos.crear']);
   $r->post('/concertaciones/{id}/compromisos-mejoramiento', [\App\Controller\CompromisoMejoramientoController::class, 'crear'], ['permiso:mejoramiento.crear']);
   $r->get('/concertaciones/{id}/compromisos-mejoramiento', [\App\Controller\CompromisoMejoramientoController::class, 'listar'], ['permiso:mejoramiento.listar']);
@@ -116,9 +118,12 @@ $router->group('/api/v1', function (Router $r) {
   $r->delete('/compromisos/comportamental/{id}', [\App\Controller\CompromisoController::class, 'eliminarComportamental'], ['permiso:compromisos.editar']);
   $r->put('/compromisos/{id}/aceptar-evaluado', [\App\Controller\CompromisoController::class, 'aceptarEvaluado'], ['permiso:compromisos.aceptar']);
   $r->put('/compromisos/{id}/rechazar-evaluado', [\App\Controller\CompromisoController::class, 'rechazarEvaluado'], ['permiso:compromisos.aceptar']);
+  $r->put('/evaluaciones/{id}/aceptar-concertacion', [\App\Controller\CompromisoController::class, 'aceptarConcertacionEvaluado'], ['permiso:compromisos.enviar']);
+  $r->put('/evaluaciones/{id}/rechazar-concertacion', [\App\Controller\CompromisoController::class, 'rechazarConcertacionEvaluado'], ['permiso:compromisos.enviar']);
   $r->get('/compromisos/evaluacion/{id}', [\App\Controller\CompromisoController::class, 'listarPorEvaluacion'], ['permiso:compromisos.listar']);
   $r->put('/compromisos/confirmar-concertacion/{id}', [\App\Controller\CompromisoController::class, 'confirmarConcertacion'], ['permiso:compromisos.crear']);
   $r->get('/compromisos/pendientes', [\App\Controller\CompromisoController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
+ $r->get('/compromisos/propuestos-evaluado', [\App\Controller\CompromisoController::class, 'propuestosPorEvaluado'], ['permiso:compromisos.listar']);
   $r->put('/compromisos/{id}/aprobar', [\App\Controller\CompromisoController::class, 'aprobar'], ['permiso:compromisos.aprobar']);
   $r->put('/compromisos/{id}/rechazar', [\App\Controller\CompromisoController::class, 'rechazar'], ['permiso:compromisos.aprobar']);
   $r->put('/compromisos/{id}/devolver', [\App\Controller\CompromisoController::class, 'devolver'], ['permiso:compromisos.devolver']);
@@ -126,7 +131,8 @@ $router->group('/api/v1', function (Router $r) {
   $r->get('/compromisos/{id}/pesos', [\App\Controller\CompromisoController::class, 'resumenPesos'], ['permiso:compromisos.listar']);
   $r->put('/compromisos/{id}', [\App\Controller\CompromisoController::class, 'actualizar'], ['permiso:compromisos.editar']);
 
-  $r->get('/compromisos-mejoramiento/{id}', [\App\Controller\CompromisoMejoramientoController::class, 'ver'], ['permiso:mejoramiento.listar']);
+  $r->get('/compromisos-mejoramiento', [\App\Controller\CompromisoMejoramientoController::class, 'listarGlobal'], ['permiso:mejoramiento.listar']);
+ $r->get('/compromisos-mejoramiento/{id}', [\App\Controller\CompromisoMejoramientoController::class, 'ver'], ['permiso:mejoramiento.listar']);
   $r->put('/compromisos-mejoramiento/{id}', [\App\Controller\CompromisoMejoramientoController::class, 'actualizar'], ['permiso:mejoramiento.editar']);
   $r->post('/compromisos-mejoramiento/{id}/seguimiento', [\App\Controller\CompromisoMejoramientoController::class, 'seguimiento'], ['permiso:mejoramiento.editar']);
   $r->put('/compromisos-mejoramiento/{id}/completar', [\App\Controller\CompromisoMejoramientoController::class, 'completar'], ['permiso:mejoramiento.editar']);
@@ -147,6 +153,7 @@ $router->group('/api/v1', function (Router $r) {
   $r->get('/movilidades/{id}', [\App\Controller\MovilidadController::class, 'ver'], ['permiso:movilidades.listar']);
   $r->put('/movilidades/{id}', [\App\Controller\MovilidadController::class, 'actualizar'], ['permiso:movilidades.editar']);
   $r->delete('/movilidades/{id}', [\App\Controller\MovilidadController::class, 'eliminar'], ['permiso:movilidades.editar']);
+  $r->put('/movilidades/{id}/ejecutar', [\App\Controller\MovilidadController::class, 'ejecutar'], ['permiso:movilidades.ejecutar']);
 
   $r->get('/reportes/concertacion', [\App\Controller\ReporteController::class, 'concertacion'], ['permiso:reportes.generar']);
   $r->get('/reportes/evaluaciones', [\App\Controller\ReporteController::class, 'evaluaciones'], ['permiso:reportes.generar']);
@@ -164,6 +171,7 @@ $router->group('/api/v1', function (Router $r) {
   $r->post('/cargas/evaluaciones', [\App\Controller\CargaMasivaController::class, 'evaluaciones'], ['permiso:cargas.ejecutar']);
   $r->post('/cargas/cursos', [\App\Controller\CargaMasivaController::class, 'cursos'], ['permiso:cargas.ejecutar']);
   $r->get('/cargas', [\App\Controller\CargaMasivaController::class, 'historial'], ['permiso:cargas.listar']);
+  $r->get('/cargas/plantilla-usuarios', [\App\Controller\CargaMasivaController::class, 'plantillaUsuarios'], ['permiso:cargas.ejecutar']);
 
   $r->get('/consulta-funcionario/{documento}', [\App\Controller\ConsultaFuncionarioController::class, 'consultar']);
 

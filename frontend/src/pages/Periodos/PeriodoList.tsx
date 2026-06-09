@@ -1,282 +1,228 @@
 import { useEffect, useState } from 'react'
-import { COLORES_TAILWIND } from '../../styles/colors'
 import { api, type PaginatedData } from '../../lib/api'
 
 interface Periodo {
-  id: number
-  nombre: string
-  fecha_inicio: string
-  fecha_fin: string
-  estado: string
-  fecha_inicio_concertacion: string
-  fecha_fin_concertacion: string
-  fecha_inicio_evaluacion: string
-  fecha_fin_evaluacion: string
+ id: number
+ nombre: string
+ fecha_inicio: string
+ fecha_fin: string
+ estado: string
+ fecha_inicio_concertacion: string | null
+ fecha_fin_concertacion: string | null
+ fecha_inicio_evaluacion: string | null
+ fecha_fin_evaluacion: string | null
 }
 
-const ESTADOS_PERIODO: { value: string; label: string }[] = [
-  { value: 'configuracion', label: 'Configuración' },
-  { value: 'concertacion', label: 'Concertación' },
-  { value: 'seguimiento', label: 'Seguimiento' },
-  { value: 'evaluacion', label: 'Evaluación' },
-  { value: 'calificacion', label: 'Calificación' },
-  { value: 'cerrado', label: 'Cerrado' },
-]
-
-const PERIODOS_ANUALES = [
-  '2022-2023', '2023-2024', '2024-2025', '2025-2026', '2026-2027',
-  '2027-2028', '2028-2029', '2029-2030',
-]
-
-function generarNombre(inicio: number): string {
-  return `${inicio}-${inicio + 1}`
+interface EtapaEDL {
+ key: string
+ label: string
+ icon: string
+ descripcion: string
+ color: string
+ bgColor: string
 }
 
-function generarFechas(inicio: number) {
-  return {
-    fecha_inicio: `${inicio}-01-01`,
-    fecha_fin: `${inicio + 1}-12-31`,
-    fecha_inicio_concertacion: `${inicio}-01-15`,
-    fecha_fin_concertacion: `${inicio}-03-31`,
-    fecha_inicio_evaluacion: `${inicio + 1}-01-15`,
-    fecha_fin_evaluacion: `${inicio + 1}-06-30`,
-  }
+const ETAPAS_EDL: EtapaEDL[] = [
+ {
+  key: 'concertacion',
+  label: 'Concertacion de compromisos',
+  icon: 'handshake',
+  descripcion: 'El jefe inmediato y el evaluado acuerdan los compromisos funcionales y competencias comportamentales que seran evaluados.',
+  color: 'text-inst-azul',
+  bgColor: 'bg-blue-50 border-blue-200',
+ },
+ {
+  key: 'seguimiento',
+  label: 'Seguimiento',
+  icon: 'visibility',
+  descripcion: 'Seguimiento continuo al cumplimiento de compromisos y competencias concertadas. Registro de evidencias.',
+  color: 'text-inst-verde',
+  bgColor: 'bg-green-50 border-green-200',
+ },
+ {
+  key: 'evaluacion_parcial_1',
+  label: 'Evaluacion parcial 1er semestre',
+  icon: 'rate_review',
+  descripcion: 'Evaluacion parcial del desempeño al finalizar el primer semestre. Calificacion de compromisos funcionales y comportamentales.',
+  color: 'text-yellow-700',
+  bgColor: 'bg-yellow-50 border-yellow-200',
+ },
+ {
+  key: 'calificacion_parcial_1',
+  label: 'Calificacion parcial 1er semestre',
+  icon: 'grading',
+  descripcion: 'Aprobacion o rechazo de la calificacion parcial por la Comision de Evaluacion y Desempeno.',
+  color: 'text-orange-700',
+  bgColor: 'bg-orange-50 border-orange-200',
+ },
+ {
+  key: 'evaluacion_parcial_2',
+  label: 'Evaluacion parcial 2do semestre',
+  icon: 'rate_review',
+  descripcion: 'Evaluacion parcial del desempeño al finalizar el segundo semestre.',
+  color: 'text-yellow-700',
+  bgColor: 'bg-yellow-50 border-yellow-200',
+ },
+ {
+  key: 'calificacion_definitiva',
+  label: 'Calificacion definitiva',
+  icon: 'fact_check',
+  descripcion: 'Calificacion definitiva del desempeño laboral. Aprobacion por la Comision de Evaluacion. Recursos de reposicion.',
+  color: 'text-inst-rojo',
+  bgColor: 'bg-red-50 border-red-200',
+ },
+]
+
+const ESTADO_ETAPA_MAP: Record<string, string> = {
+ configuracion: 'concertacion',
+ concertacion: 'concertacion',
+ seguimiento: 'seguimiento',
+ evaluacion: 'evaluacion_parcial_1',
+ calificacion: 'calificacion_parcial_1',
+ cerrado: 'calificacion_definitiva',
+}
+
+function fmtDate(d: string | null | undefined): string {
+ if (!d) return '--'
+ return new Date(d + 'T00:00:00').toLocaleDateString('es-CO')
 }
 
 export default function PeriodoList() {
-  const [items, setItems] = useState<Periodo[]>([])
-  const [total, setTotal] = useState(0)
-  const [pagina, setPagina] = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [editando, setEditando] = useState<Periodo | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [creando, setCreando] = useState(false)
-  const [nuevoAnio, setNuevoAnio] = useState(new Date().getFullYear())
+ const [items, setItems] = useState<Periodo[]>([])
+ const [total, setTotal] = useState(0)
+ const [pagina, setPagina] = useState(1)
+ const [loading, setLoading] = useState(true)
 
-  function cargar() {
-    setLoading(true)
-    api.get<PaginatedData<Periodo>>(`/periodos?pagina=${pagina}&por_pagina=20`)
-      .then(d => { setItems(d.data || []); setTotal(d.total); })
-      .catch(() => {})
-      .finally(() => setLoading(false))
+ function cargar() {
+  setLoading(true)
+  api.get<PaginatedData<Periodo>>(`/periodos?pagina=${pagina}&por_pagina=20`)
+   .then(d => { setItems(d.data || []); setTotal(d.total); })
+   .catch(() => {})
+   .finally(() => setLoading(false))
+ }
+
+ useEffect(() => { cargar() }, [pagina])
+
+ const estadoBadge = (e: string) => {
+  const m: Record<string, string> = {
+   configuracion: 'bg-blue-100 text-blue-800',
+   concertacion: 'bg-blue-100 text-blue-800',
+   seguimiento: 'bg-green-100 text-green-800',
+   evaluacion: 'bg-yellow-100 text-yellow-800',
+   calificacion: 'bg-orange-100 text-orange-800',
+   cerrado: 'bg-gray-100 text-gray-700',
   }
+  return m[e] || 'bg-gray-100 text-gray-700'
+ }
 
-  useEffect(() => { cargar() }, [pagina])
-
-  async function guardar() {
-    if (!editando) return
-    setSaving(true)
-    try {
-      await api.put(`/periodos/${editando.id}`, {
-        nombre: editando.nombre,
-        fecha_inicio: editando.fecha_inicio,
-        fecha_fin: editando.fecha_fin,
-        estado: editando.estado,
-        fecha_inicio_concertacion: editando.fecha_inicio_concertacion,
-        fecha_fin_concertacion: editando.fecha_fin_concertacion,
-        fecha_inicio_evaluacion: editando.fecha_inicio_evaluacion,
-        fecha_fin_evaluacion: editando.fecha_fin_evaluacion,
-      })
-      setEditando(null)
-      cargar()
-    } catch (err) {
-      console.error('Error al guardar:', err)
-    } finally {
-      setSaving(false)
-    }
+ const estadoLabel = (e: string) => {
+  const m: Record<string, string> = {
+   configuracion: 'Configuracion',
+   concertacion: 'Concertacion',
+   seguimiento: 'Seguimiento',
+   evaluacion: 'Evaluacion',
+   calificacion: 'Calificacion',
+   cerrado: 'Cerrado',
   }
+  return m[e] || e
+ }
 
-  async function crearPeriodo() {
-    setSaving(true)
-    try {
-      const fechas = generarFechas(nuevoAnio)
-      await api.post('/periodos', {
-        nombre: generarNombre(nuevoAnio),
-        estado: 'configuracion',
-        ...fechas,
-      })
-      setCreando(false)
-      cargar()
-    } catch (err) {
-      console.error('Error al crear:', err)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const estadoLabel = (e: string) => ESTADOS_PERIODO.find(ep => ep.value === e)?.label || e
-
-  const estadoBadge = (e: string) => {
-    if (e === 'cerrado') return 'bg-gray-100 text-gray-700'
-    if (e === 'calificacion' || e === 'evaluacion') return 'bg-yellow-100 text-yellow-800'
-    if (e === 'configuracion') return 'bg-blue-100 text-blue-800'
-    return 'bg-green-100 text-green-800'
-  }
-
-  return (
-    <div className="space-y-4 p-4 lg:p-6">
-      <div className="flex items-center justify-between">
-        <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulClaroText}`}>
-        <span className="material-icons text-lg align-middle mr-1">date_range</span>
-        Periodos de Evaluacion
-        </h2>
-        <button onClick={() => setCreando(true)}
-        className={`${COLORES_TAILWIND.azulClaro} text-white text-sm px-4 py-2 rounded-lg hover:opacity-90 flex items-center gap-2`}>
-          <span className="material-icons text-base">add</span>
-          Nuevo Periodo
-        </button>
-      </div>
-
-      {/* Crear nuevo periodo */}
-      {creando && (
-        <div className={`bg-white rounded-lg shadow-sm p-4 border-2 ${COLORES_TAILWIND.azulClaroBorder}/20`}>
-        <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>Crear Nuevo Periodo</h3>
-          <div className="flex items-end gap-4">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-inst-texto-claro mb-1">Año de inicio</label>
-              <select value={nuevoAnio} onChange={e => setNuevoAnio(Number(e.target.value))}
-                className="w-full border rounded-lg px-3 py-2 text-sm">
-                {Array.from({ length: 10 }, (_, i) => 2022 + i).map(a => (
-                  <option key={a} value={a}>{generarNombre(a)}</option>
-                ))}
-              </select>
-            </div>
-            <div className="text-sm text-inst-texto-claro py-2">
-              Del <strong>{nuevoAnio}-01-01</strong> al <strong>{nuevoAnio + 1}-12-31</strong>
-            </div>
-            <button onClick={crearPeriodo} disabled={saving}
-              className={`${COLORES_TAILWIND.verde} text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 disabled:opacity-50 flex items-center gap-1`}>
-              {saving ? <span className="material-icons text-sm animate-spin">sync</span> : <span className="material-icons text-sm">check</span>}
-              Crear
-            </button>
-            <button onClick={() => setCreando(false)}
-              className="border border-gray-300 text-inst-texto px-3 py-2 rounded-lg text-sm hover:bg-inst-gris">
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {loading ? (
-        <p className="text-inst-texto-claro text-sm">Cargando...</p>
-      ) : items.length === 0 ? (
-        <div className="text-center py-10 text-gray-400">
-          <span className="material-icons text-4xl block mb-2">event_busy</span>
-          No hay periodos registrados. Cree uno nuevo.
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-inst-gris">
-                <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Periodo</th>
-                <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Fecha Inicio</th>
-                <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Fecha Fin</th>
-                <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Estado</th>
-                <th className="text-center px-4 py-3 font-semibold text-inst-texto-claro w-16">Editar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(p => (
-                <tr key={p.id} className={`border-b hover:bg-inst-gris/50 transition ${p.estado === 'cerrado' ? 'opacity-60' : ''}`}>
-                  <td className="px-4 py-3 font-medium text-inst-azul">{p.nombre}</td>
-                  <td className="px-4 py-3">{p.fecha_inicio ? new Date(p.fecha_inicio + 'T00:00:00').toLocaleDateString('es-CO') : '—'}</td>
-                  <td className="px-4 py-3">{p.fecha_fin ? new Date(p.fecha_fin + 'T00:00:00').toLocaleDateString('es-CO') : '—'}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${estadoBadge(p.estado)}`}>
-                      {estadoLabel(p.estado)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => setEditando({ ...p })}
-                      className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul hover:text-inst-rojo"
-                      title="Editar periodo"
-                    >
-                      <span className="material-icons text-lg">edit</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Modal de edición */}
-      {editando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-inst-borde">
-              <h3 className={`text-base font-bold ${COLORES_TAILWIND.azulClaroText}`}>Editar Periodo</h3>
-              <button onClick={() => setEditando(null)} className="p-1 rounded hover:bg-inst-gris">
-                <span className="material-icons text-xl text-inst-texto-claro">close</span>
-              </button>
-            </div>
-
-            <div className="p-4 space-y-3">
-              {editando.estado === 'cerrado' && (
-                <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex items-center gap-2">
-                  <span className="material-icons text-yellow-600">lock</span>
-                  <p className="text-sm text-yellow-800 font-medium">Este periodo está cerrado. Puede reabrirlo cambiando el estado.</p>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nombre</label>
-                <input value={editando.nombre} onChange={e => setEditando({ ...editando, nombre: e.target.value })} className="edl-input w-full" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Fecha Inicio</label>
-                  <input type="date" value={editando.fecha_inicio?.substring(0, 10) || ''} onChange={e => setEditando({ ...editando, fecha_inicio: e.target.value })} className="edl-input w-full" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Fecha Fin</label>
-                  <input type="date" value={editando.fecha_fin?.substring(0, 10) || ''} onChange={e => setEditando({ ...editando, fecha_fin: e.target.value })} className="edl-input w-full" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-inst-texto-claro mb-1">Estado</label>
-                <select value={editando.estado} onChange={e => setEditando({ ...editando, estado: e.target.value })} className="edl-input w-full">
-                  {ESTADOS_PERIODO.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
-                </select>
-              </div>
-              <hr className="border-inst-borde" />
-              <p className="text-xs font-medium text-inst-texto-claro">Fechas de Concertación</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Inicio Concertación</label>
-                  <input type="date" value={editando.fecha_inicio_concertacion?.substring(0, 10) || ''} onChange={e => setEditando({ ...editando, fecha_inicio_concertacion: e.target.value })} className="edl-input w-full" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Fin Concertación</label>
-                  <input type="date" value={editando.fecha_fin_concertacion?.substring(0, 10) || ''} onChange={e => setEditando({ ...editando, fecha_fin_concertacion: e.target.value })} className="edl-input w-full" />
-                </div>
-              </div>
-              <p className="text-xs font-medium text-inst-texto-claro">Fechas de Evaluación</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Inicio Evaluación</label>
-                  <input type="date" value={editando.fecha_inicio_evaluacion?.substring(0, 10) || ''} onChange={e => setEditando({ ...editando, fecha_inicio_evaluacion: e.target.value })} className="edl-input w-full" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Fin Evaluación</label>
-                  <input type="date" value={editando.fecha_fin_evaluacion?.substring(0, 10) || ''} onChange={e => setEditando({ ...editando, fecha_fin_evaluacion: e.target.value })} className="edl-input w-full" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 p-4 border-t border-inst-borde">
-              <button onClick={() => setEditando(null)} className="edl-btn-outline">Cancelar</button>
-              <button onClick={guardar} disabled={saving} className="edl-btn-primary flex items-center gap-2">
-                {saving && <span className="material-icons text-sm animate-spin">sync</span>}
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+ return (
+  <div className="space-y-6">
+   <div>
+    <div className="flex items-center gap-2 mb-1">
+     <span className="material-icons text-inst-azul text-xl">date_range</span>
+     <h2 className="edl-section-title">Periodos de Evaluacion</h2>
     </div>
-  )
+    <p className="text-sm text-inst-texto-claro ml-7">
+     Etapas del proceso EDL segun Acuerdo 617 de 2018 - Solo lectura
+    </p>
+   </div>
+
+   {/* Etapas EDL informativas */}
+   <div className="edl-card">
+    <h3 className="font-heading font-bold text-inst-azul mb-4 flex items-center gap-2">
+     <span className="material-icons">timeline</span>
+     Etapas del Proceso EDL
+    </h3>
+    <div className="space-y-3">
+     {ETAPAS_EDL.map((etapa, idx) => (
+      <div key={etapa.key} className={`border rounded-lg p-3 flex items-start gap-3 ${etapa.bgColor}`}>
+       <div className="flex flex-col items-center">
+        <span className="text-xs font-bold text-inst-texto-claro">{idx + 1}</span>
+        <span className={`material-icons ${etapa.color}`}>{etapa.icon}</span>
+       </div>
+       <div>
+        <p className={`font-semibold text-sm ${etapa.color}`}>{etapa.label}</p>
+        <p className="text-xs text-inst-texto-claro mt-0.5">{etapa.descripcion}</p>
+       </div>
+      </div>
+     ))}
+    </div>
+   </div>
+
+   {/* Tabla de periodos - solo lectura */}
+   {loading ? (
+    <p className="text-inst-texto-claro text-sm">Cargando...</p>
+   ) : items.length === 0 ? (
+    <div className="text-center py-10 text-gray-400">
+     <span className="material-icons text-4xl block mb-2">event_busy</span>
+     No hay periodos registrados
+    </div>
+   ) : (
+    <div className="edl-card overflow-hidden p-0">
+     <table className="edl-table">
+      <thead>
+       <tr>
+        <th>Periodo</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Concertacion</th>
+        <th>Evaluacion</th>
+        <th>Estado</th>
+       </tr>
+      </thead>
+      <tbody>
+       {items.map(p => {
+        const etapaActual = ESTADO_ETAPA_MAP[p.estado] || ''
+        return (
+         <tr key={p.id} className={p.estado === 'cerrado' ? 'opacity-60' : ''}>
+          <td className="font-medium text-inst-azul">{p.nombre}</td>
+          <td>{fmtDate(p.fecha_inicio)}</td>
+          <td>{fmtDate(p.fecha_fin)}</td>
+          <td className="text-xs">
+           {fmtDate(p.fecha_inicio_concertacion)} - {fmtDate(p.fecha_fin_concertacion)}
+          </td>
+          <td className="text-xs">
+           {fmtDate(p.fecha_inicio_evaluacion)} - {fmtDate(p.fecha_fin_evaluacion)}
+          </td>
+          <td>
+           <span className={`text-xs px-2 py-1 rounded-full font-medium ${estadoBadge(p.estado)}`}>
+            {estadoLabel(p.estado)}
+           </span>
+           {etapaActual && p.estado !== 'cerrado' && (
+            <p className="text-[10px] text-inst-texto-claro mt-0.5">
+             Etapa: {ETAPAS_EDL.find(e => e.key === etapaActual)?.label || ''}
+            </p>
+           )}
+          </td>
+         </tr>
+        )
+       })}
+      </tbody>
+     </table>
+    </div>
+   )}
+
+   {total > 20 && (
+    <div className="flex justify-center gap-2">
+     <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={pagina === 1}
+      className="edl-btn-outline text-sm disabled:opacity-50">Anterior</button>
+     <span className="text-sm text-inst-texto-claro py-2">Pagina {pagina}</span>
+     <button onClick={() => setPagina(p => p + 1)} disabled={pagina >= Math.ceil(total / 20)}
+      className="edl-btn-outline text-sm disabled:opacity-50">Siguiente</button>
+    </div>
+   )}
+  </div>
+ )
 }

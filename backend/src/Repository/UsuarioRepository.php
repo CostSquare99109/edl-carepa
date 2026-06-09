@@ -80,9 +80,9 @@ class UsuarioRepository extends BaseRepository
  $params = [];
 
  if (!empty($filtros['busqueda'])) {
- $conditions[] = "(u.primer_nombre LIKE ? OR u.segundo_nombre LIKE ? OR u.primer_apellido LIKE ? OR u.segundo_apellido LIKE ? OR u.documento LIKE ? OR u.email LIKE ?)";
+ $conditions[] = "(u.nombres LIKE ? OR u.apellidos LIKE ? OR u.documento LIKE ? OR u.email LIKE ?)";
  $b = "%{$filtros['busqueda']}%";
- $params = array_merge($params, [$b, $b, $b, $b, $b, $b]);
+ $params = array_merge($params, [$b, $b, $b, $b]);
  }
  if (!empty($filtros['entidad_id'])) {
  $conditions[] = "u.entidad_id = ?";
@@ -117,7 +117,7 @@ class UsuarioRepository extends BaseRepository
  foreach ($usuarios as &$u) {
  unset($u['password_hash']);
  $u['roles'] = $this->obtenerRoles((int) $u['id']);
- $u['nombre_completo'] = trim(($u['primer_nombre'] ?? '') . ' ' . ($u['segundo_nombre'] ?? '') . ' ' . ($u['primer_apellido'] ?? '') . ' ' . ($u['segundo_apellido'] ?? ''));
+ $u['nombre_completo'] = trim(($u['nombres'] ?? '') . ' ' . ($u['apellidos'] ?? ''));
  }
 
  return [

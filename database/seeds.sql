@@ -19,7 +19,7 @@ USE edl_carepa;
 -- ============================================================================
 INSERT INTO `roles` (`id`, `codigo`, `nombre`, `descripcion`) VALUES
 (1, 'jefe_personal', 'Jefe de Personal', 'Administrador principal de la entidad. Gestiona dependencias, metas, usuarios, ausentismos y reportes.'),
-(2, 'evaluador', 'Evaluador', 'Concerta o fija compromisos funcionales y comportamentales, realiza seguimiento, registra evidencias y califica desempeno.'),
+(2, 'evaluador', 'Evaluador', 'Concerta o fija compromisos funcionales y comportamentales, realiza seguimiento, registra evidencias y califica desempeño.'),
 (3, 'evaluado', 'Evaluado', 'Servidor publico sujeto a evaluacion. Propone compromisos y acepta/rechaza compromisos concertados.'),
 (4, 'cargador', 'Cargador', 'Apoyo para cargue de informacion, registro de dependencias, metas y ausentismos. Asignado automaticamente a contratistas.'),
 (5, 'comision_evaluadora', 'Comision Evaluadora', 'Servidor de libre nombramiento y remocion que aprueba o rechaza las evaluaciones realizadas por el evaluador.'),
@@ -43,8 +43,8 @@ INSERT INTO `permisos` (`id`, `codigo`, `nombre`, `modulo`, `descripcion`) VALUE
 (12, 'periodos.listar', 'Listar periodos', 'periodos', 'Ver periodos evaluativos'),
 (13, 'periodos.crear', 'Crear periodo', 'periodos', 'Abrir nuevo periodo'),
 (14, 'periodos.editar', 'Editar periodo', 'periodos', 'Modificar periodo'),
-(15, 'metas.listar', 'Listar metas', 'metas', 'Ver metas de desempeno'),
-(16, 'metas.crear', 'Crear meta', 'metas', 'Definir meta de desempeno'),
+(15, 'metas.listar', 'Listar metas', 'metas', 'Ver metas de desempeño'),
+(16, 'metas.crear', 'Crear meta', 'metas', 'Definir meta de desempeño'),
 (17, 'metas.editar', 'Editar meta', 'metas', 'Modificar meta'),
 (18, 'concertaciones.listar', 'Listar concertaciones', 'concertaciones', 'Ver concertaciones'),
 (19, 'concertaciones.crear', 'Crear concertacion', 'concertaciones', 'Registrar concertacion'),
@@ -74,7 +74,7 @@ INSERT INTO `permisos` (`id`, `codigo`, `nombre`, `modulo`, `descripcion`) VALUE
 (43, 'evaluaciones.aprobar', 'Aprobar calificacion definitiva', 'evaluaciones', 'Aprobar evaluacion calificada'),
 (44, 'compromisos.devolver', 'Devolver compromiso al evaluado', 'compromisos', 'Devolver compromiso en concertacion'),
 (45, 'compromisos.aprobar', 'Aprobar compromiso en concertacion', 'compromisos', 'Aprobar compromiso propuesto'),
-(46, 'usuarios.restablecer', 'Restablecer contrasena de usuario', 'usuarios', 'Resetear clave de usuario'),
+(46, 'usuarios.restablecer', 'Restablecer contraseña de usuario', 'usuarios', 'Resetear clave de usuario'),
 (47, 'entidades.habilitar', 'Habilitar entidad en el sistema', 'entidades', 'Habilitar entidad'),
 (48, 'parametros.listar', 'Listar parametros del sistema', 'parametros', 'Ver parametros'),
 (49, 'compromisos.enviar', 'Proponer compromiso', 'compromisos', 'Evaluado propone compromiso'),
@@ -135,7 +135,7 @@ INSERT INTO `parametros` (`id`, `clave`, `valor`, `tipo`, `descripcion`) VALUES
 (1, 'jwt_secret', 'cambiar_esto_por_un_secret_seguro_openssl_rand_hex_32', 'texto', 'Clave secreta para JWT'),
 (2, 'jwt_expiracion_minutos', '120', 'numero', 'Tiempo de expiracion del token JWT en minutos'),
 (3, 'intentos_login_maximos', '5', 'numero', 'Maximo de intentos de login antes de bloquear cuenta'),
-(4, 'password_longitud_minima', '8', 'numero', 'Longitud minima de contrasena'),
+(4, 'password_longitud_minima', '8', 'numero', 'Longitud minima de contraseña'),
 (5, 'cors_origen_permitido', 'http://localhost:5174', 'texto', 'Origen permitido para CORS'),
 (6, 'peso_funcionales', '85', 'numero', 'Peso porcentual de compromisos funcionales en calificacion definitiva'),
 (7, 'peso_comportamentales', '15', 'numero', 'Peso porcentual de compromisos comportamentales en calificacion definitiva'),
@@ -162,7 +162,7 @@ INSERT INTO `competencias` (`codigo`, `nombre`, `descripcion`, `decreto`) VALUES
 ('APR_CONT', 'Aprendizaje continuo', 'Capacidad para adquirir y aplicar nuevos conocimientos de forma permanente', '815'),
 ('ORI_RES', 'Orientacion a resultados', 'Capacidad para alcanzar los objetivos propuestos con calidad y oportunidad', '815'),
 ('ORI_USU', 'Orientacion al usuario y al ciudadano', 'Compromiso con la satisfaccion de las necesidades de usuarios y ciudadanos', '815'),
-('CMP_ORG', 'Compromiso con la organizacion', 'Identificacion y alineacion con los objetivos institucionales', '815'),
+('CMP_ORG', 'Compromiso con la organización', 'Identificacion y alineacion con los objetivos institucionales', '815'),
 ('TRB_EQP', 'Trabajo en equipo', 'Capacidad para colaborar y coordinar con otros para el logro de metas comunes', '815'),
 ('ADP_CAM', 'Adaptacion al cambio', 'Capacidad para ajustarse a nuevas condiciones y transformaciones', '815'),
 ('APR_TEC', 'Aporte tecnico profesional', 'Contribucion especializada al desarrollo de los procesos de la entidad', '815');
@@ -193,7 +193,7 @@ INSERT INTO `periodos` (`id`, `nombre`, `anio`, `fecha_inicio`, `fecha_fin`, `es
 -- METAS INSTITUCIONALES
 -- ============================================================================
 INSERT INTO `metas` (`id`, `periodo_id`, `dependencia_id`, `descripcion`) VALUES
-(1, 1, 2, 'Implementar el sistema de evaluacion del desempeno laboral en la entidad'),
+(1, 1, 2, 'Implementar el sistema de evaluacion del desempeño laboral en la entidad'),
 (2, 1, 3, 'Formular y actualizar el plan de desarrollo del municipio'),
 (3, 1, 4, 'Mejorar los indicadores de calidad educativa en las instituciones del municipio'),
 (4, 1, 1, 'Fortalecer la gestion administrativa y financiera de la alcaldia'),

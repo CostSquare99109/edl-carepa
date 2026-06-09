@@ -37,8 +37,8 @@ class UsuarioService
  $v = new ValidatorHelper();
  $v->validate($datos, [
  'documento' => 'required|max:30',
- 'primer_nombre' => 'required|max:60',
- 'primer_apellido' => 'required|max:60',
+ 'nombres' => 'required|max:100',
+ 'apellidos' => 'required|max:100',
  'email' => 'required|email|max:150',
  'password' => 'required|min:8'
  ]);
@@ -89,7 +89,7 @@ class UsuarioService
  unset($usuario['password_hash']);
  $usuario['roles'] = $this->repo->obtenerRoles($id);
  $usuario['permisos'] = $this->repo->obtenerPermisos($id);
- $usuario['nombre_completo'] = trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? ''));
+ $usuario['nombre_completo'] = trim(($usuario['nombres'] ?? '') . ' ' . ($usuario['apellidos'] ?? ''));
  return $usuario;
  }
 
@@ -101,14 +101,14 @@ class UsuarioService
  }
 
  $permitidos = [
- 'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
- 'email', 'telefono1', 'telefono2', 'tipo_documento', 'genero',
- 'denominacion_empleo', 'codigo_empleo', 'grado_empleo',
- 'nivel', 'naturaleza', 'tipo_nombramiento',
- 'entidad_id', 'dependencia_id', 'dependencia_evaluacion_id',
- 'estado', 'es_contratista', 'es_evaluador_y_evaluado',
- 'en_periodo_prueba', 'fecha_posesion', 'proposito_principal_empleo',
- 'evaluacion_inicio_febrero', 'fecha_inicio_evaluacion', 'motivo_fecha_inicio_diferente',
+ 'nombres', 'apellidos',
+ 'email', 'telefono', 'telefono_secundario', 'tipo_documento', 'genero',
+ 'denominacion_empleo', 'codigo_empleo', 'grado',
+ 'nivel_carrera', 'naturaleza', 'tipo_nombramiento',
+ 'entidad_id', 'dependencia_id',
+ 'estado', 'es_contratista',
+ 'periodo_prueba', 'fecha_vinculacion', 'proposito_empleo',
+ 'cargo', 'municipio',
  ];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
 

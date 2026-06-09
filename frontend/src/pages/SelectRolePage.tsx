@@ -15,24 +15,31 @@ interface RolConfig {
 const ROLES_CONFIG: Record<string, RolConfig> = {
  admin: {
  icon: 'shield',
- descripcion: 'Acceso total al sistema: gestión de usuarios, dependencias, evaluaciones, reportes y configuración.',
+ descripcion: 'Jefe de Personal - Administrador de la entidad. Gestion de usuarios, dependencias, evaluaciones, reportes y configuracion.',
  colorBarra: 'border-l-red-600',
  colorFondo: 'bg-red-100',
  colorTexto: 'text-red-800',
  },
  evaluado: {
  icon: 'person',
- descripcion: 'Consulte sus compromisos, evidencias y resultados de evaluación. Proponga compromisos funcionales y comportamentales.',
+ descripcion: 'Consulte sus compromisos, evidencias y resultados de evaluacion. Proponga compromisos funcionales y comportamentales.',
  colorBarra: 'border-l-blue-600',
  colorFondo: 'bg-blue-100',
  colorTexto: 'text-blue-800',
  },
  evaluador: {
  icon: 'rate_review',
- descripcion: 'Evalúe el desempeño de los funcionarios a su cargo. Apruebe compromisos con pesos y califique resultados.',
+ descripcion: 'Evalue el desempeño de los funcionarios a su cargo. Apruebe compromisos con pesos y califique resultados.',
  colorBarra: 'border-l-green-600',
  colorFondo: 'bg-green-100',
  colorTexto: 'text-green-800',
+ },
+ comision_evaluadora: {
+ icon: 'groups',
+ descripcion: 'Comision de Evaluacion y Desempeno. Apruebe o rechace las evaluaciones calificadas por los evaluadores.',
+ colorBarra: 'border-l-purple-600',
+ colorFondo: 'bg-purple-100',
+ colorTexto: 'text-purple-800',
  },
 };
 
@@ -61,11 +68,7 @@ export default function SelectRolePage() {
  setCargando(rol.codigo);
  try {
  await cambiarRol(rol.codigo);
- if (rol.codigo === 'admin') {
- navigate('/admin', { replace: true });
- } else {
  navigate('/', { replace: true });
- }
  } catch (err) {
  setError(err instanceof Error ? err.message : 'Error al cambiar de rol. Intente de nuevo.');
  setCargando(null);

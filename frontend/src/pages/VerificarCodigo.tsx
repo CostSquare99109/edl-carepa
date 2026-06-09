@@ -86,7 +86,7 @@ export default function VerificarCodigo() {
 			const data = await res.json()
 
 			if (data.code === '01') {
-				navigate(`/nueva-contrasena?email=${encodeURIComponent(email)}&codigo=${fullCode}`)
+				navigate(`/nueva-contraseña?email=${encodeURIComponent(email)}&codigo=${fullCode}`)
 			} else {
 				setError(data.message || 'Código inválido')
 				setCodigo(['', '', '', '', '', ''])

@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Repository\EvaluacionRepository;
 use App\Repository\CompromisoRepository;
 use App\Repository\ConcertacionRepository;
+use App\Repository\UsuarioRepository;
 use App\Helper\ResponseHelper;
 use App\Config\Database;
 use App\Config\Env;
@@ -15,13 +16,15 @@ class EvaluacionService
  private EvaluacionRepository $evaluacionRepo;
  private CompromisoRepository $compromisoRepo;
  private ConcertacionRepository $concertacionRepo;
+ private UsuarioRepository $usuarioRepo;
 
  public function __construct()
  {
- $pdo = Database::getInstance();
- $this->evaluacionRepo = new EvaluacionRepository($pdo);
- $this->compromisoRepo = new CompromisoRepository($pdo);
- $this->concertacionRepo = new ConcertacionRepository($pdo);
+  $pdo = Database::getInstance();
+  $this->evaluacionRepo = new EvaluacionRepository($pdo);
+  $this->compromisoRepo = new CompromisoRepository($pdo);
+  $this->concertacionRepo = new ConcertacionRepository($pdo);
+  $this->usuarioRepo = new UsuarioRepository($pdo);
  }
 
  public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
@@ -60,6 +63,17 @@ class EvaluacionService
  $tipo = $datos['tipo'] ?? 'parcial_primer_semestre';
  if (!in_array($tipo, $tiposValidos)) {
  ResponseHelper::error('Tipo de evaluacion invalido', 422);
+ }
+
+ $evaluado = $this->usuarioRepo->buscarPorId((int) $datos['evaluado_id']);
+ if ($evaluado && !empty($evaluado['periodo_prueba']) && (bool) $evaluado['periodo_prueba']) {
+  $fechaInicio = $evaluado['fecha_ingreso'] ?? $evaluado['creado_en'] ?? null;
+  if ($fechaInicio) {
+   $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
+   if ($dias <= 120) {
+    ResponseHelper::error('El funcionario se encuentra en periodo de prueba. No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
+   }
+  }
  }
 
  $crearDatos = [

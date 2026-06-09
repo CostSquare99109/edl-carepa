@@ -21,6 +21,7 @@ class MenuController
    'admin' => $this->menuAdmin(),
    'evaluador' => $this->menuEvaluador(),
    'evaluado' => $this->menuEvaluado(),
+   'comision_evaluadora' => $this->menuComision(),
    default => $this->menuPorPermisos($user),
   };
 
@@ -96,6 +97,12 @@ class MenuController
     'ruta' => '/auditoria',
     'permisos' => ['auditoria.ver'],
    ],
+   [
+    'label' => 'Carga Masiva',
+    'icon' => 'upload_file',
+    'ruta' => '/admin/carga-usuarios',
+    'permisos' => ['cargas.ejecutar'],
+   ],
   ];
  }
 
@@ -122,17 +129,29 @@ class MenuController
    ],
    [
     'label' => 'Compromisos de mejoramiento',
-    'icon' => 'fact_check',
-    'ruta' => '/compromisos/aprobar',
-    'permisos' => ['compromisos.aprobar'],
+    'icon' => 'trending_up',
+    'ruta' => '/compromisos/mejoramiento',
+    'permisos' => ['mejoramiento.listar', 'mejoramiento.crear'],
    ],
    [
-    'label' => 'Evaluar',
-    'icon' => 'rate_review',
-    'ruta' => '/evaluar',
-    'permisos' => ['evaluaciones.evaluar'],
+   'label' => 'Ausentismos',
+   'icon' => 'event_busy',
+   'ruta' => '/ausentismos',
+   'permisos' => ['ausentismos.listar', 'ausentismos.crear'],
    ],
-  ];
+   [
+   'label' => 'Fijacion Unilateral',
+   'icon' => 'gavel',
+   'ruta' => '/compromisos/fijacion-unilateral',
+   'permisos' => ['compromisos.fijar'],
+   ],
+   [
+   'label' => 'Evaluar',
+   'icon' => 'rate_review',
+   'ruta' => '/evaluar',
+   'permisos' => ['evaluaciones.evaluar'],
+   ],
+   ];
  }
 
  private function menuEvaluado(): array
@@ -151,10 +170,16 @@ class MenuController
     'permisos' => ['compromisos.listar', 'compromisos.crear', 'compromisos.aceptar'],
    ],
    [
-    'label' => 'Evidencias',
-    'icon' => 'attach_file',
-    'ruta' => '/evidencias',
-    'permisos' => ['evidencias.listar', 'evidencias.subir'],
+    'label' => 'Proponer Compromisos',
+    'icon' => 'rate_review',
+    'ruta' => '/compromisos/proponer',
+    'permisos' => ['compromisos.crear'],
+   ],
+   [
+   'label' => 'Mis Evidencias',
+   'icon' => 'folder_open',
+   'ruta' => '/mis-evidencias',
+   'permisos' => ['evidencias.listar', 'evidencias.crear'],
    ],
    [
     'label' => 'Ver Evaluaciones',
@@ -162,6 +187,30 @@ class MenuController
     'ruta' => '/evaluaciones',
     'permisos' => ['evaluaciones.listar'],
    ],
+  ];
+ }
+
+ private function menuComision(): array
+ {
+  return [
+  [
+  'label' => 'Inicio',
+  'icon' => 'dashboard',
+  'ruta' => '/',
+  'permisos' => ['dashboard.ver'],
+  ],
+  [
+  'label' => 'Evaluaciones por aprobar',
+  'icon' => 'gavel',
+  'ruta' => '/comision-evaluadora',
+  'permisos' => ['evaluaciones.comision'],
+  ],
+  [
+  'label' => 'Evaluaciones',
+  'icon' => 'assessment',
+  'ruta' => '/evaluaciones',
+  'permisos' => ['evaluaciones.listar'],
+  ],
   ];
  }
 
@@ -202,9 +251,11 @@ class MenuController
    'concertaciones' => ['label' => 'Concertaciones', 'icon' => 'handshake', 'ruta' => '/concertaciones'],
    'evaluaciones' => ['label' => 'Evaluaciones', 'icon' => 'assessment', 'ruta' => '/evaluaciones'],
    'compromisos' => ['label' => 'Compromisos', 'icon' => 'task_alt', 'ruta' => '/compromisos/mios'],
+ 'admin_compromisos' => ['label' => 'Gestion Compromisos', 'icon' => 'task', 'ruta' => '/admin/admin-compromisos'],
    'evidencias' => ['label' => 'Evidencias', 'icon' => 'attach_file', 'ruta' => '/evidencias'],
    'ausentismos' => ['label' => 'Ausentismos', 'icon' => 'event_busy', 'ruta' => '/ausentismos'],
    'movilidades' => ['label' => 'Movilidad', 'icon' => 'swap_horiz', 'ruta' => '/movilidad'],
+ 'consulta' => ['label' => 'Consulta Funcionario', 'icon' => 'search', 'ruta' => '/consulta-funcionario'],
    'reportes' => ['label' => 'Reportes', 'icon' => 'summarize', 'ruta' => '/reportes'],
    'cargas' => ['label' => 'Cargas Masivas', 'icon' => 'upload_file', 'ruta' => '/cargas'],
    'parametros' => ['label' => 'Parametros', 'icon' => 'settings', 'ruta' => '/parametros'],

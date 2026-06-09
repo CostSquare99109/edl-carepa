@@ -11,6 +11,7 @@ export interface LoginResponse {
  usuario: Usuario;
  roles: Rol[];
  rol_activo: string;
+ debe_cambiar_password?: boolean;
 }
 
 export interface Usuario {

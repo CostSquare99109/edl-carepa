@@ -1,4 +1,4 @@
-const API_BASE = '/api/v1';
+export const API_BASE = '/api/v1';
 
 const DEBUG = import.meta.env.DEV;
 
@@ -159,6 +159,48 @@ class ApiClient {
  return this.request<T>('DELETE', path);
  }
 
+ async postFormData<T>(path: string, formData: FormData): Promise<T> {
+ const opts: RequestInit = {
+ method: 'POST',
+ headers: {} as HeadersInit,
+ };
+ const token = this.getToken();
+ if (token) (opts.headers as Record<string,string>)['Authorization'] = `Bearer ${token}`;
+ const csrf = this.getCsrfToken();
+ if (csrf) (opts.headers as Record<string,string>)['X-CSRF-Token'] = csrf;
+ opts.body = formData;
+
+ let res: Response;
+ try {
+ res = await fetch(`${API_BASE}${path}`, opts);
+ } catch {
+ throw new Error('No se puede conectar con el servidor.');
+ }
+
+ const text = await res.text();
+ if (!text) throw new Error('El servidor no respondio.');
+
+ let json: ApiResponse<T>;
+ try {
+ json = JSON.parse(text);
+ } catch {
+ throw new Error('Respuesta invalida del servidor.');
+ }
+
+ if (res.status === 401) {
+ localStorage.removeItem('edl_token');
+ localStorage.removeItem('edl_user');
+ window.location.href = '/login';
+ throw new Error('Sesion expirada');
+ }
+
+ if (json.code !== '01') {
+ throw new Error(json.message || 'Error del servidor');
+ }
+
+ return json.data;
+ }
+
  download(path: string, filename?: string): void {
  const token = this.getToken();
  const url = `${API_BASE}${path}`;
@@ -178,6 +220,15 @@ class ApiClient {
  } else {
  link.click();
  }
+ }
+
+ async getBlob(path: string): Promise<Blob> {
+ const token = this.getToken();
+ const res = await fetch(`${API_BASE}${path}`, {
+ headers: { 'Authorization': `Bearer ${token}` }
+ });
+ if (!res.ok) throw new Error('Error al descargar archivo');
+ return res.blob();
  }
 }
 

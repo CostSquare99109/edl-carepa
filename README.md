@@ -26,7 +26,7 @@ Gestiona el ciclo completo de evaluacion: concertacion de compromisos funcionale
 
 ## Caracteristicas Principales
 
-- Autenticacion JWT con bloqueo automatico por intentos fallidos y recuperacion de contrasena por correo
+- Autenticacion JWT con bloqueo automatico por intentos fallidos y recuperacion de contraseña por correo
 - Control de acceso granular: 3 roles base, 51 permisos, 84 asignaciones rol-permiso
 - Concertacion de compromisos funcionales y comportamentales con pesos porcentuales (maximo 100% por evaluacion)
 - Evaluaciones parciales (semestrales/eventuales) y definitivas, con aprobacion de comision evaluadora
@@ -153,12 +153,12 @@ La base de datos `edl_carepa` contiene 23 tablas con foreign keys, indices optim
 | `permisos` | Permisos granulares por modulo (51 total) | -- |
 | `rol_permiso` | Asignacion permiso-rol (84 registros) | FK a roles, permisos |
 | `usuario_rol` | Asignacion rol-usuario con entidad | FK a usuarios, roles |
-| `entidades` | Entidades organizacionales | -- |
+| `entidades` | Entidades organizaciónales | -- |
 | `dependencias` | Dependencias por entidad | FK a entidades, usuarios (jefe) |
 | `periodos` | Periodos evaluativos con fases de concertacion, seguimiento y evaluacion | -- |
-| `metas` | Metas de desempeno por periodo | FK a periodos, usuarios |
+| `metas` | Metas de desempeño por periodo | FK a periodos, usuarios |
 | `concertaciones` | Concertaciones de metas | FK a metas, usuarios |
-| `evaluaciones` | Evaluaciones de desempeno (parcial/definitiva) | FK a periodos, usuarios |
+| `evaluaciones` | Evaluaciones de desempeño (parcial/definitiva) | FK a periodos, usuarios |
 | `compromisos` | Compromisos funcionales y comportamentales | FK a evaluaciones, usuarios |
 | `evidencias` | Archivos de evidencia | FK a metas, compromisos, usuarios |
 | `ausentismos` | Registros de ausentismo | FK a usuarios |
@@ -168,7 +168,7 @@ La base de datos `edl_carepa` contiene 23 tablas con foreign keys, indices optim
 | `parametros` | Configuracion del sistema (clave-valor) | -- |
 | `auditoria` | Registro de acciones del sistema | Sin FK formal (indice sobre usuario_id) |
 | `sesiones` | Sesiones JWT activas (hash SHA256) | FK a usuarios |
-| `recuperaciones` | Tokens de recuperacion de contrasena | FK a usuarios |
+| `recuperaciones` | Tokens de recuperacion de contraseña | FK a usuarios |
 | `cursos_induccion` | Cursos de induccion programados | FK a entidades |
 | `curso_participantes` | Participantes en cursos | FK a cursos, usuarios |
 
@@ -191,7 +191,7 @@ La base de datos `edl_carepa` contiene 23 tablas con foreign keys, indices optim
 | Rol | Codigo | Permisos | Descripcion |
 |-----|--------|----------|-------------|
 | Administrador | `admin` | 52 (casi todos) | Gestion global del sistema: usuarios, parametros, entidades, soporte |
-| Evaluador | `evaluador` | 22 | Evalua desempeno de funcionarios. Aprueba compromisos y califica resultados |
+| Evaluador | `evaluador` | 22 | Evalua desempeño de funcionarios. Aprueba compromisos y califica resultados |
 | Evaluado | `evaluado` | 11 | Servidor publico sujeto a evaluacion. Propone compromisos y registra evidencias |
 
 Nota: El modelo de roles contempla adicionalmente `admin_entidad`, `admin_carepa` y `comision_evaluadora` en la migracion `migration_edl_carepa.sql` y en el frontend (RoleSelector), pero no estan activos en los datos semilla base. Pendiente de activacion segun requerimiento.
@@ -205,11 +205,11 @@ Prefijo base: `/api/v1`. Formato de respuesta: `{ "code": "01"|"02", "message": 
 
 | Metodo | Ruta | Descripcion |
 |--------|------|-------------|
-| POST | `/api/v1/auth/login` | Iniciar sesion (documento + contrasena) |
+| POST | `/api/v1/auth/login` | Iniciar sesion (documento + contraseña) |
 | POST | `/api/v1/auth/registro` | Registrar cuenta nueva |
 | POST | `/api/v1/auth/recuperar` | Solicitar codigo de recuperacion por correo |
 | POST | `/api/v1/auth/verificar-codigo` | Verificar codigo de 6 digitos |
-| PUT | `/api/v1/auth/recuperar/{token}` | Establecer nueva contrasena |
+| PUT | `/api/v1/auth/recuperar/{token}` | Establecer nueva contraseña |
 
 ### Autenticacion (protegidas)
 
@@ -218,7 +218,7 @@ Prefijo base: `/api/v1`. Formato de respuesta: `{ "code": "01"|"02", "message": 
 | POST | `/api/v1/auth/logout` | Cerrar sesion (revoca token) |
 | GET | `/api/v1/auth/perfil` | Datos del usuario actual |
 | PUT | `/api/v1/auth/perfil` | Actualizar perfil |
-| PUT | `/api/v1/auth/password` | Cambiar contrasena |
+| PUT | `/api/v1/auth/password` | Cambiar contraseña |
 | PUT | `/api/v1/auth/rol` | Cambiar rol activo |
 
 ### Dashboard
@@ -458,7 +458,7 @@ Archivo: `backend/.env` (copiar desde `.env.example` y ajustar)
 | `DB_PORT` | `3306` | Puerto de la base de datos |
 | `DB_NAME` | `edl_carepa` | Nombre de la base de datos |
 | `DB_USER` | `edl_user` | Usuario de la base de datos |
-| `DB_PASS` | `(contrasena segura)` | Contrasena del usuario de BD |
+| `DB_PASS` | `(contraseña segura)` | Contrasena del usuario de BD |
 | `JWT_SECRET` | `(clave hex 64 chars)` | Clave de firma de tokens JWT HS256 |
 | `JWT_EXPIRACION_MINUTOS` | `120` | Tiempo de expiracion del token en minutos |
 | `APP_TIMEZONE` | `America/Bogota` | Zona horaria de la aplicacion |
@@ -591,7 +591,7 @@ Los datos de demostracion se cargan con `database/seed_usuarios.sql`. El usuario
 | Maria Rodriguez | 1000000002 | maria.rodriguez@carepa.gov.co | (ver seed) | Evaluador |
 | Juan Gomez | 1000000004 | juan.gomez@carepa.gov.co | (ver seed) | Evaluado |
 
-**Advertencia:** Las contrasenas del archivo `seed_usuarios.sql` estan hasheadas con bcrypt. El usuario admin se creo con `reset_admin.php` o insercion directa. Cambiar todas las contrasenas antes de desplegar en produccion.
+**Advertencia:** Las contraseñas del archivo `seed_usuarios.sql` estan hasheadas con bcrypt. El usuario admin se creo con `reset_admin.php` o insercion directa. Cambiar todas las contraseñas antes de desplegar en produccion.
 
 
 ## Convenciones del Proyecto

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api, type PaginatedData } from '../../lib/api'
+import { api, API_BASE, type PaginatedData } from '../../lib/api'
 
 interface Concertacion {
   id: number
@@ -71,6 +71,7 @@ export default function ConcertacionList() {
                 <th>Observaciones</th>
                 <th>Fecha</th>
                 <th>Estado</th>
+                <th className="text-center w-16">PDF</th>
                 <th className="text-center w-16">Editar</th>
               </tr>
             </thead>
@@ -81,7 +82,13 @@ export default function ConcertacionList() {
                   <td className="max-w-xs truncate">{c.observaciones || 'Sin observaciones'}</td>
                   <td>{c.fecha_concertacion}</td>
                   <td>
-                    <span className={estadoBadge(c.estado)}>{c.estado}</span>
+                  <span className={estadoBadge(c.estado)}>{c.estado}</span>
+                  </td>
+                  <td className="text-center">
+                  <a href={`${API_BASE}/reportes/concertacion-pdf/${c.id}`} target="_blank" rel="noopener"
+                   className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-verde inline-block" title="Descargar PDF">
+                   <span className="material-icons text-lg">picture_as_pdf</span>
+                  </a>
                   </td>
                   <td className="text-center">
                     <button

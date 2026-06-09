@@ -40,7 +40,7 @@ class CompromisoMejoramientoRepository extends BaseRepository
  $offset = ($pagina - 1) * $porPagina;
  $stmt = $this->pdo->prepare("
  SELECT cm.*,
- u.primer_nombre as reg_nombre, u.primer_apellido as reg_apellido,
+ u.nombres as reg_nombre, u.apellidos as reg_apellido,
  comp.descripcion as compromiso_descripcion
  FROM compromisos_mejoramiento cm
  INNER JOIN usuarios u ON u.id = cm.registrado_por

@@ -40,7 +40,7 @@ class EvidenciaRepository extends BaseRepository
  $offset = ($pagina - 1) * $porPagina;
  $stmt = $this->pdo->prepare("
  SELECT e.*,
- u.primer_nombre as reg_nombre, u.primer_apellido as reg_apellido
+ u.nombres as reg_nombre, u.apellidos as reg_apellido
  FROM evidencias e
  INNER JOIN usuarios u ON u.id = e.registrado_por
  WHERE {$where}

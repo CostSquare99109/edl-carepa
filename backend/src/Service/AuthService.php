@@ -87,11 +87,12 @@ class AuthService
   AuditoriaService::registrar('login', 'usuarios', $usuario['id']);
 
   return [
-   'token' => $token,
-   'expiracion' => $expiracion,
-   'usuario' => $usuario,
-   'roles' => $roles,
-   'rol_activo' => $rolActivo,
+  'token' => $token,
+  'expiracion' => $expiracion,
+  'usuario' => $usuario,
+  'roles' => $roles,
+  'rol_activo' => $rolActivo,
+  'debe_cambiar_password' => (bool) ($usuario['debe_cambiar_password'] ?? false),
   ];
  }
 
@@ -286,14 +287,38 @@ class AuthService
 
   $minLen = (int) Env::get('PASSWORD_LONGITUD_MINIMA', 8);
   if (strlen($nuevaPassword) < $minLen) {
-   ResponseHelper::error("La contrasena debe tener al menos {$minLen} caracteres", 422);
+   ResponseHelper::error("La contraseña debe tener al menos {$minLen} caracteres", 422);
   }
 
   $hash = password_hash($nuevaPassword, PASSWORD_BCRYPT);
   $this->usuarioRepo->actualizar($usuarioId, ['password_hash' => $hash]);
- }
+  }
 
- public function refreshToken(string $oldToken): array
+  public function forzarCambioPassword(int $usuarioId, string $nuevaPassword): void
+  {
+   $usuario = $this->usuarioRepo->buscarPorId($usuarioId);
+   if (!$usuario) {
+    ResponseHelper::error('Usuario no encontrado', 404);
+   }
+
+   if (empty($usuario['debe_cambiar_password']) || !(bool) $usuario['debe_cambiar_password']) {
+    ResponseHelper::error('No requiere cambio forzado de contraseña', 400);
+   }
+
+   $minLen = (int) Env::get('PASSWORD_LONGITUD_MINIMA', 8);
+   if (strlen($nuevaPassword) < $minLen) {
+    ResponseHelper::error("La contraseña debe tener al menos {$minLen} caracteres", 422);
+   }
+
+   $hash = password_hash($nuevaPassword, PASSWORD_BCRYPT);
+   $this->usuarioRepo->actualizar($usuarioId, [
+    'password_hash' => $hash,
+    'debe_cambiar_password' => 0,
+   ]);
+   AuditoriaService::registrar('forzar_cambio_password', 'usuarios', $usuarioId);
+  }
+
+  public function refreshToken(string $oldToken): array
  {
   try {
    $payload = JwtHelper::validate($oldToken);

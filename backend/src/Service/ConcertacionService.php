@@ -46,7 +46,7 @@ class ConcertacionService
  ResponseHelper::notFound('Concertacion no encontrada');
  }
 
- $concertacion['compromisos'] = $this->concertacionRepo->compromisosPorConcertacion($id);
+ $concertacion['compromisos'] = $this->concertacionRepo->compromisosPorEvaluacion($id);
 
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
@@ -77,7 +77,18 @@ class ConcertacionService
  ResponseHelper::error('periodo_id y evaluado_id son requeridos', 422);
  }
 
- $existente = $this->concertacionRepo->buscarPorPeriodoYEvalauado((int) $periodoId, (int) $evaluadoId);
+ $evaluado = $this->usuarioRepo->buscarPorId((int) $evaluadoId);
+ if ($evaluado && !empty($evaluado['periodo_prueba']) && (bool) $evaluado['periodo_prueba']) {
+  $fechaInicio = $evaluado['fecha_ingreso'] ?? $evaluado['creado_en'] ?? null;
+  if ($fechaInicio) {
+   $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
+   if ($dias <= 120) {
+    ResponseHelper::error('El funcionario se encuentra en periodo de prueba (menos de 4 meses). No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
+   }
+  }
+ }
+
+ $existente = $this->concertacionRepo->buscarPorPeriodoYFuncionario((int) $periodoId, (int) $evaluadoId);
  if ($existente) {
  ResponseHelper::error('Ya existe una concertacion para este evaluado en este periodo', 409);
  }
@@ -151,7 +162,7 @@ class ConcertacionService
  ResponseHelper::error('Los compromisos ya estan fijados', 400);
  }
 
- $compromisos = $this->concertacionRepo->compromisosPorConcertacion($id);
+ $compromisos = $this->concertacionRepo->compromisosPorEvaluacion($id);
 
  $compromisosNoAprobados = array_filter($compromisos, function ($c) {
  return $c['estado'] !== 'aprobado' && $c['estado'] !== 'cumplido' && $c['estado'] !== 'incumplido';
@@ -162,7 +173,13 @@ class ConcertacionService
  }
 
  if (empty($compromisos)) {
- ResponseHelper::error('No hay compromisos registrados para fijar', 422);
+  ResponseHelper::error('No hay compromisos registrados para fijar', 422);
+ }
+
+ $compromisoService = new CompromisoService();
+ $validacion = $compromisoService->validarCompromisosAntesDeFirmar($id, (int) $concertacion['evaluado_id']);
+ if (!$validacion['valido']) {
+  ResponseHelper::error('No se pueden fijar los compromisos. ' . implode(' | ', $validacion['errores']), 422);
  }
 
  $this->concertacionRepo->actualizar($id, [
@@ -173,17 +190,17 @@ class ConcertacionService
  AuditoriaService::registrar('fijar_compromisos', 'concertaciones', $id);
  }
 
- public function compromisosPorConcertacion(int $concertacionId): array
+ public function compromisosPorEvaluacion(int $evaluacionId): array
  {
- $concertacion = $this->concertacionRepo->buscarPorId($concertacionId);
+ $concertacion = $this->concertacionRepo->buscarPorId($evaluacionId);
  if (!$concertacion) {
  ResponseHelper::notFound('Concertacion no encontrada');
  }
- return $this->concertacionRepo->compromisosPorConcertacion($concertacionId);
+ return $this->concertacionRepo->compromisosPorEvaluacion($evaluacionId);
  }
 
- public function compromisos(int $concertacionId): array
+ public function compromisos(int $evaluacionId): array
  {
- return $this->compromisosPorConcertacion($concertacionId);
+ return $this->compromisosPorEvaluacion($evaluacionId);
  }
 }

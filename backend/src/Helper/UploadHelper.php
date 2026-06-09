@@ -28,7 +28,7 @@ class UploadHelper
 
  if ($file['size'] > self::$maxSizeBytes) {
  $maxMB = self::$maxSizeBytes / 1048576;
- ResponseHelper::error("El archivo excede el tamano maximo de {$maxMB}MB", 422);
+ ResponseHelper::error("El archivo excede el tamaño maximo de {$maxMB}MB", 422);
  }
 
  $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
