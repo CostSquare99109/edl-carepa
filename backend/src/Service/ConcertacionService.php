@@ -69,47 +69,36 @@ class ConcertacionService
  ResponseHelper::forbidden('Solo evaluadores o jefes pueden crear concertaciones');
  }
 
- $periodoId = $datos['periodo_id'] ?? null;
- $evaluadoId = $datos['evaluado_id'] ?? null;
+ $metaId = $datos['meta_id'] ?? null;
+ $funcionarioId = $datos['funcionario_id'] ?? $datos['evaluado_id'] ?? null;
  $evaluadorId = $datos['evaluador_id'] ?? $user['id'];
 
- if (!$periodoId || !$evaluadoId) {
- ResponseHelper::error('periodo_id y evaluado_id son requeridos', 422);
+ if (!$metaId || !$funcionarioId) {
+ ResponseHelper::error('meta_id y funcionario_id son requeridos', 422);
  }
 
- $evaluado = $this->usuarioRepo->buscarPorId((int) $evaluadoId);
+ $evaluado = $this->usuarioRepo->buscarPorId((int) $funcionarioId);
  if ($evaluado && !empty($evaluado['periodo_prueba']) && (bool) $evaluado['periodo_prueba']) {
-  $fechaInicio = $evaluado['fecha_ingreso'] ?? $evaluado['creado_en'] ?? null;
-  if ($fechaInicio) {
-   $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
-   if ($dias <= 120) {
-    ResponseHelper::error('El funcionario se encuentra en periodo de prueba (menos de 4 meses). No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
-   }
-  }
+ $fechaInicio = $evaluado['fecha_vinculacion'] ?? $evaluado['creado_en'] ?? null;
+ if ($fechaInicio) {
+ $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
+ if ($dias <= 120) {
+ ResponseHelper::error('El funcionario se encuentra en periodo de prueba (menos de 4 meses). No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
+ }
+ }
  }
 
- $existente = $this->concertacionRepo->buscarPorPeriodoYFuncionario((int) $periodoId, (int) $evaluadoId);
- if ($existente) {
- ResponseHelper::error('Ya existe una concertacion para este evaluado en este periodo', 409);
- }
-
- $tipoConcertacion = $datos['tipo_concertacion'] ?? 'concertacion_bilateral';
- $evaluadorNoJefe = $datos['evaluador_no_jefe'] ?? 0;
- $motivoNoJefe = $datos['motivo_no_jefe'] ?? null;
-
- if ($tipoConcertacion === 'fijados_evaluador' && !in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador'])) {
- ResponseHelper::forbidden('Solo evaluadores pueden fijar compromisos unilateralmente');
+ $estado = $datos['estado'] ?? 'pendiente';
+ $estadosValidos = ['pendiente', 'concertada', 'no_concertada', 'revisada', 'aprobada'];
+ if (!in_array($estado, $estadosValidos)) {
+ $estado = 'pendiente';
  }
 
  $crearDatos = [
- 'periodo_id' => $periodoId,
+ 'meta_id' => $metaId,
  'evaluador_id' => $evaluadorId,
- 'evaluado_id' => $evaluadoId,
- 'tipo_concertacion' => $tipoConcertacion,
- 'conformar_comision_evaluadora' => $datos['conformar_comision_evaluadora'] ?? 0,
- 'evaluador_no_jefe' => $evaluadorNoJefe,
- 'motivo_no_jefe' => $motivoNoJefe,
- 'estado' => $tipoConcertacion === 'fijados_evaluador' ? 'fijada' : 'pendiente',
+ 'funcionario_id' => $funcionarioId,
+ 'estado' => $estado,
  'observaciones' => $datos['observaciones'] ?? null,
  ];
 
@@ -135,7 +124,7 @@ class ConcertacionService
  ResponseHelper::forbidden();
  }
 
- $permitidos = ['observaciones', 'tipo_concertacion', 'evaluador_no_jefe', 'motivo_no_jefe', 'conformar_comision_evaluadora'];
+ $permitidos = ['observaciones', 'estado', 'fecha_concertacion'];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
 
  if (!empty($datosFiltrados)) {
@@ -158,11 +147,11 @@ class ConcertacionService
  ResponseHelper::forbidden('Solo evaluadores pueden fijar compromisos');
  }
 
- if ($concertacion['estado'] === 'fijada') {
- ResponseHelper::error('Los compromisos ya estan fijados', 400);
+ if ($concertacion['estado'] === 'concertada') {
+ ResponseHelper::error('Los compromisos ya estan concertados', 400);
  }
 
- $compromisos = $this->concertacionRepo->compromisosPorEvaluacion($id);
+ $compromisos = $this->concertacionRepo->compromisosPorConcertacion($id);
 
  $compromisosNoAprobados = array_filter($compromisos, function ($c) {
  return $c['estado'] !== 'aprobado' && $c['estado'] !== 'cumplido' && $c['estado'] !== 'incumplido';
@@ -183,7 +172,7 @@ class ConcertacionService
  }
 
  $this->concertacionRepo->actualizar($id, [
- 'estado' => 'fijada',
+ 'estado' => 'concertada',
  'fecha_concertacion' => date('Y-m-d H:i:s'),
  ]);
 

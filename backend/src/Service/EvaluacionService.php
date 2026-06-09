@@ -59,15 +59,15 @@ class EvaluacionService
  ResponseHelper::forbidden('Solo evaluadores o jefes pueden crear evaluaciones');
  }
 
- $tiposValidos = ['parcial_primer_semestre', 'parcial_segundo_semestre', 'parcial_eventual', 'calificacion_definitiva', 'calificacion_extraordinaria'];
- $tipo = $datos['tipo'] ?? 'parcial_primer_semestre';
+ $tiposValidos = ['parcial_semestral', 'parcial_eventual', 'definitiva', 'primer_semestre', 'segundo_semestre', 'extraordinaria'];
+ $tipo = $datos['tipo'] ?? 'primer_semestre';
  if (!in_array($tipo, $tiposValidos)) {
- ResponseHelper::error('Tipo de evaluacion invalido', 422);
+ ResponseHelper::error('Tipo de evaluacion invalido. Valores validos: ' . implode(', ', $tiposValidos), 422);
  }
 
  $evaluado = $this->usuarioRepo->buscarPorId((int) $datos['evaluado_id']);
  if ($evaluado && !empty($evaluado['periodo_prueba']) && (bool) $evaluado['periodo_prueba']) {
-  $fechaInicio = $evaluado['fecha_ingreso'] ?? $evaluado['creado_en'] ?? null;
+  $fechaInicio = $evaluado['fecha_vinculacion'] ?? $evaluado['creado_en'] ?? null;
   if ($fechaInicio) {
    $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
    if ($dias <= 120) {
@@ -83,9 +83,6 @@ class EvaluacionService
  'concertacion_id' => $datos['concertacion_id'] ?? null,
  'tipo' => $tipo,
  'motivo_parcial_eventual' => $datos['motivo_parcial_eventual'] ?? null,
- 'motivo_extraordinaria' => $datos['motivo_extraordinaria'] ?? null,
- 'evaluador_no_jefe' => $datos['evaluador_no_jefe'] ?? 0,
- 'motivo_no_jefe' => $datos['motivo_no_jefe'] ?? null,
  'fecha_inicio' => $datos['fecha_inicio'] ?? null,
  'fecha_fin' => $datos['fecha_fin'] ?? null,
  'estado' => 'pendiente',

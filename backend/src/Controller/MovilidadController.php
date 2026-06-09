@@ -62,37 +62,63 @@ class MovilidadController
   ResponseHelper::success(['id' => $id], 'Movilidad registrada', 201);
  }
 
- public function actualizar(): void
+ public function ver(int $id): void
  {
-  $id = (int) ($_GET['id'] ?? 0);
-  if ($id <= 0) {
-   ResponseHelper::error('ID requerido', 422);
-  }
-
-  $input = json_decode(file_get_contents('php://input'), true) ?: [];
-  $input = SanitizerHelper::sanitizeArray($input);
-
-  $this->repo->actualizar($id, $input);
-  ResponseHelper::success(null, 'Movilidad actualizada');
+ $mov = $this->repo->buscarPorId($id);
+ if (!$mov) {
+ ResponseHelper::error('Movilidad no encontrada', 404);
+ }
+ ResponseHelper::success($mov);
  }
 
- public function ejecutar(): void
+ public function actualizar(int $id): void
  {
-  $id = (int) ($_GET['id'] ?? 0);
-  if ($id <= 0) {
-   ResponseHelper::error('ID requerido', 422);
-  }
+ $input = json_decode(file_get_contents('php://input'), true) ?: [];
+ $input = SanitizerHelper::sanitizeArray($input);
 
-  $mov = $this->repo->buscarPorId($id);
-  if (!$mov) {
-   ResponseHelper::error('Movilidad no encontrada', 404);
-  }
+ $mov = $this->repo->buscarPorId($id);
+ if (!$mov) {
+ ResponseHelper::error('Movilidad no encontrada', 404);
+ }
 
-  if ($mov['estado'] !== 'aprobado') {
-   ResponseHelper::error('Solo se pueden ejecutar movilidades aprobadas', 400);
-  }
+ $permitidos = ['tipo', 'entidad_origen_id', 'dependencia_origen_id', 'entidad_destino_id', 'dependencia_destino_id', 'fecha_movimiento', 'acto_administrativo', 'observaciones', 'estado'];
+ $datosFiltrados = array_intersect_key($input, array_flip($permitidos));
 
-  $this->repo->ejecutar($id, $mov);
-  ResponseHelper::success(null, 'Movilidad ejecutada. Funcionario actualizado.');
+ if (!empty($datosFiltrados)) {
+ $this->repo->actualizar($id, $datosFiltrados);
+ }
+ ResponseHelper::success(null, 'Movilidad actualizada');
+ }
+
+ public function eliminar(int $id): void
+ {
+ $mov = $this->repo->buscarPorId($id);
+ if (!$mov) {
+ ResponseHelper::error('Movilidad no encontrada', 404);
+ }
+
+ $user = AuthMiddleware::user();
+ $roles = $user['roles'] ?? [];
+ if (!in_array('admin', $roles)) {
+ ResponseHelper::forbidden();
+ }
+
+ $this->repo->eliminar($id);
+ ResponseHelper::success(null, 'Movilidad eliminada');
+ }
+
+ public function ejecutar(int $id): void
+ {
+ $mov = $this->repo->buscarPorId($id);
+ if (!$mov) {
+ ResponseHelper::error('Movilidad no encontrada', 404);
+ }
+
+ if ($mov['estado'] !== 'aprobado') {
+ ResponseHelper::error('Solo se pueden ejecutar movilidades aprobadas', 400);
+ }
+
+ $this->repo->ejecutar($id, $mov);
+ ResponseHelper::success(null, 'Movilidad ejecutada. Funcionario actualizado.');
  }
 }

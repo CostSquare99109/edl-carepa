@@ -138,9 +138,15 @@ class MovilidadRepository
    }
 
    $this->pdo->commit();
-  } catch (\Throwable $e) {
+   } catch (\Throwable $e) {
    $this->pdo->rollBack();
    throw $e;
-  }
- }
-}
+   }
+   }
+
+   public function eliminar(int $id): bool
+   {
+   $stmt = $this->pdo->prepare("UPDATE movilidades SET eliminado_en = NOW() WHERE id = ?");
+   return $stmt->execute([$id]);
+   }
+   }

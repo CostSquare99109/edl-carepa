@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\CompromisoService;
+use App\Service\AuditoriaService;
 use App\Helper\ResponseHelper;
 use App\Helper\SanitizerHelper;
 use App\Middleware\AuthMiddleware;
@@ -109,6 +110,75 @@ class CompromisoController
 		$stmt = $pdo->query("SELECT id, nombre, decreto, descripcion FROM competencias_comportamentales WHERE estado = 'activa' ORDER BY decreto, nombre");
 		$competencias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 		ResponseHelper::success($competencias);
+	}
+
+	public function crear(int $concertacionId): void
+	{
+		$input = json_decode(file_get_contents('php://input'), true) ?: [];
+		$input = SanitizerHelper::sanitizeArray($input);
+		$user = AuthMiddleware::user();
+
+		$pdo = Database::getInstance();
+
+		$stmtCon = $pdo->prepare("SELECT c.*, e.id as evaluacion_id FROM concertaciones c LEFT JOIN evaluaciones e ON e.evaluado_id = c.funcionario_id AND e.eliminado_en IS NULL WHERE c.id = ? AND c.eliminado_en IS NULL");
+		$stmtCon->execute([$concertacionId]);
+		$concertacion = $stmtCon->fetch(\PDO::FETCH_ASSOC);
+
+		if (!$concertacion) {
+			ResponseHelper::error('Concertacion no encontrada', 404);
+		}
+
+		$evaluacionId = $input['evaluacion_id'] ?? $concertacion['evaluacion_id'] ?? null;
+		if (!$evaluacionId) {
+			ResponseHelper::error('No se encontró evaluación asociada. Proporcione evaluacion_id.', 422);
+		}
+
+		$tipo = $input['tipo'] ?? 'funcional';
+		$descripcion = $input['descripcion'] ?? '';
+		$peso = (float) ($input['peso'] ?? 0);
+
+		if (empty($descripcion)) {
+			ResponseHelper::error('descripcion es requerido', 422);
+		}
+		if ($peso <= 0 || $peso > 100) {
+			ResponseHelper::error('peso debe ser mayor a 0 y maximo 100', 422);
+		}
+
+		$stmtEval = $pdo->prepare("SELECT evaluado_id FROM evaluaciones WHERE id = ? AND eliminado_en IS NULL");
+		$stmtEval->execute([$evaluacionId]);
+		$evaluadoId = $stmtEval->fetchColumn();
+		if (!$evaluadoId) {
+			ResponseHelper::error('Evaluacion no encontrada', 404);
+		}
+
+		$stmt = $pdo->prepare("
+			INSERT INTO compromisos (evaluacion_id, meta_id, competencia_id, tipo, peso, descripcion, plazo, responsable_id, evaluador_id, es_propuesto_jefe, tipo_concertacion, estado, resultado_esperado, medio_verificacion, observaciones_evaluador)
+			VALUES (:eid, :mid, :cid, :tipo, :peso, :desc, :plazo, :resp, :eval, :prop_jefe, :tconcert, :estado, :resultado, :verif, :obs_eval)
+		");
+
+		$stmt->execute([
+			'eid' => $evaluacionId,
+			'mid' => $input['meta_id'] ?? $concertacion['meta_id'] ?? null,
+			'cid' => $input['competencia_id'] ?? null,
+			'tipo' => $tipo,
+			'peso' => $peso,
+			'desc' => $descripcion,
+			'plazo' => $input['plazo'] ?? null,
+			'resp' => $input['responsable_id'] ?? $evaluadoId,
+			'eval' => $user['id'],
+			'prop_jefe' => $input['es_propuesto_jefe'] ?? 1,
+			'tconcert' => $input['tipo_concertacion'] ?? 'bilateral',
+			'estado' => $input['estado'] ?? 'propuesto',
+			'resultado' => $input['resultado_esperado'] ?? null,
+			'verif' => $input['medio_verificacion'] ?? null,
+			'obs_eval' => $input['observaciones_evaluador'] ?? null,
+		]);
+
+		$compromisoId = (int) $pdo->lastInsertId();
+
+		\App\Service\AuditoriaService::registrar('crear_compromiso', 'compromisos', $compromisoId);
+
+		ResponseHelper::success(['id' => $compromisoId, 'evaluacion_id' => $evaluacionId], 'Compromiso creado', 201);
 	}
 
 	/** Guardar compromiso funcional (individual) */

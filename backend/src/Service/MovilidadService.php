@@ -39,12 +39,20 @@ class MovilidadService
  'fecha_movimiento' => 'required'
  ]);
 
- $tiposValidos = ['traslado', 'promocion', 'encargo', 'comision', 'reintegracion', 'retiro', 'otro'];
+ $tiposValidos = ['ascenso', 'traslado', 'encargo', 'comision', 'reintegro', 'retiro', 'otro'];
  if (!in_array($datos['tipo'], $tiposValidos)) {
- ResponseHelper::error('Tipo de movilidad invalido', 422);
+ ResponseHelper::error('Tipo de movilidad invalido. Valores validos: ' . implode(', ', $tiposValidos), 422);
  }
 
- $id = $this->repo->crear($datos);
+ $estadosValidos = ['tramite', 'aprobado', 'ejecutado', 'anulado'];
+ if (isset($datos['estado']) && !in_array($datos['estado'], $estadosValidos)) {
+ unset($datos['estado']);
+ }
+
+ $permitidos = ['funcionario_id', 'tipo', 'entidad_origen_id', 'dependencia_origen_id', 'entidad_destino_id', 'dependencia_destino_id', 'fecha_movimiento', 'acto_administrativo', 'observaciones', 'estado'];
+ $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
+
+ $id = $this->repo->crear($datosFiltrados);
  AuditoriaService::registrar('crear', 'movilidades', $id, null, $datos);
  return $id;
  }
@@ -81,7 +89,7 @@ class MovilidadService
  ResponseHelper::forbidden();
  }
 
- $this->repo->eliminarLogico($id);
+ $this->repo->eliminar($id);
  AuditoriaService::registrar('eliminar', 'movilidades', $id, $mov, null);
  }
 }

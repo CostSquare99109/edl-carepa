@@ -85,6 +85,21 @@ class ConcertacionRepository extends BaseRepository
  return $stmt->fetchAll();
  }
 
+ public function compromisosPorConcertacion(int $concertacionId): array
+ {
+ $stmt = $this->pdo->prepare("
+ SELECT comp.*, m.descripcion as meta_descripcion
+ FROM compromisos comp
+ LEFT JOIN metas m ON m.id = comp.meta_id
+ INNER JOIN evaluaciones e ON e.id = comp.evaluacion_id AND e.eliminado_en IS NULL
+ INNER JOIN concertaciones c ON c.funcionario_id = e.evaluado_id AND c.eliminado_en IS NULL
+ WHERE c.id = ? AND comp.eliminado_en IS NULL
+ ORDER BY comp.tipo, comp.id
+ ");
+ $stmt->execute([$concertacionId]);
+ return $stmt->fetchAll();
+ }
+
  public function buscarPorPeriodoYFuncionario(int $periodoId, int $funcionarioId): ?array
  {
  $stmt = $this->pdo->prepare("

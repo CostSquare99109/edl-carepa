@@ -52,9 +52,15 @@ class AusentismoService
  'funcionario_id' => 'required',
  'tipo' => 'required',
  'fecha_inicio' => 'required',
- 'fecha_fin' => 'required',
- 'dias_habiles' => 'required'
+ 'fecha_fin' => 'required'
  ]);
+
+ if (!isset($datos['dias_habiles'])) {
+ $fi = new \DateTime($datos['fecha_inicio']);
+ $ff = new \DateTime($datos['fecha_fin']);
+ $interval = $fi->diff($ff);
+ $datos['dias_habiles'] = max(1, (int) $interval->days + 1);
+ }
 
  $tiposValidos = ['vacacion', 'licencia', 'incapacidad', 'permiso', 'comision', 'otro'];
  if (!in_array($datos['tipo'], $tiposValidos)) {
@@ -66,14 +72,20 @@ class AusentismoService
  if ($diasHabiles > 30) {
  $datos['afecta_evaluacion_eval'] = 1;
  $pdo = Database::getInstance();
- $stmt = $pdo->prepare("SELECT jefe_id FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
- $stmt->execute([$datos['funcionario_id']]);
- $funcionario = $stmt->fetch();
+ $stmt = $pdo->prepare("
+ SELECT u.id FROM usuarios u
+ INNER JOIN usuario_roles ur ON ur.usuario_id = u.id
+ INNER JOIN roles r ON r.id = ur.rol_id
+ WHERE r.codigo = 'jefe_personal' AND u.estado = 'activo' AND u.eliminado_en IS NULL
+ LIMIT 1
+ ");
+ $stmt->execute();
+ $jefe = $stmt->fetch();
 
- if (!empty($funcionario['jefe_id'])) {
+ if (!empty($jefe['id'])) {
  $notifService = new NotificacionService();
  $notifService->crear([
- 'usuario_id' => $funcionario['jefe_id'],
+ 'usuario_id' => $jefe['id'],
  'tipo' => 'ausentismo_extendido',
  'titulo' => 'Ausentismo superior a 30 dias',
  'mensaje' => "El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$diasHabiles} dias habiles. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeno.",
@@ -126,7 +138,7 @@ class AusentismoService
  ResponseHelper::forbidden();
  }
 
- $this->repo->eliminarLogico($id);
+ $this->repo->eliminar($id);
  AuditoriaService::registrar('eliminar', 'ausentismos', $id, $aus, null);
  }
 }
