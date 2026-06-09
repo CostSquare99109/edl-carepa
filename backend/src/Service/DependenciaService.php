@@ -22,16 +22,23 @@ class DependenciaService
 
     public function crear(array $datos): int
     {
-        $v = new ValidatorHelper();
-        $v->validate($datos, [
-            'entidad_id' => 'required',
-            'codigo' => 'required|max:30',
-            'nombre' => 'required|max:200'
-        ]);
+    if (empty($datos['entidad_id'])) {
+    $pdo = \App\Config\Database::getInstance();
+    $stmt = $pdo->query("SELECT id FROM entidades WHERE eliminado_en IS NULL ORDER BY id LIMIT 1");
+    $ent = $stmt->fetch();
+    $datos['entidad_id'] = $ent ? (int) $ent['id'] : 1;
+    }
 
-        $id = $this->repo->crear($datos);
-        AuditoriaService::registrar('crear', 'dependencias', $id, null, $datos);
-        return $id;
+    $v = new ValidatorHelper();
+    $v->validate($datos, [
+    'entidad_id' => 'required',
+    'codigo' => 'required|max:30',
+    'nombre' => 'required|max:200'
+    ]);
+
+    $id = $this->repo->crear($datos);
+    AuditoriaService::registrar('crear', 'dependencias', $id, null, $datos);
+    return $id;
     }
 
     public function ver(int $id): ?array

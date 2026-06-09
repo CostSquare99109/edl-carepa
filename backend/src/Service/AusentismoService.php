@@ -64,10 +64,7 @@ class AusentismoService
  $diasHabiles = (int) $datos['dias_habiles'];
 
  if ($diasHabiles > 30) {
- $datos['tipo'] = 'licencia_extendida';
- $datos['afecta_evaluacion'] = 1;
- $datos['requiere_aprobacion_jefe'] = 1;
-
+ $datos['afecta_evaluacion_eval'] = 1;
  $pdo = Database::getInstance();
  $stmt = $pdo->prepare("SELECT jefe_id FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
  $stmt->execute([$datos['funcionario_id']]);
@@ -79,14 +76,13 @@ class AusentismoService
  'usuario_id' => $funcionario['jefe_id'],
  'tipo' => 'ausentismo_extendido',
  'titulo' => 'Ausentismo superior a 30 dias',
- 'mensaje' => "El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$diasHabiles} dias habiles. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeño.",
+ 'mensaje' => "El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$diasHabiles} dias habiles. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeno.",
  'url' => '/ausentismos'
  ]);
  }
- } else {
- $datos['afecta_evaluacion'] = 0;
- $datos['requiere_aprobacion_jefe'] = 0;
  }
+
+ unset($datos['afecta_evaluacion'], $datos['afecta_evaluacion_eval'], $datos['requiere_aprobacion_jefe']);
 
  $id = $this->repo->crear($datos);
  AuditoriaService::registrar('crear', 'ausentismos', $id, null, $datos);
@@ -110,8 +106,7 @@ class AusentismoService
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
 
  if (isset($datosFiltrados['dias_habiles']) && (int) $datosFiltrados['dias_habiles'] > 30) {
- $datosFiltrados['afecta_evaluacion'] = 1;
- $datosFiltrados['requiere_aprobacion_jefe'] = 1;
+ $datosFiltrados['estado'] = $datosFiltrados['estado'] ?? 'vigente';
  }
 
  $this->repo->actualizar($id, $datosFiltrados);

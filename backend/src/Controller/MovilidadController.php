@@ -41,7 +41,6 @@ class MovilidadController
 
  public function crear(): void
  {
-  AuthMiddleware::requirePermission('movilidades.crear');
   $input = json_decode(file_get_contents('php://input'), true) ?: [];
   $input = SanitizerHelper::sanitizeArray($input);
 
@@ -65,7 +64,6 @@ class MovilidadController
 
  public function actualizar(): void
  {
-  AuthMiddleware::requirePermission('movilidades.editar');
   $id = (int) ($_GET['id'] ?? 0);
   if ($id <= 0) {
    ResponseHelper::error('ID requerido', 422);
@@ -80,7 +78,6 @@ class MovilidadController
 
  public function ejecutar(): void
  {
-  AuthMiddleware::requirePermission('movilidades.ejecutar');
   $id = (int) ($_GET['id'] ?? 0);
   if ($id <= 0) {
    ResponseHelper::error('ID requerido', 422);

@@ -24,10 +24,15 @@ class PeriodoService
     {
         $v = new ValidatorHelper();
         $v->validate($datos, [
-            'nombre' => 'required|max:100',
-            'fecha_inicio' => 'required',
-            'fecha_fin' => 'required'
+        'nombre' => 'required|max:100',
+        'fecha_inicio' => 'required',
+        'fecha_fin' => 'required'
         ]);
+
+        $estadosValidos = ['configuracion','concertacion','seguimiento','evaluacion','calificacion','cerrado'];
+        if (!isset($datos['estado']) || !in_array($datos['estado'], $estadosValidos)) {
+        $datos['estado'] = 'configuracion';
+        }
 
         $id = $this->repo->crear($datos);
         AuditoriaService::registrar('crear', 'periodos', $id, null, $datos);
