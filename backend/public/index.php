@@ -160,6 +160,7 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'ver'], ['permiso:evidencias.listar']);
  $r->put('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'actualizar'], ['permiso:evidencias.editar']);
  $r->delete('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'eliminar'], ['permiso:evidencias.editar']);
+ $r->get('/evidencias/compromisos-evaluado', [\App\Controller\EvidenciaController::class, 'compromisosEvaluado'], ['permiso:evidencias.listar']);
 
  $r->get('/ausentismos', [\App\Controller\AusentismoController::class, 'listar'], ['permiso:ausentismos.listar']);
  $r->post('/ausentismos', [\App\Controller\AusentismoController::class, 'crear'], ['permiso:ausentismos.crear']);

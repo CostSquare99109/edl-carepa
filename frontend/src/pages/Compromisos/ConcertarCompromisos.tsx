@@ -431,7 +431,7 @@ setConcertacionConfirmada(true);
  await api.put(`/compromisos/confirmar-concertacion/${evaluado.evaluacion_id}`);
 
  setConcertacionConfirmada(true);
- setMensaje({ tipo: 'ok', texto: 'Concertacion confirmada exitosamente. El evaluado debe aceptar o rechazar los compromisos.' });
+ setMensaje({ tipo: 'ok', texto: 'Se registró la concertación de compromisos correctamente. El evaluado debe aceptar o rechazar los compromisos.' });
  } catch (err: any) {
  setMensaje({ tipo: 'error', texto: err.message || 'Error al guardar la concertacion.' });
  } finally {

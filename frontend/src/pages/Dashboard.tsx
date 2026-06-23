@@ -232,7 +232,7 @@ function DashboardContent() {
       </div>
       <div>
        <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
-        {saludo}, {usuario?.nombres ?? ''} {usuario?.apellidos ?? ''}
+        {saludo}, {usuario?.primer_nombre ?? ''} {usuario?.primer_apellido ?? ''}
        </h2>
        {rolLabel ? <p className="text-sm text-inst-texto-claro mt-0.5">Rol activo: {rolLabel}</p> : null}
        {totalPendientes > 0 ? (

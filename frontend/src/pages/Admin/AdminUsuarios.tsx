@@ -6,519 +6,902 @@ import type { DataTableColumn } from '../../components/ui';
 import { toast } from 'sonner';
 
 interface Usuario {
- id: number;
- documento: string;
- tipo_documento: string;
- nombres: string;
- apellidos: string;
- genero: string;
- municipio: string;
- email: string;
- telefono: string;
- telefono_secundario: string;
- cargo: string;
- denominacion_empleo: string;
- codigo_empleo: string;
- grado: string;
- tipo_vinculacion: string;
- es_contratista: number;
- nivel_carrera: string;
- naturaleza: string;
- tipo_nombramiento: string;
- periodo_prueba: number;
- proposito_empleo: string;
- estado: string;
- roles: { codigo: string; nombre: string }[];
+  id: number;
+  documento: string;
+  tipo_documento: string;
+  primer_nombre: string;
+  segundo_nombre?: string;
+  primer_apellido: string;
+  segundo_apellido?: string;
+  email: string;
+  telefono1?: string;
+  telefono2?: string;
+  genero?: string;
+  municipio?: string;
+  departamento?: string;
+  dependencia_id?: number;
+  dependencia_nombre?: string;
+  es_evaluador_y_evaluado: number;
+  dependencia_evaluacion_id?: number;
+  dependencia_evaluacion_nombre?: string;
+  es_contratista: number;
+  nivel?: string;
+  naturaleza?: string;
+  tipo_nombramiento?: string;
+  denominacion_empleo?: string;
+  codigo_empleo?: string;
+  grado_empleo?: string;
+  en_periodo_prueba: number;
+  fecha_posesion?: string;
+  proposito_principal_empleo?: string;
+  evaluacion_inicio_febrero: number;
+  fecha_inicio_evaluacion?: string;
+  motivo_fecha_inicio_diferente?: string;
+  estado: string;
+  roles: { codigo: string; nombre: string }[];
+}
+
+interface Dependencia {
+  id: number;
+  nombre: string;
+  codigo: string;
 }
 
 const ROLES_SISTEMA = [
-	{ codigo: 'admin', nombre: 'Administrador' },
-	{ codigo: 'evaluador', nombre: 'Evaluador' },
-	{ codigo: 'evaluado', nombre: 'Evaluado' },
+  { codigo: 'admin', nombre: 'Administrador' },
+  { codigo: 'evaluador', nombre: 'Evaluador' },
+  { codigo: 'evaluado', nombre: 'Evaluado' },
 ];
 
-const ROLE_COLORS: Record<string, string> = {
-	admin: 'bg-red-100 text-red-800 border-red-200',
-	evaluador: 'bg-green-100 text-green-800 border-green-200',
-	evaluado: 'bg-blue-100 text-blue-800 border-blue-200',
-};
+// Constantes alineadas con el enum del schema SQL
+const TIPOS_DOCUMENTO = [
+  { value: 'CC', label: 'Cédula de Ciudadanía (CC)' },
+  { value: 'CE', label: 'Cédula de Extranjería (CE)' },
+  { value: 'PA', label: 'Pasaporte (PA)' },
+  { value: 'TI', label: 'Tarjeta de Identidad (TI)' },
+  { value: 'RC', label: 'Registro Civil (RC)' },
+  { value: 'DIP', label: 'Diplomático (DIP)' },
+  { value: 'NIT', label: 'NIT' },
+];
 
-const ROLE_SHORT: Record<string, string> = {
-	admin: 'Admin',
-	evaluador: 'Eval.',
-	evaluado: 'Evaldo.',
-};
+const GENEROS = [
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'femenino', label: 'Femenino' },
+  { value: 'otro', label: 'Otro' },
+];
 
-const CARGOS_SUGERIDOS = [
-	'Administrador',
-	'Jefe de Entidad',
-	'Jefe de Dependencia',
-	'Director',
-	'Profesional Especializado',
-	'Profesional Universitario',
-	'Tecnico Operativo',
-	'Auxiliar Administrativo',
-	'Evaluador Senior',
-	'Evaluador Tecnico',
+const DEPARTAMENTOS = [
+  'Antioquia', 'Atlántico', 'Bogotá D.C.', 'Bolívar', 'Boyacá', 'Caldas', 'Caquetá',
+  'Cauca', 'Cesar', 'Chocó', 'Córdoba', 'Cundinamarca', 'Guainía', 'Guaviare',
+  'Huila', 'La Guajira', 'Magdalena', 'Meta', 'Nariño', 'Norte de Santander',
+  'Putumayo', 'Quindío', 'Risaralda', 'San Andrés y Providencia', 'Santander',
+  'Sucre', 'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada',
+];
+
+const NIVELES = [
+  { value: 'directivo', label: 'Directivo' },
+  { value: 'asesor', label: 'Asesor' },
+  { value: 'profesional', label: 'Profesional' },
+  { value: 'tecnico', label: 'Técnico' },
+  { value: 'asistencial', label: 'Asistencial' },
+];
+
+const NATURALEZAS = [
+  { value: 'carrera_administrativa', label: 'Carrera Administrativa' },
+  { value: 'libre_nombramiento', label: 'Libre Nombramiento' },
+  { value: 'libre_nombramiento_gerencia_publica', label: 'Libre Nombramiento — Gerencia Pública' },
+];
+
+const TIPOS_NOMBRAMIENTO = [
+  { value: 'hecho_en_carrera', label: 'Hecho en carrera' },
+  { value: 'periodo_de_prueba', label: 'Periodo de prueba' },
+  { value: 'provisional', label: 'Provisional' },
+  { value: 'encargo_planta_global', label: 'Encargo — Planta global' },
+  { value: 'encargo_planta_temporal', label: 'Encargo — Planta temporal' },
+  { value: 'encargo_vacancia_definitiva', label: 'Encargo — Vacancia definitiva' },
+  { value: 'encargo_vacancia_temporal', label: 'Encargo — Vacancia temporal' },
+];
+
+const MOTIVOS_FECHA_INICIO = [
+  { value: 'terminacion_periodo_prueba', label: 'Terminación período de prueba' },
+  { value: 'terminacion_vacancia_temporal', label: 'Terminación de la vacancia temporal' },
+  { value: 'regreso_vacaciones', label: 'Regreso de vacaciones' },
+  { value: 'regreso_incapacidad', label: 'Regreso de incapacidad' },
+  { value: 'regreso_encargo', label: 'Regreso de encargo' },
+  { value: 'regreso_comision_servicios', label: 'Regreso de comisión de servicios' },
+  { value: 'regreso_licencia', label: 'Regreso de licencia' },
+  { value: 'suspension_ejercicio_cargo', label: 'Suspensión del ejercicio del cargo' },
+  { value: 'otro', label: 'Otro' },
 ];
 
 export default function AdminUsuarios() {
- const [searchParams] = useSearchParams();
- const filtroInicial = searchParams.get('filtro') || '';
- const [usuarios, setUsuarios] = useState<Usuario[]>([]);
- const [total, setTotal] = useState(0);
- const [pagina, setPagina] = useState(1);
- const [busqueda, setBusqueda] = useState('');
- const [filtroRol, setFiltroRol] = useState(filtroInicial);
- const [cargando, setCargando] = useState(true);
- const [error, setError] = useState('');
- const [modalAbierto, setModalAbierto] = useState(false);
- const [editando, setEditando] = useState<Usuario | null>(null);
- const [guardando, setGuardando] = useState(false);
- const [form, setForm] = useState({
- documento: '', tipo_documento: 'CC', nombres: '', apellidos: '',
- genero: '', municipio: '', email: '', telefono: '', telefono_secundario: '',
- cargo: '', denominacion_empleo: '', codigo_empleo: '', grado: '',
- tipo_vinculacion: 'planta', es_contratista: 0,
- nivel_carrera: '', naturaleza: '', tipo_nombramiento: '',
- periodo_prueba: 0, proposito_empleo: '',
- password: '', estado: 'activo',
- roles: ['evaluado'] as string[],
- });
+  const [searchParams] = useSearchParams();
+  const filtroInicial = searchParams.get('filtro') || '';
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroRol, setFiltroRol] = useState(filtroInicial);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [editando, setEditando] = useState<Usuario | null>(null);
+  const [guardando, setGuardando] = useState(false);
+  const [dependencias, setDependencias] = useState<Dependencia[]>([]);
 
- const cargar = useCallback(async () => {
- setCargando(true); setError('');
- try {
- let url = `/usuarios?pagina=${pagina}&por_pagina=20`;
-		if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
- if (filtroRol) url += `&rol=${encodeURIComponent(filtroRol)}`;
- const res = await api.get<PaginatedData<Usuario>>(url);
- setUsuarios(res.data || []);
- setTotal(res.total || 0);
- } catch (e) { setError(e instanceof Error ? e.message : 'Error desconocido'); }
- setCargando(false);
- }, [pagina, busqueda, filtroRol]);
+  // Estado del formulario completo según CNSC
+  const [form, setForm] = useState({
+    documento: '',
+    tipo_documento: 'CC',
+    primer_nombre: '',
+    segundo_nombre: '',
+    primer_apellido: '',
+    segundo_apellido: '',
+    genero: '',
+    departamento: 'Antioquia',
+    municipio: '',
+    email: '',
+    email_confirmar: '',
+    telefono1: '',
+    telefono2: '',
+    password: '',
+    estado: 'activo',
+    es_contratista: 0,
+    nivel: '',
+    naturaleza: '',
+    tipo_nombramiento: '',
+    dependencia_id: '',
+    denominacion_empleo: '',
+    codigo_empleo: '',
+    grado_empleo: '',
+    es_evaluador_y_evaluado: 0,
+    dependencia_evaluacion_id: '',
+    en_periodo_prueba: 0,
+    fecha_posesion: '',
+    proposito_principal_empleo: '',
+    evaluacion_inicio_febrero: 1,
+    fecha_inicio_evaluacion: '',
+    motivo_fecha_inicio_diferente: '',
+    roles: ['evaluado'] as string[],
+  });
 
- useEffect(() => { cargar(); }, [cargar]);
+  const cargar = useCallback(async () => {
+    setCargando(true); setError('');
+    try {
+      let url = `/usuarios?pagina=${pagina}&por_pagina=20`;
+      if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
+      if (filtroRol) url += `&rol=${encodeURIComponent(filtroRol)}`;
+      const res = await api.get<PaginatedData<Usuario>>(url);
+      setUsuarios(res.data || []);
+      setTotal(res.total || 0);
+    } catch (e) { setError(e instanceof Error ? e.message : 'Error desconocido'); }
+    setCargando(false);
+  }, [pagina, busqueda, filtroRol]);
 
- const abrirCrear = () => {
- setEditando(null);
- setForm({ documento: '', tipo_documento: 'CC', nombres: '', apellidos: '',
- genero: '', municipio: '', email: '', telefono: '', telefono_secundario: '',
- cargo: '', denominacion_empleo: '', codigo_empleo: '', grado: '',
- tipo_vinculacion: 'planta', es_contratista: 0,
- nivel_carrera: '', naturaleza: '', tipo_nombramiento: '',
- periodo_prueba: 0, proposito_empleo: '',
- password: '', estado: 'activo', roles: ['evaluado'] });
- setModalAbierto(true);
- };
+  const cargarDependencias = useCallback(async () => {
+    try {
+      const res = await api.get<PaginatedData<Dependencia>>('/dependencias?por_pagina=100');
+      setDependencias(res.data || []);
+    } catch {}
+  }, []);
 
- const abrirEditar = (u: Usuario) => {
- setEditando(u);
- setForm({
- documento: u.documento, tipo_documento: u.tipo_documento || 'CC',
- nombres: u.nombres, apellidos: u.apellidos,
- genero: u.genero || '', municipio: u.municipio || '',
- email: u.email || '', telefono: u.telefono || '', telefono_secundario: u.telefono_secundario || '',
- cargo: u.cargo || '', denominacion_empleo: u.denominacion_empleo || '',
- codigo_empleo: u.codigo_empleo || '', grado: u.grado || '',
- tipo_vinculacion: u.tipo_vinculacion || 'planta', es_contratista: u.es_contratista || 0,
- nivel_carrera: u.nivel_carrera || '', naturaleza: u.naturaleza || '',
- tipo_nombramiento: u.tipo_nombramiento || '',
- periodo_prueba: u.periodo_prueba || 0, proposito_empleo: u.proposito_empleo || '',
- password: '', estado: u.estado || 'activo',
- roles: u.roles?.map(r => r.codigo) || ['evaluado'],
- });
- setModalAbierto(true);
- };
+  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => { if (modalAbierto) cargarDependencias(); }, [modalAbierto, cargarDependencias]);
 
- const guardar = async () => {
- setGuardando(true);
- try {
- if (editando) {
- const payload: Record<string, unknown> = { ...form };
- if (!form.password) delete payload.password;
- await api.put(`/usuarios/${editando.id}`, payload);
- toast.success('Usuario actualizado correctamente');
- } else {
- await api.post('/usuarios', form);
- toast.success('Usuario creado correctamente');
- }
- setModalAbierto(false); cargar();
- } catch (e) {
- toast.error(e instanceof Error ? e.message : 'Error al guardar usuario');
- }
- setGuardando(false);
- };
+  const resetForm = () => ({
+    documento: '',
+    tipo_documento: 'CC',
+    primer_nombre: '',
+    segundo_nombre: '',
+    primer_apellido: '',
+    segundo_apellido: '',
+    genero: '',
+    departamento: 'Antioquia',
+    municipio: '',
+    email: '',
+    email_confirmar: '',
+    telefono1: '',
+    telefono2: '',
+    password: '',
+    estado: 'activo',
+    es_contratista: 0,
+    nivel: '',
+    naturaleza: '',
+    tipo_nombramiento: '',
+    dependencia_id: '',
+    denominacion_empleo: '',
+    codigo_empleo: '',
+    grado_empleo: '',
+    es_evaluador_y_evaluado: 0,
+    dependencia_evaluacion_id: '',
+    en_periodo_prueba: 0,
+    fecha_posesion: '',
+    proposito_principal_empleo: '',
+    evaluacion_inicio_febrero: 1,
+    fecha_inicio_evaluacion: '',
+    motivo_fecha_inicio_diferente: '',
+    roles: ['evaluado'] as string[],
+  });
 
- const toggleRol = (codigo: string) => {
- setForm(prev => ({
- ...prev,
- roles: prev.roles.includes(codigo) ? prev.roles.filter(r => r !== codigo) : [...prev.roles, codigo],
- }));
- };
+  const abrirCrear = () => {
+    setEditando(null);
+    setForm(resetForm());
+    setModalAbierto(true);
+  };
 
- const toggleEstado = async (u: Usuario) => {
- const nuevo = u.estado === 'activo' ? 'inactivo' : 'activo';
- try { await api.put(`/usuarios/${u.id}`, { estado: nuevo }); toast.success(`Usuario ${nuevo}`); cargar(); }
- catch (e) { toast.error(e instanceof Error ? e.message : 'Error al cambiar estado'); }
- };
+  const abrirEditar = (u: Usuario) => {
+    setEditando(u);
+    setForm({
+      documento: u.documento,
+      tipo_documento: u.tipo_documento || 'CC',
+      primer_nombre: u.primer_nombre || '',
+      segundo_nombre: u.segundo_nombre || '',
+      primer_apellido: u.primer_apellido || '',
+      segundo_apellido: u.segundo_apellido || '',
+      genero: u.genero || '',
+      departamento: u.departamento || 'Antioquia',
+      municipio: u.municipio || '',
+      email: u.email || '',
+      email_confirmar: u.email || '',
+      telefono1: u.telefono1 || '',
+      telefono2: u.telefono2 || '',
+      password: '',
+      estado: u.estado || 'activo',
+      es_contratista: u.es_contratista || 0,
+      nivel: u.nivel || '',
+      naturaleza: u.naturaleza || '',
+      tipo_nombramiento: u.tipo_nombramiento || '',
+      dependencia_id: u.dependencia_id ? String(u.dependencia_id) : '',
+      denominacion_empleo: u.denominacion_empleo || '',
+      codigo_empleo: u.codigo_empleo || '',
+      grado_empleo: u.grado_empleo || '',
+      es_evaluador_y_evaluado: u.es_evaluador_y_evaluado || 0,
+      dependencia_evaluacion_id: u.dependencia_evaluacion_id ? String(u.dependencia_evaluacion_id) : '',
+      en_periodo_prueba: u.en_periodo_prueba || 0,
+      fecha_posesion: u.fecha_posesion || '',
+      proposito_principal_empleo: u.proposito_principal_empleo || '',
+      evaluacion_inicio_febrero: u.evaluacion_inicio_febrero ?? 1,
+      fecha_inicio_evaluacion: u.fecha_inicio_evaluacion || '',
+      motivo_fecha_inicio_diferente: u.motivo_fecha_inicio_diferente || '',
+      roles: u.roles?.map(r => r.codigo) || ['evaluado'],
+    });
+    setModalAbierto(true);
+  };
 
- const restablecerPassword = async (u: Usuario) => {
- if (!confirm(`¿Restablecer contraseña de ${u.nombres} ${u.apellidos}?`)) return;
- try {
- const res = await api.put<{ password_temporal: string }>(`/usuarios/${u.id}/restablecer-password`);
- toast.success(`Contraseña temporal: ${res.password_temporal}`, { duration: 10_000 });
- } catch (e) {
- toast.error(e instanceof Error ? e.message : 'Error al restablecer contraseña');
- }
- };
+  function validarFormulario(): string | null {
+    if (!form.documento.trim()) return 'El número de documento es requerido';
+    if (!form.primer_nombre.trim()) return 'El primer nombre es requerido';
+    if (!form.primer_apellido.trim()) return 'El primer apellido es requerido';
+    if (!form.email.trim()) return 'El correo electrónico es requerido';
+    if (form.email !== form.email_confirmar) return 'El correo y la confirmación del correo no coinciden';
+    if (!editando && !form.password) return 'La contraseña es requerida para usuarios nuevos';
+    if (!editando && form.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (form.es_contratista === 0) {
+      if (!form.nivel) return 'El nivel es requerido para servidores (no contratistas)';
+      if (!form.naturaleza) return 'La naturaleza es requerida para servidores (no contratistas)';
+      if (!form.tipo_nombramiento) return 'El tipo de nombramiento es requerido';
+      if (!form.denominacion_empleo.trim()) return 'La denominación del empleo es requerida';
+      if (!form.dependencia_id) return 'La dependencia es requerida';
+    }
+    if (form.es_evaluador_y_evaluado === 1 && !form.dependencia_evaluacion_id) {
+      return 'Si el usuario es evaluador y evaluado, debe indicar la dependencia donde realiza la evaluación';
+    }
+    if (form.en_periodo_prueba === 1 && !form.fecha_posesion) {
+      return 'Si el usuario está en periodo de prueba, debe indicar la fecha de posesión';
+    }
+    if (form.evaluacion_inicio_febrero === 0) {
+      if (!form.fecha_inicio_evaluacion) return 'Debe indicar la fecha de inicio del período de evaluación';
+      if (!form.motivo_fecha_inicio_diferente) return 'Debe indicar el motivo de fecha de inicio diferente';
+    }
+    return null;
+  }
 
- const totalPages = Math.ceil(total / 20);
+  const guardar = async () => {
+    const errorValid = validarFormulario();
+    if (errorValid) { toast.error(errorValid); return; }
 
- const columns: DataTableColumn<Usuario>[] = [
-  { key: 'documento', header: 'Documento', render: (u) => <span className="font-mono text-xs">{u.documento}</span> },
-  { key: 'nombre', header: 'Nombre', render: (u) => `${u.nombres} ${u.apellidos}` },
-  { key: 'email', header: 'Email', render: (u) => u.email || <span className="text-inst-texto-claro">—</span> },
-  { key: 'cargo', header: 'Cargo', render: (u) => u.cargo || <span className="text-inst-texto-claro">—</span> },
-  {
-   key: 'roles',
-   header: 'Roles',
-   render: (u) => (
-    <div className="flex gap-1 flex-wrap">
-     {(u.roles || []).map((r) => (
-      <Badge
-       key={r.codigo}
-       tone={r.codigo === 'admin' ? 'danger' : r.codigo === 'evaluador' ? 'success' : 'info'}
-      >
-       {r.nombre || r.codigo}
-      </Badge>
-     ))}
-     {(!u.roles || u.roles.length === 0) ? <span className="text-xs text-inst-texto-claro">Sin rol</span> : null}
+    setGuardando(true);
+    try {
+      // Mapear frontend a backend (algunos campos cambian de nombre)
+      const payload: Record<string, unknown> = {
+        documento: form.documento.trim(),
+        tipo_documento: form.tipo_documento,
+        primer_nombre: form.primer_nombre.trim(),
+        segundo_nombre: form.segundo_nombre.trim() || null,
+        primer_apellido: form.primer_apellido.trim(),
+        segundo_apellido: form.segundo_apellido.trim() || null,
+        email: form.email.trim(),
+        genero: form.genero || null,
+        departamento: form.departamento || null,
+        municipio: form.municipio.trim() || null,
+        telefono1: form.telefono1.trim() || null,
+        telefono2: form.telefono2.trim() || null,
+        estado: form.estado,
+        es_contratista: form.es_contratista,
+        nivel: form.es_contratista ? null : (form.nivel || null),
+        naturaleza: form.es_contratista ? null : (form.naturaleza || null),
+        tipo_nombramiento: form.es_contratista ? null : (form.tipo_nombramiento || null),
+        dependencia_id: form.dependencia_id ? Number(form.dependencia_id) : null,
+        denominacion_empleo: form.denominacion_empleo.trim() || null,
+        codigo_empleo: form.codigo_empleo.trim() || null,
+        grado_empleo: form.grado_empleo.trim() || null,
+        es_evaluador_y_evaluado: form.es_evaluador_y_evaluado,
+        dependencia_evaluacion_id: form.dependencia_evaluacion_id ? Number(form.dependencia_evaluacion_id) : null,
+        en_periodo_prueba: form.en_periodo_prueba,
+        fecha_posesion: form.fecha_posesion || null,
+        proposito_principal_empleo: form.proposito_principal_empleo.trim() || null,
+        evaluacion_inicio_febrero: form.evaluacion_inicio_febrero,
+        fecha_inicio_evaluacion: form.fecha_inicio_evaluacion || null,
+        motivo_fecha_inicio_diferente: form.motivo_fecha_inicio_diferente || null,
+        roles: form.roles,
+      };
+
+      if (form.password) {
+        payload.password = form.password;
+      }
+
+      if (editando) {
+        await api.put(`/usuarios/${editando.id}`, payload);
+        toast.success('Usuario actualizado correctamente');
+      } else {
+        await api.post('/usuarios', payload);
+        toast.success('Usuario creado correctamente');
+      }
+      setModalAbierto(false); cargar();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al guardar usuario');
+    }
+    setGuardando(false);
+  };
+
+  const toggleRol = (codigo: string) => {
+    setForm(prev => ({
+      ...prev,
+      roles: prev.roles.includes(codigo) ? prev.roles.filter(r => r !== codigo) : [...prev.roles, codigo],
+    }));
+  };
+
+  const toggleEstado = async (u: Usuario) => {
+    const nuevo = u.estado === 'activo' ? 'inactivo' : 'activo';
+    try { await api.put(`/usuarios/${u.id}`, { estado: nuevo }); toast.success(`Usuario ${nuevo}`); cargar(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : 'Error al cambiar estado'); }
+  };
+
+  const restablecerPassword = async (u: Usuario) => {
+    if (!confirm(`¿Restablecer contraseña de ${u.primer_nombre} ${u.primer_apellido}?`)) return;
+    try {
+      const res = await api.put<{ password_temporal: string }>(`/usuarios/${u.id}/restablecer-password`);
+      toast.success(`Contraseña temporal: ${res.password_temporal}`, { duration: 10_000 });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al restablecer contraseña');
+    }
+  };
+
+  const totalPages = Math.ceil(total / 20);
+
+  const columns: DataTableColumn<Usuario>[] = [
+    { key: 'documento', header: 'Documento', render: (u) => <span className="font-mono text-xs">{u.documento}</span> },
+    {
+      key: 'nombre',
+      header: 'Nombre',
+      render: (u) => `${u.primer_nombre} ${u.segundo_nombre || ''} ${u.primer_apellido} ${u.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim()
+    },
+    { key: 'email', header: 'Email', render: (u) => u.email || <span className="text-inst-texto-claro">—</span> },
+    { key: 'cargo', header: 'Cargo', render: (u) => u.denominacion_empleo || <span className="text-inst-texto-claro">—</span> },
+    { key: 'dependencia', header: 'Dependencia', render: (u) => u.dependencia_nombre || <span className="text-inst-texto-claro">—</span> },
+    {
+      key: 'roles',
+      header: 'Roles',
+      render: (u) => (
+        <div className="flex gap-1 flex-wrap">
+          {(u.roles || []).map((r) => (
+            <Badge key={r.codigo} tone={r.codigo === 'admin' ? 'danger' : r.codigo === 'evaluador' ? 'success' : 'info'}>
+              {r.nombre || r.codigo}
+            </Badge>
+          ))}
+          {(!u.roles || u.roles.length === 0) ? <span className="text-xs text-inst-texto-claro">Sin rol</span> : null}
+        </div>
+      ),
+    },
+    {
+      key: 'estado',
+      header: 'Estado',
+      render: (u) => (
+        <button
+          type="button"
+          onClick={() => toggleEstado(u)}
+          className="focus:outline-none focus:ring-2 focus:ring-inst-azul-osc rounded-full"
+          aria-label={`Cambiar estado de ${u.primer_nombre} ${u.primer_apellido}`}
+        >
+          <Badge tone={u.estado === 'activo' ? 'success' : 'neutral'} dot>
+            {u.estado === 'activo' ? 'Activo' : u.estado === 'bloqueado' ? 'Bloqueado' : 'Inactivo'}
+          </Badge>
+        </button>
+      ),
+    },
+    {
+      key: 'acciones',
+      header: 'Acciones',
+      align: 'center',
+      render: (u) => (
+        <div className="flex gap-1 justify-center">
+          <Tooltip content="Editar usuario">
+            <Button variant="outline" size="sm" iconLeft={<span className="material-icons text-sm">edit</span>} onClick={() => abrirEditar(u)}>
+              Editar
+            </Button>
+          </Tooltip>
+          <Tooltip content="Restablecer contraseña">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => restablecerPassword(u)}
+              aria-label={`Restablecer contraseña de ${u.primer_nombre} ${u.primer_apellido}`}
+            >
+              <span className="material-icons text-base">lock_reset</span>
+            </Button>
+          </Tooltip>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-6 p-4 lg:p-6">
+      <div className="flex items-center justify-between flex-wrap gap-3 animate-fadeIn">
+        <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+          <span className="material-icons align-middle mr-2 text-2xl">people</span>
+          Usuarios
+        </h2>
+        <Button variant="primary" iconLeft={<span className="material-icons text-base">person_add</span>} onClick={abrirCrear}>
+          Nuevo Usuario
+        </Button>
+      </div>
+
+      <Card>
+        <div className="flex gap-3 flex-wrap items-end">
+          <div className="flex-1 min-w-[240px]">
+            <Input
+              label="Buscar"
+              type="search"
+              value={busqueda}
+              onChange={e => { setBusqueda(e.target.value); setPagina(1); }}
+              placeholder="Buscar por nombre o documento..."
+              iconLeft={<span className="material-icons text-base">search</span>}
+            />
+          </div>
+          <div className="min-w-[180px]">
+            <Select
+              label="Rol"
+              value={filtroRol}
+              onChange={e => { setFiltroRol(e.target.value); setPagina(1); }}
+              placeholder="Todos los roles"
+              options={ROLES_SISTEMA.map(r => ({ value: r.codigo, label: r.nombre }))}
+            />
+          </div>
+        </div>
+      </Card>
+
+      {error && (
+        <Alert tone="danger" title="Error al cargar usuarios" onDismiss={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+
+      <Card>
+        {cargando ? (
+          <SkeletonText lines={8} />
+        ) : usuarios.length === 0 ? (
+          <EmptyState
+            icon={<span className="material-icons text-3xl">person_off</span>}
+            title="Sin usuarios"
+            description="No se encontraron usuarios con los filtros actuales. Cree uno con el botón superior."
+            action={<Button variant="primary" onClick={abrirCrear}>Crear usuario</Button>}
+          />
+        ) : (
+          <DataTable<Usuario>
+            columns={columns}
+            data={usuarios}
+            rowKey={(u) => u.id}
+            ariaLabel="Lista de usuarios"
+            caption="Usuarios del sistema"
+          />
+        )}
+
+        {totalPages > 1 && !cargando && usuarios.length > 0 && (
+          <div className="flex items-center justify-center gap-2 p-3 mt-3 border-t border-inst-borde">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
+              <button
+                key={p}
+                onClick={() => setPagina(p)}
+                className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {modalAbierto && (
+        <Modal
+          open={true}
+          onClose={() => setModalAbierto(false)}
+          title={editando ? 'Editar Usuario' : 'Nuevo Usuario'}
+          description="Formulario completo conforme al Sistema Tipo EDL (Acuerdo 617/2018)"
+          size="xl"
+        >
+          <div className="space-y-4">
+
+            {/* SECCIÓN 1: IDENTIFICACIÓN */}
+            <div className="edl-card border-l-4 border-l-inst-azul">
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">1. Identificación</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <Select
+                  label="Tipo de documento"
+                  value={form.tipo_documento}
+                  onChange={e => setForm({ ...form, tipo_documento: e.target.value })}
+                  options={TIPOS_DOCUMENTO}
+                />
+                <Input
+                  label="Número de documento"
+                  type="text"
+                  required
+                  value={form.documento}
+                  onChange={e => setForm({ ...form, documento: e.target.value })}
+                  disabled={!!editando}
+                  helperText={editando ? 'El documento no se puede modificar' : undefined}
+                />
+                <Select
+                  label="Género"
+                  value={form.genero}
+                  onChange={e => setForm({ ...form, genero: e.target.value })}
+                  placeholder="Seleccionar..."
+                  options={GENEROS}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-3">
+                <Input
+                  label="Primer nombre"
+                  type="text"
+                  required
+                  value={form.primer_nombre}
+                  onChange={e => setForm({ ...form, primer_nombre: e.target.value })}
+                />
+                <Input
+                  label="Segundo nombre"
+                  type="text"
+                  value={form.segundo_nombre}
+                  onChange={e => setForm({ ...form, segundo_nombre: e.target.value })}
+                />
+                <Input
+                  label="Primer apellido"
+                  type="text"
+                  required
+                  value={form.primer_apellido}
+                  onChange={e => setForm({ ...form, primer_apellido: e.target.value })}
+                />
+                <Input
+                  label="Segundo apellido"
+                  type="text"
+                  value={form.segundo_apellido}
+                  onChange={e => setForm({ ...form, segundo_apellido: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* SECCIÓN 2: UBICACIÓN Y CONTACTO */}
+            <div className="edl-card border-l-4 border-l-inst-azul">
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">2. Ubicación y contacto</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Select
+                  label="Departamento"
+                  value={form.departamento}
+                  onChange={e => setForm({ ...form, departamento: e.target.value })}
+                  options={DEPARTAMENTOS.map(d => ({ value: d, label: d }))}
+                />
+                <Input
+                  label="Municipio"
+                  type="text"
+                  value={form.municipio}
+                  onChange={e => setForm({ ...form, municipio: e.target.value })}
+                  placeholder="Ej: Carepa"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <Input
+                  label="Correo electrónico"
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                />
+                <Input
+                  label="Confirmar correo"
+                  type="email"
+                  required
+                  value={form.email_confirmar}
+                  onChange={e => setForm({ ...form, email_confirmar: e.target.value })}
+                  error={form.email && form.email_confirmar && form.email !== form.email_confirmar ? 'Los correos no coinciden' : undefined}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                <Input
+                  label="Teléfono principal"
+                  type="tel"
+                  value={form.telefono1}
+                  onChange={e => setForm({ ...form, telefono1: e.target.value })}
+                  placeholder="Ej: 3001234567"
+                />
+                <Input
+                  label="Teléfono secundario"
+                  type="tel"
+                  value={form.telefono2}
+                  onChange={e => setForm({ ...form, telefono2: e.target.value })}
+                  placeholder="Opcional"
+                />
+              </div>
+              <Input
+                className="mt-3"
+                label={`Contraseña${editando ? ' (dejar vacío para no cambiar)' : ' *'}`}
+                type="password"
+                value={form.password}
+                onChange={e => setForm({ ...form, password: e.target.value })}
+                helperText={!editando ? 'Mínimo 8 caracteres' : 'Solo completar si desea cambiar la contraseña'}
+              />
+            </div>
+
+            {/* SECCIÓN 3: ¿ES CONTRATISTA? */}
+            <div className="edl-card border-l-4 border-l-inst-verde">
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">3. Tipo de vinculación</h4>
+              <label className="flex items-start gap-3 cursor-pointer p-3 bg-inst-gris rounded">
+                <input
+                  type="checkbox"
+                  checked={!!form.es_contratista}
+                  onChange={e => setForm({ ...form, es_contratista: e.target.checked ? 1 : 0 })}
+                  className="mt-1 w-4 h-4 accent-inst-azul"
+                />
+                <div>
+                  <span className="text-sm font-medium text-inst-texto">¿Es contratista?</span>
+                  <p className="text-xs text-inst-texto-claro mt-1">
+                    Si marca Sí, el aplicativo creará el usuario con rol "cargador" para apoyar al jefe de personal. No requiere datos de empleo ni nivel.
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* SECCIÓN 4: INFORMACIÓN DEL EMPLEO (solo si NO es contratista) */}
+            {form.es_contratista === 0 && (
+              <div className="edl-card border-l-4 border-l-inst-azul-osc">
+                <h4 className="font-heading font-semibold text-inst-azul mb-3">4. Información del empleo</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <Select
+                    label="Nivel *"
+                    value={form.nivel}
+                    onChange={e => setForm({ ...form, nivel: e.target.value })}
+                    placeholder="Seleccionar..."
+                    options={NIVELES}
+                  />
+                  <Select
+                    label="Naturaleza *"
+                    value={form.naturaleza}
+                    onChange={e => setForm({ ...form, naturaleza: e.target.value })}
+                    placeholder="Seleccionar..."
+                    options={NATURALEZAS}
+                  />
+                  <Select
+                    label="Tipo de nombramiento *"
+                    value={form.tipo_nombramiento}
+                    onChange={e => setForm({ ...form, tipo_nombramiento: e.target.value })}
+                    placeholder="Seleccionar..."
+                    options={TIPOS_NOMBRAMIENTO}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <Select
+                    label="Dependencia *"
+                    value={form.dependencia_id}
+                    onChange={e => setForm({ ...form, dependencia_id: e.target.value })}
+                    placeholder="Seleccionar dependencia..."
+                    options={dependencias.map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))}
+                  />
+                  <Input
+                    label="Denominación del empleo *"
+                    type="text"
+                    value={form.denominacion_empleo}
+                    onChange={e => setForm({ ...form, denominacion_empleo: e.target.value })}
+                    placeholder="Nombre del empleo"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                  <Input
+                    label="Código del empleo"
+                    type="text"
+                    value={form.codigo_empleo}
+                    onChange={e => setForm({ ...form, codigo_empleo: e.target.value })}
+                  />
+                  <Input
+                    label="Grado del empleo"
+                    type="text"
+                    value={form.grado_empleo}
+                    onChange={e => setForm({ ...form, grado_empleo: e.target.value })}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* SECCIÓN 5: ROLES (ADMIN/EVALUADOR/EVALUADO + ES EVALUADOR Y EVALUADO) */}
+            <div className="edl-card border-l-4 border-l-inst-azul">
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">5. Roles y responsabilidades</h4>
+              <p className="text-xs text-inst-texto-claro mb-3">
+                Asigne uno o más roles al usuario. La aplicación asignará automáticamente los roles según la naturaleza del cargo.
+              </p>
+              <div className="flex gap-2 flex-wrap mb-4">
+                {ROLES_SISTEMA.map(r => {
+                  const active = form.roles.includes(r.codigo);
+                  return (
+                    <button
+                      key={r.codigo}
+                      type="button"
+                      onClick={() => toggleRol(r.codigo)}
+                      aria-pressed={active}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition ${
+                        active
+                          ? r.codigo === 'admin'
+                            ? 'bg-red-50 text-red-800 border-red-300'
+                            : r.codigo === 'evaluador'
+                              ? 'bg-green-50 text-green-800 border-green-300'
+                              : 'bg-blue-50 text-blue-800 border-blue-300'
+                          : 'bg-inst-gris text-inst-texto-claro border-inst-borde hover:border-inst-azul-osc'
+                      }`}
+                    >
+                      {r.nombre}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Es evaluador y evaluado (CNSC video 8) */}
+              <div className="bg-inst-gris p-3 rounded">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!form.es_evaluador_y_evaluado}
+                    onChange={e => setForm({ ...form, es_evaluador_y_evaluado: e.target.checked ? 1 : 0 })}
+                    className="mt-1 w-4 h-4 accent-inst-azul"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-inst-texto">¿Es evaluador y simultáneamente evaluado?</span>
+                    <p className="text-xs text-inst-texto-claro mt-1">
+                      Marque esta opción si el servidor tiene la responsabilidad de evaluar a otro servidor y a su vez es sujeto de evaluación.
+                    </p>
+                  </div>
+                </label>
+                {form.es_evaluador_y_evaluado === 1 && (
+                  <div className="mt-3 pl-7">
+                    <Select
+                      label="Dependencia donde realiza la evaluación *"
+                      value={form.dependencia_evaluacion_id}
+                      onChange={e => setForm({ ...form, dependencia_evaluacion_id: e.target.value })}
+                      placeholder="Seleccionar dependencia..."
+                      options={dependencias.map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* SECCIÓN 6: PERÍODO DE PRUEBA */}
+            <div className="edl-card border-l-4 border-l-inst-azul">
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">6. Período de prueba y evaluación inicial</h4>
+              <div className="space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer p-3 bg-inst-gris rounded">
+                  <input
+                    type="checkbox"
+                    checked={!!form.en_periodo_prueba}
+                    onChange={e => setForm({
+                      ...form,
+                      en_periodo_prueba: e.target.checked ? 1 : 0,
+                      fecha_posesion: e.target.checked ? form.fecha_posesion : ''
+                    })}
+                    className="mt-1 w-4 h-4 accent-inst-azul"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-inst-texto">¿Está en periodo de prueba?</span>
+                  </div>
+                </label>
+                {form.en_periodo_prueba === 1 && (
+                  <div className="pl-7">
+                    <Input
+                      label="Fecha de posesión *"
+                      type="date"
+                      value={form.fecha_posesion}
+                      onChange={e => setForm({ ...form, fecha_posesion: e.target.value })}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Inicio de evaluación (CNSC video 8) */}
+              <div className="mt-4 space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer p-3 bg-inst-gris rounded">
+                  <input
+                    type="checkbox"
+                    checked={form.evaluacion_inicio_febrero === 1}
+                    onChange={e => setForm({
+                      ...form,
+                      evaluacion_inicio_febrero: e.target.checked ? 1 : 0,
+                      fecha_inicio_evaluacion: e.target.checked ? '' : form.fecha_inicio_evaluacion,
+                      motivo_fecha_inicio_diferente: e.target.checked ? '' : form.motivo_fecha_inicio_diferente
+                    })}
+                    className="mt-1 w-4 h-4 accent-inst-azul"
+                  />
+                  <div className="flex-1">
+                    <span className="text-sm font-medium text-inst-texto">
+                      ¿El período de evaluación inició el primero de febrero?
+                    </span>
+                    <p className="text-xs text-inst-texto-claro mt-1">
+                      Para servidores que inician el período de evaluación el primero de febrero, debe elegir "Sí".
+                    </p>
+                  </div>
+                </label>
+                {form.evaluacion_inicio_febrero === 0 && (
+                  <div className="pl-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Input
+                      label="Fecha de inicio del período *"
+                      type="date"
+                      value={form.fecha_inicio_evaluacion}
+                      onChange={e => setForm({ ...form, fecha_inicio_evaluacion: e.target.value })}
+                    />
+                    <Select
+                      label="Motivo de fecha diferente *"
+                      value={form.motivo_fecha_inicio_diferente}
+                      onChange={e => setForm({ ...form, motivo_fecha_inicio_diferente: e.target.value })}
+                      placeholder="Seleccionar motivo..."
+                      options={MOTIVOS_FECHA_INICIO}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* SECCIÓN 7: PROPÓSITO DEL EMPLEO */}
+            <div className="edl-card border-l-4 border-l-inst-azul">
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">7. Propósito del empleo</h4>
+              <div>
+                <label className="edl-label">Propósito principal del empleo</label>
+                <textarea
+                  value={form.proposito_principal_empleo}
+                  onChange={e => setForm({ ...form, proposito_principal_empleo: e.target.value })}
+                  className="edl-input min-h-[80px]"
+                  placeholder="Describa el propósito principal del empleo conforme al manual de funciones"
+                />
+              </div>
+            </div>
+
+            {/* SECCIÓN 8: ESTADO */}
+            <div className="edl-card">
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">8. Estado</h4>
+              <Select
+                label="Estado"
+                value={form.estado}
+                onChange={e => setForm({ ...form, estado: e.target.value })}
+                options={[
+                  { value: 'activo', label: 'Activo' },
+                  { value: 'inactivo', label: 'Inactivo' },
+                  { value: 'bloqueado', label: 'Bloqueado' },
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">
+            <Button variant="outline" onClick={() => setModalAbierto(false)}>Cancelar</Button>
+            <Button variant="primary" loading={guardando} onClick={guardar}>
+              {editando ? 'Actualizar usuario' : 'Crear usuario'}
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
-   ),
-  },
-  {
-   key: 'estado',
-   header: 'Estado',
-   render: (u) => (
-    <button
-     type="button"
-     onClick={() => toggleEstado(u)}
-     className="focus:outline-none focus:ring-2 focus:ring-inst-azul-osc rounded-full"
-     aria-label={`Cambiar estado de ${u.nombres} ${u.apellidos}`}
-    >
-     <Badge tone={u.estado === 'activo' ? 'success' : 'neutral'} dot>
-      {u.estado === 'activo' ? 'Activo' : 'Inactivo'}
-     </Badge>
-    </button>
-   ),
-  },
-  {
-   key: 'acciones',
-   header: 'Acciones',
-   align: 'center',
-   render: (u) => (
-    <div className="flex gap-1 justify-center">
-     <Tooltip content="Editar usuario">
-      <Button variant="outline" size="sm" iconLeft={<span className="material-icons text-sm">edit</span>} onClick={() => abrirEditar(u)}>
-       Editar
-      </Button>
-     </Tooltip>
-     <Tooltip content="Restablecer contraseña">
-      <Button
-       variant="ghost"
-       size="sm"
-       onClick={() => restablecerPassword(u)}
-       aria-label={`Restablecer contraseña de ${u.nombres} ${u.apellidos}`}
-      >
-       <span className="material-icons text-base">lock_reset</span>
-      </Button>
-     </Tooltip>
-    </div>
-   ),
-  },
- ];
-
- return (
- <div className="space-y-6 p-4 lg:p-6">
- <div className="flex items-center justify-between flex-wrap gap-3 animate-fadeIn">
- <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
-  <span className="material-icons align-middle mr-2 text-2xl">people</span>
-  Usuarios
- </h2>
- <Button variant="primary" iconLeft={<span className="material-icons text-base">person_add</span>} onClick={abrirCrear}>
-  Nuevo Usuario
- </Button>
- </div>
-
- <Card>
- <div className="flex gap-3 flex-wrap items-end">
-  <div className="flex-1 min-w-[240px]">
-  <Input
-   label="Buscar"
-   type="search"
-   value={busqueda}
-   onChange={e => { setBusqueda(e.target.value); setPagina(1); }}
-   placeholder="Buscar por nombre o documento..."
-   iconLeft={<span className="material-icons text-base">search</span>}
-  />
-  </div>
-  <div className="min-w-[180px]">
-  <Select
-   label="Rol"
-   value={filtroRol}
-   onChange={e => { setFiltroRol(e.target.value); setPagina(1); }}
-   placeholder="Todos los roles"
-   options={ROLES_SISTEMA.map(r => ({ value: r.codigo, label: r.nombre }))}
-  />
-  </div>
- </div>
- </Card>
-
- {error ? (
- <Alert tone="danger" title="Error al cargar usuarios" onDismiss={() => setError('')}>
-  {error}
- </Alert>
- ) : null}
-
- <Card>
- {cargando ? (
-  <SkeletonText lines={8} />
- ) : usuarios.length === 0 ? (
-  <EmptyState
-   icon={<span className="material-icons text-3xl">person_off</span>}
-   title="Sin usuarios"
-   description="No se encontraron usuarios con los filtros actuales. Cree uno con el botón superior."
-   action={<Button variant="primary" onClick={abrirCrear}>Crear usuario</Button>}
-  />
- ) : (
-  <DataTable<Usuario>
-   columns={columns}
-   data={usuarios}
-   rowKey={(u) => u.id}
-   ariaLabel="Lista de usuarios"
-   caption="Usuarios del sistema"
-  />
- )}
-
- {totalPages > 1 && !cargando && usuarios.length > 0 ? (
-  <div className="flex items-center justify-center gap-2 p-3 mt-3 border-t border-inst-borde">
-   {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
-    <button
-     key={p}
-     onClick={() => setPagina(p)}
-     className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
-    >
-     {p}
-    </button>
-   ))}
-  </div>
- ) : null}
- </Card>
-
- {modalAbierto ? (
- <Modal
-  open={true}
-  onClose={() => setModalAbierto(false)}
-  title={editando ? 'Editar Usuario' : 'Nuevo Usuario'}
-  size="lg"
- >
-  <div className="space-y-3">
-   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <Select
-     label="Tipo de documento"
-     value={form.tipo_documento}
-     onChange={e => setForm({...form, tipo_documento: e.target.value})}
-     options={[
-      { value: 'CC', label: 'Cédula de Ciudadanía' },
-      { value: 'CE', label: 'Cédula de Extranjería' },
-      { value: 'TI', label: 'Tarjeta de Identidad' },
-      { value: 'PA', label: 'Pasaporte' },
-     ]}
-    />
-    <Input
-     label="Documento"
-     type="text"
-     required
-     value={form.documento}
-     onChange={e => setForm({...form, documento: e.target.value})}
-     disabled={!!editando}
-     helperText={editando ? 'El documento no se puede modificar' : undefined}
-    />
-   </div>
-   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-    <Input label="Nombres" type="text" required value={form.nombres} onChange={e => setForm({...form, nombres: e.target.value})} />
-    <Input label="Apellidos" type="text" required value={form.apellidos} onChange={e => setForm({...form, apellidos: e.target.value})} />
-    <Select
-     label="Género"
-     value={form.genero}
-     onChange={e => setForm({...form, genero: e.target.value})}
-     placeholder="Sin especificar"
-     options={[
-      { value: 'M', label: 'Masculino' },
-      { value: 'F', label: 'Femenino' },
-      { value: 'O', label: 'Otro' },
-     ]}
-    />
-   </div>
-   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <Input label="Email" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-    <Input label="Municipio" type="text" value={form.municipio} onChange={e => setForm({...form, municipio: e.target.value})} placeholder="Ej: Carepa" />
-   </div>
-   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <Input label="Teléfono principal" type="tel" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})} />
-    <Input label="Teléfono secundario" type="tel" value={form.telefono_secundario} onChange={e => setForm({...form, telefono_secundario: e.target.value})} />
-   </div>
-   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <div>
-     <Input
-      label="Cargo"
-      type="text"
-      list="cargos-list"
-      value={form.cargo}
-      onChange={e => setForm({...form, cargo: e.target.value})}
-      placeholder="Ej: Jefe de Dependencia"
-     />
-     <datalist id="cargos-list">
-      {CARGOS_SUGERIDOS.map(c => <option key={c} value={c} />)}
-     </datalist>
-    </div>
-    <Input label="Denominación empleo" type="text" value={form.denominacion_empleo} onChange={e => setForm({...form, denominacion_empleo: e.target.value})} placeholder="Nombre del empleo" />
-   </div>
-   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-    <Input label="Código empleo" type="text" value={form.codigo_empleo} onChange={e => setForm({...form, codigo_empleo: e.target.value})} />
-    <Input label="Grado" type="text" value={form.grado} onChange={e => setForm({...form, grado: e.target.value})} />
-    <Select
-     label="Tipo vinculación"
-     value={form.tipo_vinculacion}
-     onChange={e => setForm({...form, tipo_vinculacion: e.target.value})}
-     options={[
-      { value: 'planta', label: 'Planta' },
-      { value: 'contrato', label: 'Contrato' },
-      { value: 'provisional', label: 'Provisional' },
-      { value: 'encargo', label: 'Encargo' },
-      { value: 'comision', label: 'Comisión' },
-     ]}
-    />
-   </div>
-   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-    <Select
-     label="Nivel carrera"
-     value={form.nivel_carrera}
-     onChange={e => setForm({...form, nivel_carrera: e.target.value})}
-     placeholder="Sin especificar"
-     options={[
-      { value: 'operativo', label: 'Operativo' },
-      { value: 'tecnico', label: 'Técnico' },
-      { value: 'profesional', label: 'Profesional' },
-      { value: 'directivo', label: 'Directivo' },
-      { value: 'asesor', label: 'Asesor' },
-     ]}
-    />
-    <Select
-     label="Naturaleza"
-     value={form.naturaleza}
-     onChange={e => setForm({...form, naturaleza: e.target.value})}
-     placeholder="Sin especificar"
-     options={[
-      { value: 'carrera', label: 'Carrera' },
-      { value: 'libre_nombramiento', label: 'Libre nombramiento' },
-      { value: 'provisional', label: 'Provisional' },
-      { value: 'temporal', label: 'Temporal' },
-      { value: 'contrato_obras', label: 'Contrato obra' },
-     ]}
-    />
-    <Select
-     label="Tipo nombramiento"
-     value={form.tipo_nombramiento}
-     onChange={e => setForm({...form, tipo_nombramiento: e.target.value})}
-     placeholder="Sin especificar"
-     options={[
-      { value: 'propiedad', label: 'Propiedad' },
-      { value: 'periodo_prueba', label: 'Periodo de prueba' },
-      { value: 'encargo', label: 'Encargo' },
-      { value: 'comision', label: 'Comisión' },
-      { value: 'interinamente', label: 'Interinamente' },
-     ]}
-    />
-   </div>
-   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-    <label className="flex items-center gap-2 mt-5 cursor-pointer">
-     <input
-      type="checkbox"
-      checked={!!form.es_contratista}
-      onChange={e => setForm({...form, es_contratista: e.target.checked ? 1 : 0})}
-      className="w-4 h-4 rounded border-inst-borde text-inst-azul-osc focus:ring-inst-azul-osc"
-     />
-     <span className="text-sm text-inst-texto">Es contratista</span>
-    </label>
-    <label className="flex items-center gap-2 mt-5 cursor-pointer">
-     <input
-      type="checkbox"
-      checked={!!form.periodo_prueba}
-      onChange={e => setForm({...form, periodo_prueba: e.target.checked ? 1 : 0})}
-      className="w-4 h-4 rounded border-inst-borde text-inst-azul-osc focus:ring-inst-azul-osc"
-     />
-     <span className="text-sm text-inst-texto">En periodo de prueba</span>
-    </label>
-   </div>
-   <Input
-    label="Propósito del empleo"
-    type="text"
-    value={form.proposito_empleo}
-    onChange={e => setForm({...form, proposito_empleo: e.target.value})}
-    placeholder="Propósito principal del empleo"
-   />
-   <Input
-    label={`Contraseña${editando ? ' (dejar vacío para no cambiar)' : ''}`}
-    type="password"
-    value={form.password}
-    onChange={e => setForm({...form, password: e.target.value})}
-   />
-   <div>
-    <label className="block text-sm font-medium text-inst-texto mb-2">Roles</label>
-    <p className="text-xs text-inst-texto-claro mb-2">Solo 3 roles: Admin, Evaluador, Evaluado. El cargo define la posición del funcionario.</p>
-    <div className="flex gap-2 flex-wrap">
-     {ROLES_SISTEMA.map(r => {
-      const active = form.roles.includes(r.codigo);
-      const tones: Record<string, 'danger' | 'success' | 'info'> = { admin: 'danger', evaluador: 'success', evaluado: 'info' };
-      return (
-       <button
-        key={r.codigo}
-        type="button"
-        onClick={() => toggleRol(r.codigo)}
-        aria-pressed={active}
-        className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition ${
-         active
-          ? `${r.codigo === 'admin' ? 'bg-red-50 text-red-800 border-red-300' : r.codigo === 'evaluador' ? 'bg-green-50 text-green-800 border-green-300' : 'bg-blue-50 text-blue-800 border-blue-300'}`
-          : 'bg-inst-gris text-inst-texto-claro border-inst-borde hover:border-inst-azul-osc'
-        }`}
-       >
-        {r.nombre}
-       </button>
-      );
-     })}
-    </div>
-   </div>
-   <Select
-    label="Estado"
-    value={form.estado}
-    onChange={e => setForm({...form, estado: e.target.value})}
-    options={[
-     { value: 'activo', label: 'Activo' },
-     { value: 'inactivo', label: 'Inactivo' },
-    ]}
-   />
-  </div>
-  <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">
-   <Button variant="outline" onClick={() => setModalAbierto(false)}>Cancelar</Button>
-   <Button variant="primary" loading={guardando} onClick={guardar}>
-    {editando ? 'Actualizar' : 'Crear'}
-   </Button>
-  </div>
- </Modal>
- ) : null}
- </div>
- );
+  );
 }

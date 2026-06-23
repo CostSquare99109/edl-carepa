@@ -233,17 +233,60 @@ $this->evaluacionRepo->actualizar($id, [
 
  $user = AuthMiddleware::user();
  $accion = $datos['accion'] ?? 'aprobar';
+ $pdo = Database::getInstance();
 
  if ($accion === 'rechazar') {
  $this->evaluacionRepo->actualizar($id, [
  'estado' => 'rechazada_comision',
  'observaciones' => $datos['observaciones'] ?? 'Rechazada por Comision Evaluadora',
  ]);
+
+ // Notificar al evaluador para que corrija
+ $stmtNotif = $pdo->prepare(
+ "INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo, evaluacion_id, creado_en)
+ VALUES (:uid, :titulo, :mensaje, 'alerta', :eid, NOW())"
+ );
+ $stmtNotif->execute([
+ 'uid' => $evaluacion['evaluador_id'],
+ 'titulo' => 'Evaluacion rechazada por la Comision',
+ 'mensaje' => 'La Comision Evaluadora rechazo la calificacion definitiva del servidor. Debe ingresar y realizar los ajustes pertinentes. Observaciones: ' . ($datos['observaciones'] ?? 'Sin observaciones'),
+ 'eid' => $id,
+ ]);
  } else {
  $this->evaluacionRepo->actualizar($id, [
  'estado' => 'aprobada_comision',
  'es_comision_evaluadora' => 1,
  'comision_evaluadora_id' => $user['id'],
+ ]);
+
+ // Notificar al evaluado que su evaluacion quedo en firme
+ $stmtNotif = $pdo->prepare(
+ "INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo, evaluacion_id, creado_en)
+ VALUES (:uid, :titulo, :mensaje, 'exito', :eid, NOW())"
+ );
+ $nivelTexto = match($evaluacion['nivel_resultado'] ?? '') {
+ 'sobresaliente' => 'SOBRESALIENTE',
+ 'satisfactorio' => 'SATISFACTORIO',
+ 'no_satisfactorio' => 'NO SATISFACTORIO',
+ default => 'CALIFICADA',
+ };
+ $stmtNotif->execute([
+ 'uid' => $evaluacion['evaluado_id'],
+ 'titulo' => 'Evaluacion aprobada y en firme',
+ 'mensaje' => "Su evaluacion del periodo {$evaluacion['periodo_id']} fue aprobada por la Comision Evaluadora con calificacion {$nivelTexto}. La calificacion queda en firme.",
+ 'eid' => $id,
+ ]);
+
+ // Notificar al evaluador que la calificacion quedo en firme
+ $stmtNotif2 = $pdo->prepare(
+ "INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo, evaluacion_id, creado_en)
+ VALUES (:uid, :titulo, :mensaje, 'info', :eid, NOW())"
+ );
+ $stmtNotif2->execute([
+ 'uid' => $evaluacion['evaluador_id'],
+ 'titulo' => 'Evaluacion aprobada por la Comision',
+ 'mensaje' => "La Comision Evaluadora aprobo la calificacion definitiva del servidor con nivel {$nivelTexto}. La evaluacion queda en firme.",
+ 'eid' => $id,
  ]);
  }
 
@@ -331,6 +374,25 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
   }
 
   $this->calificarDefinitiva($id, $datos);
+
+  // Notificar a la Comision Evaluadora que hay una nueva evaluacion pendiente de revision
+  $pdo = Database::getInstance();
+  $stmtNotif = $pdo->prepare(
+   "INSERT INTO notificaciones (usuario_id, titulo, mensaje, tipo, evaluacion_id, creado_en)
+    SELECT u.id, :titulo, :mensaje, 'info', :eid, NOW()
+    FROM usuarios u
+    INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
+    INNER JOIN roles r ON r.id = ur.rol_id
+    WHERE r.codigo IN ('comision_evaluadora', 'admin')
+    AND u.estado = 'activo'
+    AND u.eliminado_en IS NULL"
+  );
+  $stmtNotif->execute([
+   'titulo' => 'Nueva evaluacion pendiente de aprobacion',
+   'mensaje' => "La evaluacion del servidor fue finalizada por el evaluador y esta pendiente de revision y aprobacion por la Comision Evaluadora.",
+   'eid' => $id,
+  ]);
+
   AuditoriaService::registrar('finalizar_evaluacion', 'evaluaciones', $id);
  }
 }

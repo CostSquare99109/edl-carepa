@@ -10,6 +10,7 @@ interface Dependencia {
  codigo: string;
  nombre: string;
  estado: string;
+ usuarios_count?: number;
 }
 
 interface Entidad {
@@ -86,21 +87,43 @@ export default function AdminDependencias() {
  };
 
  const toggleEstado = async (d: Dependencia) => {
- const nuevo = d.estado === 'activa' ? 'inactiva' : 'activa';
- try {
- await api.put(`/dependencias/${d.id}`, { estado: nuevo });
- toast.success(`Dependencia ${nuevo}`);
- cargar();
- } catch (e) {
- toast.error(e instanceof Error ? e.message : 'Error al cambiar estado');
- }
- };
+    const nuevo = d.estado === 'activa' ? 'inactiva' : 'activa';
+
+    // Modal de confirmación CNSC: si va a inactivar, advertir sobre restricción
+    const mensaje = nuevo === 'inactiva'
+      ? `¿Está seguro de inactivar la dependencia "${d.nombre}"?\n\nRecuerde que, conforme al Anexo Técnico del Acuerdo 617 de 2018, solo se puede inactivar si NO tiene usuarios activos asociados. Si los tiene, la operación será rechazada por el sistema.`
+      : `¿Activar la dependencia "${d.nombre}"?`;
+
+    if (!confirm(mensaje)) return;
+
+    try {
+      // Usar endpoint dedicado cambiarEstado para validación de usuarios activos
+      await api.put(`/dependencias/${d.id}/estado`, { estado: nuevo });
+      toast.success(`Dependencia ${nuevo === 'activa' ? 'activada' : 'inactivada'} correctamente`);
+      cargar();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al cambiar estado');
+    }
+  };
 
  const totalPages = Math.ceil(total / 20);
 
  const columns: DataTableColumn<Dependencia>[] = [
  { key: 'codigo', header: 'Código', render: (d) => <span className="font-mono text-xs">{d.codigo || '—'}</span> },
  { key: 'nombre', header: 'Nombre', render: (d) => d.nombre },
+ {
+   key: 'usuarios',
+   header: 'Usuarios activos',
+   align: 'center',
+   render: (d) => {
+     const count = d.usuarios_count ?? 0;
+     return (
+       <Badge tone={count > 0 ? 'info' : 'neutral'}>
+         {count}
+       </Badge>
+     );
+   },
+ },
  {
  key: 'estado',
  header: 'Estado',

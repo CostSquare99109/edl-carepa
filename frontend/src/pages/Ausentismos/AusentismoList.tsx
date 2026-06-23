@@ -22,11 +22,11 @@ interface Ausentismo {
 
 const TIPOS_AUSENTISMO = [
  { value: 'incapacidad', label: 'Incapacidad' },
- { value: 'comision', label: 'Comision' },
+ { value: 'comision', label: 'Comisión' },
  { value: 'encargo', label: 'Encargo' },
- { value: 'suspension', label: 'Suspension' },
- { value: 'licencia', label: 'Licencia' },
- { value: 'vacacion', label: 'Vacaciones' },
+ { value: 'suspension', label: 'Suspensión' },
+ { value: 'licencias', label: 'Licencias' },
+ { value: 'vacaciones', label: 'Vacaciones' },
  { value: 'permiso', label: 'Permiso' },
  { value: 'otro', label: 'Otros' },
 ]

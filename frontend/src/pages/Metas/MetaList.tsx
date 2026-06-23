@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
+import { useAuth } from '../../contexts/AuthContext'
 import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, DataTable, Tooltip, SkeletonText } from '../../components/ui'
 import type { DataTableColumn } from '../../components/ui'
 import { toast } from 'sonner'
@@ -42,14 +43,29 @@ const ESTADO_META: Record<string, { tone: 'neutral' | 'warning' | 'success' | 'i
 const ESTADOS_META = Object.keys(ESTADO_META);
 
 export default function MetaList() {
+  const { usuario } = useAuth();
   const [items, setItems] = useState<Meta[]>([])
   const [total, setTotal] = useState(0)
   const [pagina, setPagina] = useState(1)
   const [loading, setLoading] = useState(true)
   const [editando, setEditando] = useState<Meta | null>(null)
+  const [creando, setCreando] = useState(false)
   const [saving, setSaving] = useState(false)
   const [dependencias, setDependencias] = useState<DependenciaOption[]>([])
+  const [periodos, setPeriodos] = useState<{ id: number; nombre: string }[]>([])
   const [error, setError] = useState('');
+
+  // Estado para crear nueva meta
+  const [formNueva, setFormNueva] = useState({
+    periodo_id: '' as string | number,
+    dependencia_id: '' as string | number,
+    descripcion: '',
+    tipo: 'cuantitativa' as Meta['tipo'],
+    peso: 0,
+    indicador: '',
+    meta_numerica: null as number | null,
+    unidad_medida: '',
+  });
 
   function cargar() {
   setLoading(true)
@@ -65,7 +81,58 @@ export default function MetaList() {
   .catch(() => {})
   }
 
-  useEffect(() => { cargar(); cargarDependencias() }, [pagina])
+  function cargarPeriodos() {
+  api.get<PaginatedData<{ id: number; nombre: string }>>('/periodos?por_pagina=100')
+  .then(d => setPeriodos(d.data || []))
+  .catch(() => {})
+  }
+
+  useEffect(() => { cargar(); cargarDependencias(); cargarPeriodos(); }, [pagina])
+
+  function abrirCrear() {
+    setFormNueva({
+      periodo_id: '',
+      dependencia_id: '',
+      descripcion: '',
+      tipo: 'cuantitativa',
+      peso: 0,
+      indicador: '',
+      meta_numerica: null,
+      unidad_medida: '',
+    });
+    setCreando(true);
+  }
+
+  async function crearMeta() {
+    if (!formNueva.periodo_id) { toast.error('Seleccione un período'); return; }
+    if (!formNueva.dependencia_id) { toast.error('Seleccione una dependencia'); return; }
+    if (formNueva.descripcion.length < 50) { toast.error('La descripción debe tener al menos 50 caracteres'); return; }
+    if (formNueva.descripcion.length > 1000) { toast.error('La descripción no puede tener más de 1000 caracteres'); return; }
+    if (!usuario) { toast.error('No hay sesión activa'); return; }
+    setSaving(true);
+    try {
+      await api.post('/metas', {
+        periodo_id: Number(formNueva.periodo_id),
+        dependencia_id: Number(formNueva.dependencia_id),
+        funcionario_id: usuario.id,
+        evaluador_id: usuario.id,
+        descripcion: formNueva.descripcion.trim(),
+        tipo: formNueva.tipo,
+        peso: formNueva.peso,
+        indicador: formNueva.indicador.trim(),
+        meta_numerica: formNueva.meta_numerica,
+        unidad_medida: formNueva.unidad_medida.trim(),
+        estado: 'pendiente',
+      });
+      toast.success('Meta creada correctamente');
+      setCreando(false);
+      cargar();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al crear la meta');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   async function guardar() {
     if (!editando) return
@@ -143,13 +210,20 @@ export default function MetaList() {
   return (
    <div className="space-y-6">
     <div className="animate-fadeIn">
-     <h2 className="edl-section-title">
-      <span className="material-icons align-middle mr-2 text-xl">flag</span>
-      Metas
-     </h2>
-     <p className="text-sm text-inst-texto-claro ml-7">
-      Las metas son fijadas por el jefe de la entidad para todos los servidores de una dependencia. Se evalúan como compromisos funcionales.
-     </p>
+     <div className="flex items-center justify-between flex-wrap gap-3">
+      <div>
+       <h2 className="edl-section-title">
+        <span className="material-icons align-middle mr-2 text-xl">flag</span>
+        Metas
+       </h2>
+       <p className="text-sm text-inst-texto-claro ml-7">
+        Las metas son fijadas por el jefe de la entidad para todos los servidores de una dependencia. Se evalúan como compromisos funcionales.
+       </p>
+      </div>
+      <Button variant="primary" iconLeft={<span className="material-icons text-base">add</span>} onClick={abrirCrear}>
+       Nueva Meta
+      </Button>
+     </div>
     </div>
 
     {error ? (
@@ -265,6 +339,110 @@ export default function MetaList() {
        <Button variant="primary" loading={saving} onClick={guardar}>Guardar</Button>
       </div>
      </Modal>
+    ) : null}
+    {creando ? (
+      <Modal
+        open={true}
+        onClose={() => setCreando(false)}
+        title="Nueva Meta"
+        description="Crear meta asociada a un período y dependencia"
+        size="lg"
+      >
+        <Alert tone="info" className="mb-3">
+          <p className="text-xs">
+            <strong>Pasos:</strong> 1) Seleccione período y dependencia. 2) Ingrese descripción (50-1000 caracteres).
+            3) Configure tipo, peso e indicador. 4) Guarde para crear la meta.
+          </p>
+        </Alert>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select
+              label="Período *"
+              value={formNueva.periodo_id}
+              onChange={e => setFormNueva({ ...formNueva, periodo_id: e.target.value })}
+              placeholder="Seleccionar período..."
+              options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
+            />
+            <Select
+              label="Dependencia *"
+              value={formNueva.dependencia_id}
+              onChange={e => setFormNueva({ ...formNueva, dependencia_id: e.target.value })}
+              placeholder="Seleccionar dependencia..."
+              options={dependencias.map(d => ({ value: String(d.id), label: d.nombre }))}
+            />
+          </div>
+          <div>
+            <label htmlFor="nueva-meta-desc" className="edl-label">
+              Descripción *
+              <span className={`text-xs ml-2 ${formNueva.descripcion.length >= 50 && formNueva.descripcion.length <= 1000 ? 'text-inst-azul-osc' : 'text-inst-texto-claro'}`}>
+                ({formNueva.descripcion.length}/1000, mínimo 50 caracteres)
+              </span>
+            </label>
+            <textarea
+              id="nueva-meta-desc"
+              value={formNueva.descripcion}
+              onChange={e => setFormNueva({ ...formNueva, descripcion: e.target.value })}
+              className="edl-input w-full"
+              rows={4}
+              placeholder="Descripción de la meta (mínimo 50 caracteres)..."
+            />
+            {formNueva.descripcion.length > 0 && formNueva.descripcion.length < 50 && (
+              <p className="text-xs text-inst-rojo mt-1">Faltan {50 - formNueva.descripcion.length} caracteres para el mínimo requerido.</p>
+            )}
+            {formNueva.descripcion.length > 1000 && (
+              <p className="text-xs text-inst-rojo mt-1">Ha excedido el máximo de 1000 caracteres.</p>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select
+              label="Tipo"
+              value={formNueva.tipo}
+              onChange={e => setFormNueva({ ...formNueva, tipo: e.target.value as Meta['tipo'] })}
+              options={TIPOS_META.map(t => ({ value: t.value, label: t.label }))}
+            />
+            <Input
+              label="Peso (%)"
+              type="number"
+              value={formNueva.peso || ''}
+              onChange={e => setFormNueva({ ...formNueva, peso: parseFloat(e.target.value) || 0 })}
+              min={0}
+              max={100}
+              step={0.01}
+              helperText="Peso porcentual de la meta (0-100)"
+            />
+          </div>
+          <Input
+            label="Indicador"
+            type="text"
+            value={formNueva.indicador}
+            onChange={e => setFormNueva({ ...formNueva, indicador: e.target.value })}
+            placeholder="Indicador de medición"
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              label="Meta numérica"
+              type="number"
+              value={formNueva.meta_numerica ?? ''}
+              onChange={e => setFormNueva({ ...formNueva, meta_numerica: e.target.value ? parseFloat(e.target.value) : null })}
+              step={0.01}
+              placeholder="Opcional"
+            />
+            <Input
+              label="Unidad de medida"
+              type="text"
+              value={formNueva.unidad_medida}
+              onChange={e => setFormNueva({ ...formNueva, unidad_medida: e.target.value })}
+              placeholder="Opcional (ej: %, unidades, km)"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">
+          <Button variant="outline" onClick={() => setCreando(false)}>Cancelar</Button>
+          <Button variant="primary" loading={saving} onClick={crearMeta}>
+            Crear Meta
+          </Button>
+        </div>
+      </Modal>
     ) : null}
    </div>
   )

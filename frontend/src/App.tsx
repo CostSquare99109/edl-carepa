@@ -97,6 +97,7 @@ export default function App() {
     <Route path="evaluar" element={<PanelEvaluador />} />
     <Route path="comision-evaluadora" element={<ComisionEvaluadora />} />
     <Route path="carga-usuarios" element={<CargaUsuarios />} />
+    <Route path="admin/carga-usuarios" element={<CargaUsuarios />} />
     <Route path="perfil" element={<Perfil />} />
    </Route>
    <Route path="*" element={<Navigate to="/" replace />} />

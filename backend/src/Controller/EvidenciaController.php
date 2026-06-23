@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Service\EvidenciaService;
 use App\Helper\ResponseHelper;
 use App\Helper\SanitizerHelper;
+use App\Config\Database;
 
 class EvidenciaController
 {
@@ -50,5 +51,32 @@ class EvidenciaController
  {
   $this->service->eliminar($id);
   ResponseHelper::success(null, 'Evidencia eliminada');
+ }
+
+ /** Obtener compromisos aprobados de un evaluado en un período para el selector de evidencias */
+ public function compromisosEvaluado(): void
+ {
+  $evaluadoId = (int) ($_GET['evaluado_id'] ?? 0);
+  $periodoId = (int) ($_GET['periodo_id'] ?? 0);
+
+  if ($evaluadoId <= 0 || $periodoId <= 0) {
+   ResponseHelper::error('evaluado_id y periodo_id son requeridos', 400);
+  }
+
+  $pdo = Database::getInstance();
+  $stmt = $pdo->prepare(
+   "SELECT comp.*
+    FROM compromisos comp
+    INNER JOIN concertaciones conc ON conc.id = comp.concertacion_id AND conc.eliminado_en IS NULL
+    WHERE conc.evaluado_id = ?
+      AND conc.periodo_id = ?
+      AND comp.estado IN ('aprobado', 'en_progreso', 'cumplido')
+      AND comp.eliminado_en IS NULL
+    ORDER BY comp.tipo, comp.id"
+  );
+  $stmt->execute([$evaluadoId, $periodoId]);
+  $compromisos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+  ResponseHelper::success(['data' => $compromisos]);
  }
 }

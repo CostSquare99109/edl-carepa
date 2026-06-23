@@ -131,7 +131,7 @@ export default function CompromisosMejoramiento() {
    setFormAspecto('')
    setFormAcciones('')
    setFormObservacion('')
-   toast.success('Compromiso de mejoramiento registrado')
+   toast.success('La creación del compromiso de mejoramiento se realizó correctamente.', { duration: 5000 })
    cargar()
   } catch (e) {
    toast.error(e instanceof Error ? e.message : 'Error al guardar')

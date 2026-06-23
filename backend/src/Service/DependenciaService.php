@@ -17,7 +17,7 @@ class DependenciaService
 
     public function listar(array $filtros, int $pagina, int $porPagina): array
     {
-        return $this->repo->listar($filtros, $pagina, $porPagina);
+        return $this->repo->listarConConteoUsuarios($filtros, $pagina, $porPagina);
     }
 
     public function crear(array $datos): int

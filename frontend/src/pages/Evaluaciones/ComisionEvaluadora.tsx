@@ -78,7 +78,7 @@ export default function ComisionEvaluadora() {
  accion,
  observaciones,
  })
- toast.success(accion === 'aprobar' ? 'Evaluación aprobada correctamente' : 'Evaluación rechazada')
+ toast.success(accion === 'aprobar' ? 'La Comisión Evaluadora aprobó correctamente la evaluación. La calificación queda en firme.' : 'La Comisión Evaluadora rechazó la evaluación. Se notificará al evaluador para los ajustes pertinentes.')
  setModalAprobar(null)
  setObservaciones('')
  cargarEvaluaciones()

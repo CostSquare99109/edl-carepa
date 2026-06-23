@@ -1,8 +1,9 @@
 export const COLORES = {
- azul: '#0A2B5E',
- azulClaro: '#003366',
- azulOscuro: '#0A2B5E',
- rojo: '#C4282B',
+  azul: '#0A2B5E',
+  azulClaro: '#003366',
+  azulOscuro: '#0A2B5E',
+  rojo: '#C4282B',
+  verde: '#1E5A3C',
 } as const;
 
 export const COLORES_TAILWIND = {
@@ -18,6 +19,11 @@ export const COLORES_TAILWIND = {
  rojo: 'bg-[#C4282B]',
  rojoText: 'text-[#C4282B]',
  rojoBorder: 'border-[#C4282B]',
+ verde: 'bg-[#1E5A3C]',
+ verdeText: 'text-[#1E5A3C]',
+ verdeBorder: 'border-[#1E5A3C]',
+ verdeLight: 'bg-[#1E5A3C]/10',
+ verdeLightText: 'text-[#1E5A3C]',
 } as const;
 
 export const ROLES_SISTEMA = [

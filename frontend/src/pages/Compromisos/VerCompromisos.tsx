@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { api, API_BASE } from '../../lib/api';
 
 interface Evaluado {
   documento: string;
@@ -30,6 +30,7 @@ export default function VerCompromisos() {
   const [comportamentales, setComportamentales] = useState<Compromiso[]>([]);
   const [loading, setLoading] = useState(true);
   const [sumaPesos, setSumaPesos] = useState(0);
+  const [concertacionId, setConcertacionId] = useState<number | null>(null);
 
   useEffect(() => {
     if (evaluacionId) cargarCompromisos();
@@ -38,6 +39,11 @@ export default function VerCompromisos() {
   async function cargarCompromisos() {
     setLoading(true);
     try {
+      // Primero obtenemos el detalle de la evaluación para conocer la concertacion_id
+      const evalRes = await api.get<any>(`/evaluaciones/${evaluacionId}`);
+      if (evalRes?.concertacion_id) {
+        setConcertacionId(Number(evalRes.concertacion_id));
+      }
       const res = await api.get<any>(`/compromisos/evaluacion/${evaluacionId}`);
       setFuncionales(res?.funcionales || []);
       setComportamentales(res?.comportamentales || []);
@@ -60,11 +66,25 @@ export default function VerCompromisos() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/compromisos-y-competencias')} className="edl-btn-secondary flex items-center gap-1 text-sm">
-          <span className="material-icons text-lg">arrow_back</span>Volver
-        </button>
-        <h2 className="edl-section-title">Compromisos de {evaluado.nombre_completo}</h2>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/compromisos-y-competencias')} className="edl-btn-secondary flex items-center gap-1 text-sm">
+            <span className="material-icons text-lg">arrow_back</span>Volver
+          </button>
+          <h2 className="edl-section-title">Compromisos de {evaluado.nombre_completo}</h2>
+        </div>
+        {concertacionId ? (
+          <a
+            href={`${API_BASE}/reportes/concertacion-pdf/${concertacionId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="edl-btn-secondary flex items-center gap-2 text-sm"
+            download
+          >
+            <span className="material-icons text-lg">download</span>
+            Descargar PDF de concertación
+          </a>
+        ) : null}
       </div>
 
       {loading ? (

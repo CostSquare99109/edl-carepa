@@ -43,9 +43,11 @@ export default function MovilidadList() {
  const [editando, setEditando] = useState<Movilidad | null>(null)
  const [procesando, setProcesando] = useState(false)
  const [form, setForm] = useState({
-  funcionario_id: '', tipo: 'traslado', dependencia_origen_id: '', dependencia_destino_id: '',
+  funcionario_id: '', funcionario_documento: '', funcionario_nombre: '',
+  tipo: 'traslado', dependencia_origen_id: '', dependencia_destino_id: '',
   fecha_movimiento: '', acto_administrativo: '', observaciones: '', estado: 'tramite',
  })
+ const [buscandoFuncionario, setBuscandoFuncionario] = useState(false)
 
  useEffect(() => { cargar() }, [pagina, filtroTipo, filtroEstado])
 
@@ -65,14 +67,35 @@ export default function MovilidadList() {
 
  function abrirCrear() {
   setEditando(null)
-  setForm({ funcionario_id: '', tipo: 'traslado', dependencia_origen_id: '', dependencia_destino_id: '', fecha_movimiento: '', acto_administrativo: '', observaciones: '', estado: 'tramite' })
+  setForm({ funcionario_id: '', funcionario_documento: '', funcionario_nombre: '', tipo: 'traslado', dependencia_origen_id: '', dependencia_destino_id: '', fecha_movimiento: '', acto_administrativo: '', observaciones: '', estado: 'tramite' })
   setModal('crear')
+ }
+
+ async function buscarFuncionario() {
+  const doc = form.funcionario_documento.trim();
+  if (!doc) return;
+  setBuscandoFuncionario(true);
+  try {
+   const res = await api.get<PaginatedData<any>>(`/usuarios?documento=${encodeURIComponent(doc)}&por_pagina=5`);
+   const usuarios = res.data || [];
+   if (usuarios.length === 0) { alert('No se encontró un usuario con ese documento'); return; }
+   const u = usuarios[0];
+   setForm({
+    ...form,
+    funcionario_id: String(u.id),
+    funcionario_nombre: `${u.primer_nombre ?? ''} ${u.primer_apellido ?? ''}`.trim(),
+   });
+  } catch (e: any) { alert(e.message || 'Error al buscar funcionario'); }
+  setBuscandoFuncionario(false);
  }
 
  function abrirEditar(m: Movilidad) {
   setEditando(m)
   setForm({
-   funcionario_id: String(m.funcionario_id), tipo: m.tipo,
+   funcionario_id: String(m.funcionario_id),
+   funcionario_documento: m.funcionario_documento || '',
+   funcionario_nombre: `${m.funcionario_nombres || ''} ${m.funcionario_apellidos || ''}`.trim(),
+   tipo: m.tipo,
    dependencia_origen_id: '', dependencia_destino_id: '',
    fecha_movimiento: m.fecha_movimiento,
    acto_administrativo: m.acto_administrativo || '',
@@ -220,11 +243,31 @@ export default function MovilidadList() {
        <h3 className="font-heading font-bold text-inst-texto">{editando ? 'Editar Movilidad' : 'Registrar Movilidad'}</h3>
       </div>
       <div className="px-6 py-4 space-y-3">
-       <div>
-        <label className="edl-label">ID Funcionario</label>
-        <input type="number" value={form.funcionario_id} onChange={e => setForm({ ...form, funcionario_id: e.target.value })}
-         className="edl-input" disabled={!!editando} required />
-       </div>
+       {editando ? (
+        <div>
+         <label className="edl-label">Funcionario</label>
+         <input value={form.funcionario_nombre || `${form.funcionario_documento}`} disabled
+          className="edl-input bg-inst-gris-med" />
+        </div>
+       ) : (
+        <div>
+         <label className="edl-label">Documento del funcionario *</label>
+         <div className="flex gap-2">
+          <input value={form.funcionario_documento} onChange={e => setForm({ ...form, funcionario_documento: e.target.value })}
+           onKeyDown={e => e.key === 'Enter' && buscarFuncionario()}
+           className="edl-input flex-1" placeholder="Número de documento" />
+          <button onClick={buscarFuncionario} disabled={buscandoFuncionario || !form.funcionario_documento.trim()}
+           className="edl-btn-secondary disabled:opacity-50">
+           {buscandoFuncionario ? 'Buscando...' : 'Buscar'}
+          </button>
+         </div>
+         {form.funcionario_id && (
+          <div className="mt-2 p-2 bg-inst-azul-osc-light rounded text-sm">
+           <strong>Funcionario:</strong> {form.funcionario_nombre} (ID: {form.funcionario_id})
+          </div>
+         )}
+        </div>
+       )}
        <div className="grid grid-cols-2 gap-3">
         <div>
          <label className="edl-label">Tipo</label>
