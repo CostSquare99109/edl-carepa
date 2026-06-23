@@ -55,8 +55,8 @@ class EvaluacionService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador'])) {
- ResponseHelper::forbidden('Solo evaluadores o jefes pueden crear evaluaciones');
+ if (!in_array($rolActivo, ['admin', 'evaluador'])) {
+ ResponseHelper::forbidden('Solo administradores o evaluadores pueden crear evaluaciones');
  }
 
  $tiposValidos = ['parcial_semestral', 'parcial_eventual', 'definitiva', 'primer_semestre', 'segundo_semestre', 'extraordinaria'];
@@ -170,6 +170,7 @@ class EvaluacionService
 
  $notaFunc = $sumaPesoFunc > 0 ? $sumaCalifFunc / $sumaPesoFunc : 0;
 
+ // Calificacion comportamental: escala 4-15 puntos
  $sumaCalifComp = 0;
  $sumaPesoComp = 0;
  foreach ($compromisos as $c) {
@@ -178,20 +179,39 @@ class EvaluacionService
  $sumaPesoComp += (float) $c['peso'];
  }
  }
- $notaComp = $sumaPesoComp > 0 ? $sumaCalifComp / $sumaPesoComp : 0;
+ $puntajeCompBruto = $sumaPesoComp > 0 ? $sumaCalifComp / $sumaPesoComp : 0;
 
+ // Subescala comportamental (rango 4-15):
+ // Bajo: 4-6, Aceptable: 7-9, Alto: 10-12, Muy Alto: 13-15
+ $nivelComp = 'bajo';
+ if ($puntajeCompBruto >= 13) {
+ $nivelComp = 'muy_alto';
+ } elseif ($puntajeCompBruto >= 10) {
+ $nivelComp = 'alto';
+ } elseif ($puntajeCompBruto >= 7) {
+ $nivelComp = 'aceptable';
+ }
+
+ // Convertir puntaje comportamental (4-15) a porcentaje (0-100) para la ponderacion
+ // Formula: (puntaje - min) / (max - min) * 100 = (puntaje - 4) / 11 * 100
+ $notaComp = ($puntajeCompBruto >= 4) ? (($puntajeCompBruto - 4) / 11) * 100 : 0;
+
+ // Ponderacion: 85% funcional + 15% comportamental
  $califDefinitiva = ($notaFunc * $pesoFunc / 100) + ($notaComp * $pesoComp / 100);
 
+ // Escala final: Sobresaliente >= 90%, Satisfactorio > 65% y < 90%, No Satisfactorio <= 65%
  $umbralSobresaliente = (float) Env::get('UMBRAL_SOBRESALIENTE', 90);
  $umbralSatisfactorio = (float) Env::get('UMBRAL_SATISFACTORIO', 65);
 
- $nivel = $califDefinitiva >= $umbralSobresaliente ? 'sobresaliente' : ($califDefinitiva >= $umbralSatisfactorio ? 'satisfactorio' : 'no_satisfactorio');
+ $nivel = $califDefinitiva >= $umbralSobresaliente ? 'sobresaliente' : ($califDefinitiva > $umbralSatisfactorio ? 'satisfactorio' : 'no_satisfactorio');
 
  $this->evaluacionRepo->actualizar($id, [
  'nota_funcionales' => round($notaFunc, 2),
  'nota_comportamentales' => round($notaComp, 2),
  'calificacion_definitiva' => round($califDefinitiva, 2),
  'nivel_resultado' => $nivel,
+ 'nivel_comportamental' => $nivelComp,
+ 'puntaje_comportamental' => round($puntajeCompBruto, 2),
  'estado' => 'calificada',
  'fecha_calificacion' => date('Y-m-d'),
  ]);

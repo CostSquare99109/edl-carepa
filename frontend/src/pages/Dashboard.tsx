@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { api, type PaginatedData } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { Card, KpiCard, Badge, Alert, Button, Input, SkeletonKpiGrid, SkeletonText } from '../components/ui';
+import { toast } from 'sonner';
 
 interface Resumen {
  entidades: number;
@@ -48,9 +50,9 @@ const ADMIN_ONLY_CARDS = ['entidades', 'usuarios', 'evaluaciones', 'periodos'];
 
 const CARD_ITEMS = [
  { key: 'entidades', label: 'Entidades', icon: 'domain', color: 'text-purple-700', bg: 'bg-purple-100' },
- { key: 'usuarios', label: 'Usuarios', icon: 'people', color: 'text-inst-azul', bg: 'bg-blue-100' },
+ { key: 'usuarios', label: 'Usuarios', icon: 'people', color: 'text-inst-azul-osc', bg: 'bg-blue-100' },
  { key: 'evaluaciones', label: 'Evaluaciones', icon: 'assessment', color: 'text-inst-verde', bg: 'bg-green-100' },
- { key: 'periodos', label: 'Periodos activos', icon: 'calendar_today', color: 'text-inst-rojo', bg: 'bg-red-100' },
+ { key: 'periodos', label: 'Períodos activos', icon: 'calendar_today', color: 'text-inst-rojo', bg: 'bg-red-100' },
 ] as const;
 
 const NOTI_ICON: Record<string, string> = {
@@ -60,11 +62,11 @@ const NOTI_ICON: Record<string, string> = {
  exito: 'check_circle',
 };
 
-const NOTI_COLOR: Record<string, string> = {
- info: 'bg-blue-50 border-blue-200',
- alerta: 'bg-yellow-50 border-yellow-200',
- error: 'bg-red-50 border-red-200',
- exito: 'bg-green-50 border-green-200',
+const NOTI_COLOR: Record<string, { tone: 'info' | 'success' | 'warning' | 'danger' }> = {
+ info: { tone: 'info' },
+ alerta: { tone: 'warning' },
+ error: { tone: 'danger' },
+ exito: { tone: 'success' },
 };
 
 const PIE_COLORS = ['#1E5A3C', '#0A2B5E', '#C4282B', '#F59E0B', '#6B7280'];
@@ -85,16 +87,19 @@ class DashboardErrorBoundary extends Component<{ children: ReactNode }, { hasErr
  render() {
   if (this.state.hasError) {
    return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-6 m-4">
-     <div className="flex items-center gap-3 mb-3">
-      <span className="material-icons text-3xl text-red-600">error_outline</span>
-      <h3 className="text-lg font-bold text-red-800">Error al cargar el panel</h3>
-     </div>
-     <p className="text-sm text-red-700 mb-3">{this.state.error}</p>
-     <button onClick={() => this.setState({ hasError: false, error: '' })} className="edl-btn-primary text-sm">
-      <span className="material-icons text-sm mr-1">refresh</span>
-      Reintentar
-     </button>
+    <div className="m-4">
+     <Alert tone="danger" title="Error al cargar el panel">
+      <p>{this.state.error}</p>
+      <Button
+       variant="outline"
+       size="sm"
+       className="mt-3"
+       iconLeft={<span className="material-icons text-sm">refresh</span>}
+       onClick={() => this.setState({ hasError: false, error: '' })}
+      >
+       Reintentar
+      </Button>
+     </Alert>
     </div>
    );
   }
@@ -112,37 +117,34 @@ function DashboardContent() {
  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
  const [actividad, setActividad] = useState<Actividad[]>([]);
  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+ const [cargando, setCargando] = useState(true);
  const [cambiandoPassword, setCambiandoPassword] = useState(false);
  const [passwordActual, setPasswordActual] = useState('');
  const [passwordNueva, setPasswordNueva] = useState('');
  const [passwordConfirmar, setPasswordConfirmar] = useState('');
  const [passwordMsg, setPasswordMsg] = useState('');
+ const [passwordMsgTone, setPasswordMsgTone] = useState<'success' | 'danger'>('success');
 
- const isAdmin = roles?.some(r =>
-  ['admin', 'admin_carepa', 'admin_entidad', 'jefe_personal'].includes(r.codigo)
- );
+ const isAdmin = roles?.some(r => r.codigo === 'admin');
  const visibleCards = CARD_ITEMS.filter(item =>
   isAdmin || !ADMIN_ONLY_CARDS.includes(item.key)
  );
-
- const puedeAprobar = roles?.some(r =>
-  ['evaluador', 'comision_evaluadora', 'admin_entidad', 'admin_carepa'].includes(r.codigo)
- );
+ const puedeAprobar = roles?.some(r => r.codigo === 'evaluador' || r.codigo === 'admin');
 
  useEffect(() => {
-  api.get<Resumen>('/dashboard/resumen').then(setResumen).catch(() => {});
-
-  if (isAdmin) {
-   api.get<AdminStats>('/dashboard/admin-stats').then(setAdminStats).catch(() => {});
-  }
-
-  api.get<PaginatedData<Actividad>>('/dashboard/actividad?por_pagina=10')
-   .then(r => setActividad(Array.isArray(r?.data) ? r.data : []))
-   .catch(() => setActividad([]));
-
-  api.get<PaginatedData<Notificacion>>('/notificaciones?por_pagina=5')
-   .then(r => setNotificaciones(Array.isArray(r?.data) ? r.data : []))
-   .catch(() => setNotificaciones([]));
+  let cancel = false;
+  setCargando(true);
+  Promise.allSettled([
+   api.get<Resumen>('/dashboard/resumen').then(setResumen),
+   isAdmin ? api.get<AdminStats>('/dashboard/admin-stats').then(setAdminStats) : Promise.resolve(),
+   api.get<PaginatedData<Actividad>>('/dashboard/actividad?por_pagina=10')
+    .then(r => setActividad(Array.isArray(r?.data) ? r.data : []))
+    .catch(() => setActividad([])),
+   api.get<PaginatedData<Notificacion>>('/notificaciones?por_pagina=5')
+    .then(r => setNotificaciones(Array.isArray(r?.data) ? r.data : []))
+    .catch(() => setNotificaciones([])),
+  ]).finally(() => { if (!cancel) setCargando(false); });
+  return () => { cancel = true; };
  }, [isAdmin]);
 
  async function marcarLeida(id: number) {
@@ -150,16 +152,22 @@ function DashboardContent() {
    await api.put(`/notificaciones/${id}/leer`);
    setNotificaciones(prev => prev.map(n => n.id === id ? { ...n, leida: 1 } : n));
    setResumen(prev => ({ ...prev, notificaciones_no_leidas: Math.max(0, prev.notificaciones_no_leidas - 1) }));
-  } catch {}
+   toast.success('Notificación marcada como leída');
+  } catch {
+   toast.error('No se pudo marcar como leída');
+  }
  }
 
  async function cambiarPassword() {
+  setPasswordMsg('');
   if (!passwordNueva || passwordNueva.length < 6) {
-   setPasswordMsg('La contrasena debe tener al menos 6 caracteres');
+   setPasswordMsgTone('danger');
+   setPasswordMsg('La contraseña debe tener al menos 6 caracteres');
    return;
   }
   if (passwordNueva !== passwordConfirmar) {
-   setPasswordMsg('Las contrasenas no coinciden');
+   setPasswordMsgTone('danger');
+   setPasswordMsg('Las contraseñas no coinciden');
    return;
   }
   try {
@@ -167,47 +175,61 @@ function DashboardContent() {
     password_actual: passwordActual,
     password_nueva: passwordNueva,
    });
-   setPasswordMsg('Contrasena actualizada exitosamente');
+   setPasswordMsgTone('success');
+   setPasswordMsg('Contraseña actualizada exitosamente');
    setPasswordActual('');
    setPasswordNueva('');
    setPasswordConfirmar('');
+   toast.success('Contraseña actualizada');
    setTimeout(() => { setCambiandoPassword(false); setPasswordMsg(''); }, 2000);
-  } catch (e: any) {
-   setPasswordMsg(e.message || 'Error al cambiar contrasena');
+  } catch (e) {
+   const msg = e instanceof Error ? e.message : 'Error al cambiar contraseña';
+   setPasswordMsgTone('danger');
+   setPasswordMsg(msg);
+   toast.error(msg);
   }
  }
 
  const safeActividad = Array.isArray(actividad) ? actividad : [];
  const safeNotificaciones = Array.isArray(notificaciones) ? notificaciones : [];
 
- const rolLabel = rolActivo === 'evaluado'
-  ? 'Evaluado'
+ const rolLabel = rolActivo === 'admin'
+  ? 'Administrador'
   : rolActivo === 'evaluador'
   ? 'Evaluador'
-  : rolActivo === 'jefe_personal'
-  ? 'Jefe de Personal'
-  : rolActivo === 'admin' || rolActivo === 'admin_carepa' || rolActivo === 'admin_entidad'
-  ? 'Administrador'
-  : rolActivo === 'comision_evaluadora'
-  ? 'Comision Evaluadora'
+  : rolActivo === 'evaluado'
+  ? 'Evaluado'
   : '';
 
+ const totalPendientes =
+  resumen.compromisos_pendientes_aprobacion +
+  resumen.mis_compromisos_enviados +
+  resumen.notificaciones_no_leidas;
+
+ const saludo = (() => {
+  const h = new Date().getHours();
+  if (h < 12) return 'Buenos días';
+  if (h < 18) return 'Buenas tardes';
+  return 'Buenas noches';
+ })();
+
  return (
-  <div>
-   <div className="edl-card mb-6">
-    <div className="flex items-center justify-between">
+  <div className="space-y-6">
+   {/* Header */}
+   <Card className="animate-fadeIn">
+    <div className="flex items-center justify-between gap-4 flex-wrap">
      <div className="flex items-center gap-4">
       <div className="flex-shrink-0">
        <img
         src={`${import.meta.env.BASE_URL}escudo.png`}
-        alt="Escudo Carepa"
+        alt="Escudo de Carepa"
         className="h-20 w-auto"
         onError={(e) => {
-         (e.target as HTMLImageElement).style.display = 'none';
+         ;(e.target as HTMLImageElement).style.display = 'none';
          const parent = (e.target as HTMLImageElement).parentElement;
          if (parent && !parent.querySelector('.escudo-fallback')) {
           const span = document.createElement('span');
-          span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul';
+          span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul-osc';
           span.textContent = 'CAREPA';
           parent.appendChild(span);
          }
@@ -215,106 +237,135 @@ function DashboardContent() {
        />
       </div>
       <div>
-       <h2 className="text-xl font-heading font-bold text-inst-azul">
-        Bienvenido/a, {usuario?.nombres ?? ''} {usuario?.apellidos ?? ''}
+       <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+        {saludo}, {usuario?.nombres ?? ''} {usuario?.apellidos ?? ''}
        </h2>
-       {rolLabel && (
-        <p className="text-sm text-inst-texto-claro mt-0.5">Rol: {rolLabel}</p>
-       )}
+       {rolLabel ? <p className="text-sm text-inst-texto-claro mt-0.5">Rol activo: {rolLabel}</p> : null}
+       {totalPendientes > 0 ? (
+        <p className="text-xs text-inst-texto-claro mt-1">
+         Hoy tenés {totalPendientes} tarea{totalPendientes > 1 ? 's' : ''} pendiente{totalPendientes > 1 ? 's' : ''}.
+        </p>
+       ) : null}
       </div>
      </div>
-     <button
+     <Button
+      variant="outline"
+      size="sm"
+      iconLeft={<span className="material-icons text-sm">lock</span>}
       onClick={() => setCambiandoPassword(!cambiandoPassword)}
-      className="edl-btn-outline text-sm flex items-center gap-1"
      >
-      <span className="material-icons text-sm">lock</span>
-      Cambiar contrasena
-     </button>
+      Cambiar contraseña
+     </Button>
     </div>
 
-    {cambiandoPassword && (
-     <div className="mt-4 p-4 bg-inst-gris rounded-lg">
-      <h3 className="text-sm font-bold text-inst-azul mb-3">Cambiar contrasena</h3>
+    {cambiandoPassword ? (
+     <div className="mt-4 p-4 bg-inst-gris rounded-lg animate-slideUp">
+      <h3 className="text-sm font-bold text-inst-azul-osc mb-3">Cambiar contraseña</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-       <div>
-        <label className="edl-label">Contrasena actual</label>
-        <input type="password" value={passwordActual} onChange={e => setPasswordActual(e.target.value)} className="edl-input" />
-       </div>
-       <div>
-        <label className="edl-label">Nueva contrasena</label>
-        <input type="password" value={passwordNueva} onChange={e => setPasswordNueva(e.target.value)} className="edl-input" />
-       </div>
-       <div>
-        <label className="edl-label">Confirmar contrasena</label>
-        <input type="password" value={passwordConfirmar} onChange={e => setPasswordConfirmar(e.target.value)} className="edl-input" />
-       </div>
+       <Input
+        label="Contraseña actual"
+        type="password"
+        value={passwordActual}
+        onChange={e => setPasswordActual(e.target.value)}
+        autoComplete="current-password"
+       />
+       <Input
+        label="Nueva contraseña"
+        type="password"
+        value={passwordNueva}
+        onChange={e => setPasswordNueva(e.target.value)}
+        helperText="Mínimo 6 caracteres"
+        autoComplete="new-password"
+       />
+       <Input
+        label="Confirmar contraseña"
+        type="password"
+        value={passwordConfirmar}
+        onChange={e => setPasswordConfirmar(e.target.value)}
+        autoComplete="new-password"
+       />
       </div>
-      {passwordMsg && (
-       <p className={`text-sm mt-2 ${passwordMsg.includes('exitosamente') ? 'text-inst-verde' : 'text-inst-rojo'}`}>{passwordMsg}</p>
-      )}
+      {passwordMsg ? (
+       <Alert tone={passwordMsgTone} className="mt-3">
+        {passwordMsg}
+       </Alert>
+      ) : null}
       <div className="flex gap-2 mt-3">
-       <button onClick={cambiarPassword} className="edl-btn-primary text-sm">Guardar</button>
-       <button onClick={() => { setCambiandoPassword(false); setPasswordMsg(''); }} className="edl-btn-outline text-sm">Cancelar</button>
+       <Button variant="primary" size="sm" onClick={cambiarPassword}>Guardar</Button>
+       <Button
+        variant="outline"
+        size="sm"
+        onClick={() => { setCambiandoPassword(false); setPasswordMsg(''); }}
+       >
+        Cancelar
+       </Button>
       </div>
      </div>
-    )}
-   </div>
+    ) : null}
+   </Card>
 
-   {(resumen.compromisos_pendientes_aprobacion > 0 || resumen.mis_compromisos_enviados > 0) && (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-     {resumen.compromisos_pendientes_aprobacion > 0 && puedeAprobar && (
-      <div className="edl-card bg-yellow-50 border-yellow-300 flex items-center gap-3">
-       <span className="material-icons text-3xl text-yellow-600">notifications_active</span>
-       <div>
-        <p className="font-heading font-bold text-yellow-800">
-         {resumen.compromisos_pendientes_aprobacion} compromiso{resumen.compromisos_pendientes_aprobacion > 1 ? 's' : ''} pendiente{resumen.compromisos_pendientes_aprobacion > 1 ? 's' : ''} de aprobacion
+   {/* Compromisos pendientes */}
+   {!cargando && (resumen.compromisos_pendientes_aprobacion > 0 || resumen.mis_compromisos_enviados > 0) ? (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+     {resumen.compromisos_pendientes_aprobacion > 0 && puedeAprobar ? (
+      <Card className="bg-inst-amarillo-light border-amber-300 flex items-start gap-3 animate-slideUp">
+       <span className="material-icons text-3xl text-amber-600">notifications_active</span>
+       <div className="flex-1">
+        <p className="font-heading font-bold text-amber-800">
+         {resumen.compromisos_pendientes_aprobacion} compromiso{resumen.compromisos_pendientes_aprobacion > 1 ? 's' : ''} pendiente{resumen.compromisos_pendientes_aprobacion > 1 ? 's' : ''} de aprobación
         </p>
-        <p className="text-sm text-yellow-700">Funcionarios han enviado compromisos que requieren su revision.</p>
-        <button onClick={() => navigate('/compromisos/aprobar')} className="text-sm text-yellow-800 underline font-medium mt-1">
+        <p className="text-sm text-amber-700 mt-0.5">Funcionarios han enviado compromisos que requieren su revisión.</p>
+        <button
+         onClick={() => navigate('/compromisos/aprobar')}
+         className="text-sm text-amber-800 underline font-medium mt-1"
+        >
          Ir a Aprobar Compromisos
         </button>
        </div>
-      </div>
-     )}
-     {resumen.mis_compromisos_enviados > 0 && (
-      <div className="edl-card bg-blue-50 border-blue-300 flex items-center gap-3">
-       <span className="material-icons text-3xl text-blue-600">schedule</span>
-       <div>
-        <p className="font-heading font-bold text-blue-800">
+      </Card>
+     ) : null}
+     {resumen.mis_compromisos_enviados > 0 ? (
+      <Card className="bg-sky-50 border-sky-200 flex items-start gap-3 animate-slideUp">
+       <span className="material-icons text-3xl text-sky-600">schedule</span>
+       <div className="flex-1">
+        <p className="font-heading font-bold text-sky-800">
          {resumen.mis_compromisos_enviados} compromiso{resumen.mis_compromisos_enviados > 1 ? 's' : ''} en espera
         </p>
-        <p className="text-sm text-blue-700">Sus compromisos enviados estan pendientes de aprobacion.</p>
-        <button onClick={() => navigate('/compromisos/mios')} className="text-sm text-blue-800 underline font-medium mt-1">
+        <p className="text-sm text-sky-700 mt-0.5">Sus compromisos enviados están pendientes de aprobación.</p>
+        <button
+         onClick={() => navigate('/compromisos/mios')}
+         className="text-sm text-sky-800 underline font-medium mt-1"
+        >
          Ver Mis Compromisos
         </button>
        </div>
-      </div>
-     )}
+      </Card>
+     ) : null}
     </div>
-   )}
+   ) : null}
 
-   {visibleCards.length > 0 && (
-    <div className={`grid gap-4 mb-6 ${visibleCards.length <= 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
+   {/* KPIs */}
+   {cargando ? (
+    <SkeletonKpiGrid count={Math.max(visibleCards.length, 4)} />
+   ) : visibleCards.length > 0 ? (
+    <div className={`grid gap-4 ${visibleCards.length <= 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'}`}>
      {visibleCards.map((item) => (
-      <div key={item.key} className="edl-card flex items-center gap-4">
-       <div className={`${item.bg} ${item.color} rounded-lg p-3`}>
-        <span className="material-icons text-2xl">{item.icon}</span>
-       </div>
-       <div>
-        <p className="text-2xl font-heading font-bold text-inst-azul">
-         {resumen[item.key as keyof Resumen] ?? 0}
-        </p>
-        <p className="text-sm text-inst-texto-claro">{item.label}</p>
-       </div>
-      </div>
+      <KpiCard
+       key={item.key}
+       label={item.label}
+       value={resumen[item.key as keyof Resumen] ?? 0}
+       icon={<span className="material-icons text-2xl">{item.icon}</span>}
+       tone={item.key === 'evaluaciones' ? 'success' : item.key === 'periodos' ? 'danger' : 'info'}
+      />
      ))}
     </div>
-   )}
+   ) : null}
 
-   {isAdmin && adminStats && (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-     {adminStats.evaluaciones_por_estado && adminStats.evaluaciones_por_estado.length > 0 && (
-      <div className="edl-card">
+   {/* Admin charts */}
+   {isAdmin && adminStats ? (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+     {adminStats.evaluaciones_por_estado && adminStats.evaluaciones_por_estado.length > 0 ? (
+      <Card>
        <h3 className="edl-section-title mb-4">Evaluaciones por Estado</h3>
        <ResponsiveContainer width="100%" height={250}>
         <PieChart>
@@ -325,7 +376,7 @@ function DashboardContent() {
           cx="50%"
           cy="50%"
           outerRadius={80}
-          label={({ name, value }: any) => `${name ?? ''}: ${value}`}
+          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ''}: ${value ?? 0}`}
          >
           {adminStats.evaluaciones_por_estado.map((_, i) => (
            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -335,77 +386,78 @@ function DashboardContent() {
          <Legend />
         </PieChart>
        </ResponsiveContainer>
-      </div>
-     )}
+      </Card>
+     ) : null}
 
-     {adminStats.progreso_dependencias && adminStats.progreso_dependencias.length > 0 && (
-      <div className="edl-card">
+     {adminStats.progreso_dependencias && adminStats.progreso_dependencias.length > 0 ? (
+      <Card>
        <h3 className="edl-section-title mb-4">Progreso por Dependencia</h3>
        <ResponsiveContainer width="100%" height={250}>
         <BarChart data={adminStats.progreso_dependencias} layout="vertical">
          <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
          <YAxis type="category" dataKey="dependencia" width={140} tick={{ fontSize: 12 }} />
-         <Tooltip formatter={(v: any) => `${v}%`} />
+         <Tooltip formatter={(v) => `${v ?? 0}%`} />
          <Bar dataKey="progreso" fill="#0A2B5E" radius={[0, 4, 4, 0]} />
         </BarChart>
        </ResponsiveContainer>
-      </div>
-     )}
+      </Card>
+     ) : null}
     </div>
-   )}
+   ) : null}
 
-   {safeNotificaciones.length > 0 && (
-    <div className="edl-card mb-6">
+   {/* Notificaciones */}
+   {!cargando && safeNotificaciones.length > 0 ? (
+    <Card>
      <div className="flex items-center justify-between mb-4">
       <h3 className="edl-section-title">
        Notificaciones
-       {resumen.notificaciones_no_leidas > 0 && (
-        <span className="ml-2 bg-inst-rojo text-white text-xs px-2 py-0.5 rounded-full">
-         {resumen.notificaciones_no_leidas}
-        </span>
-       )}
+       {resumen.notificaciones_no_leidas > 0 ? (
+        <Badge tone="danger" className="ml-2">{resumen.notificaciones_no_leidas}</Badge>
+       ) : null}
       </h3>
      </div>
      <div className="space-y-2">
       {safeNotificaciones.map(n => (
-       <div key={n.id} className={`p-3 rounded-lg border flex items-start gap-3 ${NOTI_COLOR[n.tipo] || 'bg-gray-50'}`}>
-        <span className="material-icons text-lg mt-0.5">{NOTI_ICON[n.tipo] || 'info'}</span>
-        <div className="flex-1 min-w-0">
-         <p className={`text-sm font-medium ${n.leida ? 'text-inst-texto-claro' : 'text-inst-texto'}`}>{n.titulo}</p>
-         <p className="text-xs text-inst-texto-claro mt-0.5">{n.mensaje}</p>
+       <Alert key={n.id} tone={NOTI_COLOR[n.tipo]?.tone ?? 'info'} title={!n.leida ? n.titulo : undefined}>
+        <div className="flex items-start justify-between gap-3">
+         <div>
+          {n.leida ? <p className="font-medium text-inst-texto-claro">{n.titulo}</p> : null}
+          <p className="text-xs text-inst-texto-claro mt-0.5">{n.mensaje}</p>
+         </div>
+         {!n.leida ? (
+          <Button variant="ghost" size="sm" onClick={() => marcarLeida(n.id)}>
+           Marcar leída
+          </Button>
+         ) : null}
         </div>
-        {!n.leida && (
-         <button onClick={() => marcarLeida(n.id)} className="text-xs text-inst-azul hover:underline flex-shrink-0">
-          Marcar leida
-         </button>
-        )}
-       </div>
+       </Alert>
       ))}
      </div>
-    </div>
-   )}
+    </Card>
+   ) : null}
 
-   <div className="edl-card">
+   {/* Actividad reciente */}
+   <Card>
     <h3 className="edl-section-title mb-4">Actividad reciente</h3>
-    {safeActividad.length === 0 ? (
+    {cargando ? (
+     <SkeletonText lines={5} />
+    ) : safeActividad.length === 0 ? (
      <p className="text-sm text-inst-texto-claro py-4">No hay actividad registrada.</p>
     ) : (
-     <div className="space-y-0">
+     <div>
       {safeActividad.map((a) => (
        <div key={a.id} className="flex items-start gap-3 py-3 border-b border-inst-borde last:border-b-0">
-        <div className="w-1 self-stretch bg-inst-rojo rounded-full flex-shrink-0" />
+        <div className="w-1 self-stretch bg-inst-rojo rounded-full flex-shrink-0" aria-hidden="true" />
         <div className="flex-1 min-w-0">
-         <p className="text-sm text-inst-texto">{a.accion || a.entidad || 'Sin descripcion'}</p>
+         <p className="text-sm text-inst-texto">{a.accion || a.entidad || 'Sin descripción'}</p>
          <p className="text-xs text-inst-texto-claro mt-0.5">{a.fecha}</p>
         </div>
-        <span className="edl-badge bg-inst-gris text-inst-texto-claro text-xs">
-         {a.entidad || a.accion || '--'}
-        </span>
+        <Badge tone="neutral">{a.entidad || a.accion || '--'}</Badge>
        </div>
       ))}
      </div>
     )}
-   </div>
+   </Card>
   </div>
  );
 }

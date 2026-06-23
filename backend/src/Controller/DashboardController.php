@@ -36,8 +36,8 @@ class DashboardController
             $compromisosPendientes = $notiService->compromisosPendientesPorAprobar((int) $user['id']);
         }
 
-        // Mis compromisos enviados
-        $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos WHERE responsable_id = ? AND estado = 'propuesto' AND eliminado_en IS NULL");
+        // Mis compromisos enviados: los propuestos por el evaluado en sus evaluaciones
+        $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos c INNER JOIN evaluaciones e ON e.id = c.concertacion_id WHERE e.evaluado_id = ? AND c.estado = 'propuesto' AND c.eliminado_en IS NULL");
         $stmt->execute([(int) $user['id']]);
         $misCompromisosEnviados = (int) $stmt->fetchColumn();
 
@@ -119,9 +119,9 @@ class DashboardController
 
         // Evaluaciones recientes
         $evalRecientes = $db->query("
-            SELECT e.id, e.tipo, e.estado, e.puntaje, e.fecha_evaluacion,
-                   CONCAT(u.nombres, ' ', u.apellidos) AS evaluado,
-                   CONCAT(ev.nombres, ' ', ev.apellidos) AS evaluador
+            SELECT e.id, e.tipo, e.estado, e.calificacion_definitiva AS puntaje, e.fecha_evaluacion, e.creado_en,
+                   TRIM(CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido)) AS evaluado,
+                   TRIM(CONCAT_WS(' ', ev.primer_nombre, ev.segundo_nombre, ev.primer_apellido, ev.segundo_apellido)) AS evaluador
             FROM evaluaciones e
             INNER JOIN usuarios u ON u.id = e.evaluado_id
             INNER JOIN usuarios ev ON ev.id = e.evaluador_id
@@ -166,6 +166,79 @@ class DashboardController
         'entidades_activas' => $entidadesActivas,
         'evaluaciones_por_estado' => $evalPorEstado,
         'evaluaciones_por_dependencia' => $evalPorDependencia,
+        ]);
+    }
+
+    public function periodoActivo(): void
+    {
+        $db = Database::getInstance();
+
+        $periodo = $db->query("
+            SELECT id, nombre, fecha_inicio, fecha_fin, estado
+            FROM periodos
+            WHERE estado IN ('configuracion','concertacion','seguimiento','evaluacion','calificacion') AND eliminado_en IS NULL
+            ORDER BY fecha_inicio DESC LIMIT 1
+        ")->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$periodo) {
+            ResponseHelper::success([
+                'periodo' => null,
+                'progreso' => 0,
+                'dias_restantes' => 0,
+                'dias_transcurridos' => 0,
+                'duracion_total' => 0,
+                'etapa_actual' => null,
+                'etapas' => [],
+            ]);
+            return;
+        }
+
+        $inicio = new \DateTime($periodo['fecha_inicio']);
+        $fin = new \DateTime($periodo['fecha_fin']);
+        $hoy = new \DateTime(date('Y-m-d'));
+
+        $duracion = (int) $inicio->diff($fin)->days;
+        $transcurridos = max(0, (int) $inicio->diff($hoy)->days);
+        if ($hoy < $inicio) {
+            $transcurridos = 0;
+        }
+        $restantes = max(0, $duracion - $transcurridos);
+        $progreso = $duracion > 0 ? min(100, round(($transcurridos / $duracion) * 100)) : 0;
+
+        $etapaActual = $periodo['estado'];
+        $ordenEtapas = ['configuracion', 'concertacion', 'seguimiento', 'evaluacion', 'calificacion'];
+        $labelsEtapas = [
+            'configuracion' => 'Configuracion',
+            'concertacion' => 'Concertacion',
+            'seguimiento' => 'Seguimiento',
+            'evaluacion' => 'Evaluacion Parcial',
+            'calificacion' => 'Calificacion Definitiva',
+        ];
+        $idxActual = array_search($etapaActual, $ordenEtapas);
+        $etapas = [];
+        foreach ($ordenEtapas as $i => $cod) {
+            $etapas[] = [
+                'codigo' => $cod,
+                'label' => $labelsEtapas[$cod],
+                'estado' => $i < $idxActual ? 'completada' : ($i === $idxActual ? 'actual' : 'pendiente'),
+            ];
+        }
+
+        ResponseHelper::success([
+            'periodo' => [
+                'id' => (int) $periodo['id'],
+                'nombre' => $periodo['nombre'],
+                'fecha_inicio' => $periodo['fecha_inicio'],
+                'fecha_fin' => $periodo['fecha_fin'],
+                'estado' => $periodo['estado'],
+            ],
+            'progreso' => $progreso,
+            'dias_restantes' => $restantes,
+            'dias_transcurridos' => $transcurridos,
+            'duracion_total' => $duracion,
+            'etapa_actual' => $etapaActual,
+            'etapa_label' => $labelsEtapas[$etapaActual] ?? $etapaActual,
+            'etapas' => $etapas,
         ]);
     }
 

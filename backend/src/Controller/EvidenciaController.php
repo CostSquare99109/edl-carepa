@@ -28,7 +28,7 @@ class EvidenciaController
  $params['eid'] = (int) $filtros['evaluacion_id'];
  } else {
  // Por defecto, las del usuario autenticado
- $where .= " AND e.subido_por = :uid";
+ $where .= " AND e.registrado_por = :uid";
  $params['uid'] = $user['id'];
  }
 
@@ -136,13 +136,12 @@ class EvidenciaController
 
  // Insertar evidencia (bitacora descriptiva)
  $stmt = $pdo->prepare("
- INSERT INTO evidencias (compromiso_id, periodo_id, subido_por, registrado_por, descripcion, ubicacion, observacion, compromiso_competencia, tipo, estado, creado_en)
- VALUES (:compromiso_id, :periodo_id, :subido_por, :registrado_por, :descripcion, :ubicacion, :observacion, :compromiso_competencia, :tipo, 'pendiente', NOW())
+ INSERT INTO evidencias (compromiso_id, periodo_id, registrado_por, descripcion, ubicacion, observacion, compromiso_competencia, tipo, creado_en)
+ VALUES (:compromiso_id, :periodo_id, :registrado_por, :descripcion, :ubicacion, :observacion, :compromiso_competencia, :tipo, NOW())
  ");
  $stmt->execute([
  'compromiso_id' => $compromisoId,
  'periodo_id' => $periodoId,
- 'subido_por' => $user['id'],
  'registrado_por' => $user['id'],
  'descripcion' => $descripcion,
  'ubicacion' => $ubicacion ?: null,
@@ -165,7 +164,7 @@ class EvidenciaController
  $input = SanitizerHelper::sanitizeArray($input);
 
  // Verificar que es del usuario
- $stmt = $pdo->prepare("SELECT * FROM evidencias WHERE id = :id AND subido_por = :uid AND eliminado_en IS NULL");
+ $stmt = $pdo->prepare("SELECT * FROM evidencias WHERE id = :id AND registrado_por = :uid AND eliminado_en IS NULL");
  $stmt->execute(['id' => $id, 'uid' => $user['id']]);
  $evidencia = $stmt->fetch(\PDO::FETCH_ASSOC);
 

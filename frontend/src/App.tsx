@@ -41,6 +41,7 @@ import AdminEvaluaciones from './pages/Admin/AdminEvaluaciones'
 import AdminReportes from './pages/Admin/AdminReportes'
 import AdminNotificaciones from './pages/Admin/AdminNotificaciones'
 import AdminConfiguracion from './pages/Admin/AdminConfiguracion'
+import Perfil from './pages/Perfil'
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
  const { token, rolActivo } = useAuth()
@@ -61,6 +62,7 @@ export default function App() {
    <Route path="/seleccionar-rol" element={<ProtectedRoute><SelectRolePage /></ProtectedRoute>} />
    <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
     <Route index element={<Dashboard />} />
+    <Route path="admin" element={<AdminHome />} />
     <Route path="entidades" element={<EntidadList />} />
     <Route path="usuarios" element={<UsuarioList />} />
     <Route path="admin-usuarios" element={<AdminUsuarios />} />
@@ -95,6 +97,7 @@ export default function App() {
     <Route path="evaluar" element={<PanelEvaluador />} />
     <Route path="comision-evaluadora" element={<ComisionEvaluadora />} />
     <Route path="carga-usuarios" element={<CargaUsuarios />} />
+    <Route path="perfil" element={<Perfil />} />
    </Route>
    <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>

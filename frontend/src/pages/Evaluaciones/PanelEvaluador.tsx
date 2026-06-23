@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { api, type PaginatedData } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, Tooltip, SkeletonText, Skeleton } from '../../components/ui';
+import { toast } from 'sonner';
 
 interface Periodo {
  id: number;
@@ -104,6 +106,18 @@ function escalaFinal(puntaje: number): { label: string; color: string } {
  if (puntaje > 65) return { label: 'Satisfactorio', color: 'text-blue-700 bg-blue-50' };
  return { label: 'No Satisfactorio', color: 'text-red-700 bg-red-50' };
 }
+
+const ESCALA_FINAL_TONE: Record<string, 'success' | 'info' | 'danger'> = {
+ Sobresaliente: 'success',
+ Satisfactorio: 'info',
+ 'No Satisfactorio': 'danger',
+};
+
+const ESCALA_FINAL_DESC: Record<string, string> = {
+ Sobresaliente: '>= 90% — Desempeño destacado.',
+ Satisfactorio: '> 65% y < 90% — Desempeño adecuado.',
+ 'No Satisfactorio': '<= 65% — Requiere compromisos de mejoramiento.',
+};
 
 export default function PanelEvaluador() {
  const { usuario, rolActivo } = useAuth();
@@ -216,14 +230,14 @@ export default function PanelEvaluador() {
  async function guardarCalificacion() {
   if (!modalCompromiso || !evaluacionSel) return;
   if (calificacion < 0 || calificacion > 100) {
-   alert('La calificacion debe estar entre 0 y 100');
+   toast.error('La calificación debe estar entre 0 y 100');
    return;
   }
   if (modalCompromiso.tipo === 'comportamental') {
    const totalConductas = modalCompromiso.conductas?.length || 0;
    const respondidas = Object.keys(conductasForm).length;
    if (totalConductas > 0 && respondidas < totalConductas) {
-    alert('Debe valorar todas las conductas antes de calificar.');
+    toast.error('Debe valorar todas las conductas antes de calificar.');
     return;
    }
   }
@@ -237,12 +251,13 @@ export default function PanelEvaluador() {
      valoracion: valor,
     })),
    });
+   toast.success('Calificación guardada');
    setCompromisos(prev => prev.map(c =>
     c.id === modalCompromiso.id ? { ...c, puntaje: calificacion, estado: 'evaluado' } : c
    ));
    setModalCompromiso(null);
-  } catch (err: any) {
-   alert(err.message || 'Error al calificar compromiso');
+  } catch (err) {
+   toast.error(err instanceof Error ? err.message : 'Error al calificar compromiso');
   } finally { setGuardandoCal(false); }
  }
 
@@ -307,11 +322,11 @@ export default function PanelEvaluador() {
     fecha_inicio_eval: fechaInicio,
     fecha_fin_eval: fechaFin,
    });
-   alert('Evaluacion guardada exitosamente.');
+   toast.success('Evaluación guardada exitosamente.');
    cargarEvaluaciones();
    setEvaluacionSel(null);
-  } catch (err: any) {
-   alert(err.message || 'Error al guardar evaluacion');
+  } catch (err) {
+   toast.error(err instanceof Error ? err.message : 'Error al guardar evaluación');
   } finally { setSaving(false); setConfirmModal(null); }
  }
 
@@ -320,11 +335,11 @@ export default function PanelEvaluador() {
   setSaving(true);
   try {
    await api.put(`/evaluaciones/${evaluacionSel.id}/solicitar-revision`, {});
-   alert('Revision solicitada exitosamente.');
+   toast.success('Revisión solicitada exitosamente.');
    cargarEvaluaciones();
    setEvaluacionSel(null);
-  } catch (err: any) {
-   alert(err.message || 'Error al solicitar revision');
+  } catch (err) {
+   toast.error(err instanceof Error ? err.message : 'Error al solicitar revisión');
   } finally { setSaving(false); setConfirmModal(null); }
  }
 
@@ -346,11 +361,11 @@ export default function PanelEvaluador() {
     fecha_inicio_eval: fechaInicio,
     fecha_fin_eval: fechaFin,
    });
-   alert('Evaluacion finalizada. La calificacion es definitiva.');
+   toast.success('Evaluación finalizada. La calificación es definitiva.');
    cargarEvaluaciones();
    setEvaluacionSel(null);
-  } catch (err: any) {
-   alert(err.message || 'Error al finalizar evaluacion');
+  } catch (err) {
+   toast.error(err instanceof Error ? err.message : 'Error al finalizar evaluación');
   } finally { setSaving(false); setConfirmModal(null); }
  }
 
@@ -365,54 +380,72 @@ export default function PanelEvaluador() {
  }
 
  return (
-  <div className="min-h-screen">
-   <div className="mb-6">
+  <div className="min-h-screen space-y-6">
+   <div className="animate-fadeIn">
     <div className="flex items-center gap-2 mb-1">
-     <span className="material-icons text-inst-azul text-xl">rate_review</span>
-     <h2 className="edl-section-title">Evaluar Desempeno</h2>
+     <span className="material-icons text-inst-azul-osc text-xl">rate_review</span>
+     <h2 className="edl-section-title">Evaluar Desempeño</h2>
     </div>
     <p className="text-sm text-inst-texto-claro ml-7">
-     Calificacion de compromisos funcionales y competencias comportamentales
+     Calificación de compromisos funcionales y competencias comportamentales
     </p>
    </div>
 
-   <div className="edl-card mb-6">
+   <Card>
     <div className="flex flex-wrap items-end gap-4">
      <div className="flex-1 min-w-[200px]">
-      <label className="edl-label">Periodo de evaluacion</label>
-      <select value={periodoId} onChange={e => setPeriodoId(Number(e.target.value))} className="edl-input">
-       <option value={0}>Seleccione un periodo...</option>
-       {periodos.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
-      </select>
+      <Select
+       label="Período de evaluación"
+       value={periodoId || ''}
+       onChange={e => setPeriodoId(Number(e.target.value))}
+       placeholder="Seleccione un período..."
+       options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
+      />
      </div>
      <div className="flex-1 min-w-[280px]">
-      <label className="edl-label">Buscar evaluado por documento</label>
-      <div className="flex gap-2">
-       <input type="text" value={busquedaDoc} onChange={e => setBusquedaDoc(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && buscarEvaluado()}
-        className="edl-input flex-1" placeholder="Numero de documento..." />
-       <button onClick={buscarEvaluado} disabled={buscando || !busquedaDoc.trim()}
-        className="edl-btn-primary whitespace-nowrap disabled:opacity-50">
-        {buscando ? 'Buscando...' : 'Buscar'}
-       </button>
+      <div className="flex gap-2 items-end">
+       <div className="flex-1">
+        <Input
+         label="Buscar evaluado por documento"
+         type="text"
+         value={busquedaDoc}
+         onChange={e => setBusquedaDoc(e.target.value)}
+         onKeyDown={e => e.key === 'Enter' && buscarEvaluado()}
+         placeholder="Número de documento..."
+        />
+       </div>
+       <Tooltip content="Buscar evaluaciones por documento">
+        <Button
+         variant="primary"
+         onClick={buscarEvaluado}
+         loading={buscando}
+         disabled={!busquedaDoc.trim()}
+        >
+         Buscar
+        </Button>
+       </Tooltip>
       </div>
-      {errorBusqueda && <p className="text-xs text-inst-rojo mt-1">{errorBusqueda}</p>}
+      {errorBusqueda ? (
+       <Alert tone="danger" className="mt-2">{errorBusqueda}</Alert>
+      ) : null}
      </div>
     </div>
-   </div>
+   </Card>
 
    {!evaluacionSel ? (
     <div>
      {loading ? (
-      <div className="edl-card text-center py-12 text-inst-texto-claro">
-       <span className="material-icons text-4xl animate-spin text-inst-azul mb-2 block mx-auto">refresh</span>
-       Cargando evaluaciones asignadas...
-      </div>
+      <Card>
+       <SkeletonText lines={6} />
+      </Card>
      ) : evaluaciones.length === 0 ? (
-      <div className="edl-card text-center py-12 text-inst-texto-claro">
-       <span className="material-icons text-5xl text-inst-borde mb-3 block mx-auto">assignment_late</span>
-       <p className="text-lg font-medium text-inst-texto mb-1">Sin evaluaciones asignadas</p>
-      </div>
+      <Card>
+       <EmptyState
+        icon={<span className="material-icons text-3xl">assignment_late</span>}
+        title="Sin evaluaciones asignadas"
+        description="No tiene evaluaciones pendientes para este período. Cuando le sean asignadas, aparecerán aquí."
+       />
+      </Card>
      ) : (
       <div className="space-y-3">
        {evaluaciones.map(ev => {
@@ -717,17 +750,41 @@ export default function PanelEvaluador() {
         <div>
          <div className="flex justify-between items-center">
           <span className="text-sm font-medium">Nota Definitiva</span>
-          <span className="text-lg font-bold text-inst-azul">{resumen.notaDefinitiva.toFixed(1)}%</span>
+          <span className="text-lg font-bold text-inst-azul-osc">{resumen.notaDefinitiva.toFixed(1)}%</span>
          </div>
         </div>
-        <div className={`text-center py-2 rounded font-bold text-sm ${resumen.escalaFinal.color}`}>
-         {resumen.escalaFinal.label}
+        <div className="space-y-2">
+         <div className="flex items-center justify-center gap-2 py-2">
+          <span className="text-xs text-inst-texto-claro uppercase tracking-wide">Escala final</span>
+          <Badge tone={ESCALA_FINAL_TONE[resumen.escalaFinal.label] ?? 'neutral'} className="text-sm px-3 py-1">
+           {resumen.escalaFinal.label}
+          </Badge>
+         </div>
+         {ESCALA_FINAL_DESC[resumen.escalaFinal.label] ? (
+          <p className="text-xs text-center text-inst-texto-claro">
+           {ESCALA_FINAL_DESC[resumen.escalaFinal.label]}
+          </p>
+         ) : null}
         </div>
-        {resumen.escalaFinal.label === 'No Satisfactorio' && (
-         <div className="text-xs text-inst-rojo bg-red-50 rounded p-2">
+        {resumen.escalaFinal.label === 'No Satisfactorio' ? (
+         <Alert tone="danger" className="text-xs">
           De acuerdo con el Decreto 815 de 2018, el servidor debe suscribir compromisos de mejoramiento.
+         </Alert>
+        ) : null}
+        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-inst-borde text-center">
+         <div>
+          <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Peso Func.</p>
+          <p className="text-sm font-bold text-inst-azul-osc">{PESO_FUNCIONALES}%</p>
          </div>
-        )}
+         <div>
+          <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Peso Comp.</p>
+          <p className="text-sm font-bold text-inst-verde">{PESO_COMPORTAMENTALES}%</p>
+         </div>
+         <div>
+          <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Escala Comp.</p>
+          <p className="text-sm font-bold text-inst-texto">{resumen.escalaComportamental}</p>
+         </div>
+        </div>
        </div>
       </div>
      </div>
@@ -735,17 +792,13 @@ export default function PanelEvaluador() {
    )}
 
    {modalCompromiso && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-     <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between p-4 border-b border-inst-borde">
-       <h3 className="edl-section-title text-base">
-        {modalCompromiso.tipo === 'funcional' ? 'Calificar Compromiso Funcional' : 'Calificar Competencia Comportamental'}
-       </h3>
-       <button onClick={() => setModalCompromiso(null)} className="p-1 rounded hover:bg-inst-gris">
-        <span className="material-icons text-xl text-inst-texto-claro">close</span>
-       </button>
-      </div>
-      <div className="p-4 space-y-4">
+    <Modal
+     open={true}
+     onClose={() => setModalCompromiso(null)}
+     title={modalCompromiso.tipo === 'funcional' ? 'Calificar Compromiso Funcional' : 'Calificar Competencia Comportamental'}
+     size="lg"
+    >
+     <div className="space-y-4">
        <div className="edl-card bg-inst-gris">
         <p className="text-sm font-medium">{modalCompromiso.compromiso_competencia || modalCompromiso.descripcion}</p>
         {modalCompromiso.resultado_esperado && (
@@ -787,37 +840,40 @@ export default function PanelEvaluador() {
        <div>
         <label className="edl-label">Observaciones (opcional)</label>
         <textarea value={obsCompromiso} onChange={e => setObsCompromiso(e.target.value)}
-         className="edl-input min-h-[60px]" placeholder="Observaciones sobre la calificacion" />
+         className="edl-input min-h-[60px]" placeholder="Observaciones sobre la calificación" />
        </div>
 
-       <div className="flex justify-end gap-3">
-        <button onClick={() => setModalCompromiso(null)} className="edl-btn-outline">Cancelar</button>
-        <button onClick={guardarCalificacion} disabled={guardandoCal} className="edl-btn-primary disabled:opacity-50">
-         {guardandoCal ? 'Guardando...' : 'Guardar calificacion'}
-        </button>
+       <div className="flex justify-end gap-3 pt-2">
+        <Button variant="outline" onClick={() => setModalCompromiso(null)}>Cancelar</Button>
+        <Button variant="primary" onClick={guardarCalificacion} loading={guardandoCal}>
+         Guardar calificación
+        </Button>
        </div>
-      </div>
      </div>
-    </div>
+    </Modal>
    )}
 
    {confirmModal && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-     <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-sm mx-4 p-6 text-center">
-      <span className="material-icons text-4xl text-inst-azul mb-3 block mx-auto">help_outline</span>
-      <p className="text-sm text-inst-texto mb-4">{confirmModal.msg}</p>
+    <Modal open={true} onClose={() => setConfirmModal(null)} size="sm">
+     <div className="text-center py-2">
+      <span className="material-icons text-5xl text-inst-azul-osc mb-3 block mx-auto">help_outline</span>
+      <p className="text-sm text-inst-texto mb-5">{confirmModal.msg}</p>
       <div className="flex justify-center gap-3">
-       <button onClick={() => setConfirmModal(null)} className="edl-btn-outline">No</button>
-       <button onClick={() => {
-        if (confirmModal.type === 'guardar') guardarEvaluacion();
-        else if (confirmModal.type === 'revision') solicitarRevision();
-        else finalizarEvaluacion();
-       }} disabled={saving} className="edl-btn-primary disabled:opacity-50">
-        {saving ? 'Procesando...' : 'Si'}
-       </button>
+       <Button variant="outline" onClick={() => setConfirmModal(null)}>No</Button>
+       <Button
+        variant="primary"
+        loading={saving}
+        onClick={() => {
+         if (confirmModal.type === 'guardar') guardarEvaluacion();
+         else if (confirmModal.type === 'revision') solicitarRevision();
+         else finalizarEvaluacion();
+        }}
+       >
+        Sí
+       </Button>
       </div>
      </div>
-    </div>
+    </Modal>
    )}
   </div>
  );

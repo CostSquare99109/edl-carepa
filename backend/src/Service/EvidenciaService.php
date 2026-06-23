@@ -82,7 +82,7 @@ class EvidenciaService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'jefe_personal']) &&
+ if (!in_array($rolActivo, ['admin']) &&
  (int) $evidencia['registrado_por'] !== $user['id']) {
  ResponseHelper::forbidden('Solo puede modificar evidencias propias');
  }

@@ -40,7 +40,7 @@ class CompromisoMejoramientoRepository extends BaseRepository
  $offset = ($pagina - 1) * $porPagina;
  $stmt = $this->pdo->prepare("
  SELECT cm.*,
- u.nombres as reg_nombre, u.apellidos as reg_apellido,
+ TRIM(CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido)) as registrado_nombre,
  comp.descripcion as compromiso_descripcion
  FROM compromisos_mejoramiento cm
  INNER JOIN usuarios u ON u.id = cm.registrado_por
@@ -53,14 +53,8 @@ class CompromisoMejoramientoRepository extends BaseRepository
  $params[] = $offset;
  $stmt->execute($params);
 
- $items = $stmt->fetchAll();
- foreach ($items as &$item) {
- $item['registrado_nombre'] = trim(($item['reg_nombre'] ?? '') . ' ' . ($item['reg_apellido'] ?? ''));
- unset($item['reg_nombre'], $item['reg_apellido']);
- }
-
  return [
- 'data' => $items,
+ 'data' => $stmt->fetchAll(),
  'total' => $total,
  'pagina' => $pagina,
  'por_pagina' => $porPagina,

@@ -28,8 +28,9 @@ class EvaluacionRepository extends BaseRepository
  $offset = ($pagina - 1) * $porPagina;
  $stmt = $this->pdo->prepare("
  SELECT ev.*,
- ed.nombres as ed_nombre, ed.apellidos as ed_apellido, ed.documento as ed_documento,
- evr.nombres as evr_nombre, evr.apellidos as evr_apellido,
+ TRIM(CONCAT_WS(' ', ed.primer_nombre, ed.segundo_nombre, ed.primer_apellido, ed.segundo_apellido)) as evaluado_nombre,
+ ed.documento as evaluado_documento,
+ TRIM(CONCAT_WS(' ', evr.primer_nombre, evr.segundo_nombre, evr.primer_apellido, evr.segundo_apellido)) as evaluador_nombre,
  p.nombre as periodo_nombre
  FROM evaluaciones ev
  INNER JOIN usuarios ed ON ed.id = ev.evaluado_id
@@ -42,14 +43,7 @@ class EvaluacionRepository extends BaseRepository
  $params[] = $offset;
  $stmt->execute($params);
 
- $evaluaciones = $stmt->fetchAll();
- foreach ($evaluaciones as &$e) {
- $e['evaluado_nombre'] = trim(($e['ed_nombre'] ?? '') . ' ' . ($e['ed_apellido'] ?? ''));
- $e['evaluador_nombre'] = trim(($e['evr_nombre'] ?? '') . ' ' . ($e['evr_apellido'] ?? ''));
- unset($e['ed_nombre'], $e['ed_apellido'], $e['ed_documento'], $e['evr_nombre'], $e['evr_apellido']);
- }
-
- return ['data' => $evaluaciones, 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
+ return ['data' => $stmt->fetchAll(), 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
  }
 
  public function compromisosPorEvaluacion(int $evaluacionId): array
@@ -80,7 +74,7 @@ class EvaluacionRepository extends BaseRepository
 
  $offset = ($pagina - 1) * $porPagina;
  $stmt = $this->pdo->prepare("
- SELECT ev.*, ed.nombres as ed_nombre, ed.apellidos as ed_apellido, p.nombre as periodo_nombre
+ SELECT ev.*, TRIM(CONCAT_WS(' ', ed.primer_nombre, ed.segundo_nombre, ed.primer_apellido, ed.segundo_apellido)) as evaluado_nombre, p.nombre as periodo_nombre
  FROM evaluaciones ev
  INNER JOIN usuarios ed ON ed.id = ev.evaluado_id
  INNER JOIN periodos p ON p.id = ev.periodo_id
@@ -91,12 +85,6 @@ class EvaluacionRepository extends BaseRepository
  $params[] = $offset;
  $stmt->execute($params);
 
- $items = $stmt->fetchAll();
- foreach ($items as &$item) {
- $item['evaluado_nombre'] = trim(($item['ed_nombre'] ?? '') . ' ' . ($item['ed_apellido'] ?? ''));
- unset($item['ed_nombre'], $item['ed_apellido']);
- }
-
- return ['data' => $items, 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
+ return ['data' => $stmt->fetchAll(), 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
  }
 }

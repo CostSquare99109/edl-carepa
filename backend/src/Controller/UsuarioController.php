@@ -28,6 +28,46 @@ class UsuarioController
  ResponseHelper::success($resultado);
  }
 
+ /**
+ * Búsqueda global para el header (autocompletado).
+ * GET /usuarios/buscar-global?q=<texto>&por_pagina=<n>
+ * Devuelve lista compacta con id, label (nombre completo) y sublabel (documento | dependencia).
+ */
+ public function buscarGlobal(): void
+ {
+ $q = trim((string) ($_GET['q'] ?? ''));
+ $porPagina = min(50, max(1, (int) ($_GET['por_pagina'] ?? 8)));
+ if (mb_strlen($q) < 2) {
+ ResponseHelper::success(['data' => []]);
+ return;
+ }
+ $pdo = \App\Config\Database::getInstance();
+ $like = '%' . $q . '%';
+ $sql = "SELECT u.id, u.documento, u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido, d.nombre AS dependencia_nombre
+ FROM usuarios u
+ LEFT JOIN dependencias d ON d.id = u.dependencia_id
+ WHERE u.estado = 'activo'
+ AND (u.documento LIKE :q1
+ OR CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido) LIKE :q2)
+ ORDER BY u.primer_nombre ASC
+ LIMIT {$porPagina}";
+ $stmt = $pdo->prepare($sql);
+ $stmt->bindValue(':q1', $like);
+ $stmt->bindValue(':q2', $like);
+ $stmt->execute();
+ $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+ $data = array_map(function ($r) {
+ $nombre = trim(implode(' ', array_filter([$r['primer_nombre'] ?? '', $r['segundo_nombre'] ?? '', $r['primer_apellido'] ?? '', $r['segundo_apellido'] ?? ''])));
+ return [
+ 'id' => (int) $r['id'],
+ 'label' => $nombre,
+ 'sublabel' => trim(($r['documento'] ?? '') . (isset($r['dependencia_nombre']) && $r['dependencia_nombre'] ? ' · ' . $r['dependencia_nombre'] : '')),
+ 'ruta' => '/admin/usuarios',
+ ];
+ }, $rows);
+ ResponseHelper::success(['data' => $data]);
+ }
+
  public function crear(): void
  {
  $input = json_decode(file_get_contents('php://input'), true) ?: [];

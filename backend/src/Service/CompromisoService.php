@@ -58,7 +58,7 @@ class CompromisoService
  'peso' => $datos['peso'] ?? 0,
  'evaluador_id' => $user['id'],
  'responsable_id' => $datos['responsable_id'] ?? $user['id'],
- 'es_propuesto_jefe' => in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador']) ? 1 : 0,
+ 'es_propuesto_jefe' => in_array($rolActivo, ['admin', 'evaluador']) ? 1 : 0,
  'estado' => 'propuesto',
  ];
 
@@ -242,11 +242,30 @@ class CompromisoService
  private function validarLimitesCompromisos(int $evaluacionId, string $tipo): void
  {
  $count = $this->compromisoRepo->contarPorEvaluacionYTipo($evaluacionId, $tipo);
- $maxKey = $tipo === 'funcional' ? 'MAX_COMPROMISOS_FUNCIONALES' : 'MAX_COMPROMISOS_COMPORTAMENTALES';
- $max = (int) Env::get($maxKey, $tipo === 'funcional' ? 5 : 5);
+
+ // Determinar si el evaluado esta en periodo de prueba
+ $esPrueba = false;
+ $stmtEval = $this->compromisoRepo->getPdo()->prepare(
+ "SELECT u.en_periodo_prueba FROM evaluaciones e INNER JOIN usuarios u ON u.id = e.evaluado_id WHERE e.id = :eid AND e.eliminado_en IS NULL"
+ );
+ $stmtEval->execute(['eid' => $evaluacionId]);
+ $pruebaVal = $stmtEval->fetchColumn();
+ $esPrueba = !empty($pruebaVal) && (bool) $pruebaVal;
+
+ if ($tipo === 'funcional') {
+ // Anual: 1-5 funcionales; Prueba: max 3 funcionales
+ $max = $esPrueba
+ ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
+ : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
+ } else {
+ // Comportamentales siempre 3-5
+ $max = (int) Env::get('MAX_COMPROMISOS_COMPORTAMENTALES', 5);
+ }
 
  if ($count >= $max) {
- ResponseHelper::error("No se pueden agregar mas compromisos {$tipo}. Maximo permitido: {$max}", 422);
+ $tipoLabel = $tipo === 'funcional' ? 'funcionales' : 'comportamentales';
+ $periodoLabel = $esPrueba ? 'periodo de prueba' : 'evaluacion anual';
+ ResponseHelper::error("No se pueden agregar mas compromisos {$tipoLabel}. Maximo permitido para {$periodoLabel}: {$max}", 422);
  }
  }
 

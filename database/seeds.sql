@@ -3,13 +3,10 @@
 -- Sistema de Evaluacion del Desempeno Laboral
 -- Alcaldia de Carepa, Antioquia
 -- ============================================================================
--- Roles segun EDL APP CNSC:
---   jefe_personal: Administrador de entidad
---   evaluador: Concerta/fija compromisos, califica
---   evaluado: Propone compromisos, acepta/rechaza
---   cargador: Apoyo contratista para cargue de info
---   comision_evaluadora: Aprueba/rechaza evaluaciones
---   admin: Administrador tecnico del sistema
+-- Roles:
+--   admin:      Administrador completo (antes: jefe_personal, comision_evaluadora, admin)
+--   evaluador:  Concerta/fija compromisos, califica, registra evidencias
+--   evaluado:   Propone compromisos, acepta/rechaza, sujeto a evaluacion
 -- ============================================================================
 
 USE edl_carepa;
@@ -18,12 +15,9 @@ USE edl_carepa;
 -- ROLES
 -- ============================================================================
 INSERT INTO `roles` (`id`, `codigo`, `nombre`, `descripcion`) VALUES
-(1, 'jefe_personal', 'Jefe de Personal', 'Administrador principal de la entidad. Gestiona dependencias, metas, usuarios, ausentismos y reportes.'),
+(1, 'admin', 'Administrador', 'Gestion completa del sistema: usuarios, entidades, dependencias, periodos, metas, ausentismos, reportes, evaluaciones y configuracion.'),
 (2, 'evaluador', 'Evaluador', 'Concerta o fija compromisos funcionales y comportamentales, realiza seguimiento, registra evidencias y califica desempeño.'),
-(3, 'evaluado', 'Evaluado', 'Servidor publico sujeto a evaluacion. Propone compromisos y acepta/rechaza compromisos concertados.'),
-(4, 'cargador', 'Cargador', 'Apoyo para cargue de informacion, registro de dependencias, metas y ausentismos. Asignado automaticamente a contratistas.'),
-(5, 'comision_evaluadora', 'Comision Evaluadora', 'Servidor de libre nombramiento y remocion que aprueba o rechaza las evaluaciones realizadas por el evaluador.'),
-(12, 'admin', 'Administrador del Sistema', 'Administrador tecnico. Gestion completa de configuracion y parametrizacion.');
+(3, 'evaluado', 'Evaluado', 'Servidor publico sujeto a evaluacion. Propone compromisos, registra evidencias y acepta/rechaza compromisos concertados.');
 
 -- ============================================================================
 -- PERMISOS
@@ -83,14 +77,14 @@ INSERT INTO `permisos` (`id`, `codigo`, `nombre`, `modulo`, `descripcion`) VALUE
 (70, 'evaluaciones.comision', 'Aprobar Comision Evaluadora', 'evaluaciones', 'Comision Evaluadora aprueba calificaciones definitivas');
 
 -- ============================================================================
--- ROL-PERMISO: Jefe de Personal (todos los permisos operativos)
+-- ROL-PERMISO: Admin (todos los permisos)
 -- ============================================================================
 INSERT INTO `rol_permiso` (`rol_id`, `permiso_id`) VALUES
 (1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7),(1,8),(1,9),(1,10),(1,11),
 (1,12),(1,13),(1,14),(1,15),(1,16),(1,17),(1,18),(1,19),(1,20),
 (1,21),(1,22),(1,23),(1,24),(1,25),(1,26),(1,27),(1,28),(1,29),(1,30),
 (1,31),(1,32),(1,33),(1,34),(1,35),(1,36),(1,37),(1,38),(1,39),(1,40),
-(1,41),(1,43),(1,44),(1,45),(1,46),(1,47),(1,49),(1,50),(1,51),(1,70);
+(1,41),(1,42),(1,43),(1,44),(1,45),(1,46),(1,47),(1,48),(1,49),(1,50),(1,51),(1,70);
 
 -- ============================================================================
 -- ROL-PERMISO: Evaluador
@@ -105,28 +99,6 @@ INSERT INTO `rol_permiso` (`rol_id`, `permiso_id`) VALUES
 -- ============================================================================
 INSERT INTO `rol_permiso` (`rol_id`, `permiso_id`) VALUES
 (3,15),(3,18),(3,21),(3,25),(3,28),(3,29),(3,31),(3,34),(3,37),(3,49);
-
--- ============================================================================
--- ROL-PERMISO: Cargador (dependencias, metas, ausentismos, cargas)
--- ============================================================================
-INSERT INTO `rol_permiso` (`rol_id`, `permiso_id`) VALUES
-(4,5),(4,6),(4,7),(4,15),(4,16),(4,17),(4,31),(4,32),(4,33),(4,39),(4,40);
-
--- ============================================================================
--- ROL-PERMISO: Comision Evaluadora
--- ============================================================================
-INSERT INTO `rol_permiso` (`rol_id`, `permiso_id`) VALUES
-(5,21),(5,37),(5,70);
-
--- ============================================================================
--- ROL-PERMISO: Admin (todos)
--- ============================================================================
-INSERT INTO `rol_permiso` (`rol_id`, `permiso_id`) VALUES
-(12,1),(12,2),(12,3),(12,4),(12,5),(12,6),(12,7),(12,8),(12,9),(12,10),(12,11),
-(12,12),(12,13),(12,14),(12,15),(12,16),(12,17),(12,18),(12,19),(12,20),
-(12,21),(12,22),(12,23),(12,24),(12,25),(12,26),(12,27),(12,28),(12,29),(12,30),
-(12,31),(12,32),(12,33),(12,34),(12,35),(12,36),(12,37),(12,38),(12,39),(12,40),
-(12,41),(12,42),(12,43),(12,44),(12,45),(12,46),(12,47),(12,48),(12,49),(12,50),(12,51),(12,70);
 
 -- ============================================================================
 -- PARAMETROS

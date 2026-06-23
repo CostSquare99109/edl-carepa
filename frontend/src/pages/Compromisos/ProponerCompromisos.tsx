@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, SkeletonText } from '../../components/ui'
+import { toast } from 'sonner'
 
 interface CompromisoFuncional {
  id?: number
@@ -122,19 +124,19 @@ export default function ProponerCompromisos() {
 
  async function guardarPropuesta() {
   if (funcionales.length < 1) {
-   alert('Debe ingresar al menos 1 compromiso funcional.')
+   toast.error('Debe ingresar al menos 1 compromiso funcional.')
    return
   }
   if (comportamentales.length < 3) {
-   alert('Debe seleccionar al menos 3 competencias comportamentales.')
+   toast.error('Debe seleccionar al menos 3 competencias comportamentales.')
    return
   }
   if (totalPeso !== 100) {
-   alert('La suma de los pesos de los compromisos funcionales debe ser igual a 100.')
+   toast.error('La suma de los pesos de los compromisos funcionales debe ser igual a 100.')
    return
   }
   if (!evaluacionId) {
-   alert('No se encontro una evaluacion activa para su usuario.')
+   toast.error('No se encontró una evaluación activa para su usuario.')
    return
   }
 
@@ -164,10 +166,10 @@ export default function ProponerCompromisos() {
     })
    }
 
-   alert('Propuesta de compromisos enviada correctamente.')
+   toast.success('Propuesta de compromisos enviada correctamente.')
    buscarMiEvaluacion()
   } catch (e: any) {
-   alert(e.message || 'Error al guardar la propuesta')
+   toast.error(e instanceof Error ? e.message : 'Error al guardar la propuesta')
   }
   setGuardando(false)
  }

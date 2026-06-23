@@ -51,7 +51,7 @@ class AuthService
   $rolCodigos = array_column($roles, 'codigo');
   $entidadId = $usuario['entidad_id'];
 
-  $prioridad = ['admin', 'jefe_personal', 'evaluador', 'evaluado', 'cargador', 'comision_evaluadora'];
+  $prioridad = ['admin', 'evaluador', 'evaluado'];
   $rolActivo = null;
   foreach ($prioridad as $p) {
    if (in_array($p, $rolCodigos)) {
@@ -60,13 +60,6 @@ class AuthService
    }
   }
   $rolActivo = $rolActivo ?? ($rolCodigos[0] ?? null);
-
-  if (($usuario['es_contratista'] ?? false) && !in_array('cargador', $rolCodigos)) {
-   $rolCodigos[] = 'cargador';
-   if ($rolActivo === null) {
-    $rolActivo = 'cargador';
-   }
-  }
 
   $token = JwtHelper::generate($usuario['id'], $usuario['documento'], $rolCodigos, $entidadId, $rolActivo);
   $tokenHash = hash('sha256', $token);
@@ -139,8 +132,7 @@ class AuthService
   $pdo = Database::getInstance();
   $usuarioId = (int) $pdo->lastInsertId();
 
-  $esContratista = !empty($datos['es_contratista']);
-  $rolCodigo = $esContratista ? 'cargador' : 'evaluado';
+  $rolCodigo = 'evaluado';
   $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = ? LIMIT 1");
   $stmt->execute([$rolCodigo]);
   $rol = $stmt->fetch();

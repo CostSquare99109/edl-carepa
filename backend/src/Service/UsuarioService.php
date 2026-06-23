@@ -23,7 +23,7 @@ class UsuarioService
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (!in_array('admin', $roles) && !in_array('jefe_personal', $roles)) {
+ if (!in_array('admin', $roles) && !in_array('evaluador', $roles)) {
  if (!empty($user['entidad_id'])) {
  $filtros['entidad_id'] = $user['entidad_id'];
  }
@@ -61,9 +61,8 @@ class UsuarioService
  $id = $this->repo->crear($datos);
 
  $roles = $datos['roles'] ?? [];
- $esContratista = !empty($datos['es_contratista']);
  if (empty($roles)) {
- $roles = [$esContratista ? 'cargador' : 'evaluado'];
+ $roles = ['evaluado'];
  }
 
  $pdo = Database::getInstance();

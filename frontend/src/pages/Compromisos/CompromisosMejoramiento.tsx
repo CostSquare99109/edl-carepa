@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, DataTable, Tooltip, SkeletonText } from '../../components/ui'
+import type { DataTableColumn } from '../../components/ui'
+import { toast } from 'sonner'
 
 interface Mejoramiento {
  id: number
@@ -104,11 +107,11 @@ export default function CompromisosMejoramiento() {
 
  async function guardar() {
   if (!formMotivo || !formAspecto.trim() || !formAcciones.trim()) {
-   alert('Motivo, aspecto a corregir y acciones de mejoramiento son obligatorios.')
+   toast.error('Motivo, aspecto a corregir y acciones de mejoramiento son obligatorios.')
    return
   }
   if (!evaluado?.evaluacion_id) {
-   alert('Debe buscar un evaluado con evaluacion activa.')
+   toast.error('Debe buscar un evaluado con evaluación activa.')
    return
   }
   setGuardando(true)
@@ -128,9 +131,10 @@ export default function CompromisosMejoramiento() {
    setFormAspecto('')
    setFormAcciones('')
    setFormObservacion('')
+   toast.success('Compromiso de mejoramiento registrado')
    cargar()
-  } catch (e: any) {
-   alert(e.message || 'Error al guardar')
+  } catch (e) {
+   toast.error(e instanceof Error ? e.message : 'Error al guardar')
   }
   setGuardando(false)
  }
@@ -144,10 +148,11 @@ export default function CompromisosMejoramiento() {
     acciones_mejoramiento: editando.acciones_mejoramiento,
     observacion: editando.observacion,
    })
+   toast.success('Compromiso de mejoramiento actualizado')
    setEditando(null)
    cargar()
-  } catch (e: any) {
-   alert(e.message || 'Error al actualizar')
+  } catch (e) {
+   toast.error(e instanceof Error ? e.message : 'Error al actualizar')
   }
   setGuardando(false)
  }

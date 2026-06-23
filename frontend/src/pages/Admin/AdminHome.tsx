@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { COLORES, COLORES_TAILWIND } from '../../styles/colors';
 import { api } from '../../lib/api';
+import { Card, KpiCard, Badge, Button, Alert, SkeletonKpiGrid, SkeletonText } from '../../components/ui';
 
 interface Stats {
   evaluados_activos: number;
@@ -14,10 +14,22 @@ interface Stats {
   entidades_activas: number;
 }
 
-const ROLE_MAP: Record<string, string> = {
-  admin: 'Admin',
-  evaluador: 'Evaluador',
-  evaluado: 'Evaluado',
+type Tone = 'success' | 'warning' | 'danger' | 'info';
+
+const ESTADO_TONE: Record<string, Tone> = {
+  completada: 'success',
+  aprobada: 'success',
+  pendiente: 'warning',
+  en_proceso: 'info',
+  rechazada: 'danger',
+};
+
+const ESTADO_LABEL: Record<string, string> = {
+  completada: 'Completada',
+  pendiente: 'Pendiente',
+  en_proceso: 'En proceso',
+  aprobada: 'Aprobada',
+  rechazada: 'Rechazada',
 };
 
 export default function AdminHome() {
@@ -27,115 +39,189 @@ export default function AdminHome() {
   const [error, setError] = useState('');
 
   const cargar = useCallback(async () => {
-    setCargando(true); setError('');
+    setCargando(true);
+    setError('');
     try {
       const res = await api.get<Stats>('/dashboard/admin-stats');
       setStats(res);
-    } catch (e: any) { setError(e.message); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error desconocido');
+    }
     setCargando(false);
   }, []);
 
-  useEffect(() => { cargar(); }, [cargar]);
+  useEffect(() => {
+    cargar();
+  }, [cargar]);
 
-  if (cargando) return (
-    <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulClaroBorder}`} /></div>
-  );
+  if (cargando) {
+    return (
+      <div className="space-y-6 p-4 lg:p-6">
+        <SkeletonText lines={2} />
+        <SkeletonKpiGrid count={4} />
+        <SkeletonText lines={6} />
+      </div>
+    );
+  }
 
-  if (error) return (
-    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg m-4">
-      <p className="font-medium">Error al cargar estadísticas</p><p className="text-sm mt-1">{error}</p>
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="p-4 lg:p-6">
+        <Alert tone="danger" title="Error al cargar estadísticas">
+          <p>{error}</p>
+          <Button variant="outline" size="sm" className="mt-3" onClick={cargar}>
+            Reintentar
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
 
   const smallBoxes = [
-    { label: 'Evaluados Activos', value: stats?.evaluados_activos ?? 0, icon: 'person', color: 'bg-blue-600', filter: 'evaluado', route: '/admin/usuarios' },
-    { label: 'Evaluadores', value: stats?.evaluadores_registrados ?? 0, icon: 'rate_review', color: 'bg-green-600', filter: 'evaluador', route: '/admin/usuarios' },
-    { label: 'Evaluaciones Completadas', value: stats?.evaluaciones_completadas ?? 0, icon: 'task_alt', color: COLORES_TAILWIND.verde, filter: 'completada', route: '/admin/evaluaciones' },
-    { label: 'Evaluaciones Pendientes', value: stats?.evaluaciones_pendientes ?? 0, icon: 'pending', color: COLORES_TAILWIND.rojo, filter: 'pendiente', route: '/admin/evaluaciones' },
+    {
+      label: 'Evaluados Activos',
+      value: stats?.evaluados_activos ?? 0,
+      icon: 'person',
+      tone: 'info' as Tone,
+      filter: 'evaluado',
+      route: '/admin/usuarios',
+    },
+    {
+      label: 'Evaluadores',
+      value: stats?.evaluadores_registrados ?? 0,
+      icon: 'rate_review',
+      tone: 'success' as Tone,
+      filter: 'evaluador',
+      route: '/admin/usuarios',
+    },
+    {
+      label: 'Evaluaciones Completadas',
+      value: stats?.evaluaciones_completadas ?? 0,
+      icon: 'task_alt',
+      tone: 'success' as Tone,
+      filter: 'completada',
+      route: '/admin/evaluaciones',
+    },
+    {
+      label: 'Evaluaciones Pendientes',
+      value: stats?.evaluaciones_pendientes ?? 0,
+      icon: 'pending',
+      tone: 'danger' as Tone,
+      filter: 'pendiente',
+      route: '/admin/evaluaciones',
+    },
   ];
 
   return (
     <div className="space-y-6 p-4 lg:p-6">
-      <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulClaroText}`}><i className="fas fa-tachometer-alt mr-2" />Tablero de Control</h2>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+          <span className="material-icons align-middle mr-2">space_dashboard</span>
+          Tablero de Control
+        </h2>
+        <Button
+          variant="outline"
+          size="sm"
+          iconLeft={<span className="material-icons text-sm">refresh</span>}
+          onClick={cargar}
+        >
+          Actualizar
+        </Button>
+      </div>
 
-      {/* Periodo activo */}
-      {stats?.periodo_activo && (
-        <div className={`bg-white rounded-lg shadow-sm border-l-4 ${COLORES_TAILWIND.azulClaroBorder} px-4 py-3`}>
-        <span className={`material-icons text-sm align-middle mr-1 ${COLORES_TAILWIND.azulClaroText}`}>event</span>
-        <span className={`text-sm font-medium ${COLORES_TAILWIND.azulClaroText}`}>Periodo activo: {stats.periodo_activo.nombre}</span>
-        </div>
-      )}
+      {stats?.periodo_activo ? (
+        <Card className="border-l-4 border-l-inst-azul-osc">
+          <div className="flex items-center gap-2">
+            <span className="material-icons text-inst-azul-osc">event</span>
+            <span className="text-sm font-medium text-inst-azul-osc">
+              Período activo: {stats.periodo_activo.nombre}
+            </span>
+          </div>
+        </Card>
+      ) : null}
 
-      {/* Roles del sistema */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>
-        <span className="material-icons text-sm align-middle mr-1">admin_panel_settings</span>
+      <Card>
+        <h3 className="text-sm font-semibold text-inst-azul-osc mb-3">
+          <span className="material-icons text-sm align-middle mr-1">admin_panel_settings</span>
           Roles del Sistema
         </h3>
         <div className="flex gap-3 flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
-            <span className="material-icons text-sm">shield</span>Admin
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
-            <span className="material-icons text-sm">rate_review</span>Evaluador
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
-            <span className="material-icons text-sm">person</span>Evaluado
-          </span>
+          <Badge tone="danger" dot>
+            <span className="material-icons text-xs align-middle mr-1">shield</span>Admin
+          </Badge>
+          <Badge tone="success" dot>
+            <span className="material-icons text-xs align-middle mr-1">rate_review</span>Evaluador
+          </Badge>
+          <Badge tone="info" dot>
+            <span className="material-icons text-xs align-middle mr-1">person</span>Evaluado
+          </Badge>
         </div>
-      </div>
+      </Card>
 
-      {/* Small-boxes clickeables */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {smallBoxes.map((box, idx) => (
-          <div
+          <Card
             key={idx}
+            variant="interactive"
             onClick={() => navigate(`${box.route}?filtro=${box.filter}`)}
-            className={`${box.color} rounded-lg shadow-md p-4 text-white cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200`}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                navigate(`${box.route}?filtro=${box.filter}`);
+              }
+            }}
+            aria-label={`${box.label}: ${box.value}. Ver detalle`}
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold">{box.value}</p>
-                <p className="text-sm opacity-90 mt-1">{box.label}</p>
-              </div>
-              <span className="material-icons text-4xl opacity-80">{box.icon}</span>
-            </div>
-            <div className="mt-2 flex items-center text-xs opacity-75">
-              <span className="material-icons text-xs mr-1">open_in_new</span>
-              Ver detalle
-            </div>
-          </div>
+            <KpiCard
+              label={box.label}
+              value={box.value}
+              tone={box.tone}
+              icon={<span className="material-icons text-2xl">{box.icon}</span>}
+            />
+          </Card>
         ))}
       </div>
 
-      {/* Progreso por dependencia */}
-      {stats?.progreso_dependencias && stats.progreso_dependencias.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>
-          <span className="material-icons text-sm align-middle mr-1">account_tree</span>
+      {stats?.progreso_dependencias && stats.progreso_dependencias.length > 0 ? (
+        <Card>
+          <h3 className="text-sm font-semibold text-inst-azul-osc mb-3">
+            <span className="material-icons text-sm align-middle mr-1">account_tree</span>
             Progreso por Dependencia
           </h3>
           <div className="space-y-3">
-            {stats.progreso_dependencias.map((dep, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-inst-texto truncate max-w-[200px]">{dep.dependencia}</span>
-                  <span className={`font-semibold ${COLORES_TAILWIND.azulClaroText}`}>{dep.progreso}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
+            {stats.progreso_dependencias.map((dep, i) => {
+              const tone: Tone = dep.progreso >= 75 ? 'success' : dep.progreso >= 50 ? 'warning' : 'danger';
+              const barColor =
+                tone === 'success' ? 'bg-inst-verde' : tone === 'warning' ? 'bg-amber-500' : 'bg-inst-rojo';
+              return (
+                <div key={i}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-inst-texto truncate max-w-[200px]">{dep.dependencia}</span>
+                    <span className="font-semibold text-inst-azul-osc">{dep.progreso}%</span>
+                  </div>
                   <div
-                    className={`h-2.5 rounded-full transition-all ${dep.progreso >= 75 ? COLORES_TAILWIND.verde : dep.progreso >= 50 ? 'bg-amber-500' : COLORES_TAILWIND.rojo}`}
-                    style={{ width: `${dep.progreso}%` }}
-                  />
+                    className="w-full bg-inst-gris-med rounded-full h-2.5 overflow-hidden"
+                    role="progressbar"
+                    aria-valuenow={dep.progreso}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={`Progreso de ${dep.dependencia}`}
+                  >
+                    <div
+                      className={`h-2.5 rounded-full transition-all duration-500 ${barColor}`}
+                      style={{ width: `${dep.progreso}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
-      )}
+        </Card>
+      ) : null}
 
-      {/* Entidades activas */}
-      <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
+      <Card className="flex items-center gap-4">
         <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
           <span className="material-icons text-2xl text-purple-700">business</span>
         </div>
@@ -143,44 +229,44 @@ export default function AdminHome() {
           <p className="text-2xl font-bold text-inst-texto">{stats?.entidades_activas ?? 0}</p>
           <p className="text-sm text-inst-texto-claro">Entidades Activas</p>
         </div>
-      </div>
+      </Card>
 
-      {/* Evaluaciones recientes */}
-      {stats?.evaluaciones_recientes && stats.evaluaciones_recientes.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h3 className={`text-sm font-semibold ${COLORES_TAILWIND.azulClaroText} mb-3`}>
-          <span className="material-icons text-sm align-middle mr-1">history</span>
+      {stats?.evaluaciones_recientes && stats.evaluaciones_recientes.length > 0 ? (
+        <Card>
+          <h3 className="text-sm font-semibold text-inst-azul-osc mb-3">
+            <span className="material-icons text-sm align-middle mr-1">history</span>
             Evaluaciones Recientes
           </h3>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-2">
             <table className="w-full text-sm">
-              <thead><tr className="border-b bg-inst-gris">
-                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Evaluado</th>
-                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Tipo</th>
-                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Estado</th>
-                <th className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Fecha</th>
-              </tr></thead>
+              <thead>
+                <tr className="border-b bg-inst-gris">
+                  <th scope="col" className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Evaluado</th>
+                  <th scope="col" className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Tipo</th>
+                  <th scope="col" className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Estado</th>
+                  <th scope="col" className="text-left px-3 py-2 font-semibold text-inst-texto-claro">Fecha</th>
+                </tr>
+              </thead>
               <tbody>
-                {stats.evaluaciones_recientes.map((ev, i) => (
-                  <tr key={i} className="border-b hover:bg-inst-gris/50 transition">
+                {stats.evaluaciones_recientes.map((ev) => (
+                  <tr key={ev.id} className="border-b hover:bg-inst-gris/50 transition-colors">
                     <td className="px-3 py-2">{ev.evaluado}</td>
                     <td className="px-3 py-2">{ev.tipo}</td>
                     <td className="px-3 py-2">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium
-                        ${ev.estado === 'completada' ? 'bg-green-100 text-green-800' :
-                          ev.estado === 'pendiente' ? 'bg-amber-100 text-amber-800' :
-                          'bg-gray-100 text-gray-700'}`}>
-                        {ev.estado}
-                      </span>
+                      <Badge tone={ESTADO_TONE[ev.estado] ?? 'neutral'}>
+                        {ESTADO_LABEL[ev.estado] ?? ev.estado}
+                      </Badge>
                     </td>
-                    <td className="px-3 py-2 text-inst-texto-claro">{new Date(ev.fecha).toLocaleDateString('es-CO')}</td>
+                    <td className="px-3 py-2 text-inst-texto-claro">
+                      {new Date(ev.fecha).toLocaleDateString('es-CO')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        </Card>
+      ) : null}
     </div>
   );
 }

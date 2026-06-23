@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { COLORES_TAILWIND } from '../../styles/colors';
 import { api, PaginatedData } from '../../lib/api';
+import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, DataTable, Tooltip, SkeletonText } from '../../components/ui';
+import type { DataTableColumn } from '../../components/ui';
+import { toast } from 'sonner';
 
 interface Usuario {
  id: number;
@@ -31,29 +33,20 @@ interface Usuario {
 
 const ROLES_SISTEMA = [
 	{ codigo: 'admin', nombre: 'Administrador' },
-	{ codigo: 'jefe_personal', nombre: 'Jefe de Personal' },
 	{ codigo: 'evaluador', nombre: 'Evaluador' },
 	{ codigo: 'evaluado', nombre: 'Evaluado' },
-	{ codigo: 'cargador', nombre: 'Cargador' },
-	{ codigo: 'comision_evaluadora', nombre: 'Comision Evaluadora' },
 ];
 
 const ROLE_COLORS: Record<string, string> = {
 	admin: 'bg-red-100 text-red-800 border-red-200',
-	jefe_personal: 'bg-purple-100 text-purple-800 border-purple-200',
 	evaluador: 'bg-green-100 text-green-800 border-green-200',
 	evaluado: 'bg-blue-100 text-blue-800 border-blue-200',
-	cargador: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-	comision_evaluadora: 'bg-indigo-100 text-indigo-800 border-indigo-200',
 };
 
 const ROLE_SHORT: Record<string, string> = {
 	admin: 'Admin',
-	jefe_personal: 'Jefe',
 	evaluador: 'Eval.',
 	evaluado: 'Evaldo.',
-	cargador: 'Carg.',
-	comision_evaluadora: 'Comision',
 };
 
 const CARGOS_SUGERIDOS = [
@@ -102,7 +95,7 @@ export default function AdminUsuarios() {
  const res = await api.get<PaginatedData<Usuario>>(url);
  setUsuarios(res.data || []);
  setTotal(res.total || 0);
- } catch (e: any) { setError(e.message); }
+ } catch (e) { setError(e instanceof Error ? e.message : 'Error desconocido'); }
  setCargando(false);
  }, [pagina, busqueda, filtroRol]);
 
@@ -143,14 +136,18 @@ export default function AdminUsuarios() {
  setGuardando(true);
  try {
  if (editando) {
- const payload: any = { ...form };
+ const payload: Record<string, unknown> = { ...form };
  if (!form.password) delete payload.password;
  await api.put(`/usuarios/${editando.id}`, payload);
+ toast.success('Usuario actualizado correctamente');
  } else {
  await api.post('/usuarios', form);
+ toast.success('Usuario creado correctamente');
  }
  setModalAbierto(false); cargar();
- } catch (e: any) { alert(e.message); }
+ } catch (e) {
+ toast.error(e instanceof Error ? e.message : 'Error al guardar usuario');
+ }
  setGuardando(false);
  };
 
@@ -163,321 +160,365 @@ export default function AdminUsuarios() {
 
  const toggleEstado = async (u: Usuario) => {
  const nuevo = u.estado === 'activo' ? 'inactivo' : 'activo';
- try { await api.put(`/usuarios/${u.id}`, { estado: nuevo }); cargar(); }
- catch (e: any) { alert(e.message); }
+ try { await api.put(`/usuarios/${u.id}`, { estado: nuevo }); toast.success(`Usuario ${nuevo}`); cargar(); }
+ catch (e) { toast.error(e instanceof Error ? e.message : 'Error al cambiar estado'); }
  };
 
  const restablecerPassword = async (u: Usuario) => {
- if (!confirm(`Restablecer contraseña de ${u.nombres} ${u.apellidos}?`)) return;
+ if (!confirm(`¿Restablecer contraseña de ${u.nombres} ${u.apellidos}?`)) return;
  try {
  const res = await api.put<{ password_temporal: string }>(`/usuarios/${u.id}/restablecer-password`);
- alert(`Contrasena temporal: ${res.password_temporal}\n\nEl usuario debera cambiarla al iniciar sesion.`);
- } catch (e: any) { alert(e.message); }
+ toast.success(`Contraseña temporal: ${res.password_temporal}`, { duration: 10_000 });
+ } catch (e) {
+ toast.error(e instanceof Error ? e.message : 'Error al restablecer contraseña');
+ }
  };
 
  const totalPages = Math.ceil(total / 20);
 
+ const columns: DataTableColumn<Usuario>[] = [
+  { key: 'documento', header: 'Documento', render: (u) => <span className="font-mono text-xs">{u.documento}</span> },
+  { key: 'nombre', header: 'Nombre', render: (u) => `${u.nombres} ${u.apellidos}` },
+  { key: 'email', header: 'Email', render: (u) => u.email || <span className="text-inst-texto-claro">—</span> },
+  { key: 'cargo', header: 'Cargo', render: (u) => u.cargo || <span className="text-inst-texto-claro">—</span> },
+  {
+   key: 'roles',
+   header: 'Roles',
+   render: (u) => (
+    <div className="flex gap-1 flex-wrap">
+     {(u.roles || []).map((r) => (
+      <Badge
+       key={r.codigo}
+       tone={r.codigo === 'admin' ? 'danger' : r.codigo === 'evaluador' ? 'success' : 'info'}
+      >
+       {r.nombre || r.codigo}
+      </Badge>
+     ))}
+     {(!u.roles || u.roles.length === 0) ? <span className="text-xs text-inst-texto-claro">Sin rol</span> : null}
+    </div>
+   ),
+  },
+  {
+   key: 'estado',
+   header: 'Estado',
+   render: (u) => (
+    <button
+     type="button"
+     onClick={() => toggleEstado(u)}
+     className="focus:outline-none focus:ring-2 focus:ring-inst-verde rounded-full"
+     aria-label={`Cambiar estado de ${u.nombres} ${u.apellidos}`}
+    >
+     <Badge tone={u.estado === 'activo' ? 'success' : 'neutral'} dot>
+      {u.estado === 'activo' ? 'Activo' : 'Inactivo'}
+     </Badge>
+    </button>
+   ),
+  },
+  {
+   key: 'acciones',
+   header: 'Acciones',
+   align: 'center',
+   render: (u) => (
+    <div className="flex gap-1 justify-center">
+     <Tooltip content="Editar usuario">
+      <Button variant="outline" size="sm" iconLeft={<span className="material-icons text-sm">edit</span>} onClick={() => abrirEditar(u)}>
+       Editar
+      </Button>
+     </Tooltip>
+     <Tooltip content="Restablecer contraseña">
+      <Button
+       variant="ghost"
+       size="sm"
+       onClick={() => restablecerPassword(u)}
+       aria-label={`Restablecer contraseña de ${u.nombres} ${u.apellidos}`}
+      >
+       <span className="material-icons text-base">lock_reset</span>
+      </Button>
+     </Tooltip>
+    </div>
+   ),
+  },
+ ];
+
  return (
- <div className="space-y-4 p-4 lg:p-6">
- <div className="flex items-center justify-between flex-wrap gap-2">
- <h2 className={`text-xl font-bold ${COLORES_TAILWIND.azulClaroText}`}><i className="fas fa-users mr-2" />Usuarios</h2>
- <button onClick={abrirCrear} className={`${COLORES_TAILWIND.azulClaro} text-white px-4 py-2 rounded-lg text-sm hover:opacity-90 flex items-center gap-1`}>
- <span className="material-icons text-base">person_add</span> Nuevo Usuario
- </button>
+ <div className="space-y-6 p-4 lg:p-6">
+ <div className="flex items-center justify-between flex-wrap gap-3 animate-fadeIn">
+ <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+  <span className="material-icons align-middle mr-2 text-2xl">people</span>
+  Usuarios
+ </h2>
+ <Button variant="primary" iconLeft={<span className="material-icons text-base">person_add</span>} onClick={abrirCrear}>
+  Nuevo Usuario
+ </Button>
  </div>
 
- {/* Filtros */}
- <div className="flex gap-2 flex-wrap items-center">
- <input value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(1); }}
- placeholder="Buscar por nombre o documento..." className="border rounded-lg px-3 py-2 text-sm flex-1 min-w-[200px]" />
- <select value={filtroRol} onChange={e => { setFiltroRol(e.target.value); setPagina(1); }}
- className="border rounded-lg px-3 py-2 text-sm">
- <option value="">Todos los roles</option>
- {ROLES_SISTEMA.map(r => <option key={r.codigo} value={r.codigo}>{r.nombre}</option>)}
- </select>
+ <Card>
+ <div className="flex gap-3 flex-wrap items-end">
+  <div className="flex-1 min-w-[240px]">
+  <Input
+   label="Buscar"
+   type="search"
+   value={busqueda}
+   onChange={e => { setBusqueda(e.target.value); setPagina(1); }}
+   placeholder="Buscar por nombre o documento..."
+   iconLeft={<span className="material-icons text-base">search</span>}
+  />
+  </div>
+  <div className="min-w-[180px]">
+  <Select
+   label="Rol"
+   value={filtroRol}
+   onChange={e => { setFiltroRol(e.target.value); setPagina(1); }}
+   placeholder="Todos los roles"
+   options={ROLES_SISTEMA.map(r => ({ value: r.codigo, label: r.nombre }))}
+  />
+  </div>
  </div>
+ </Card>
 
- {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
+ {error ? (
+ <Alert tone="danger" title="Error al cargar usuarios" onDismiss={() => setError('')}>
+  {error}
+ </Alert>
+ ) : null}
 
+ <Card>
  {cargando ? (
- <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulClaroBorder}`} /></div>
+  <SkeletonText lines={8} />
+ ) : usuarios.length === 0 ? (
+  <EmptyState
+   icon={<span className="material-icons text-3xl">person_off</span>}
+   title="Sin usuarios"
+   description="No se encontraron usuarios con los filtros actuales. Cree uno con el botón superior."
+   action={<Button variant="primary" onClick={abrirCrear}>Crear usuario</Button>}
+  />
  ) : (
- <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
- <table className="w-full text-sm">
- <thead><tr className="border-b bg-inst-gris">
- <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Documento</th>
- <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Nombre</th>
- <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Email</th>
- <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Cargo</th>
- <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Rol</th>
- <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Estado</th>
- <th className="text-center px-4 py-3 font-semibold text-inst-texto-claro">Acciones</th>
- </tr></thead>
- <tbody>
- {usuarios.map(u => (
- <tr key={u.id} className="border-b hover:bg-inst-gris/50 transition">
- <td className="px-4 py-3 font-mono text-xs">{u.documento}</td>
- <td className="px-4 py-3">{u.nombres} {u.apellidos}</td>
- <td className="px-4 py-3 text-inst-texto-claro">{u.email || '—'}</td>
- <td className="px-4 py-3 text-inst-texto-claro">{u.cargo || '—'}</td>
-				<td className="px-4 py-3">
-					<div className="flex gap-1 flex-wrap">
-						{(u.roles || []).map(r => (
-							<span key={r.codigo} className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${ROLE_COLORS[r.codigo] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
-								{ROLE_SHORT[r.codigo] || r.nombre || r.codigo}
-							</span>
-						))}
-						{(!u.roles || u.roles.length === 0) && (
-							<span className="text-xs text-gray-400">Sin rol</span>
-						)}
-					</div>
-				</td>
- <td className="px-4 py-3">
- <button onClick={() => toggleEstado(u)}
- className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
- {u.estado === 'activo' ? 'Activo' : 'Inactivo'}
- </button>
- </td>
- <td className="px-4 py-3 text-center">
- <div className="flex gap-1 justify-center">
- <button onClick={() => abrirEditar(u)}
- className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs ${COLORES_TAILWIND.azulClaro} text-white hover:opacity-90 transition`}
- title="Editar usuario">
- <span className="material-icons text-sm">edit</span> Editar
- </button>
- <button onClick={() => restablecerPassword(u)}
- className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs ${COLORES_TAILWIND.rojo} text-white hover:opacity-90 transition`}
- title="Restablecer contraseña">
- <span className="material-icons text-sm">lock_reset</span>
- </button>
- </div>
- </td>
- </tr>
- ))}
- {usuarios.length === 0 && (
- <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">No se encontraron usuarios</td></tr>
- )}
- </tbody>
- </table>
-
- {totalPages > 1 && (
- <div className="flex items-center justify-center gap-2 p-3 border-t">
- {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
- <button key={p} onClick={() => setPagina(p)}
- className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azulClaro} text-white` : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
- ))}
- </div>
- )}
- </div>
+  <DataTable<Usuario>
+   columns={columns}
+   data={usuarios}
+   rowKey={(u) => u.id}
+   ariaLabel="Lista de usuarios"
+   caption="Usuarios del sistema"
+  />
  )}
 
- {/* Modal Crear/Editar */}
- {modalAbierto && (
- <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalAbierto(false)}>
- <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
- <div className="px-6 py-4 border-b flex items-center justify-between">
- <h3 className={`font-bold ${COLORES_TAILWIND.azulClaroText}`}>{editando ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
- <button onClick={() => setModalAbierto(false)} className="text-gray-400 hover:text-gray-600"><span className="material-icons">close</span></button>
- </div>
- <div className="px-6 py-4 space-y-3">
- <div className="grid grid-cols-2 gap-3">
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo Documento</label>
- <select value={form.tipo_documento} onChange={e => setForm({...form, tipo_documento: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="CC">Cedula de Ciudadania</option>
- <option value="CE">Cedula de Extranjeria</option>
- <option value="TI">Tarjeta de Identidad</option>
- <option value="PA">Pasaporte</option>
- </select>
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Documento</label>
- <input value={form.documento} onChange={e => setForm({...form, documento: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" disabled={!!editando} />
- </div>
- </div>
- <div className="grid grid-cols-3 gap-3">
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nombres</label>
- <input value={form.nombres} onChange={e => setForm({...form, nombres: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Apellidos</label>
- <input value={form.apellidos} onChange={e => setForm({...form, apellidos: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Genero</label>
- <select value={form.genero} onChange={e => setForm({...form, genero: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="">Sin especificar</option>
- <option value="M">Masculino</option>
- <option value="F">Femenino</option>
- <option value="O">Otro</option>
- </select>
- </div>
- </div>
- <div className="grid grid-cols-2 gap-3">
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Email</label>
- <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Municipio</label>
- <input value={form.municipio} onChange={e => setForm({...form, municipio: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Ej: Carepa" />
- </div>
- </div>
- <div className="grid grid-cols-2 gap-3">
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Telefono principal</label>
- <input value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Telefono secundario</label>
- <input value={form.telefono_secundario} onChange={e => setForm({...form, telefono_secundario: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
- </div>
- <div className="grid grid-cols-2 gap-3">
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Cargo</label>
- <input list="cargos-list" value={form.cargo} onChange={e => setForm({...form, cargo: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Ej: Jefe de Dependencia" />
- <datalist id="cargos-list">
- {CARGOS_SUGERIDOS.map(c => <option key={c} value={c} />)}
- </datalist>
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Denominacion empleo</label>
- <input value={form.denominacion_empleo} onChange={e => setForm({...form, denominacion_empleo: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Nombre del empleo" />
- </div>
- </div>
- <div className="grid grid-cols-3 gap-3">
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Codigo empleo</label>
- <input value={form.codigo_empleo} onChange={e => setForm({...form, codigo_empleo: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Grado</label>
- <input value={form.grado} onChange={e => setForm({...form, grado: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo vinculacion</label>
- <select value={form.tipo_vinculacion} onChange={e => setForm({...form, tipo_vinculacion: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="planta">Planta</option>
- <option value="contrato">Contrato</option>
- <option value="provisional">Provisional</option>
- <option value="encargo">Encargo</option>
- <option value="comision">Comision</option>
- </select>
- </div>
- </div>
- <div className="grid grid-cols-3 gap-3">
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nivel carrera</label>
- <select value={form.nivel_carrera} onChange={e => setForm({...form, nivel_carrera: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="">Sin especificar</option>
- <option value="operativo">Operativo</option>
- <option value="tecnico">Tecnico</option>
- <option value="profesional">Profesional</option>
- <option value="directivo">Directivo</option>
- <option value="asesor">Asesor</option>
- </select>
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Naturaleza</label>
- <select value={form.naturaleza} onChange={e => setForm({...form, naturaleza: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="">Sin especificar</option>
- <option value="carrera">Carrera</option>
- <option value="libre_nombramiento">Libre nombramiento</option>
- <option value="provisional">Provisional</option>
- <option value="temporal">Temporal</option>
- <option value="contrato_obras">Contrato obra/obra</option>
- </select>
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo nombramiento</label>
- <select value={form.tipo_nombramiento} onChange={e => setForm({...form, tipo_nombramiento: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="">Sin especificar</option>
- <option value="propiedad">Propiedad</option>
- <option value="periodo_prueba">Periodo de prueba</option>
- <option value="encargo">Encargo</option>
- <option value="comision">Comision</option>
- <option value="interinamente">Interinamente</option>
- </select>
- </div>
- </div>
- <div className="grid grid-cols-2 gap-3">
- <div className="flex items-center gap-2 mt-5">
- <input type="checkbox" checked={!!form.es_contratista}
- onChange={e => setForm({...form, es_contratista: e.target.checked ? 1 : 0})}
- className="w-4 h-4 rounded border-gray-300 text-inst-azul" />
- <label className="text-sm text-inst-texto">Es contratista</label>
- </div>
- <div className="flex items-center gap-2 mt-5">
- <input type="checkbox" checked={!!form.periodo_prueba}
- onChange={e => setForm({...form, periodo_prueba: e.target.checked ? 1 : 0})}
- className="w-4 h-4 rounded border-gray-300 text-inst-azul" />
- <label className="text-sm text-inst-texto">En periodo de prueba</label>
- </div>
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Proposito del empleo</label>
- <input value={form.proposito_empleo} onChange={e => setForm({...form, proposito_empleo: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Proposito del empleo" />
- </div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Contrasena {editando ? '(dejar vacio para no cambiar)' : ''}</label>
- <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm" />
- </div>
-				<div>
-					<label className="block text-xs font-medium text-inst-texto-claro mb-2">Roles</label>
-					<p className="text-[10px] text-inst-texto-claro mb-2">Solo 3 roles: Admin, Evaluador, Evaluado. El cargo define la posición del funcionario.</p>
-					<div className="flex gap-2 flex-wrap">
-						{ROLES_SISTEMA.map(r => (
-							<button key={r.codigo} type="button" onClick={() => toggleRol(r.codigo)}
-								className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition ${
-									form.roles.includes(r.codigo)
-										? `${ROLE_COLORS[r.codigo]} border-current`
-										: 'bg-gray-50 text-gray-400 border-gray-200 hover:border-gray-400'
-								}`}>
-								{r.nombre}
-							</button>
-						))}
-					</div>
-				</div>
- <div>
- <label className="block text-xs font-medium text-inst-texto-claro mb-1">Estado</label>
- <select value={form.estado} onChange={e => setForm({...form, estado: e.target.value})}
- className="w-full border rounded-lg px-3 py-2 text-sm">
- <option value="activo">Activo</option>
- <option value="inactivo">Inactivo</option>
- </select>
- </div>
- </div>
- <div className="px-6 py-4 border-t flex justify-end gap-2">
- <button onClick={() => setModalAbierto(false)} className="px-4 py-2 rounded-lg text-sm border hover:bg-gray-50">Cancelar</button>
- <button onClick={guardar} disabled={guardando}
- className={`px-4 py-2 rounded-lg text-sm ${COLORES_TAILWIND.azulClaro} text-white hover:opacity-90 disabled:opacity-50`}>
- {guardando ? 'Guardando...' : editando ? 'Actualizar' : 'Crear'}
- </button>
- </div>
- </div>
- </div>
- )}
+ {totalPages > 1 && !cargando && usuarios.length > 0 ? (
+  <div className="flex items-center justify-center gap-2 p-3 mt-3 border-t border-inst-borde">
+   {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
+    <button
+     key={p}
+     onClick={() => setPagina(p)}
+     className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+    >
+     {p}
+    </button>
+   ))}
+  </div>
+ ) : null}
+ </Card>
+
+ {modalAbierto ? (
+ <Modal
+  open={true}
+  onClose={() => setModalAbierto(false)}
+  title={editando ? 'Editar Usuario' : 'Nuevo Usuario'}
+  size="lg"
+ >
+  <div className="space-y-3">
+   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <Select
+     label="Tipo de documento"
+     value={form.tipo_documento}
+     onChange={e => setForm({...form, tipo_documento: e.target.value})}
+     options={[
+      { value: 'CC', label: 'Cédula de Ciudadanía' },
+      { value: 'CE', label: 'Cédula de Extranjería' },
+      { value: 'TI', label: 'Tarjeta de Identidad' },
+      { value: 'PA', label: 'Pasaporte' },
+     ]}
+    />
+    <Input
+     label="Documento"
+     type="text"
+     required
+     value={form.documento}
+     onChange={e => setForm({...form, documento: e.target.value})}
+     disabled={!!editando}
+     helperText={editando ? 'El documento no se puede modificar' : undefined}
+    />
+   </div>
+   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <Input label="Nombres" type="text" required value={form.nombres} onChange={e => setForm({...form, nombres: e.target.value})} />
+    <Input label="Apellidos" type="text" required value={form.apellidos} onChange={e => setForm({...form, apellidos: e.target.value})} />
+    <Select
+     label="Género"
+     value={form.genero}
+     onChange={e => setForm({...form, genero: e.target.value})}
+     placeholder="Sin especificar"
+     options={[
+      { value: 'M', label: 'Masculino' },
+      { value: 'F', label: 'Femenino' },
+      { value: 'O', label: 'Otro' },
+     ]}
+    />
+   </div>
+   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <Input label="Email" type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
+    <Input label="Municipio" type="text" value={form.municipio} onChange={e => setForm({...form, municipio: e.target.value})} placeholder="Ej: Carepa" />
+   </div>
+   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <Input label="Teléfono principal" type="tel" value={form.telefono} onChange={e => setForm({...form, telefono: e.target.value})} />
+    <Input label="Teléfono secundario" type="tel" value={form.telefono_secundario} onChange={e => setForm({...form, telefono_secundario: e.target.value})} />
+   </div>
+   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div>
+     <Input
+      label="Cargo"
+      type="text"
+      list="cargos-list"
+      value={form.cargo}
+      onChange={e => setForm({...form, cargo: e.target.value})}
+      placeholder="Ej: Jefe de Dependencia"
+     />
+     <datalist id="cargos-list">
+      {CARGOS_SUGERIDOS.map(c => <option key={c} value={c} />)}
+     </datalist>
+    </div>
+    <Input label="Denominación empleo" type="text" value={form.denominacion_empleo} onChange={e => setForm({...form, denominacion_empleo: e.target.value})} placeholder="Nombre del empleo" />
+   </div>
+   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <Input label="Código empleo" type="text" value={form.codigo_empleo} onChange={e => setForm({...form, codigo_empleo: e.target.value})} />
+    <Input label="Grado" type="text" value={form.grado} onChange={e => setForm({...form, grado: e.target.value})} />
+    <Select
+     label="Tipo vinculación"
+     value={form.tipo_vinculacion}
+     onChange={e => setForm({...form, tipo_vinculacion: e.target.value})}
+     options={[
+      { value: 'planta', label: 'Planta' },
+      { value: 'contrato', label: 'Contrato' },
+      { value: 'provisional', label: 'Provisional' },
+      { value: 'encargo', label: 'Encargo' },
+      { value: 'comision', label: 'Comisión' },
+     ]}
+    />
+   </div>
+   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <Select
+     label="Nivel carrera"
+     value={form.nivel_carrera}
+     onChange={e => setForm({...form, nivel_carrera: e.target.value})}
+     placeholder="Sin especificar"
+     options={[
+      { value: 'operativo', label: 'Operativo' },
+      { value: 'tecnico', label: 'Técnico' },
+      { value: 'profesional', label: 'Profesional' },
+      { value: 'directivo', label: 'Directivo' },
+      { value: 'asesor', label: 'Asesor' },
+     ]}
+    />
+    <Select
+     label="Naturaleza"
+     value={form.naturaleza}
+     onChange={e => setForm({...form, naturaleza: e.target.value})}
+     placeholder="Sin especificar"
+     options={[
+      { value: 'carrera', label: 'Carrera' },
+      { value: 'libre_nombramiento', label: 'Libre nombramiento' },
+      { value: 'provisional', label: 'Provisional' },
+      { value: 'temporal', label: 'Temporal' },
+      { value: 'contrato_obras', label: 'Contrato obra' },
+     ]}
+    />
+    <Select
+     label="Tipo nombramiento"
+     value={form.tipo_nombramiento}
+     onChange={e => setForm({...form, tipo_nombramiento: e.target.value})}
+     placeholder="Sin especificar"
+     options={[
+      { value: 'propiedad', label: 'Propiedad' },
+      { value: 'periodo_prueba', label: 'Periodo de prueba' },
+      { value: 'encargo', label: 'Encargo' },
+      { value: 'comision', label: 'Comisión' },
+      { value: 'interinamente', label: 'Interinamente' },
+     ]}
+    />
+   </div>
+   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <label className="flex items-center gap-2 mt-5 cursor-pointer">
+     <input
+      type="checkbox"
+      checked={!!form.es_contratista}
+      onChange={e => setForm({...form, es_contratista: e.target.checked ? 1 : 0})}
+      className="w-4 h-4 rounded border-inst-borde text-inst-verde focus:ring-inst-verde"
+     />
+     <span className="text-sm text-inst-texto">Es contratista</span>
+    </label>
+    <label className="flex items-center gap-2 mt-5 cursor-pointer">
+     <input
+      type="checkbox"
+      checked={!!form.periodo_prueba}
+      onChange={e => setForm({...form, periodo_prueba: e.target.checked ? 1 : 0})}
+      className="w-4 h-4 rounded border-inst-borde text-inst-verde focus:ring-inst-verde"
+     />
+     <span className="text-sm text-inst-texto">En periodo de prueba</span>
+    </label>
+   </div>
+   <Input
+    label="Propósito del empleo"
+    type="text"
+    value={form.proposito_empleo}
+    onChange={e => setForm({...form, proposito_empleo: e.target.value})}
+    placeholder="Propósito principal del empleo"
+   />
+   <Input
+    label={`Contraseña${editando ? ' (dejar vacío para no cambiar)' : ''}`}
+    type="password"
+    value={form.password}
+    onChange={e => setForm({...form, password: e.target.value})}
+   />
+   <div>
+    <label className="block text-sm font-medium text-inst-texto mb-2">Roles</label>
+    <p className="text-xs text-inst-texto-claro mb-2">Solo 3 roles: Admin, Evaluador, Evaluado. El cargo define la posición del funcionario.</p>
+    <div className="flex gap-2 flex-wrap">
+     {ROLES_SISTEMA.map(r => {
+      const active = form.roles.includes(r.codigo);
+      const tones: Record<string, 'danger' | 'success' | 'info'> = { admin: 'danger', evaluador: 'success', evaluado: 'info' };
+      return (
+       <button
+        key={r.codigo}
+        type="button"
+        onClick={() => toggleRol(r.codigo)}
+        aria-pressed={active}
+        className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition ${
+         active
+          ? `${r.codigo === 'admin' ? 'bg-red-50 text-red-800 border-red-300' : r.codigo === 'evaluador' ? 'bg-green-50 text-green-800 border-green-300' : 'bg-blue-50 text-blue-800 border-blue-300'}`
+          : 'bg-inst-gris text-inst-texto-claro border-inst-borde hover:border-inst-verde'
+        }`}
+       >
+        {r.nombre}
+       </button>
+      );
+     })}
+    </div>
+   </div>
+   <Select
+    label="Estado"
+    value={form.estado}
+    onChange={e => setForm({...form, estado: e.target.value})}
+    options={[
+     { value: 'activo', label: 'Activo' },
+     { value: 'inactivo', label: 'Inactivo' },
+    ]}
+   />
+  </div>
+  <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">
+   <Button variant="outline" onClick={() => setModalAbierto(false)}>Cancelar</Button>
+   <Button variant="primary" loading={guardando} onClick={guardar}>
+    {editando ? 'Actualizar' : 'Crear'}
+   </Button>
+  </div>
+ </Modal>
+ ) : null}
  </div>
  );
 }

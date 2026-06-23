@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
+import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, DataTable, Tooltip, SkeletonText } from '../../components/ui'
+import type { DataTableColumn } from '../../components/ui'
+import { toast } from 'sonner'
 
 interface Meta {
  id: number
@@ -21,8 +24,22 @@ interface DependenciaOption {
  codigo: string
 }
 
-const TIPOS_META = ['cualitativa', 'cuantitativa', 'mixta'] as const
-const ESTADOS_META = ['pendiente', 'concertada', 'aprobada', 'en_seguimiento', 'evaluada', 'cerrada'] as const
+const TIPOS_META: { value: Meta['tipo']; label: string }[] = [
+ { value: 'cualitativa', label: 'Cualitativa' },
+ { value: 'cuantitativa', label: 'Cuantitativa' },
+ { value: 'mixta', label: 'Mixta' },
+];
+
+const ESTADO_META: Record<string, { tone: 'neutral' | 'warning' | 'success' | 'info' | 'danger'; label: string }> = {
+ pendiente: { tone: 'warning', label: 'Pendiente' },
+ concertada: { tone: 'info', label: 'Concertada' },
+ aprobada: { tone: 'success', label: 'Aprobada' },
+ en_seguimiento: { tone: 'info', label: 'En seguimiento' },
+ evaluada: { tone: 'success', label: 'Evaluada' },
+ cerrada: { tone: 'neutral', label: 'Cerrada' },
+};
+
+const ESTADOS_META = Object.keys(ESTADO_META);
 
 export default function MetaList() {
   const [items, setItems] = useState<Meta[]>([])
@@ -32,12 +49,13 @@ export default function MetaList() {
   const [editando, setEditando] = useState<Meta | null>(null)
   const [saving, setSaving] = useState(false)
   const [dependencias, setDependencias] = useState<DependenciaOption[]>([])
+  const [error, setError] = useState('');
 
   function cargar() {
   setLoading(true)
   api.get<PaginatedData<Meta>>(`/metas?pagina=${pagina}&por_pagina=20`)
-  .then(d => { setItems(d.data || []); setTotal(d.total); })
-  .catch(() => {})
+  .then(d => { setItems(d.data || []); setTotal(d.total); setError(''); })
+  .catch(e => setError(e instanceof Error ? e.message : 'Error al cargar metas'))
   .finally(() => setLoading(false))
   }
 
@@ -51,6 +69,10 @@ export default function MetaList() {
 
   async function guardar() {
     if (!editando) return
+    if (!editando.descripcion.trim()) {
+     toast.error('La descripción es obligatoria');
+     return;
+    }
     setSaving(true)
     try {
       await api.put(`/metas/${editando.id}`, {
@@ -63,147 +85,187 @@ export default function MetaList() {
         unidad_medida: editando.unidad_medida,
         estado: editando.estado,
       })
+      toast.success('Meta actualizada correctamente');
       setEditando(null)
       cargar()
     } catch (err) {
-      console.error('Error al guardar:', err)
+      toast.error(err instanceof Error ? err.message : 'Error al guardar la meta');
     } finally {
       setSaving(false)
     }
   }
 
-  const estadoBadge = (e: string) => {
-    if (e === 'evaluada' || e === 'cerrada') return 'edl-badge-inactivo'
-    if (e === 'pendiente') return 'edl-badge-pendiente'
-    return 'edl-badge-activo'
-  }
+  const columns: DataTableColumn<Meta>[] = [
+   {
+    key: 'dependencia',
+    header: 'Dependencia',
+    render: (m) => dependencias.find(d => d.id === m.dependencia_id)?.nombre || <span className="text-inst-texto-claro">Sin dependencia</span>,
+   },
+   {
+    key: 'descripcion',
+    header: 'Descripción',
+    render: (m) => <span className="max-w-md truncate inline-block">{m.descripcion}</span>,
+   },
+   {
+    key: 'tipo',
+    header: 'Tipo',
+    render: (m) => <Badge tone="neutral">{TIPOS_META.find(t => t.value === m.tipo)?.label || m.tipo}</Badge>,
+   },
+   { key: 'peso', header: 'Peso', align: 'center', render: (m) => <span className="font-mono">{m.peso}%</span> },
+   { key: 'indicador', header: 'Indicador', render: (m) => <span className="max-w-xs truncate inline-block">{m.indicador || '-'}</span> },
+   {
+    key: 'estado',
+    header: 'Estado',
+    render: (m) => {
+     const e = ESTADO_META[m.estado] ?? { tone: 'neutral' as const, label: m.estado };
+     return <Badge tone={e.tone}>{e.label}</Badge>;
+    },
+   },
+   {
+    key: 'acciones',
+    header: 'Editar',
+    align: 'center',
+    render: (m) => (
+     <Tooltip content={m.estado === 'cerrada' ? 'Reabrir/Editar meta' : 'Editar meta'}>
+      <Button
+       variant="ghost"
+       size="sm"
+       onClick={() => setEditando({ ...m })}
+       aria-label={`Editar meta ${m.descripcion.slice(0, 30)}`}
+      >
+       <span className="material-icons text-base">edit</span>
+      </Button>
+     </Tooltip>
+    ),
+   },
+  ];
 
   return (
-    <div>
-      <h2 className="edl-section-title">Metas</h2>
-      <div className="edl-divider" />
-      <div className="edl-divider-accent" />
-
-      {loading ? (
-        <p className="text-inst-texto-claro text-sm">Cargando...</p>
-      ) : items.length === 0 ? (
-        <p className="text-inst-texto-claro text-sm">No hay metas registradas</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="edl-table">
-            <thead>
-              <tr>
-                <th>Dependencia</th>
- <th>Descripcion</th>
-                <th>Tipo</th>
-                <th>Peso</th>
-                <th>Indicador</th>
-                <th>Estado</th>
-                <th className="text-center w-16">Editar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(m => (
-                <tr key={m.id} className={m.estado === 'cerrada' ? 'opacity-60' : ''}>
-                <td className="max-w-[150px] truncate">{dependencias.find(d => d.id === m.dependencia_id)?.nombre || '-'}</td>
-                <td className="max-w-xs truncate">{m.descripcion}</td>
-                  <td>{m.tipo}</td>
-                  <td className="font-mono">{m.peso}%</td>
-                  <td className="max-w-xs truncate">{m.indicador}</td>
-                  <td>
-                    <span className={estadoBadge(m.estado)}>{m.estado}</span>
-                  </td>
-                  <td className="text-center">
-                    <button
-                      onClick={() => setEditando({ ...m })}
-                      className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul hover:text-inst-rojo"
-                      title={m.estado === 'cerrada' ? 'Reabrir/Editar meta' : 'Editar meta'}
-                    >
-                      <span className="material-icons text-lg">edit</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Modal de edición */}
-      {editando && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-4 border-b border-inst-borde">
-              <h3 className="edl-section-title text-base">Editar Meta</h3>
-              <button onClick={() => setEditando(null)} className="p-1 rounded hover:bg-inst-gris">
-                <span className="material-icons text-xl text-inst-texto-claro">close</span>
-              </button>
-            </div>
-
-            <div className="p-4 space-y-3">
-            {editando.estado === 'cerrada' && (
-            <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex items-center gap-2">
-            <span className="material-icons text-yellow-600">lock</span>
-            <p className="text-sm text-yellow-800 font-medium">Esta meta esta cerrada. Puede reabrirla cambiando el estado.</p>
-            </div>
-            )}
-
-            <div>
-            <label className="block text-xs font-medium text-inst-texto-claro mb-1">Dependencia</label>
-            <select value={editando.dependencia_id || ''} onChange={e => setEditando({ ...editando, dependencia_id: e.target.value ? Number(e.target.value) : null })} className="edl-input w-full">
-            <option value="">Sin dependencia</option>
-            {dependencias.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
-            </select>
-            </div>
-
-            <div>
-                <label className="block text-xs font-medium text-inst-texto-claro mb-1">Descripcion</label>
-                <textarea value={editando.descripcion} onChange={e => setEditando({ ...editando, descripcion: e.target.value })} className="edl-input w-full" rows={3} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo</label>
-                  <select value={editando.tipo} onChange={e => setEditando({ ...editando, tipo: e.target.value })} className="edl-input w-full">
-                    {TIPOS_META.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Peso (%)</label>
-                  <input type="number" step="0.01" min="0" max="100" value={editando.peso} onChange={e => setEditando({ ...editando, peso: parseFloat(e.target.value) || 0 })} className="edl-input w-full" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-inst-texto-claro mb-1">Indicador</label>
-                <input value={editando.indicador || ''} onChange={e => setEditando({ ...editando, indicador: e.target.value })} className="edl-input w-full" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Meta Numerica</label>
-                  <input type="number" step="0.01" value={editando.meta_numerica ?? ''} onChange={e => setEditando({ ...editando, meta_numerica: e.target.value ? parseFloat(e.target.value) : null })} className="edl-input w-full" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Unidad Medida</label>
-                  <input value={editando.unidad_medida || ''} onChange={e => setEditando({ ...editando, unidad_medida: e.target.value })} className="edl-input w-full" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-inst-texto-claro mb-1">Estado</label>
-                <select value={editando.estado} onChange={e => setEditando({ ...editando, estado: e.target.value })} className="edl-input w-full">
-                  {ESTADOS_META.map(e => <option key={e} value={e}>{e}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 p-4 border-t border-inst-borde">
-              <button onClick={() => setEditando(null)} className="edl-btn-outline">Cancelar</button>
-              <button onClick={guardar} disabled={saving} className="edl-btn-primary flex items-center gap-2">
-                {saving && <span className="material-icons text-sm animate-spin">sync</span>}
-                Guardar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+   <div className="space-y-6">
+    <div className="animate-fadeIn">
+     <h2 className="edl-section-title">
+      <span className="material-icons align-middle mr-2 text-xl">flag</span>
+      Metas
+     </h2>
+     <p className="text-sm text-inst-texto-claro ml-7">
+      Las metas son fijadas por el jefe de la entidad para todos los servidores de una dependencia. Se evalúan como compromisos funcionales.
+     </p>
     </div>
+
+    {error ? (
+     <Alert tone="danger" onDismiss={() => setError('')}>{error}</Alert>
+    ) : null}
+
+    <Card>
+     {loading ? (
+      <SkeletonText lines={8} />
+     ) : items.length === 0 ? (
+      <EmptyState
+       icon={<span className="material-icons text-3xl">flag</span>}
+       title="Sin metas registradas"
+       description="No hay metas para mostrar. Cree metas desde el módulo de Administración."
+      />
+     ) : (
+      <DataTable<Meta>
+       columns={columns}
+       data={items}
+       rowKey={(m) => m.id}
+       ariaLabel="Lista de metas"
+       caption="Metas de evaluación"
+      />
+     )}
+    </Card>
+
+    {editando ? (
+     <Modal
+      open={true}
+      onClose={() => setEditando(null)}
+      title="Editar Meta"
+      size="md"
+     >
+      {editando.estado === 'cerrada' ? (
+       <Alert tone="warning" title="Meta cerrada" className="mb-3">
+        Esta meta está cerrada. Puede reabrirla cambiando el estado a "Pendiente" o "En seguimiento".
+       </Alert>
+      ) : null}
+
+      <div className="space-y-3">
+       <Select
+        label="Dependencia"
+        value={editando.dependencia_id || ''}
+        onChange={e => setEditando({ ...editando, dependencia_id: e.target.value ? Number(e.target.value) : null })}
+        placeholder="Sin dependencia"
+        options={dependencias.map(d => ({ value: String(d.id), label: d.nombre }))}
+        helperText="Asocia la meta a una dependencia específica"
+       />
+
+       <div>
+        <label htmlFor="meta-desc" className="edl-label">Descripción <span className="text-inst-rojo">*</span></label>
+        <textarea
+         id="meta-desc"
+         value={editando.descripcion}
+         onChange={e => setEditando({ ...editando, descripcion: e.target.value })}
+         className="edl-input w-full"
+         rows={3}
+        />
+       </div>
+
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Select
+         label="Tipo"
+         value={editando.tipo}
+         onChange={e => setEditando({ ...editando, tipo: e.target.value })}
+         options={TIPOS_META.map(t => ({ value: t.value, label: t.label }))}
+        />
+        <Input
+         label="Peso (%)"
+         type="number"
+         value={editando.peso}
+         onChange={e => setEditando({ ...editando, peso: parseFloat(e.target.value) || 0 })}
+         min={0}
+         max={100}
+         step={0.01}
+         helperText="0 a 100"
+        />
+       </div>
+
+       <Input
+        label="Indicador"
+        type="text"
+        value={editando.indicador || ''}
+        onChange={e => setEditando({ ...editando, indicador: e.target.value })}
+       />
+
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Input
+         label="Meta numérica"
+         type="number"
+         value={editando.meta_numerica ?? ''}
+         onChange={e => setEditando({ ...editando, meta_numerica: e.target.value ? parseFloat(e.target.value) : null })}
+         step={0.01}
+        />
+        <Input
+         label="Unidad de medida"
+         type="text"
+         value={editando.unidad_medida || ''}
+         onChange={e => setEditando({ ...editando, unidad_medida: e.target.value })}
+        />
+       </div>
+
+       <Select
+        label="Estado"
+        value={editando.estado}
+        onChange={e => setEditando({ ...editando, estado: e.target.value })}
+        options={ESTADOS_META.map(e => ({ value: e, label: ESTADO_META[e]?.label || e }))}
+       />
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">
+       <Button variant="outline" onClick={() => setEditando(null)}>Cancelar</Button>
+       <Button variant="primary" loading={saving} onClick={guardar}>Guardar</Button>
+      </div>
+     </Modal>
+    ) : null}
+   </div>
   )
 }

@@ -371,16 +371,20 @@ CREATE TABLE `evaluaciones` (
 
 -- ============================================================================
 -- EVIDENCIAS (solo descriptivas, SIN archivos - EDL APP CNSC)
+-- Campos: compromiso asociado, descripcion, ubicacion, observacion
+-- Busqueda por periodo + documento evaluado
+-- Solo el usuario que creo puede editar
 -- ============================================================================
 
 CREATE TABLE `evidencias` (
  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
  `concertacion_id` bigint(20) unsigned NOT NULL,
  `compromiso_id` bigint(20) unsigned DEFAULT NULL,
+ `periodo_id` bigint(20) unsigned DEFAULT NULL,
  `registrado_por` bigint(20) unsigned NOT NULL,
- `compromiso_competencia` varchar(255) NOT NULL,
+ `compromiso_competencia` varchar(255) DEFAULT NULL,
  `descripcion` text NOT NULL,
- `ubicacion` text DEFAULT NULL,
+ `ubicacion` text NOT NULL,
  `observacion` text DEFAULT NULL,
  `tipo` enum('compromiso','competencia','general') DEFAULT 'general',
  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
@@ -389,9 +393,11 @@ CREATE TABLE `evidencias` (
  PRIMARY KEY (`id`),
  KEY `idx_concertacion` (`concertacion_id`),
  KEY `idx_compromiso` (`compromiso_id`),
+ KEY `idx_periodo` (`periodo_id`),
  KEY `idx_registrado_por` (`registrado_por`),
  CONSTRAINT `fk_evi_concertacion` FOREIGN KEY (`concertacion_id`) REFERENCES `concertaciones` (`id`) ON DELETE CASCADE,
  CONSTRAINT `fk_evi_compromiso` FOREIGN KEY (`compromiso_id`) REFERENCES `compromisos` (`id`) ON DELETE SET NULL,
+ CONSTRAINT `fk_evi_periodo` FOREIGN KEY (`periodo_id`) REFERENCES `periodos` (`id`) ON DELETE SET NULL,
  CONSTRAINT `fk_evi_usuario` FOREIGN KEY (`registrado_por`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

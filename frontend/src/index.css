@@ -1,76 +1,109 @@
+@import './components/ui/animations.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 @layer base {
   html {
     scroll-behavior: smooth;
   }
   body {
-    @apply bg-white text-inst-texto font-sans;
+    @apply bg-inst-gris text-inst-texto font-sans antialiased;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading text-inst-azul;
+    @apply font-heading text-inst-azul-osc;
   }
 }
 
 @layer components {
   .edl-card {
-    @apply bg-white rounded-lg border border-inst-borde p-6 shadow-sm;
+    @apply bg-white rounded-xl border border-inst-borde p-6 shadow-sm;
   }
   .edl-btn {
-    @apply px-4 py-2 rounded font-medium transition-colors duration-150 text-sm;
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-150 text-sm inline-flex items-center justify-center gap-2;
   }
   .edl-btn-primary {
-    @apply edl-btn bg-inst-azul text-white hover:bg-inst-azul/90;
+    @apply edl-btn bg-inst-verde text-white hover:bg-inst-verde-hover shadow-sm hover:shadow;
+  }
+  .edl-btn-secondary {
+    @apply edl-btn bg-inst-amarillo text-inst-azul-osc hover:bg-inst-amarillo-hover shadow-sm;
   }
   .edl-btn-danger {
-    @apply edl-btn bg-inst-rojo text-white hover:bg-inst-rojo/90;
+    @apply edl-btn bg-inst-rojo text-white hover:bg-red-700 shadow-sm;
   }
   .edl-btn-outline {
-    @apply edl-btn border border-inst-azul text-inst-azul hover:bg-inst-azul/5;
+    @apply edl-btn border border-inst-borde bg-white text-inst-texto hover:bg-inst-gris-med hover:border-inst-verde;
+  }
+  .edl-btn-ghost {
+    @apply edl-btn text-inst-texto hover:bg-inst-gris-med;
   }
   .edl-input {
-    @apply w-full px-3 py-2 border border-inst-borde rounded text-sm focus:outline-none focus:ring-2 focus:ring-inst-azul/30 focus:border-inst-azul transition;
+    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-verde/30 focus:border-inst-verde transition;
+  }
+  .edl-label {
+    @apply block text-sm font-medium text-inst-texto mb-1.5;
+  }
+  .edl-select {
+    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-verde/30 focus:border-inst-verde transition appearance-none bg-no-repeat bg-right pr-9;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.65rem center;
+    background-size: 1.25rem;
+  }
+  .edl-textarea {
+    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-verde/30 focus:border-inst-verde transition resize-y min-h-[80px];
   }
   .edl-table {
     @apply w-full text-sm;
   }
   .edl-table thead {
-    @apply bg-inst-gris;
+    @apply bg-inst-gris-med;
   }
   .edl-table th {
-    @apply px-4 py-3 text-left font-semibold text-inst-azul border-b border-inst-borde;
+    @apply px-4 py-3 text-left text-xs font-semibold text-inst-azul-osc uppercase tracking-wider border-b border-inst-borde;
   }
   .edl-table td {
-    @apply px-4 py-3 border-b border-inst-borde;
+    @apply px-4 py-3 border-b border-inst-borde text-inst-texto;
   }
-  .edl-table tbody tr:hover {
-    @apply bg-inst-gris/50;
+  .edl-table tbody tr {
+    @apply hover:bg-inst-verde-light/30 transition-colors;
   }
   .edl-divider {
-    @apply border-t-2 border-inst-azul mt-2 mb-1;
+    @apply border-t-2 border-inst-verde mt-2 mb-1;
   }
   .edl-divider-accent {
-    @apply border-t border-inst-rojo mb-4;
+    @apply border-t border-inst-amarillo mb-4;
   }
   .edl-badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  .edl-badge-activo {
-    @apply edl-badge bg-green-50 text-inst-verde;
+  .edl-badge-verde {
+    @apply edl-badge bg-inst-verde-light text-inst-verde;
   }
-  .edl-badge-inactivo {
+  .edl-badge-rojo {
     @apply edl-badge bg-red-50 text-inst-rojo;
   }
-  .edl-badge-pendiente {
-    @apply edl-badge bg-amber-50 text-amber-700;
+  .edl-badge-amarillo {
+    @apply edl-badge bg-inst-amarillo-light text-amber-700;
+  }
+  .edl-badge-gris {
+    @apply edl-badge bg-inst-gris-med text-inst-texto-claro;
   }
   .edl-section-title {
-    @apply text-lg font-heading font-semibold text-inst-azul flex items-center gap-2;
+    @apply text-lg font-heading font-semibold text-inst-azul-osc flex items-center gap-2 mb-4;
   }
   .edl-section-title::before {
     content: '';
-    @apply w-1 h-5 bg-inst-rojo rounded-full;
+    @apply w-1 h-5 bg-inst-verde rounded-full;
+  }
+  .edl-kpi-card {
+    @apply bg-white rounded-xl border border-inst-borde p-5 shadow-sm hover:shadow-md transition-shadow;
+  }
+  .edl-progress {
+    @apply w-full bg-inst-gris-med rounded-full h-2 overflow-hidden;
+  }
+  .edl-progress-bar {
+    @apply h-full bg-inst-verde rounded-full transition-all duration-500;
   }
 }

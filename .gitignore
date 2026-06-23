@@ -20,3 +20,5 @@ coverage/
 .idea/
 .vscode/
 *.sql.bak
+# Local Pi runtime state
+.atl/

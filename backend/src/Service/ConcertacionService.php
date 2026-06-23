@@ -50,7 +50,7 @@ class ConcertacionService
 
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
- if (!in_array($rolActivo, ['admin', 'jefe_personal']) &&
+ if (!in_array($rolActivo, ['admin']) &&
  (int) $concertacion['evaluador_id'] !== $user['id'] &&
  (int) $concertacion['evaluado_id'] !== $user['id']
  ) {
@@ -65,8 +65,8 @@ class ConcertacionService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador'])) {
- ResponseHelper::forbidden('Solo evaluadores o jefes pueden crear concertaciones');
+ if (!in_array($rolActivo, ['admin', 'evaluador'])) {
+ ResponseHelper::forbidden('Solo administradores o evaluadores pueden crear concertaciones');
  }
 
  $metaId = $datos['meta_id'] ?? null;
@@ -119,7 +119,7 @@ class ConcertacionService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'jefe_personal']) &&
+ if (!in_array($rolActivo, ['admin']) &&
  (int) $concertacion['evaluador_id'] !== $user['id']) {
  ResponseHelper::forbidden();
  }
@@ -143,8 +143,8 @@ class ConcertacionService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador'])) {
- ResponseHelper::forbidden('Solo evaluadores pueden fijar compromisos');
+ if (!in_array($rolActivo, ['admin', 'evaluador'])) {
+ ResponseHelper::forbidden('Solo administradores o evaluadores pueden fijar compromisos');
  }
 
  if ($concertacion['estado'] === 'concertada') {

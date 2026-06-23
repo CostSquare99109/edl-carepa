@@ -66,7 +66,7 @@ class MovilidadService
 
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles) && !in_array('jefe_personal', $roles)) {
+ if (!in_array('admin', $roles)) {
  ResponseHelper::forbidden();
  }
 

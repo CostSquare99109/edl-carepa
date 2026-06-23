@@ -31,7 +31,7 @@ class CompromisoMejoramientoService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador', 'evaluado'])) {
+ if (!in_array($rolActivo, ['admin', 'evaluador', 'evaluado'])) {
  ResponseHelper::forbidden();
  }
 
@@ -82,7 +82,7 @@ class CompromisoMejoramientoService
 
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
- if (!in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador'])) {
+ if (!in_array($rolActivo, ['admin', 'evaluador'])) {
  ResponseHelper::forbidden();
  }
 
@@ -101,7 +101,7 @@ class CompromisoMejoramientoService
 
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
- if (!in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador'])) {
+ if (!in_array($rolActivo, ['admin', 'evaluador'])) {
  ResponseHelper::forbidden();
  }
 
@@ -153,7 +153,7 @@ class CompromisoMejoramientoService
 
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
- if (!in_array($rolActivo, ['admin', 'jefe_personal', 'evaluador'])) {
+ if (!in_array($rolActivo, ['admin', 'evaluador'])) {
  ResponseHelper::forbidden();
  }
 

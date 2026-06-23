@@ -44,6 +44,7 @@ $router->group('/api/v1', function (Router $r) {
 
  $r->get('/dashboard/resumen', [\App\Controller\DashboardController::class, 'resumen']);
  $r->get('/dashboard/admin-stats', [\App\Controller\DashboardController::class, 'adminStats']);
+ $r->get('/dashboard/periodo-activo', [\App\Controller\DashboardController::class, 'periodoActivo']);
  $r->get('/dashboard/actividad', [\App\Controller\DashboardController::class, 'actividad']);
 
  $r->get('/parametros', [\App\Controller\ParametroController::class, 'listar'], ['permiso:parametros.listar']);
@@ -55,6 +56,7 @@ $router->group('/api/v1', function (Router $r) {
 
  $r->get('/usuarios', [\App\Controller\UsuarioController::class, 'listar'], ['permiso:usuarios.listar']);
  $r->post('/usuarios', [\App\Controller\UsuarioController::class, 'crear'], ['permiso:usuarios.crear']);
+ $r->get('/usuarios/buscar-global', [\App\Controller\UsuarioController::class, 'buscarGlobal'], ['permiso:usuarios.listar']);
  $r->get('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'ver'], ['permiso:usuarios.listar']);
  $r->put('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'actualizar'], ['permiso:usuarios.editar']);
  $r->delete('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'eliminar'], ['permiso:usuarios.editar']);

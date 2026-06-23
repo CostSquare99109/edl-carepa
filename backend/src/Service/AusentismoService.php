@@ -22,7 +22,7 @@ class AusentismoService
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (!in_array('admin', $roles) && !in_array('jefe_personal', $roles)) {
+ if (!in_array('admin', $roles)) {
  $filtros['funcionario_id'] = $user['id'];
  }
 
@@ -38,7 +38,7 @@ class AusentismoService
 
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles) && !in_array('jefe_personal', $roles) && (int) $aus['funcionario_id'] !== $user['id']) {
+ if (!in_array('admin', $roles) && (int) $aus['funcionario_id'] !== $user['id']) {
  ResponseHelper::forbidden();
  }
 
@@ -76,7 +76,7 @@ class AusentismoService
  SELECT u.id FROM usuarios u
  INNER JOIN usuario_roles ur ON ur.usuario_id = u.id
  INNER JOIN roles r ON r.id = ur.rol_id
- WHERE r.codigo = 'jefe_personal' AND u.estado = 'activo' AND u.eliminado_en IS NULL
+ WHERE r.codigo = 'admin' AND u.estado = 'activo' AND u.eliminado_en IS NULL
  LIMIT 1
  ");
  $stmt->execute();
@@ -110,7 +110,7 @@ class AusentismoService
 
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles) && !in_array('jefe_personal', $roles) && (int) $aus['funcionario_id'] !== $user['id']) {
+ if (!in_array('admin', $roles) && (int) $aus['funcionario_id'] !== $user['id']) {
  ResponseHelper::forbidden();
  }
 
@@ -134,7 +134,7 @@ class AusentismoService
 
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles) && !in_array('jefe_personal', $roles)) {
+ if (!in_array('admin', $roles)) {
  ResponseHelper::forbidden();
  }
 

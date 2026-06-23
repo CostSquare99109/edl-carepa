@@ -15,7 +15,7 @@ class TenantMiddleware
  return;
  }
 
- if (in_array('jefe_personal', $roles) || in_array('evaluador', $roles)) {
+ if (in_array('evaluador', $roles)) {
  if ($user['entidad_id'] !== null) {
  $conditions[] = "{$alias}.entidad_id = ?";
  $params[] = $user['entidad_id'];
@@ -32,10 +32,10 @@ class TenantMiddleware
  return;
  }
 
- if (in_array('evaluado', $roles) && !in_array('evaluador', $roles) && !in_array('jefe_personal', $roles)) {
+ if (in_array('evaluado', $roles) && !in_array('evaluador', $roles)) {
  $conditions[] = "{$alias}.id = ?";
  $params[] = $user['id'];
- } elseif (in_array('jefe_personal', $roles) || in_array('evaluador', $roles)) {
+ } elseif (in_array('evaluador', $roles)) {
  if ($user['entidad_id'] !== null) {
  $conditions[] = "{$alias}.entidad_id = ?";
  $params[] = $user['entidad_id'];
@@ -84,7 +84,7 @@ class TenantMiddleware
  return true;
  }
 
- if (in_array('jefe_personal', $roles) || in_array('evaluador', $roles)) {
+ if (in_array('evaluador', $roles)) {
  return true;
  }
 

@@ -21,7 +21,6 @@ class MenuController
    'admin' => $this->menuAdmin(),
    'evaluador' => $this->menuEvaluador(),
    'evaluado' => $this->menuEvaluado(),
-   'comision_evaluadora' => $this->menuComision(),
    default => $this->menuPorPermisos($user),
   };
 
@@ -34,7 +33,7 @@ class MenuController
    [
     'label' => 'Inicio',
     'icon' => 'dashboard',
-    'ruta' => '/admin',
+    'ruta' => '/',
     'permisos' => ['dashboard.ver'],
    ],
    [
@@ -187,30 +186,6 @@ class MenuController
     'ruta' => '/evaluaciones',
     'permisos' => ['evaluaciones.listar'],
    ],
-  ];
- }
-
- private function menuComision(): array
- {
-  return [
-  [
-  'label' => 'Inicio',
-  'icon' => 'dashboard',
-  'ruta' => '/',
-  'permisos' => ['dashboard.ver'],
-  ],
-  [
-  'label' => 'Evaluaciones por aprobar',
-  'icon' => 'gavel',
-  'ruta' => '/comision-evaluadora',
-  'permisos' => ['evaluaciones.comision'],
-  ],
-  [
-  'label' => 'Evaluaciones',
-  'icon' => 'assessment',
-  'ruta' => '/evaluaciones',
-  'permisos' => ['evaluaciones.listar'],
-  ],
   ];
  }
 
