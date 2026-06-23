@@ -76,7 +76,7 @@ class AuthService
   $this->usuarioRepo->actualizarUltimoAcceso($usuario['id']);
 
   unset($usuario['password_hash']);
-  $usuario['nombre_completo'] = trim(($usuario['nombres'] ?? '') . ' ' . ($usuario['apellidos'] ?? ''));
+  $usuario['nombre_completo'] = trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? ''));
   AuditoriaService::registrar('login', 'usuarios', $usuario['id']);
 
   return [
@@ -106,8 +106,10 @@ class AuthService
   $camposCrear = [
    'documento' => $datos['documento'],
    'tipo_documento' => $datos['tipo_documento'] ?? 'CC',
-   'nombres' => $datos['nombres'] ?? '',
-   'apellidos' => $datos['apellidos'] ?? '',
+   'primer_nombre' => $datos['primer_nombre'] ?? $datos['nombres'] ?? '',
+   'segundo_nombre' => $datos['segundo_nombre'] ?? '',
+   'primer_apellido' => $datos['primer_apellido'] ?? $datos['apellidos'] ?? '',
+   'segundo_apellido' => $datos['segundo_apellido'] ?? '',
    'email' => $datos['email'],
    'password_hash' => $hash,
    'estado' => 'activo',
@@ -181,7 +183,7 @@ class AuthService
   $stmt = $pdo->prepare("INSERT INTO recuperaciones (usuario_id, token, fecha_expiracion) VALUES (?, ?, ?)");
   $stmt->execute([$usuario['id'], $codigo, $expiracion]);
 
-  $nombre = trim(($usuario['nombres'] ?? '') . ' ' . ($usuario['apellidos'] ?? ''));
+  $nombre = trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? ''));
   $enviado = \App\Helper\MailHelper::enviarRecuperacion($email, $nombre, $codigo);
 
   if (!$enviado) {
@@ -250,7 +252,7 @@ class AuthService
    ResponseHelper::error('Usuario no encontrado', 404);
   }
   unset($usuario['password_hash']);
-  $usuario['nombre_completo'] = trim(($usuario['nombres'] ?? '') . ' ' . ($usuario['apellidos'] ?? ''));
+  $usuario['nombre_completo'] = trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? ''));
   $roles = $this->usuarioRepo->obtenerRoles($usuarioId);
   $permisos = $this->usuarioRepo->obtenerPermisos($usuarioId);
   return ['usuario' => $usuario, 'roles' => $roles, 'permisos' => $permisos];

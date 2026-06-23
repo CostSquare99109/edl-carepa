@@ -57,8 +57,8 @@ class EvaluacionController
  {
  $input = json_decode(file_get_contents('php://input'), true) ?: [];
  $input = SanitizerHelper::sanitizeArray($input);
- $input['concertacion_id'] = $input['concertacion_id'] ?? $id;
- $compId = (new \App\Service\CompromisoService())->crear($input);
+	$input['evaluacion_id'] = $id;
+	$compId = (new \App\Service\CompromisoService())->crear($input);
  ResponseHelper::success(['id' => $compId], 'Compromiso creado', 201);
  }
 
@@ -86,11 +86,33 @@ class EvaluacionController
  ResponseHelper::success(null, 'Calificacion procesada por la Comision Evaluadora');
  }
 
- public function pendientesCalificar(): void
+public function pendientesCalificar(): void
+  {
+  $pagina = (int) ($_GET['pagina'] ?? 1);
+  $porPagina = (int) ($_GET['por_pagina'] ?? 20);
+  $resultado = $this->service->pendientesCalificar([], $pagina, $porPagina);
+  ResponseHelper::success($resultado);
+  }
+
+ public function guardar(int $id): void
  {
- $pagina = (int) ($_GET['pagina'] ?? 1);
- $porPagina = (int) ($_GET['por_pagina'] ?? 20);
- $resultado = $this->service->pendientesCalificar([], $pagina, $porPagina);
- ResponseHelper::success($resultado);
+  $input = json_decode(file_get_contents('php://input'), true) ?: [];
+  $input = SanitizerHelper::sanitizeArray($input);
+  $this->service->guardar($id, $input);
+  ResponseHelper::success(null, 'Evaluacion guardada correctamente');
+ }
+
+ public function solicitarRevision(int $id): void
+ {
+  $this->service->solicitarRevision($id);
+  ResponseHelper::success(null, 'Revision solicitada');
+ }
+
+ public function finalizar(int $id): void
+ {
+  $input = json_decode(file_get_contents('php://input'), true) ?: [];
+  $input = SanitizerHelper::sanitizeArray($input);
+  $this->service->finalizar($id, $input);
+  ResponseHelper::success(null, 'Evaluacion finalizada. La calificacion es definitiva.');
  }
 }

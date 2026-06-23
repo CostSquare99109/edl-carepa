@@ -182,7 +182,7 @@ export default function AprobarCompromisos() {
                     </div>
                     <p className="text-sm text-inst-texto mb-1">{c.descripcion}</p>
                     {c.resultado_esperado && (
-                      <p className="text-xs text-inst-verde mb-1">Resultado esperado: {c.resultado_esperado}</p>
+                      <p className="text-xs text-inst-azul-osc mb-1">Resultado esperado: {c.resultado_esperado}</p>
                     )}
                     {c.medio_verificacion && (
                       <p className="text-xs text-inst-texto-claro mb-1">Medio de verificacion: {c.medio_verificacion}</p>
@@ -287,15 +287,15 @@ export default function AprobarCompromisos() {
                   </div>
                 )}
 
-                {/* Panel de devolucion (reemplaza "rechazo" por terminologia EDL-CAREPA) */}
+                {/* Panel de rechazo */}
                 {devolverId === c.id && (
-                  <div className="mt-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <h4 className="font-heading font-bold text-orange-700 text-sm mb-2">Devolver Compromiso al Evaluado</h4>
-                    <p className="text-xs text-orange-600 mb-3">
-                      El compromiso sera devuelto al evaluado con sus observaciones para que lo ajuste y vuelva a proponer.
+                  <div className="mt-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                    <h4 className="font-heading font-bold text-red-700 text-sm mb-2">Rechazar Compromiso</h4>
+                    <p className="text-xs text-red-600 mb-3">
+                      El compromiso sera rechazado. El evaluado será notificado para ajustar su propuesta.
                     </p>
                     <div>
-                      <label className="edl-label">Observaciones de la devolucion (obligatorio)</label>
+                      <label className="edl-label">Motivo del rechazo (obligatorio)</label>
                       <textarea
                         value={obsDevolver}
                         onChange={e => setObsDevolver(e.target.value)}
@@ -307,10 +307,10 @@ export default function AprobarCompromisos() {
                       <button
                         onClick={confirmarDevolucion}
                         disabled={saving || !obsDevolver.trim()}
-                        className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 flex items-center gap-1 text-sm disabled:opacity-50"
+                        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center gap-1 text-sm disabled:opacity-50"
                       >
-                        <span className="material-icons text-sm">undo</span>
-                        {saving ? 'Devolviendo...' : 'Confirmar Devolucion'}
+                        <span className="material-icons text-sm">cancel</span>
+                        {saving ? 'Confirmando...' : 'Confirmar rechazo'}
                       </button>
                       <button onClick={() => setDevolverId(null)} className="edl-btn-secondary">
                         Cancelar
@@ -331,10 +331,10 @@ export default function AprobarCompromisos() {
                     </button>
                     <button
                       onClick={() => handleDevolverClick(c.id)}
-                      className="edl-btn-secondary text-orange-600 border-orange-300 hover:bg-orange-50 flex items-center gap-1 text-sm"
+                      className="edl-btn-secondary text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-1 text-sm"
                     >
-                      <span className="material-icons text-sm">undo</span>
-                      Devolver
+                      <span className="material-icons text-sm">cancel</span>
+                      Rechazar
                     </button>
                   </div>
                 )}

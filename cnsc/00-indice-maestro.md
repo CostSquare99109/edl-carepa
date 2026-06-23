@@ -11,7 +11,7 @@
 ## 🗺️ Mapa del directorio
 
 | # | Archivo | Tema | Subtemas cubiertos |
-|---|---|---|---|
+|---|---|---|---|---|
 | 00 | `00-indice-maestro.md` | **Estás aquí** | Mapa, navegación, fuentes |
 | 01 | `01-generalidades-y-marco-normativo.md` | Qué es la EDL, Acuerdo 617/2018, sistema tipo | Definición, fases, principios, marco legal |
 | 02 | `02-roles-y-actores.md` | Roles del sistema | Jefe de Personal, Evaluador, Evaluado, Cargador, Comisión Evaluadora, otros actores |
@@ -28,7 +28,10 @@
 | 13 | `13-trazabilidad-con-proyecto.md` | **Cruce con el proyecto real** | Mapeo transcripción → gap de `FASE3_GAPS.md` → archivo concreto a tocar (backend/frontend/database) |
 | 14 | `14-futuro-del-proyecto.md` | **Hoja de ruta** | Roadmap derivado 100% de las transcripciones + tabla maestra de archivos a tocar |
 | 15 | `15-enlaces-y-referencias.md` | Enlaces y referencias oficiales | Videos YouTube, marco normativo colombiano, glosario |
-| — | `AUDITORIA-DIRIGIDA-2026-06-22.md` | **Auditoría del estado real** | Inspección de los 22 archivos prioritarios. Estado de cada gap/brecha con evidencia. |
+| 16 | `16-glosario-cnsc.md` | **Glosario CNSC** | Definiciones operativas A-Z de todos los términos de la EDL |
+| 17 | `17-endpoints-api.md` | **Referencia API REST** | Los 138 endpoints del backend, métodos, permisos y descripciones |
+| 18 | `18-arquitectura.md` | **Arquitectura del sistema** | Stack, capas, middleware, BD, seguridad, ADRs, despliegue |
+| — | `AUDITORIA-DIRIGIDA-2026-06-22.md` | **Auditoría del estado real** | Inspección de los 22 archivos prioritarios. V1.1 con correcciones. |
 | — | `CHANGELOG.md` | Bitácora de cambios de esta carpeta | Qué se consolidó, qué no se hizo y por qué |
 
 ---

@@ -38,7 +38,7 @@ interface Notificacion {
 }
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
- pendiente_evaluado: { label: 'Pendiente de su aceptación', color: 'bg-amber-100 text-amber-800 border-amber-300' },
+ pendiente_aprobacion: { label: 'Pendiente de su aceptación', color: 'bg-amber-100 text-amber-800 border-amber-300' },
  propuesto: { label: 'Propuesto', color: 'bg-yellow-100 text-yellow-800' },
  aprobado: { label: 'Aprobado', color: 'bg-green-100 text-green-800' },
  aceptado_evaluado: { label: 'Aceptado', color: 'bg-green-200 text-green-900' },
@@ -98,8 +98,8 @@ export default function MisCompromisos() {
  const notifs = Array.isArray(notifRes) ? notifRes : (notifRes?.data || []);
  setNotificaciones(notifs);
 
- // Verificar si hay compromisos pendiente_evaluado
- const pendientes = (compRes.data || []).filter((c: Compromiso) => c.estado === 'pendiente_evaluado');
+ // Verificar si hay compromisos pendiente_aprobacion
+ const pendientes = (compRes.data || []).filter((c: Compromiso) => c.estado === 'pendiente_aprobacion');
  if (pendientes.length > 0) {
  setConcertacionPendiente(pendientes[0].evaluacion_id);
  }
@@ -192,7 +192,7 @@ export default function MisCompromisos() {
  ? compromisos
  : compromisos.filter(c => c.tipo === filtroTipo);
 
- const compromisosConcertacion = compromisos.filter(c => c.estado === 'pendiente_evaluado');
+ const compromisosConcertacion = compromisos.filter(c => c.estado === 'pendiente_aprobacion');
  const evaluacionConcertada = compromisosConcertacion.length > 0 ? compromisosConcertacion[0].evaluacion_id : null;
 
  return (
@@ -256,7 +256,7 @@ export default function MisCompromisos() {
  <button
  onClick={aceptarConcertacion}
  disabled={saving}
- className="edl-btn-primary flex items-center gap-2 px-6 py-3 bg-inst-verde hover:bg-green-700"
+ className="edl-btn-primary flex items-center gap-2 px-6 py-3 bg-inst-azul-osc hover:bg-green-700"
  >
  <span className="material-icons text-lg">check_circle</span>
  {saving ? 'Aceptando...' : 'Aceptar Concertación'}
@@ -464,7 +464,7 @@ export default function MisCompromisos() {
  </div>
  <p className="text-sm text-inst-texto mb-1">{c.descripcion}</p>
  {c.resultado_esperado && (
- <p className="text-xs text-inst-verde mb-1">Resultado: {c.resultado_esperado}</p>
+ <p className="text-xs text-inst-azul-osc mb-1">Resultado: {c.resultado_esperado}</p>
  )}
  {c.medio_verificacion && (
  <p className="text-xs text-inst-texto-claro mb-1">Verificación: {c.medio_verificacion}</p>

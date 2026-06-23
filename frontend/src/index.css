@@ -25,7 +25,7 @@
     @apply px-4 py-2 rounded-lg font-medium transition-all duration-150 text-sm inline-flex items-center justify-center gap-2;
   }
   .edl-btn-primary {
-    @apply edl-btn bg-inst-verde text-white hover:bg-inst-verde-hover shadow-sm hover:shadow;
+    @apply edl-btn bg-inst-azul-osc text-white hover:bg-inst-azul-osc-hover shadow-sm hover:shadow;
   }
   .edl-btn-secondary {
     @apply edl-btn bg-inst-amarillo text-inst-azul-osc hover:bg-inst-amarillo-hover shadow-sm;
@@ -34,25 +34,25 @@
     @apply edl-btn bg-inst-rojo text-white hover:bg-red-700 shadow-sm;
   }
   .edl-btn-outline {
-    @apply edl-btn border border-inst-borde bg-white text-inst-texto hover:bg-inst-gris-med hover:border-inst-verde;
+    @apply edl-btn border border-inst-borde bg-white text-inst-texto hover:bg-inst-gris-med hover:border-inst-azul-osc;
   }
   .edl-btn-ghost {
     @apply edl-btn text-inst-texto hover:bg-inst-gris-med;
   }
   .edl-input {
-    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-verde/30 focus:border-inst-verde transition;
+    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-azul-osc/30 focus:border-inst-azul-osc transition;
   }
   .edl-label {
     @apply block text-sm font-medium text-inst-texto mb-1.5;
   }
   .edl-select {
-    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-verde/30 focus:border-inst-verde transition appearance-none bg-no-repeat bg-right pr-9;
+    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-azul-osc/30 focus:border-inst-azul-osc transition appearance-none bg-no-repeat bg-right pr-9;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 0.65rem center;
     background-size: 1.25rem;
   }
   .edl-textarea {
-    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-verde/30 focus:border-inst-verde transition resize-y min-h-[80px];
+    @apply w-full px-3 py-2 border border-inst-borde rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-inst-azul-osc/30 focus:border-inst-azul-osc transition resize-y min-h-[80px];
   }
   .edl-table {
     @apply w-full text-sm;
@@ -67,10 +67,10 @@
     @apply px-4 py-3 border-b border-inst-borde text-inst-texto;
   }
   .edl-table tbody tr {
-    @apply hover:bg-inst-verde-light/30 transition-colors;
+    @apply hover:bg-inst-azul-osc-light/30 transition-colors;
   }
   .edl-divider {
-    @apply border-t-2 border-inst-verde mt-2 mb-1;
+    @apply border-t-2 border-inst-azul-osc mt-2 mb-1;
   }
   .edl-divider-accent {
     @apply border-t border-inst-amarillo mb-4;
@@ -78,8 +78,8 @@
   .edl-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  .edl-badge-verde {
-    @apply edl-badge bg-inst-verde-light text-inst-verde;
+  .edl-badge-azul {
+    @apply edl-badge bg-inst-azul-osc-light text-inst-azul-osc;
   }
   .edl-badge-rojo {
     @apply edl-badge bg-red-50 text-inst-rojo;
@@ -95,7 +95,7 @@
   }
   .edl-section-title::before {
     content: '';
-    @apply w-1 h-5 bg-inst-verde rounded-full;
+    @apply w-1 h-5 bg-inst-azul-osc rounded-full;
   }
   .edl-kpi-card {
     @apply bg-white rounded-xl border border-inst-borde p-5 shadow-sm hover:shadow-md transition-shadow;
@@ -104,6 +104,6 @@
     @apply w-full bg-inst-gris-med rounded-full h-2 overflow-hidden;
   }
   .edl-progress-bar {
-    @apply h-full bg-inst-verde rounded-full transition-all duration-500;
+    @apply h-full bg-inst-azul-osc rounded-full transition-all duration-500;
   }
 }

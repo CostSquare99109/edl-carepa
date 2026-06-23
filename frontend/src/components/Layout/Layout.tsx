@@ -36,10 +36,10 @@ export default function Layout() {
   }
 
   const nombreCompleto = usuario
-    ? `${usuario.nombres} ${usuario.apellidos}`
+    ? `${usuario.primer_nombre || ''} ${usuario.primer_apellido || ''}`.trim() || usuario.nombre_completo || 'Usuario'
     : 'Usuario';
   const iniciales = usuario
-    ? `${(usuario.nombres || '?')[0]}${(usuario.apellidos || '?')[0]}`.toUpperCase()
+    ? `${(usuario.primer_nombre || '?')[0]}${(usuario.primer_apellido || '?')[0]}`.toUpperCase()
     : '?';
 
   return (
@@ -60,7 +60,7 @@ export default function Layout() {
               aria-label="Abrir menú lateral"
               aria-expanded={mobileOpen}
               aria-controls="sidebar-main"
-              className="lg:hidden p-2 -ml-1 rounded-md text-inst-azul-osc hover:bg-inst-gris-med focus:outline-none focus:ring-2 focus:ring-inst-verde"
+              className="lg:hidden p-2 -ml-1 rounded-md text-inst-azul-osc hover:bg-inst-gris-med focus:outline-none focus:ring-2 focus:ring-inst-azul-osc"
             >
               <span className="material-icons text-2xl">menu</span>
             </button>
@@ -78,7 +78,7 @@ export default function Layout() {
                     const wrap = document.createElement('div');
                     wrap.className = 'escudo-fallback flex items-center gap-2';
                     wrap.innerHTML = `
-                      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-inst-verde flex items-center justify-center text-white font-heading font-bold text-sm">C</div>
+                      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-inst-azul-osc flex items-center justify-center text-white font-heading font-bold text-sm">C</div>
                       <div class="leading-tight hidden sm:block">
                         <h1 class="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">EDL Digital</h1>
                         <p class="text-[10px] text-inst-texto-claro">Alcaldia de Carepa</p>
@@ -123,7 +123,7 @@ export default function Layout() {
                 aria-haspopup="menu"
                 aria-expanded={menuPerfilAbierto}
                 aria-label="Abrir menú de perfil"
-                className="w-9 h-9 rounded-full bg-gradient-to-br from-inst-verde to-inst-verde-hover text-white font-heading font-bold text-xs flex items-center justify-center hover:shadow-md transition-shadow ring-2 ring-white focus:outline-none focus:ring-inst-verde"
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-inst-azul-osc to-inst-azul-osc-hover text-white font-heading font-bold text-xs flex items-center justify-center hover:shadow-md transition-shadow ring-2 ring-white focus:outline-none focus:ring-inst-azul-osc"
               >
                 {iniciales}
               </button>
@@ -141,7 +141,7 @@ export default function Layout() {
                     type="button"
                     role="menuitem"
                     onClick={irAPerfil}
-                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-verde-light hover:text-inst-verde flex items-center gap-2 focus:outline-none focus:bg-inst-verde-light focus:text-inst-verde"
+                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-azul-osc-light hover:text-inst-azul-osc flex items-center gap-2 focus:outline-none focus:bg-inst-azul-osc-light focus:text-inst-azul-osc"
                   >
                     <span className="material-icons text-base">person</span>
                     Ver perfil
@@ -150,7 +150,7 @@ export default function Layout() {
                     type="button"
                     role="menuitem"
                     onClick={irAPerfil}
-                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-verde-light hover:text-inst-verde flex items-center gap-2 focus:outline-none focus:bg-inst-verde-light focus:text-inst-verde"
+                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-azul-osc-light hover:text-inst-azul-osc flex items-center gap-2 focus:outline-none focus:bg-inst-azul-osc-light focus:text-inst-azul-osc"
                   >
                     <span className="material-icons text-base">lock_reset</span>
                     Cambiar contraseña
@@ -170,7 +170,7 @@ export default function Layout() {
             </div>
           </div>
 
-          <div className="h-1 bg-gradient-to-r from-inst-verde via-inst-amarillo to-inst-verde" />
+          <div className="h-1 bg-gradient-to-r from-inst-azul-osc via-inst-amarillo to-inst-azul-osc" />
         </header>
 
         <main className="flex-1 px-4 sm:px-6 py-5 sm:py-6 overflow-x-hidden">

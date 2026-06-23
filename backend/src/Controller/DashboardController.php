@@ -37,7 +37,7 @@ class DashboardController
         }
 
         // Mis compromisos enviados: los propuestos por el evaluado en sus evaluaciones
-        $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos c INNER JOIN evaluaciones e ON e.id = c.concertacion_id WHERE e.evaluado_id = ? AND c.estado = 'propuesto' AND c.eliminado_en IS NULL");
+        $stmt = $db->prepare("SELECT COUNT(*) FROM compromisos c INNER JOIN concertaciones con ON con.id = c.concertacion_id INNER JOIN evaluaciones e ON e.concertacion_id = con.id WHERE e.evaluado_id = ? AND c.estado = 'propuesto' AND c.eliminado_en IS NULL");
         $stmt->execute([(int) $user['id']]);
         $misCompromisosEnviados = (int) $stmt->fetchColumn();
 

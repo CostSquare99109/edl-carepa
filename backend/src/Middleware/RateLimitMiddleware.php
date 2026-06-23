@@ -23,10 +23,21 @@ class RateLimitMiddleware
 		$file = $tempDir . '/' . $key;
 		$now = time();
 
-		if (file_exists($file)) {
-			$data = json_decode(file_get_contents($file), true);
-		} else {
-			$data = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
+		$fp = fopen($file, 'c+');
+		if (!$fp) {
+			return;
+		}
+
+		flock($fp, LOCK_EX);
+
+		$data = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
+		$filesize = filesize($file);
+		if ($filesize > 0) {
+			$raw = fread($fp, $filesize);
+			$parsed = json_decode($raw, true);
+			if (is_array($parsed)) {
+				$data = $parsed;
+			}
 		}
 
 		if ($now > ($data['reset_at'] ?? 0)) {
@@ -35,7 +46,13 @@ class RateLimitMiddleware
 
 		$data['count']++;
 
-		file_put_contents($file, json_encode($data), LOCK_EX);
+		ftruncate($fp, 0);
+		rewind($fp);
+		fwrite($fp, json_encode($data));
+		fflush($fp);
+
+		flock($fp, LOCK_UN);
+		fclose($fp);
 
 		$remaining = self::$maxAttempts - $data['count'];
 		header("X-RateLimit-Limit: " . self::$maxAttempts);

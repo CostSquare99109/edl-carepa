@@ -15,19 +15,11 @@ class CsrfMiddleware
  return;
  }
 
- $uri = $_SERVER['REQUEST_URI'] ?? '';
- if (strpos($uri, '/api/v1/auth/login') !== false) {
- return;
- }
- if (strpos($uri, '/api/v1/auth/recuperar') !== false) {
- return;
- }
- if (strpos($uri, '/api/v1/auth/registro') !== false) {
- return;
- }
- if (strpos($uri, '/api/v1/auth/verificar') !== false) {
- return;
- }
+	$uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+	$uri = '/' . trim($uri, '/');
+	if (in_array($uri, ['/api/v1/auth/login', '/api/v1/auth/recuperar', '/api/v1/auth/registro', '/api/v1/auth/verificar-codigo'], true)) {
+	return;
+	}
 
  $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
  if (!CsrfHelper::validar($csrfToken)) {

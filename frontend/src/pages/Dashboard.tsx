@@ -2,7 +2,6 @@ import { useEffect, useState, Component, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, type PaginatedData } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Card, KpiCard, Badge, Alert, Button, Input, SkeletonKpiGrid, SkeletonText } from '../components/ui';
 import { toast } from 'sonner';
 
@@ -22,9 +21,6 @@ interface AdminStats {
  evaluaciones_completadas: number;
  evaluaciones_pendientes: number;
  periodo_activo: { id: number; nombre: string } | null;
- progreso_dependencias: { dependencia: string; progreso: number }[];
- evaluaciones_por_estado: { estado: string; cantidad: number }[];
- evaluaciones_por_dependencia: { dependencia: string; completadas: number; pendientes: number }[];
 }
 
 interface Actividad {
@@ -51,7 +47,7 @@ const ADMIN_ONLY_CARDS = ['entidades', 'usuarios', 'evaluaciones', 'periodos'];
 const CARD_ITEMS = [
  { key: 'entidades', label: 'Entidades', icon: 'domain', color: 'text-purple-700', bg: 'bg-purple-100' },
  { key: 'usuarios', label: 'Usuarios', icon: 'people', color: 'text-inst-azul-osc', bg: 'bg-blue-100' },
- { key: 'evaluaciones', label: 'Evaluaciones', icon: 'assessment', color: 'text-inst-verde', bg: 'bg-green-100' },
+ { key: 'evaluaciones', label: 'Evaluaciones', icon: 'assessment', color: 'text-inst-azul-osc', bg: 'bg-green-100' },
  { key: 'periodos', label: 'Períodos activos', icon: 'calendar_today', color: 'text-inst-rojo', bg: 'bg-red-100' },
 ] as const;
 
@@ -68,8 +64,6 @@ const NOTI_COLOR: Record<string, { tone: 'info' | 'success' | 'warning' | 'dange
  error: { tone: 'danger' },
  exito: { tone: 'success' },
 };
-
-const PIE_COLORS = ['#1E5A3C', '#0A2B5E', '#C4282B', '#F59E0B', '#6B7280'];
 
 const ESTADO_LABELS: Record<string, string> = {
  en_proceso: 'En Proceso',
@@ -361,49 +355,7 @@ function DashboardContent() {
     </div>
    ) : null}
 
-   {/* Admin charts */}
-   {isAdmin && adminStats ? (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-     {adminStats.evaluaciones_por_estado && adminStats.evaluaciones_por_estado.length > 0 ? (
-      <Card>
-       <h3 className="edl-section-title mb-4">Evaluaciones por Estado</h3>
-       <ResponsiveContainer width="100%" height={250}>
-        <PieChart>
-         <Pie
-          data={adminStats.evaluaciones_por_estado.map(d => ({ name: ESTADO_LABELS[d.estado] || d.estado, value: d.cantidad }))}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          outerRadius={80}
-          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ''}: ${value ?? 0}`}
-         >
-          {adminStats.evaluaciones_por_estado.map((_, i) => (
-           <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-          ))}
-         </Pie>
-         <Tooltip />
-         <Legend />
-        </PieChart>
-       </ResponsiveContainer>
-      </Card>
-     ) : null}
 
-     {adminStats.progreso_dependencias && adminStats.progreso_dependencias.length > 0 ? (
-      <Card>
-       <h3 className="edl-section-title mb-4">Progreso por Dependencia</h3>
-       <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={adminStats.progreso_dependencias} layout="vertical">
-         <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
-         <YAxis type="category" dataKey="dependencia" width={140} tick={{ fontSize: 12 }} />
-         <Tooltip formatter={(v) => `${v ?? 0}%`} />
-         <Bar dataKey="progreso" fill="#0A2B5E" radius={[0, 4, 4, 0]} />
-        </BarChart>
-       </ResponsiveContainer>
-      </Card>
-     ) : null}
-    </div>
-   ) : null}
 
    {/* Notificaciones */}
    {!cargando && safeNotificaciones.length > 0 ? (

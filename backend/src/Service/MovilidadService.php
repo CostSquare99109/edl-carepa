@@ -18,7 +18,7 @@ class MovilidadService
 
  public function listar(array $filtros, int $pagina, int $porPagina): array
  {
- return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
+		return $this->repo->listar($filtros, $pagina, $porPagina);
  }
 
  public function ver(int $id): array

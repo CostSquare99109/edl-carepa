@@ -13,7 +13,7 @@ Documentación consolidada derivada de las **26 transcripciones oficiales** de l
 ## ¿Qué hay adentro?
 
 | Tema | Documento |
-|---|---|
+|---|---|---|
 | ¿Qué es la EDL? ¿Cuál es el marco normativo? | [`01-generalidades-y-marco-normativo.md`](./01-generalidades-y-marco-normativo.md) |
 | ¿Qué roles existen? | [`02-roles-y-actores.md`](./02-roles-y-actores.md) |
 | ¿Cómo funciona el período y las etapas? | [`03-periodos-y-etapas.md`](./03-periodos-y-etapas.md) |
@@ -30,6 +30,9 @@ Documentación consolidada derivada de las **26 transcripciones oficiales** de l
 | **¿Hacia dónde va el proyecto?** | **[`14-futuro-del-proyecto.md`](./14-futuro-del-proyecto.md)** 🚀 |
 | **Auditoría dirigida del estado real** | **[`AUDITORIA-DIRIGIDA-2026-06-22.md`](./AUDITORIA-DIRIGIDA-2026-06-22.md)** 🔍 |
 | ¿Dónde están los videos y normas oficiales? | [`15-enlaces-y-referencias.md`](./15-enlaces-y-referencias.md) |
+| **Glosario CNSC A-Z** | **[`16-glosario-cnsc.md`](./16-glosario-cnsc.md)** 📖 |
+| **Referencia de API REST (138 endpoints)** | **[`17-endpoints-api.md`](./17-endpoints-api.md)** 🛣️ |
+| **Arquitectura del sistema** | **[`18-arquitectura.md`](./18-arquitectura.md)** 🏗️ |
 | Bitácora de cambios | [`CHANGELOG.md`](./CHANGELOG.md) |
 
 ---

@@ -251,7 +251,7 @@ export default function ComisionEvaluadora() {
  </div>
  <div>
  <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Comportamentales</p>
- <p className="text-2xl font-bold text-inst-verde">{modalAprobar.nota_comportamentales ?? '-'}%</p>
+ <p className="text-2xl font-bold text-inst-azul-osc">{modalAprobar.nota_comportamentales ?? '-'}%</p>
  </div>
  <div>
  <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Definitiva</p>

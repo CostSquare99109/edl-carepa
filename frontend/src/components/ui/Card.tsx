@@ -11,7 +11,7 @@ const variantClass: Record<CardVariant, string> = {
   default: 'edl-card',
   elevated: 'edl-card shadow-md hover:shadow-lg transition-shadow',
   interactive:
-    'edl-card hover:shadow-md hover:border-inst-verde/40 hover:-translate-y-0.5 transition-all duration-150 cursor-pointer',
+    'edl-card hover:shadow-md hover:border-inst-azul-osc/40 hover:-translate-y-0.5 transition-all duration-150 cursor-pointer',
 };
 
 export function Card({ variant = 'default', className = '', children, ...rest }: CardProps) {
@@ -33,7 +33,7 @@ interface KpiCardProps {
 
 const toneClasses: Record<NonNullable<KpiCardProps['tone']>, string> = {
   neutral: 'text-inst-azul-osc',
-  success: 'text-inst-verde',
+  success: 'text-inst-azul-osc',
   warning: 'text-amber-600',
   danger: 'text-inst-rojo',
   info: 'text-sky-600',
@@ -80,7 +80,7 @@ const badgeTone: Record<NonNullable<BadgeProps['tone']>, string> = {
 
 const dotTone: Record<NonNullable<BadgeProps['tone']>, string> = {
   neutral: 'bg-slate-400',
-  success: 'bg-inst-verde',
+  success: 'bg-inst-azul-osc',
   warning: 'bg-amber-500',
   danger: 'bg-inst-rojo',
   info: 'bg-sky-500',
@@ -106,7 +106,7 @@ interface AlertProps {
 
 const alertTone: Record<NonNullable<AlertProps['tone']>, string> = {
   info: 'bg-sky-50 border-sky-200 text-sky-900',
-  success: 'bg-inst-verde-light border-green-200 text-inst-verde',
+  success: 'bg-inst-azul-osc-light border-green-200 text-inst-azul-osc',
   warning: 'bg-inst-amarillo-light border-amber-200 text-amber-800',
   danger: 'bg-red-50 border-red-200 text-inst-rojo',
 };

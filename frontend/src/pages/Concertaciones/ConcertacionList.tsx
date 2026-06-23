@@ -86,7 +86,7 @@ export default function ConcertacionList() {
                   </td>
                   <td className="text-center">
                   <a href={`${API_BASE}/reportes/concertacion-pdf/${c.id}`} target="_blank" rel="noopener"
-                   className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-verde inline-block" title="Descargar PDF">
+                   className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul-osc inline-block" title="Descargar PDF">
                    <span className="material-icons text-lg">picture_as_pdf</span>
                   </a>
                   </td>

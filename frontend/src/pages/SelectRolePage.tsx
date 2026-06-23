@@ -99,12 +99,12 @@ export default function SelectRolePage() {
      <div className="edl-divider" />
      <div className="edl-divider-accent" />
 
-     <p className="text-lg font-heading font-semibold text-inst-azul-osc mb-1">
-      Bienvenido, {usuario?.nombres ?? ''} {usuario?.apellidos ?? ''}
-     </p>
-     {usuario?.cargo ? (
-      <p className="text-sm text-inst-texto-claro">Cargo: {usuario.cargo}</p>
-     ) : null}
+      <p className="text-lg font-heading font-semibold text-inst-azul-osc mb-1">
+       Bienvenido, {usuario?.primer_nombre ?? ''} {usuario?.primer_apellido ?? ''}
+      </p>
+      {usuario?.denominacion_empleo || usuario?.cargo ? (
+       <p className="text-sm text-inst-texto-claro">Cargo: {usuario.denominacion_empleo || usuario.cargo}</p>
+      ) : null}
      <p className="text-sm text-inst-texto-claro">Seleccione el rol con el que desea ingresar</p>
     </Card>
 

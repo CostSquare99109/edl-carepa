@@ -12,6 +12,7 @@ class Compromiso
  public ?float $peso = null;
  public ?string $competencia_codigo = null;
  public int $propuesto_por_jefe_entidad = 0;
+ public int $es_propuesto_evaluado = 0;
  public string $estado = 'propuesto';
  public ?float $calificacion = null;
  public ?string $frecuencia = null;
@@ -22,6 +23,7 @@ class Compromiso
  public ?string $justificacion_excede = null;
  public ?string $observaciones_evaluador = null;
  public ?string $observaciones_evaluado = null;
+ public ?string $conductas_json = null;
  public ?string $creado_en = null;
  public ?string $actualizado_en = null;
  public ?string $eliminado_en = null;

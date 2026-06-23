@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Helper\ResponseHelper;
 use PDO;
 
 class MovilidadRepository
@@ -18,11 +19,11 @@ class MovilidadRepository
   $where = ['m.eliminado_en IS NULL'];
   $params = [];
 
-  if (!empty($filtros['busqueda'])) {
-   $where[] = '(u.nombres LIKE ? OR u.apellidos LIKE ? OR u.documento LIKE ?)';
-   $b = '%' . $filtros['busqueda'] . '%';
-   $params[] = $b; $params[] = $b; $params[] = $b;
-  }
+   if (!empty($filtros['busqueda'])) {
+    $where[] = '(u.primer_nombre LIKE ? OR u.primer_apellido LIKE ? OR u.documento LIKE ?)';
+    $b = '%' . $filtros['busqueda'] . '%';
+    $params[] = $b; $params[] = $b; $params[] = $b;
+   }
   if (!empty($filtros['tipo'])) {
    $where[] = 'm.tipo = ?';
    $params[] = $filtros['tipo'];
@@ -40,8 +41,8 @@ class MovilidadRepository
 
   $offset = ($pagina - 1) * $porPagina;
   $stmt = $this->pdo->prepare("
-   SELECT m.*, u.nombres as funcionario_nombres, u.apellidos as funcionario_apellidos,
-    u.documento as funcionario_documento, u.cargo as funcionario_cargo,
+   SELECT m.*, u.primer_nombre as funcionario_nombres, u.primer_apellido as funcionario_apellidos,
+    u.documento as funcionario_documento, u.denominacion_empleo as funcionario_cargo,
     do1.nombre as dependencia_origen, do2.nombre as dependencia_destino
    FROM movilidades m
    LEFT JOIN usuarios u ON u.id = m.funcionario_id

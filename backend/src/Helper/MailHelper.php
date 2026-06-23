@@ -15,23 +15,23 @@ class MailHelper
 
 		try {
 			$mail->isSMTP();
-			$mail->Host = Env::get('SMTP_HOST', 'smtp.gmail.com');
-			$mail->Port = (int) Env::get('SMTP_PORT', '587');
+			$mail->Host = Env::get('MAIL_HOST', 'smtp.gmail.com');
+			$mail->Port = (int) Env::get('MAIL_PORT', '587');
 			$mail->SMTPAuth = true;
-			$mail->Username = Env::get('SMTP_USER', '');
-			$mail->Password = Env::get('SMTP_PASS', '');
+			$mail->Username = Env::get('MAIL_USER', '');
+			$mail->Password = Env::get('MAIL_PASS', '');
 			$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 			$mail->CharSet = 'UTF-8';
 
-			$fromEmail = Env::get('SMTP_FROM', '') ?: Env::get('SMTP_USER', '');
+			$fromEmail = Env::get('MAIL_FROM', '') ?: Env::get('MAIL_USER', '');
 			if (empty($fromEmail) || empty($mail->Username) || empty($mail->Password)) {
-				error_log('MailHelper: Credenciales SMTP no configuradas. Defina SMTP_USER y SMTP_PASS en .env');
+				error_log('MailHelper: Credenciales SMTP no configuradas. Defina MAIL_USER y MAIL_PASS en .env');
 				return false;
 			}
 
 			$mail->setFrom(
 				$fromEmail,
-				Env::get('SMTP_FROM_NAME', 'EDL-CAREPA')
+				Env::get('MAIL_FROM_NAME', 'EDL-CAREPA')
 			);
 
 			// Destinatario

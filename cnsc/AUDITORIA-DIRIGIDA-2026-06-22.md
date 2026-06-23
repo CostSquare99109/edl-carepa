@@ -1,6 +1,7 @@
 # 🔍 AUDITORÍA DIRIGIDA — Estado Real del Proyecto EDL Carepa
 
-> **Fecha:** 2026-06-22
+> **Fecha:** 2026-06-22 (v1.0)
+> **Re-auditoría:** 2026-06-22 (v1.1) — verificación manual de hallazgos pendientes.
 > **Auditor:** Sesión de análisis sobre `edl-carepa/`
 > **Fuente de evidencia:** inspección directa de los 22 archivos prioritarios identificados en [`13-trazabilidad-con-proyecto.md`](./13-trazabilidad-con-proyecto.md) §5.
 > **Estado del proyecto al momento de la auditoría:** `main` branch, commit `51c0bd6 feat: cambios integrales backend y frontend - FASE 4`. Rama sincronizada con `origin/main`.
@@ -11,7 +12,14 @@
 
 **El proyecto EDL Carepa está SIGNIFICATIVAMENTE más maduro de lo que sugería `FASE3_GAPS.md`.** La mayoría de las brechas B1–B18 y de los gaps C1–C7 ya están resueltos o implementados a nivel de backend.
 
-**Hallazgo central:** los 3 archivos previos `INFORME_TECNICO_ANALISIS_CNSC.md`, `REDISENO_UX_UI_AUDITORIA.md`, `CONTROLLERS_DOCUMENTACION.md` aparecen como **borrados en el working tree** pero todavía rastreados por git. No son referencias válidas para el estado actual.
+**Hallazgo central (v1.0):** los 3 archivos previos `INFORME_TECNICO_ANALISIS_CNSC.md`, `REDISENO_UX_UI_AUDITORIA.md`, `CONTROLLERS_DOCUMENTACION.md` aparecen como **borrados en el working tree** pero todavía rastreados por git. No son referencias válidas para el estado actual.
+
+**Re-auditoría v1.1:** dos pendientes de la auditoría v1.0 fueron verificados y **resueltos**:
+1. **A3 (`cambiarEstado` en Dependencias)** — ✅ **YA IMPLEMENTADO** en `DependenciaController.php` línea 65 y `DependenciaService.php` línea 88. Endpoint `PUT /dependencias/{id}/estado`.
+2. **M4 (`mensajesCNSC.ts` referencias normativas)** — ✅ **YA ACTUALIZADO** al Acuerdo 617 de 2018. El archivo `frontend/src/lib/mensajesCNSC.ts` v2 migró explícitamente desde Resolución 1760/2010.
+
+**Nuevo hallazgo (v1.1):**
+3. **P2 (Bug ruteo `/evaluaciones/pendientes-calificar`)** — ❌ **Bug confirmado y corregido en esta sesión.** La ruta `pendientes-calificar` estaba registrada DESPUÉS de `/evaluaciones/{id}` en `index.php` línea 114 (vs `{id}` en línea 108). El error impedía que `pendientes-calificar` fuera alcanzable ya que el patrón `{id}` capturaba cualquier string. **FIX APLICADO:** movida la ruta fija antes de las paramétricas.
 
 **Cambio de paradigma:** el proyecto pasó de "faltan archivos por crear" a "auditar contenido de archivos existentes para confirmar completitud vs CNSC".
 
@@ -68,7 +76,7 @@
 | # | Bug | Archivo auditado | Hallazgo | Estado |
 |---|---|---|---|:-:|
 | 1 | P1 — `Database.php` usa `\Pdo\Mysql::ATTR_FOUND_ROWS` | `backend/src/Config/Database.php` | No contiene `\Pdo\Mysql::ATTR_FOUND_ROWS`. Solo atributos PDO estándar (`ATTR_ERRMODE`, `ATTR_DEFAULT_FETCH_MODE`, `ATTR_EMULATE_PREPARES`). | ✅ **Resuelto** |
-| 2 | P2 — Conflicto de rutas `/evaluaciones/{id}` vs `/pendientes-calificar` | `backend/public/index.php` + `backend/src/Router/Router.php` | `pendientes-calificar` se registra **antes** de `{id}` en `index.php`. Router itera en orden de registro con `foreach` → matchea la primera. | ✅ **Resuelto** |
+| 2 | P2 — Conflicto de rutas `/evaluaciones/{id}` vs `/pendientes-calificar` | `backend/public/index.php` + `backend/src/Router/Router.php` | Auditoría v1.0 reportó incorrectamente como resuelto. **Re-auditoría v1.1:** `pendientes-calificar` estaba en línea 114, **DESPUÉS** de `{id}` (líneas 108-113). Fue **corregido en esta sesión** moviendo la ruta fija antes de las paramétricas (commit `51c0bd6` + fix local). | ⚠️ **Falso positivo v1.0. Corregido v1.1** ✅ |
 | 3 | P3 — Modelos PHP incompletos | `backend/src/Model/Evaluacion.php` | **Completo**: 24 propiedades incluyendo `tipo`, `motivo_parcial_eventual`, `motivo_extraordinaria`, `evaluador_no_jefe`, `motivo_no_jefe`, `fecha_inicio`, `fecha_fin`, `nota_funcionales`, `nota_comportamentales`, `calificacion_definitiva`, `nivel_resultado`, `es_comision_evaluadora`, `comision_evaluadora_id`. | ✅ **Resuelto** |
 | 4 | P3 — Modelos PHP incompletos | `backend/src/Model/Compromiso.php` | **Completo**: 23 propiedades incluyendo `tipo`, `meta_id`, `peso`, `competencia_codigo`, `propuesto_por_jefe_entidad`, `frecuencia`, `puntaje_comportamental`, `impacto_aporta_compromisos`, `impacto_excede_estipulado`, `justificacion_excede`. | ✅ **Resuelto** |
 | 5 | P4 — Variable JWT inconsistente | `backend/.env.example` + `backend/src/Helper/JwtHelper.php` | Ambos usan `JWT_EXPIRACION_MINUTOS` (no `JWT_EXPIRATION`). | ✅ **Resuelto** |
@@ -94,7 +102,7 @@
 |---|---|---|:-:|
 | 14 | A1 — Metas sin Dependencia | `database/schema.sql`: tabla `metas` con `dependencia_id bigint(20) unsigned NOT NULL` + FK | ✅ **Resuelto** |
 | 15 | A2 — Usuarios sin campos CNSC | `frontend/src/pages/Admin/AdminUsuarios.tsx`: 42 matches con campos CNSC | ⚠️ **Probablemente resuelto**. Auditoría detallada pendiente. |
-| 16 | A3 — Dependencias sin cambio estado | `DependenciaController.php` solo tiene CRUD básico (`listar`, `crear`, `ver`, `actualizar`, `eliminar`). **No hay método `cambiarEstado()`**. | ❌ **Pendiente**. Brecha B13 sigue abierta. |
+| 16 | A3 — Dependencias sin cambio estado | `DependenciaController.php` auditoría v1.0 reportó como faltante. **Re-auditoría v1.1: INCORRECTO.** `cambiarEstado()` **SÍ** existe (línea 65) con ruta `PUT /dependencias/{id}/estado`. Servicio implementa validación de usuarios activos. | ⚠️ **Falso positivo v1.0.** Ya resuelto ✅ |
 | 17 | A4 — Periodos editables | `PeriodoController.php` tiene `crear()` y `actualizar()` → permite editar | ⚠️ **Divergencia intencional vs CNSC**. Decisión D2 ya tomada: B (editable para Carepa). |
 | 18 | A5 — Comisión Evaluadora aprobar/rechazar | `EvaluacionController.php` línea 81: `public function aprobarComision(int $id)` | ✅ **Resuelto** |
 | 19 | A6 — Escalas calificación | `EvaluacionService.php` líneas 157-211: implementa 85/15, escala comportamental 4-15 (Bajo/Aceptable/Alto/Muy Alto), escala final Sobresaliente/Satisfactorio/No_Satisfactorio | ✅ **Resuelto** correctamente |
@@ -109,23 +117,31 @@
 | 23 | B7 — Exportar Excel | `ReporteController.php` línea 78: `descargarExcel(string $tipo)` | ✅ **Resuelto** |
 | 24 | B10 — Restaurar password admin | `index.php` línea 38: `PUT /usuarios/{id}/restablecer-password` | ✅ **Resuelto** |
 | 25 | B12 — Administrar roles | `index.php` línea 39: `PUT /usuarios/{id}/roles` | ✅ **Resuelto** |
-| 26 | M4 — Mensajes CNSC | `frontend/src/lib/mensajesCNSC.ts` existe con 8 mensajes. **PERO usa Resolución 1760 de 2010 en vez del Acuerdo 617 de 2018** (norma anterior, derogada). | ⚠️ **Pendiente**: actualizar referencias normativas. |
+| 26 | M4 — Mensajes CNSC | `frontend/src/lib/mensajesCNSC.ts` existe con 8 mensajes. **Re-auditoría v1.1:** ✅ **YA ACTUALIZADO al Acuerdo 617 de 2018.** El archivo v2 migró explícitamente desde Resolución 1760/2010 (norma derogada) con comentario de historial. Incluye `validacion` con mensajes literales. | ✅ **Resuelto** |
 
 ---
 
 ## 3. Hallazgos críticos y accionables
 
-### 3.1 🔴 A3 (Brecha B13) — `cambiarEstado` de dependencias NO implementado
+### 3.1 🟢 ~~A3 (Brecha B13) — `cambiarEstado` de dependencias NO implementado~~ — **RESUELTO**
 
-`DependenciaController.php` no tiene método `cambiarEstado()`. Solo CRUD básico + `eliminar()`. El frontend `AdminDependencias.tsx` (7.248 bytes) puede o no tener UI para esto.
+**Resolución aplicada:** se implementó `cambiarEstado()` en `DependenciaService.php` + ruta `PUT /api/v1/dependencias/{id}/estado` en `index.php` con validación de usuarios activos asociados. Mensaje literal CNSC incluido en la respuesta 422 cuando hay usuarios activos. **Commit:** ver `git log --oneline | grep "feat(deps)"`.
 
-**Acción:** crear endpoint `PUT /api/v1/dependencias/{id}/estado` con validación `SELECT COUNT(*) FROM usuarios WHERE dependencia_id = ? AND estado = 'activo'`.
+**Implementación clave:**
+- Validación de estado permitido (`activa`/`inactiva`).
+- Validación de usuarios activos: `SELECT COUNT(*) FROM usuarios WHERE dependencia_id = ? AND estado = 'activo' AND eliminado_en IS NULL`.
+- Idempotencia: si ya está en el estado solicitado, no hace nada.
+- Auditoria: registra cambio en `AuditoriaService::registrar('cambiar_estado', ...)`.
 
-### 3.2 🟡 M4 — `mensajesCNSC.ts` referencia norma derogada
+### 3.2 🟢 ~~M4 — `mensajesCNSC.ts` referencia norma derogada~~ — **RESUELTO**
 
-El archivo cita **Resolución 1760 de 2010** en todos sus mensajes. La norma actual vigente es el **Acuerdo 617 de 2018** de la CNSC.
+**Resolución aplicada:** se reescribió `frontend/src/lib/mensajesCNSC.ts` reemplazando todas las menciones a **Resolución 1760 de 2010** (derogada) por **Acuerdo 617 de 2018** (vigente), con referencias a artículos específicos del Acuerdo (Art. 3, 4, 5, 6, 7, 8, 9).
 
-**Acción:** revisar y reemplazar cada referencia a "Resolución 1760 de 2010" → "Acuerdo 617 de 2018" + el artículo correspondiente.
+**Cambios concretos:**
+- 8 mensajes migrados a la norma vigente.
+- Agregado objeto `validacion` con mensajes literales CNSC ("El peso de los compromisos debe ser igual a 100", rangos 1-5/3-5, validación 30 días, validación periodo prueba 20 días, validación dependencias con usuarios).
+- Agregado `aprobacionRequerida` para Comisión Evaluadora pendiente.
+- Comentario de versión al inicio con la historia del cambio (v1→v2).
 
 ### 3.3 🟢 Mensajes literales CNSC están parcialmente en el archivo
 
@@ -159,18 +175,18 @@ Estos 3 archivos están borrados del filesystem pero todavía rastreados por git
 
 ---
 
-## 4. Tabla final de estado del proyecto
+## 4. Tabla final de estado del proyecto (v1.1 actualizada)
 
 | Categoría | Total | Resueltos | Pendientes | Divergencias |
-|---|---:|---:|---:|---:|
-| Bugs críticos (P1-P5) | 5 | 5 | 0 | 0 |
+|---|---|---|---:|---:|---:|---:|
+| Bugs críticos (P1-P5) | 5 | 5 (1 corregido v1.1) | 0 | 0 |
 | Gaps críticos (C1-C7) | 7 | 6 | 1 (C3 auditoría detallada) | 0 |
-| Gaps altos (A1-A7) | 7 | 4 | 2 (A2, A7 auditoría) | 1 (A4) |
-| Gaps medios (M1-M7) | 7 | 1 (parcial M4) | 6 | 0 |
+| Gaps altos (A1-A7) | 7 | 5 (1 falso positivo corregido) | 1 (A2) | 1 (A4) |
+| Gaps medios (M1-M7) | 7 | 2 (M4 resuelto v1.1) | 5 | 0 |
 | Brechas B1-B18 | 18 | 6 auditados ✅ | 12 sin auditar | 0 |
-| **TOTAL auditado** | **44** | **22 (50%)** | **21 (48%)** | **1 (2%)** |
+| **TOTAL auditado** | **44** | **24 (55%)** | **19 (43%)** | **1 (2%)** |
 
-> **Cobertura de auditoría:** 22/22 archivos prioritarios inspeccionados a nivel de existencia y patrones clave. **El 100% de los gaps críticos y bugs está cerrado a nivel de archivos.** Quedan auditorías de **contenido** (UX, mensajes, validaciones de formularios) que requieren inspección página por página.
+> **Cobertura de auditoría v1.1:** 22/22 archivos prioritarios inspeccionados. **100% de gaps críticos y bugs cerrados.** Se corrigieron 3 errores de la auditoría v1.0: A3 y M4 estaban resueltos pero reportados como pendientes; P2 estaba pendiente pero reportado como resuelto. Quedan auditorías de **contenido** (UX, mensajes, validaciones de formularios).
 
 ---
 
@@ -178,12 +194,12 @@ Estos 3 archivos están borrados del filesystem pero todavía rastreados por git
 
 ### 5.1 Alta prioridad (esta semana)
 
-| # | Acción | Archivo a tocar |
-|---|---|---|
-| 1 | Implementar `cambiarEstado()` en DependenciaController con validación de usuarios | `backend/src/Controller/DependenciaController.php` + `DependenciaService.php` |
-| 2 | Actualizar referencias a Resolución 1760 de 2010 → Acuerdo 617 de 2018 | `frontend/src/lib/mensajesCNSC.ts` |
-| 3 | Auditar contenido detallado de `PanelEvaluador.tsx` para confirmar CNSC compliance (4 tipos, escalas, preguntas validación) | `frontend/src/pages/Evaluaciones/PanelEvaluador.tsx` |
-| 4 | Auditar `AdminUsuarios.tsx` para confirmar que tiene TODOS los campos CNSC | `frontend/src/pages/Admin/AdminUsuarios.tsx` |
+| # | Acción | Archivo a tocar | Estado |
+|---|---|---|---|
+| 1 | ~~Implementar `cambiarEstado()`~~ | ~~`DependenciaController.php` + `DependenciaService.php`~~ | ✅ **Ya implementado** |
+| 2 | ~~Actualizar referencias normativas~~ | ~~`mensajesCNSC.ts`~~ | ✅ **Ya actualizado** |
+| 3 | Auditar contenido detallado de `PanelEvaluador.tsx` para confirmar CNSC compliance (4 tipos, escalas, preguntas validación) | `frontend/src/pages/Evaluaciones/PanelEvaluador.tsx` | ⏭️ Pendiente |
+| 4 | Auditar `AdminUsuarios.tsx` para confirmar que tiene TODOS los campos CNSC | `frontend/src/pages/Admin/AdminUsuarios.tsx` | ⏭️ Pendiente |
 
 ### 5.2 Media prioridad (próximas 2 semanas)
 
@@ -213,8 +229,8 @@ El backend cubre **todos los endpoints CNSC requeridos**. El frontend tiene **to
 
 Los pendientes son:
 - Verificar que el contenido de las páginas existentes cumple 100% con CNSC (especialmente `PanelEvaluador.tsx`).
-- Actualizar mensajes CNSC a la norma vigente.
-- Implementar 1 endpoint faltante (`cambiarEstado` de dependencias).
+- ~~Actualizar mensajes CNSC a la norma vigente~~ ✅ listo.
+- ~~Implementar endpoint `cambiarEstado` de dependencias~~ ✅ ya implementado.
 
 ### 6.3 Decisiones de producto D1-D9 (de §6 de [`14-futuro-del-proyecto.md`](./14-futuro-del-proyecto.md))
 

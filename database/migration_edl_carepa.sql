@@ -132,7 +132,9 @@ ALTER TABLE compromisos
 	ADD COLUMN IF NOT EXISTS resultado_esperado TEXT NULL,
 	ADD COLUMN IF NOT EXISTS medio_verificacion VARCHAR(500) NULL,
 	ADD COLUMN IF NOT EXISTS calificacion DECIMAL(5,2) NULL,
-	ADD COLUMN IF NOT EXISTS observaciones_evaluado TEXT NULL;
+	ADD COLUMN IF NOT EXISTS observaciones_evaluado TEXT NULL,
+	ADD COLUMN IF NOT EXISTS es_propuesto_evaluado TINYINT(1) NOT NULL DEFAULT 0 AFTER propuesto_por_jefe_entidad,
+	ADD COLUMN IF NOT EXISTS conductas_json JSON DEFAULT NULL AFTER observaciones_evaluado;
 
 -- ============================================================
 -- 6. EVIDENCIAS

@@ -108,7 +108,7 @@ export default function AdminDependencias() {
  <button
  type="button"
  onClick={() => toggleEstado(d)}
- className="focus:outline-none focus:ring-2 focus:ring-inst-verde rounded-full"
+ className="focus:outline-none focus:ring-2 focus:ring-inst-azul-osc rounded-full"
  aria-label={`Cambiar estado de ${d.nombre}`}
  >
  <Badge tone={d.estado === 'activa' ? 'success' : 'neutral'} dot>

@@ -15,15 +15,15 @@ class ReporteService
  $conditions = ['c.eliminado_en IS NULL'];
  $params = [];
 
- if (!empty($filtros['periodo_id'])) {
- $conditions[] = "c.meta_id IN (SELECT m.id FROM metas m WHERE m.periodo_id = ?)";
- $params[] = $filtros['periodo_id'];
- }
+  if (!empty($filtros['periodo_id'])) {
+   $conditions[] = "c.periodo_id = ?";
+   $params[] = $filtros['periodo_id'];
+  }
  if (!empty($filtros['entidad_id'])) { $conditions[] = "u.entidad_id = ?"; $params[] = $filtros['entidad_id']; }
  if (!empty($filtros['estado'])) { $conditions[] = "c.estado = ?"; $params[] = $filtros['estado']; }
 
  $where = implode(' AND ', $conditions);
- $stmt = $pdo->prepare("SELECT c.estado, COUNT(*) as total FROM concertaciones c INNER JOIN usuarios u ON u.id = c.funcionario_id WHERE {$where} GROUP BY c.estado");
+ $stmt = $pdo->prepare("SELECT c.estado, COUNT(*) as total FROM concertaciones c INNER JOIN usuarios u ON u.id = c.evaluado_id WHERE {$where} GROUP BY c.estado");
  $stmt->execute($params);
  return $stmt->fetchAll();
  }
@@ -47,7 +47,7 @@ class ReporteService
  public function funcionario(int $funcionarioId): array
  {
  $pdo = Database::getInstance();
- $stmt = $pdo->prepare("SELECT id, nombres, apellidos, documento, cargo, estado FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
+ $stmt = $pdo->prepare("SELECT id, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, documento, denominacion_empleo, estado FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
  $stmt->execute([$funcionarioId]);
  $funcionario = $stmt->fetch();
  if (!$funcionario) {
@@ -58,11 +58,11 @@ class ReporteService
  $stmt->execute([$funcionarioId]);
  $evalStats = $stmt->fetch();
 
- $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM metas WHERE funcionario_id = ? AND eliminado_en IS NULL");
+ $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM metas WHERE dependencia_id = (SELECT dependencia_id FROM usuarios WHERE id = ?) AND eliminado_en IS NULL");
  $stmt->execute([$funcionarioId]);
  $metaStats = $stmt->fetch();
 
- $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM compromisos WHERE evaluacion_id IN (SELECT id FROM evaluaciones WHERE evaluado_id = ?) AND eliminado_en IS NULL");
+ $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM compromisos WHERE concertacion_id IN (SELECT concertacion_id FROM evaluaciones WHERE evaluado_id = ? AND eliminado_en IS NULL) AND eliminado_en IS NULL");
  $stmt->execute([$funcionarioId]);
  $compStats = $stmt->fetch();
 
@@ -81,7 +81,7 @@ class ReporteService
  $stmt = $pdo->prepare("
  SELECT
  (SELECT COUNT(*) FROM usuarios WHERE eliminado_en IS NULL AND estado = 'activo') as total_funcionarios,
- (SELECT COUNT(*) FROM concertaciones WHERE meta_id IN (SELECT m.id FROM metas m WHERE m.periodo_id = ?) AND eliminado_en IS NULL) as total_concertaciones,
+  (SELECT COUNT(*) FROM concertaciones WHERE periodo_id = ? AND eliminado_en IS NULL) as total_concertaciones,
  (SELECT COUNT(*) FROM evaluaciones WHERE periodo_id = ? AND eliminado_en IS NULL) as total_evaluaciones,
  (SELECT COUNT(DISTINCT evaluado_id) FROM evaluaciones WHERE periodo_id = ? AND eliminado_en IS NULL AND estado = 'calificada') as evaluados_calificados
  ");
@@ -132,17 +132,17 @@ class ReporteService
  ResponseHelper::error('Entidad no encontrada', 404);
  }
 
- $stmt = $pdo->prepare("
- SELECT
- COUNT(DISTINCT u.id) as total_funcionarios,
- COUNT(DISTINCT c.id) as total_concertaciones,
- COUNT(DISTINCT ev.id) as total_evaluaciones,
- AVG(ev.calificacion_definitiva) as promedio_calificacion
- FROM usuarios u
- LEFT JOIN concertaciones c ON c.funcionario_id = u.id AND c.meta_id IN (SELECT m.id FROM metas m WHERE m.periodo_id = ?) AND c.eliminado_en IS NULL
- LEFT JOIN evaluaciones ev ON ev.evaluado_id = u.id AND ev.periodo_id = ? AND ev.eliminado_en IS NULL
- WHERE u.entidad_id = ? AND u.eliminado_en IS NULL
- ");
+	$stmt = $pdo->prepare("
+	SELECT
+	COUNT(DISTINCT u.id) as total_funcionarios,
+	COUNT(DISTINCT c.id) as total_concertaciones,
+	COUNT(DISTINCT ev.id) as total_evaluaciones,
+	AVG(ev.calificacion_definitiva) as promedio_calificacion
+	FROM usuarios u
+	LEFT JOIN concertaciones c ON c.evaluado_id = u.id AND c.periodo_id = ? AND c.eliminado_en IS NULL
+	LEFT JOIN evaluaciones ev ON ev.evaluado_id = u.id AND ev.periodo_id = ? AND ev.eliminado_en IS NULL
+	WHERE u.entidad_id = ? AND u.eliminado_en IS NULL
+	");
  $stmt->execute([$periodoId, $periodoId, $entidadId]);
  $stats = $stmt->fetch();
 
@@ -181,17 +181,17 @@ class ReporteService
  ResponseHelper::error('Dependencia no encontrada', 404);
  }
 
- $stmt = $pdo->prepare("
- SELECT
- COUNT(DISTINCT u.id) as total_funcionarios,
- COUNT(DISTINCT c.id) as total_concertaciones,
- COUNT(DISTINCT ev.id) as total_evaluaciones,
- AVG(ev.calificacion_definitiva) as promedio_calificacion
- FROM usuarios u
- LEFT JOIN concertaciones c ON c.funcionario_id = u.id AND c.meta_id IN (SELECT m.id FROM metas m WHERE m.periodo_id = ?) AND c.eliminado_en IS NULL
- LEFT JOIN evaluaciones ev ON ev.evaluado_id = u.id AND ev.periodo_id = ? AND ev.eliminado_en IS NULL
- WHERE u.dependencia_id = ? AND u.eliminado_en IS NULL
- ");
+	$stmt = $pdo->prepare("
+	SELECT
+	COUNT(DISTINCT u.id) as total_funcionarios,
+	COUNT(DISTINCT c.id) as total_concertaciones,
+	COUNT(DISTINCT ev.id) as total_evaluaciones,
+	AVG(ev.calificacion_definitiva) as promedio_calificacion
+	FROM usuarios u
+	LEFT JOIN concertaciones c ON c.evaluado_id = u.id AND c.periodo_id = ? AND c.eliminado_en IS NULL
+	LEFT JOIN evaluaciones ev ON ev.evaluado_id = u.id AND ev.periodo_id = ? AND ev.eliminado_en IS NULL
+	WHERE u.dependencia_id = ? AND u.eliminado_en IS NULL
+	");
  $stmt->execute([$periodoId, $periodoId, $dependenciaId]);
  $stats = $stmt->fetch();
 
@@ -215,15 +215,15 @@ class ReporteService
  if (!empty($filtros['tipo'])) { $conditions[] = "co.tipo = ?"; $params[] = $filtros['tipo']; }
 
  $where = implode(' AND ', $conditions);
- $stmt = $pdo->prepare("
- SELECT co.estado, co.tipo, COUNT(*) as total,
- AVG(co.calificacion) as promedio_puntaje
- FROM compromisos co
- INNER JOIN evaluaciones ev ON ev.id = co.evaluacion_id
- LEFT JOIN concertaciones c ON c.id = ev.concertacion_id
- WHERE {$where}
- GROUP BY co.estado, co.tipo
- ");
+	$stmt = $pdo->prepare("
+	SELECT co.estado, co.tipo, COUNT(*) as total,
+	AVG(co.calificacion) as promedio_puntaje
+	FROM compromisos co
+	INNER JOIN concertaciones c ON c.id = co.concertacion_id
+	INNER JOIN evaluaciones ev ON ev.concertacion_id = c.id
+	WHERE {$where}
+	GROUP BY co.estado, co.tipo
+	");
  $stmt->execute($params);
  return $stmt->fetchAll();
  }
@@ -276,37 +276,36 @@ class ReporteService
  {
  $pdo = Database::getInstance();
 
- $stmt = $pdo->prepare("
- SELECT c.*,
- u.documento as evaluado_documento,
- u.nombres as evaluado_nombres, u.apellidos as evaluado_apellidos,
- u.cargo as evaluado_cargo,
- d.nombre as evaluado_dependencia,
- e.nombre as entidad_nombre,
- p.nombre as periodo_nombre,
- ev.nombres as evaluador_nombres, ev.apellidos as evaluador_apellidos,
- c.fecha_concertacion, c.estado, c.creado_en
- FROM concertaciones c
- INNER JOIN usuarios u ON u.id = c.funcionario_id
- LEFT JOIN entidades e ON e.id = u.entidad_id
- LEFT JOIN dependencias d ON d.id = u.dependencia_id
- LEFT JOIN metas m ON m.id = c.meta_id
- LEFT JOIN periodos p ON p.id = m.periodo_id
- LEFT JOIN usuarios ev ON ev.id = c.evaluador_id
- WHERE c.id = ? AND c.eliminado_en IS NULL
- ");
+	$stmt = $pdo->prepare("
+	SELECT c.*,
+	u.documento as evaluado_documento,
+	u.primer_nombre as evaluado_nombres, u.primer_apellido as evaluado_apellidos,
+	u.denominacion_empleo as evaluado_cargo,
+	d.nombre as evaluado_dependencia,
+	e.nombre as entidad_nombre,
+	p.nombre as periodo_nombre,
+	ev.primer_nombre as evaluador_nombres, ev.primer_apellido as evaluador_apellidos,
+	c.fecha_concertacion, c.estado, c.creado_en
+	FROM concertaciones c
+	INNER JOIN usuarios u ON u.id = c.evaluado_id
+	LEFT JOIN entidades e ON e.id = u.entidad_id
+	LEFT JOIN dependencias d ON d.id = u.dependencia_id
+	LEFT JOIN periodos p ON p.id = c.periodo_id
+	LEFT JOIN usuarios ev ON ev.id = c.evaluador_id
+	WHERE c.id = ? AND c.eliminado_en IS NULL
+	");
  $stmt->execute([$id]);
  $concertacion = $stmt->fetch();
  if (!$concertacion) {
  ResponseHelper::error('Concertacion no encontrada', 404);
  }
 
- $stmt = $pdo->prepare("
- SELECT co.*, co.descripcion as texto_compromiso, co.peso, co.resultado_esperado as meta
- FROM compromisos co
- WHERE co.evaluacion_id = ? AND co.eliminado_en IS NULL
- ORDER BY co.tipo, co.id
- ");
+	$stmt = $pdo->prepare("
+	SELECT co.*, co.descripcion as texto_compromiso, co.peso, co.resultado_esperado as meta
+	FROM compromisos co
+	WHERE co.concertacion_id = ? AND co.eliminado_en IS NULL
+	ORDER BY co.tipo, co.id
+	");
  $stmt->execute([$id]);
  $compromisos = $stmt->fetchAll();
 
@@ -317,17 +316,17 @@ class ReporteService
  {
  $pdo = Database::getInstance();
 
- $stmt = $pdo->prepare("
- SELECT ev.*,
- u.documento as evaluado_documento,
- u.nombres as evaluado_nombres, u.apellidos as evaluado_apellidos,
- u.cargo as evaluado_cargo,
- p.nombre as periodo_nombre
- FROM evaluaciones ev
- INNER JOIN usuarios u ON u.id = ev.evaluado_id
- LEFT JOIN periodos p ON p.id = ev.periodo_id
- WHERE ev.id = ? AND ev.eliminado_en IS NULL
- ");
+	$stmt = $pdo->prepare("
+	SELECT ev.*,
+	u.documento as evaluado_documento,
+	u.primer_nombre as evaluado_nombres, u.primer_apellido as evaluado_apellidos,
+	u.denominacion_empleo as evaluado_cargo,
+	p.nombre as periodo_nombre
+	FROM evaluaciones ev
+	INNER JOIN usuarios u ON u.id = ev.evaluado_id
+	LEFT JOIN periodos p ON p.id = ev.periodo_id
+	WHERE ev.id = ? AND ev.eliminado_en IS NULL
+	");
  $stmt->execute([$id]);
  $evaluacion = $stmt->fetch();
  if (!$evaluacion) {
@@ -344,12 +343,12 @@ class ReporteService
  $detalles = $stmt->fetchAll();
 
  if (empty($detalles)) {
- $stmt = $pdo->prepare("
- SELECT co.descripcion as nombre, co.tipo, co.peso,
- co.calificacion, co.calificacion as puntaje
- FROM compromisos co
- WHERE co.evaluacion_id = ? AND co.eliminado_en IS NULL
- ");
+	$stmt = $pdo->prepare("
+	SELECT co.descripcion as nombre, co.tipo, co.peso,
+	co.calificacion, co.calificacion as puntaje
+	FROM compromisos co
+	WHERE co.concertacion_id IN (SELECT concertacion_id FROM evaluaciones WHERE id = ?) AND co.eliminado_en IS NULL
+	");
  $stmt->execute([$id]);
  $detalles = $stmt->fetchAll();
  }

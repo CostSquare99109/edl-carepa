@@ -35,13 +35,13 @@ class UsuarioService
  public function crear(array $datos): int
  {
  $v = new ValidatorHelper();
- $v->validate($datos, [
- 'documento' => 'required|max:30',
- 'nombres' => 'required|max:100',
- 'apellidos' => 'required|max:100',
- 'email' => 'required|email|max:150',
- 'password' => 'required|min:8'
- ]);
+	$v->validate($datos, [
+		'documento' => 'required|max:30',
+		'primer_nombre' => 'required|max:100',
+		'primer_apellido' => 'required|max:100',
+		'email' => 'required|email|max:150',
+		'password' => 'required|min:8'
+	]);
 
  if ($this->repo->existe('documento', $datos['documento'])) {
  ResponseHelper::error('Ya existe un usuario con ese documento', 409);
@@ -88,8 +88,8 @@ class UsuarioService
  unset($usuario['password_hash']);
  $usuario['roles'] = $this->repo->obtenerRoles($id);
  $usuario['permisos'] = $this->repo->obtenerPermisos($id);
- $usuario['nombre_completo'] = trim(($usuario['nombres'] ?? '') . ' ' . ($usuario['apellidos'] ?? ''));
- return $usuario;
+	$usuario['nombre_completo'] = trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? ''));
+	return $usuario;
  }
 
  public function actualizar(int $id, array $datos): void
@@ -99,16 +99,16 @@ class UsuarioService
  ResponseHelper::error('Usuario no encontrado', 404);
  }
 
- $permitidos = [
- 'nombres', 'apellidos',
- 'email', 'telefono', 'telefono_secundario', 'tipo_documento', 'genero',
- 'denominacion_empleo', 'codigo_empleo', 'grado',
- 'nivel_carrera', 'naturaleza', 'tipo_nombramiento',
- 'entidad_id', 'dependencia_id',
- 'estado', 'es_contratista',
- 'periodo_prueba', 'fecha_vinculacion', 'proposito_empleo',
- 'cargo', 'municipio',
- ];
+	$permitidos = [
+		'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido',
+		'email', 'telefono1', 'telefono2', 'tipo_documento', 'genero',
+		'denominacion_empleo', 'codigo_empleo', 'grado_empleo',
+		'nivel', 'naturaleza', 'tipo_nombramiento',
+		'entidad_id', 'dependencia_id',
+		'estado', 'es_contratista',
+		'en_periodo_prueba', 'fecha_posesion', 'proposito_principal_empleo',
+		'es_evaluador_y_evaluado',
+	];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
 
  if (isset($datos['password'])) {

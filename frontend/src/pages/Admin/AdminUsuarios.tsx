@@ -205,7 +205,7 @@ export default function AdminUsuarios() {
     <button
      type="button"
      onClick={() => toggleEstado(u)}
-     className="focus:outline-none focus:ring-2 focus:ring-inst-verde rounded-full"
+     className="focus:outline-none focus:ring-2 focus:ring-inst-azul-osc rounded-full"
      aria-label={`Cambiar estado de ${u.nombres} ${u.apellidos}`}
     >
      <Badge tone={u.estado === 'activo' ? 'success' : 'neutral'} dot>
@@ -449,7 +449,7 @@ export default function AdminUsuarios() {
       type="checkbox"
       checked={!!form.es_contratista}
       onChange={e => setForm({...form, es_contratista: e.target.checked ? 1 : 0})}
-      className="w-4 h-4 rounded border-inst-borde text-inst-verde focus:ring-inst-verde"
+      className="w-4 h-4 rounded border-inst-borde text-inst-azul-osc focus:ring-inst-azul-osc"
      />
      <span className="text-sm text-inst-texto">Es contratista</span>
     </label>
@@ -458,7 +458,7 @@ export default function AdminUsuarios() {
       type="checkbox"
       checked={!!form.periodo_prueba}
       onChange={e => setForm({...form, periodo_prueba: e.target.checked ? 1 : 0})}
-      className="w-4 h-4 rounded border-inst-borde text-inst-verde focus:ring-inst-verde"
+      className="w-4 h-4 rounded border-inst-borde text-inst-azul-osc focus:ring-inst-azul-osc"
      />
      <span className="text-sm text-inst-texto">En periodo de prueba</span>
     </label>
@@ -492,7 +492,7 @@ export default function AdminUsuarios() {
         className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition ${
          active
           ? `${r.codigo === 'admin' ? 'bg-red-50 text-red-800 border-red-300' : r.codigo === 'evaluador' ? 'bg-green-50 text-green-800 border-green-300' : 'bg-blue-50 text-blue-800 border-blue-300'}`
-          : 'bg-inst-gris text-inst-texto-claro border-inst-borde hover:border-inst-verde'
+          : 'bg-inst-gris text-inst-texto-claro border-inst-borde hover:border-inst-azul-osc'
         }`}
        >
         {r.nombre}

@@ -186,7 +186,7 @@ export default function EvidenciasEvaluado() {
  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
  <div>
  <span className="text-inst-texto-claro text-xs">Nombre completo</span>
- <p className="font-medium text-inst-texto">{usuario?.nombres} {usuario?.apellidos}</p>
+  <p className="font-medium text-inst-texto">{usuario?.primer_nombre} {usuario?.primer_apellido}</p>
  </div>
  <div>
  <span className="text-inst-texto-claro text-xs">Documento</span>
@@ -194,7 +194,7 @@ export default function EvidenciasEvaluado() {
  </div>
  <div>
  <span className="text-inst-texto-claro text-xs">Empleo/Cargo</span>
- <p className="font-medium text-inst-texto">{usuario?.cargo || '-'}</p>
+  <p className="font-medium text-inst-texto">{usuario?.denominacion_empleo || '-'}</p>
  </div>
  </div>
  </div>

@@ -208,11 +208,10 @@ export default function PanelEvaluador() {
   setDescAporte('');
   setJustificacion('');
   try {
-   const res = await api.get<PaginatedData<Compromiso>>(
-    `/compromisos?evaluacion_id=${ev.id}&por_pagina=50`
-   );
-   const comps = res.data || [];
-   setCompromisos(comps.filter(c => c.estado === 'aprobado' || c.estado === 'cumplido' || c.estado === 'incumplido' || c.estado === 'en_progreso'));
+   const res = await api.get<any>(`/compromisos/evaluacion/${ev.id}`);
+   const funcionales = (res.data?.funcionales || []).filter(c => c.estado === 'aprobado' || c.estado === 'cumplido' || c.estado === 'incumplido' || c.estado === 'en_progreso');
+   const comportamentales = (res.data?.comportamentales || []).filter(c => c.estado === 'aprobado' || c.estado === 'cumplido' || c.estado === 'incumplido' || c.estado === 'en_progreso');
+   setCompromisos([...funcionales, ...comportamentales]);
   } catch { setCompromisos([]); }
  }
 
@@ -654,7 +653,7 @@ export default function PanelEvaluador() {
        </div>
       )}
 
-      <div className="edl-card border-l-4 border-l-inst-verde">
+      <div className="edl-card border-l-4 border-l-inst-azul-osc">
        <h3 className="font-heading font-semibold text-inst-azul mb-4">Preguntas de cierre</h3>
        <div className="space-y-4">
         <div>
@@ -743,7 +742,7 @@ export default function PanelEvaluador() {
           <span className="text-sm font-bold text-inst-texto">{resumen.notaComportamentales.toFixed(1)}%</span>
          </div>
          <div className="w-full bg-gray-100 rounded h-2 mt-1">
-          <div className="bg-inst-verde rounded h-2 transition-all" style={{ width: `${Math.min(resumen.notaComportamentales / PESO_COMPORTAMENTALES * 100, 100)}%` }} />
+          <div className="bg-inst-azul-osc rounded h-2 transition-all" style={{ width: `${Math.min(resumen.notaComportamentales / PESO_COMPORTAMENTALES * 100, 100)}%` }} />
          </div>
         </div>
         <hr className="border-inst-borde" />
@@ -778,7 +777,7 @@ export default function PanelEvaluador() {
          </div>
          <div>
           <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Peso Comp.</p>
-          <p className="text-sm font-bold text-inst-verde">{PESO_COMPORTAMENTALES}%</p>
+          <p className="text-sm font-bold text-inst-azul-osc">{PESO_COMPORTAMENTALES}%</p>
          </div>
          <div>
           <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Escala Comp.</p>

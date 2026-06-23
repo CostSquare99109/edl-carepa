@@ -53,7 +53,7 @@ export default function EvaluacionList() {
 
   const puntajeColor = (p: number | null) => {
     if (p === null) return 'text-inst-texto-claro'
-    if (p >= 80) return 'text-inst-verde font-semibold'
+    if (p >= 80) return 'text-inst-azul-osc font-semibold'
     if (p >= 60) return 'text-amber-600 font-semibold'
     return 'text-inst-rojo font-semibold'
   }

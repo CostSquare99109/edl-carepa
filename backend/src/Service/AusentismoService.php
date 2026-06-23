@@ -82,16 +82,15 @@ class AusentismoService
  $stmt->execute();
  $jefe = $stmt->fetch();
 
- if (!empty($jefe['id'])) {
- $notifService = new NotificacionService();
- $notifService->crear([
- 'usuario_id' => $jefe['id'],
- 'tipo' => 'ausentismo_extendido',
- 'titulo' => 'Ausentismo superior a 30 dias',
- 'mensaje' => "El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$diasHabiles} dias habiles. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeno.",
- 'url' => '/ausentismos'
- ]);
- }
+	if (!empty($jefe['id'])) {
+	$notifService = new NotificacionService();
+	$notifService->notificar(
+	$jefe['id'],
+	'Ausentismo superior a 30 dias',
+	"El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$diasHabiles} dias habiles. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeno.",
+	'alerta'
+	);
+	}
  }
 
  unset($datos['afecta_evaluacion'], $datos['afecta_evaluacion_eval'], $datos['requiere_aprobacion_jefe']);

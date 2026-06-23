@@ -160,7 +160,7 @@ export default function PeriodoList() {
          className={[
           'relative border rounded-lg p-3 flex items-start gap-3 transition-all',
           actual ? 'bg-inst-amarillo-light border-amber-400 ring-2 ring-amber-300'
-          : completada ? 'bg-inst-verde-light border-green-300'
+          : completada ? 'bg-inst-azul-osc-light border-green-300'
           : futura ? 'bg-inst-gris-med border-inst-borde opacity-70'
           : 'bg-white border-inst-borde',
          ].join(' ')}
@@ -169,7 +169,7 @@ export default function PeriodoList() {
           <div className={[
            'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold',
            actual ? 'bg-amber-500 text-white'
-           : completada ? 'bg-inst-verde text-white'
+           : completada ? 'bg-inst-azul-osc text-white'
            : 'bg-inst-gris-med text-inst-texto-claro',
           ].join(' ')}>
            {completada ? <span className="material-icons text-base">check</span> : idx + 1}
@@ -177,7 +177,7 @@ export default function PeriodoList() {
           {idx < ETAPAS_EDL.length - 1 ? (
            <div className={[
             'w-0.5 h-6 mt-1',
-            completada ? 'bg-inst-verde' : 'bg-inst-borde',
+            completada ? 'bg-inst-azul-osc' : 'bg-inst-borde',
            ].join(' ')} aria-hidden="true" />
           ) : null}
          </div>

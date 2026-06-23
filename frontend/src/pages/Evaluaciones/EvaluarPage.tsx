@@ -199,7 +199,7 @@ export default function EvaluarPage() {
                             </div>
                             <p className="text-sm text-inst-texto">{c.descripcion}</p>
                             {c.resultado_esperado && (
-                              <p className="text-xs text-inst-verde mt-1">Resultado esperado: {c.resultado_esperado}</p>
+                              <p className="text-xs text-inst-azul-osc mt-1">Resultado esperado: {c.resultado_esperado}</p>
                             )}
 
                             {/* Calificacion individual */}

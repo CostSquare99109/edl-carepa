@@ -41,15 +41,15 @@ class PdfHelper
    $resultado = htmlspecialchars($c['resultado_esperado'] ?? '-');
    $medio = htmlspecialchars($c['medio_verificacion'] ?? '-');
 
-   $compromisosHtml .= "
-   <tr>
-    <td style='border:1px solid #333;padding:6px;text-align:center;'>{$i}</td>
-    <td style='border:1px solid #333;padding:6px;'>{$tipo}</td>
-    <td style='border:1px solid #333;padding:6px;'>{$desc}</td>
-    <td style='border:1px solid #333;padding:6px;text-align:center;'>{$peso}%</td>
-    <td style='border:1px solid #333;padding:6px;'>{$resultado}</td>
-    <td style='border:1px solid #333;padding:6px;'>{$medio}</td>
-   </tr>";
+    $compromisosHtml .= "
+    <tr>
+     <td style='border:1px solid #333;padding:6px;text-align:center;'>" . ($i + 1) . "</td>
+     <td style='border:1px solid #333;padding:6px;'>{$tipo}</td>
+     <td style='border:1px solid #333;padding:6px;'>{$desc}</td>
+     <td style='border:1px solid #333;padding:6px;text-align:center;'>{$peso}%</td>
+     <td style='border:1px solid #333;padding:6px;'>{$resultado}</td>
+     <td style='border:1px solid #333;padding:6px;'>{$medio}</td>
+    </tr>";
   }
 
   return <<<HTML
@@ -140,7 +140,7 @@ class PdfHelper
 HTML;
  }
 
- public static function evaluacionPdf(array $evaluacion, array $compromisos, array $evidencias): string
+	public static function evaluacionPdf(array $evaluacion, array $compromisos, array $evidencias = []): string
  {
   $fecha = date('d/m/Y', strtotime($evaluacion['creado_en'] ?? 'now'));
   $evaluado = htmlspecialchars(trim(($evaluacion['evaluado_nombres'] ?? '') . ' ' . ($evaluacion['evaluado_apellidos'] ?? '')));
@@ -164,7 +164,7 @@ HTML;
   foreach ($compromisos as $i => $c) {
    $calif = $c['calificacion'] ?? '-';
    $desc = htmlspecialchars($c['descripcion'] ?? $c['competencia_nombre'] ?? '');
-   $compromisosHtml .= "<tr><td style='border:1px solid #333;padding:4px;text-align:center;'>{$i}</td><td style='border:1px solid #333;padding:4px;'>{$desc}</td><td style='border:1px solid #333;padding:4px;text-align:center;'>{$calif}</td></tr>";
+	$compromisosHtml .= "<tr><td style='border:1px solid #333;padding:4px;text-align:center;'>" . ($i + 1) . "</td><td style='border:1px solid #333;padding:4px;'>{$desc}</td><td style='border:1px solid #333;padding:4px;text-align:center;'>{$calif}</td></tr>";
   }
 
   return <<<HTML

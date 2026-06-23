@@ -99,8 +99,7 @@ CREATE TABLE `dependencias` (
  UNIQUE KEY `uk_entidad_codigo` (`entidad_id`,`codigo`),
  KEY `idx_jefe` (`jefe_id`),
  KEY `idx_estado` (`estado`),
- CONSTRAINT `fk_dep_entidad` FOREIGN KEY (`entidad_id`) REFERENCES `entidades` (`id`) ON DELETE CASCADE,
- CONSTRAINT `fk_dep_jefe` FOREIGN KEY (`jefe_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+	CONSTRAINT `fk_dep_entidad` FOREIGN KEY (`entidad_id`) REFERENCES `entidades` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `usuarios` (
@@ -151,8 +150,10 @@ CREATE TABLE `usuarios` (
  KEY `idx_dependencia_evaluacion` (`dependencia_evaluacion_id`),
  CONSTRAINT `fk_usu_dependencia` FOREIGN KEY (`dependencia_id`) REFERENCES `dependencias` (`id`) ON DELETE SET NULL,
  CONSTRAINT `fk_usu_entidad` FOREIGN KEY (`entidad_id`) REFERENCES `entidades` (`id`) ON DELETE SET NULL,
- CONSTRAINT `fk_usu_dep_evaluacion` FOREIGN KEY (`dependencia_evaluacion_id`) REFERENCES `dependencias` (`id`) ON DELETE SET NULL
+	CONSTRAINT `fk_usu_dep_evaluacion` FOREIGN KEY (`dependencia_evaluacion_id`) REFERENCES `dependencias` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `dependencias` ADD CONSTRAINT `fk_dep_jefe` FOREIGN KEY (`jefe_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
 
 CREATE TABLE `usuario_rol` (
  `usuario_id` bigint(20) unsigned NOT NULL,
@@ -244,17 +245,28 @@ CREATE TABLE `metas` (
  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
  `periodo_id` bigint(20) unsigned NOT NULL,
  `dependencia_id` bigint(20) unsigned NOT NULL,
+ `funcionario_id` bigint(20) unsigned DEFAULT NULL,
+ `evaluador_id` bigint(20) unsigned DEFAULT NULL,
+ `tipo` enum('cualitativa','cuantitativa','mixta') DEFAULT 'cuantitativa',
  `descripcion` text NOT NULL,
- `estado` enum('activa','inactiva') NOT NULL DEFAULT 'activa',
+ `peso` decimal(5,2) DEFAULT NULL,
+ `indicador` varchar(500) DEFAULT NULL,
+ `meta_numerica` decimal(12,2) DEFAULT NULL,
+ `unidad_medida` varchar(50) DEFAULT NULL,
+ `estado` enum('pendiente','concertada','aprobada','en_seguimiento','evaluada','cerrada') NOT NULL DEFAULT 'pendiente',
  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
  `actualizado_en` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
  `eliminado_en` datetime DEFAULT NULL,
  PRIMARY KEY (`id`),
  KEY `idx_periodo` (`periodo_id`),
  KEY `idx_dependencia` (`dependencia_id`),
+ KEY `idx_funcionario` (`funcionario_id`),
+ KEY `idx_evaluador` (`evaluador_id`),
  KEY `idx_estado` (`estado`),
  CONSTRAINT `fk_meta_periodo` FOREIGN KEY (`periodo_id`) REFERENCES `periodos` (`id`) ON DELETE CASCADE,
- CONSTRAINT `fk_meta_dependencia` FOREIGN KEY (`dependencia_id`) REFERENCES `dependencias` (`id`) ON DELETE CASCADE
+ CONSTRAINT `fk_meta_dependencia` FOREIGN KEY (`dependencia_id`) REFERENCES `dependencias` (`id`) ON DELETE CASCADE,
+ CONSTRAINT `fk_meta_funcionario` FOREIGN KEY (`funcionario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+ CONSTRAINT `fk_meta_evaluador` FOREIGN KEY (`evaluador_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
@@ -302,7 +314,8 @@ CREATE TABLE `compromisos` (
  `peso` decimal(5,2) NOT NULL DEFAULT 0.00,
  `competencia_codigo` varchar(60) DEFAULT NULL,
  `propuesto_por_jefe_entidad` tinyint(1) NOT NULL DEFAULT 0,
- `estado` enum('propuesto','aprobado','devuelto','en_progreso','cumplido','incumplido') NOT NULL DEFAULT 'propuesto',
+ `es_propuesto_evaluado` tinyint(1) NOT NULL DEFAULT 0,
+ `estado` enum('propuesto','pendiente_aprobacion','aprobado','devuelto','rechazado','en_progreso','cumplido','incumplido') NOT NULL DEFAULT 'propuesto',
  `calificacion` decimal(5,2) DEFAULT NULL,
  `frecuencia` enum('nunca','algunas_veces','frecuentemente','siempre') DEFAULT NULL,
  `nivel_comportamental` enum('bajo','aceptable','alto','muy_alto') DEFAULT NULL,
@@ -312,6 +325,7 @@ CREATE TABLE `compromisos` (
  `justificacion_excede` text DEFAULT NULL,
  `observaciones_evaluador` text DEFAULT NULL,
  `observaciones_evaluado` text DEFAULT NULL,
+ `conductas_json` json DEFAULT NULL,
  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
  `actualizado_en` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
  `eliminado_en` datetime DEFAULT NULL,
@@ -351,6 +365,7 @@ CREATE TABLE `evaluaciones` (
  `comision_evaluadora_id` bigint(20) unsigned DEFAULT NULL,
  `fecha_evaluacion` datetime DEFAULT NULL,
  `fecha_calificacion` date DEFAULT NULL,
+ `fecha_concertacion` date DEFAULT NULL,
  `observaciones` text DEFAULT NULL,
  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
  `actualizado_en` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -481,17 +496,20 @@ CREATE TABLE `movilidades` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `notificaciones` (
- `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
- `usuario_id` bigint(20) unsigned NOT NULL,
- `titulo` varchar(200) NOT NULL,
- `mensaje` text NOT NULL,
- `tipo` enum('info','alerta','error','exito') NOT NULL DEFAULT 'info',
- `leida` tinyint(1) NOT NULL DEFAULT 0,
- `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
- PRIMARY KEY (`id`),
- KEY `idx_usuario` (`usuario_id`),
- KEY `idx_leida` (`leida`),
- CONSTRAINT `fk_not_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+	`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	`usuario_id` bigint(20) unsigned NOT NULL,
+	`titulo` varchar(200) NOT NULL,
+	`mensaje` text NOT NULL,
+	`tipo` enum('info','alerta','error','exito') NOT NULL DEFAULT 'info',
+	`evaluacion_id` bigint(20) unsigned DEFAULT NULL,
+	`leida` tinyint(1) NOT NULL DEFAULT 0,
+	`creado_en` datetime NOT NULL DEFAULT current_timestamp(),
+	PRIMARY KEY (`id`),
+	KEY `idx_usuario` (`usuario_id`),
+	KEY `idx_leida` (`leida`),
+	KEY `idx_evaluacion` (`evaluacion_id`),
+	CONSTRAINT `fk_not_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_not_evaluacion` FOREIGN KEY (`evaluacion_id`) REFERENCES `evaluaciones` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `cargas_masivas` (

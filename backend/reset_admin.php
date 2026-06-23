@@ -1,48 +1,43 @@
 <?php
-// Script para resetear el usuario admin - EJECUTAR CON: php reset_admin.php
-// O desde el navegador: http://localhost:8000/reset_admin.php
+/**
+ * Resetear/crear usuario administrador
+ * Uso: php reset_admin.php [documento] [password]
+ *   php reset_admin.php                     # admin / Admin2026!
+ *   php reset_admin.php admin MiPass123!
+ */
 
-$host = 'localhost';
-$dbname = 'edl_carepa';
-$user = 'root';
-$pass = '';
+require __DIR__ . '/vendor/autoload.php';
+\App\Config\Env::load(__DIR__ . '/.env');
+
+$documento = $argv[1] ?? 'admin';
+$password  = $argv[2] ?? 'Admin2026!';
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-    ]);
+    $pdo = \App\Config\Database::getInstance();
+    $hash = password_hash($password, PASSWORD_BCRYPT);
 
-    // Generar hash correcto para la contraseña Admin2026!
-    $hash = password_hash('Admin2026!', PASSWORD_BCRYPT);
-    echo "Nuevo hash: $hash\n";
+    $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE documento = ?");
+    $stmt->execute([$documento]);
+    $existe = $stmt->fetchColumn();
 
-    // Resetear password, estado y intentos fallidos del admin
-    $stmt = $pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0 WHERE documento = '12345678' AND tipo_documento = 'CC'");
-    $stmt->execute([$hash]);
-    $filas = $stmt->rowCount();
-    echo "Filas actualizadas: $filas\n";
-
-    // Verificar que funciona
-    $stmt2 = $pdo->prepare("SELECT password_hash, estado, intentos_fallidos FROM usuarios WHERE documento = '12345678' AND tipo_documento = 'CC'");
-    $stmt2->execute();
-    $row = $stmt2->fetch();
-
-    if ($row) {
-        echo "Estado: {$row['estado']}\n";
-        echo "Intentos fallidos: {$row['intentos_fallidos']}\n";
-        $verificado = password_verify('Admin2026!', $row['password_hash']) ? 'SI' : 'NO';
-        echo "password_verify funciona: $verificado\n";
+    if ($existe) {
+        $pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0 WHERE documento = ?")
+            ->execute([$hash, $documento]);
+        echo "Usuario '{$documento}' actualizado. Password: {$password}\n";
     } else {
-        echo "ERROR: No se encontro el usuario admin\n";
-        
-        // Listar usuarios existentes
-        $stmt3 = $pdo->query("SELECT id, documento, tipo_documento, nombres, apellidos, estado FROM usuarios LIMIT 10");
-        echo "\nUsuarios en la BD:\n";
-        foreach ($stmt3->fetchAll() as $u) {
-            echo "  ID:{$u['id']} Doc:{$u['documento']} Tipo:{$u['tipo_documento']} Nombre:{$u['nombres']} {$u['apellidos']} Estado:{$u['estado']}\n";
-        }
+        $pdo->prepare("INSERT INTO usuarios (documento, tipo_documento, primer_nombre, primer_apellido, email, password_hash, estado, entidad_id, dependencia_id, denominacion_empleo, grado_empleo, tipo_nombramiento) VALUES (?, 'CC', 'Admin', 'Principal', ?, ?, 'activo', 1, 1, 'Administrador', '25', 'hecho_en_carrera')")
+            ->execute([$documento, "{$documento}@carepa.gov.co", $hash]);
+        $uid = $pdo->lastInsertId();
+        $pdo->prepare("INSERT IGNORE INTO usuario_rol (usuario_id, rol_id) VALUES (?, 1)")
+            ->execute([$uid]);
+        echo "Usuario '{$documento}' creado (ID:{$uid}). Password: {$password}\n";
     }
 
-} catch (PDOException $e) {
-    echo "Error de BD: " . $e->getMessage() . "\n";
+    $ver = $pdo->prepare("SELECT id, documento, estado, password_hash FROM usuarios WHERE documento = ?");
+    $ver->execute([$documento]);
+    $u = $ver->fetch();
+    echo "Estado: {$u['estado']} | password_verify: " . (password_verify($password, $u['password_hash']) ? 'OK' : 'FAIL') . "\n";
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage() . "\n";
+    exit(1);
 }

@@ -221,12 +221,12 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
  aria-current={isActive ? 'page' : undefined}
  className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
  isActive
- ? 'bg-inst-verde text-white shadow-sm'
- : 'text-inst-texto hover:bg-inst-verde-light hover:text-inst-verde'
+ ? 'bg-inst-azul-osc text-white shadow-sm'
+ : 'text-inst-texto hover:bg-inst-azul-osc-light hover:text-inst-azul-osc'
  }`}
  >
  <span className={`material-icons text-xl flex-shrink-0 ${
- isActive ? 'text-white' : 'text-inst-texto-claro group-hover:text-inst-verde'
+ isActive ? 'text-white' : 'text-inst-texto-claro group-hover:text-inst-azul-osc'
  }`}>
  {getIcon(item)}
  </span>
@@ -237,7 +237,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
  <span
  className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold ${
  isActive
- ? 'bg-white text-inst-verde'
+ ? 'bg-white text-inst-azul-osc'
  : badge.tone === 'danger'
  ? 'bg-inst-rojo text-white'
  : badge.tone === 'warning'
@@ -286,7 +286,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
  const parent = img.parentElement;
  if (parent && !parent.querySelector('.escudo-fb')) {
  const fb = document.createElement('div');
- fb.className = 'escudo-fb h-8 w-8 rounded-lg bg-inst-verde text-white flex items-center justify-center font-heading font-bold text-sm flex-shrink-0';
+ fb.className = 'escudo-fb h-8 w-8 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-sm flex-shrink-0';
  fb.textContent = 'C';
  parent.prepend(fb);
  }
@@ -308,7 +308,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
  const parent = img.parentElement;
  if (parent && !parent.querySelector('.escudo-fb')) {
  const fb = document.createElement('div');
- fb.className = 'escudo-fb h-8 w-8 rounded-lg bg-inst-verde text-white flex items-center justify-center font-heading font-bold text-sm';
+ fb.className = 'escudo-fb h-8 w-8 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-sm';
  fb.textContent = 'C';
  parent.appendChild(fb);
  }
@@ -317,7 +317,7 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
  )}
  <button
  onClick={onToggle}
- className="p-1.5 rounded-md hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-verde transition-colors flex-shrink-0"
+ className="p-1.5 rounded-md hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-azul-osc transition-colors flex-shrink-0"
  title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
  aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
  >
@@ -359,11 +359,11 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
  {showLabels ? (
  <p className="text-[10px] text-inst-texto-claro leading-tight">
  EDL Digital<br />
- <span className="text-inst-verde font-semibold">Carepa</span>
+ <span className="text-inst-azul-osc font-semibold">Carepa</span>
  </p>
  ) : (
  <div className="flex justify-center">
- <span className="w-2 h-2 rounded-full bg-inst-verde" />
+ <span className="w-2 h-2 rounded-full bg-inst-azul-osc" />
  </div>
  )}
  </div>

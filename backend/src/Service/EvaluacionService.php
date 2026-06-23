@@ -59,14 +59,14 @@ class EvaluacionService
  ResponseHelper::forbidden('Solo administradores o evaluadores pueden crear evaluaciones');
  }
 
- $tiposValidos = ['parcial_semestral', 'parcial_eventual', 'definitiva', 'primer_semestre', 'segundo_semestre', 'extraordinaria'];
- $tipo = $datos['tipo'] ?? 'primer_semestre';
- if (!in_array($tipo, $tiposValidos)) {
- ResponseHelper::error('Tipo de evaluacion invalido. Valores validos: ' . implode(', ', $tiposValidos), 422);
- }
+  $tiposValidos = ['parcial_primer_semestre', 'parcial_segundo_semestre', 'parcial_eventual', 'calificacion_definitiva', 'calificacion_extraordinaria'];
+  $tipo = $datos['tipo'] ?? 'parcial_primer_semestre';
+  if (!in_array($tipo, $tiposValidos)) {
+   ResponseHelper::error('Tipo de evaluacion invalido. Valores validos: ' . implode(', ', $tiposValidos), 422);
+  }
 
  $evaluado = $this->usuarioRepo->buscarPorId((int) $datos['evaluado_id']);
- if ($evaluado && !empty($evaluado['periodo_prueba']) && (bool) $evaluado['periodo_prueba']) {
+	if ($evaluado && !empty($evaluado['en_periodo_prueba']) && (bool) $evaluado['en_periodo_prueba']) {
   $fechaInicio = $evaluado['fecha_vinculacion'] ?? $evaluado['creado_en'] ?? null;
   if ($fechaInicio) {
    $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
@@ -205,16 +205,14 @@ class EvaluacionService
 
  $nivel = $califDefinitiva >= $umbralSobresaliente ? 'sobresaliente' : ($califDefinitiva > $umbralSatisfactorio ? 'satisfactorio' : 'no_satisfactorio');
 
- $this->evaluacionRepo->actualizar($id, [
- 'nota_funcionales' => round($notaFunc, 2),
- 'nota_comportamentales' => round($notaComp, 2),
- 'calificacion_definitiva' => round($califDefinitiva, 2),
- 'nivel_resultado' => $nivel,
- 'nivel_comportamental' => $nivelComp,
- 'puntaje_comportamental' => round($puntajeCompBruto, 2),
- 'estado' => 'calificada',
- 'fecha_calificacion' => date('Y-m-d'),
- ]);
+$this->evaluacionRepo->actualizar($id, [
+  'nota_funcionales' => round($notaFunc, 2),
+  'nota_comportamentales' => round($notaComp, 2),
+  'calificacion_definitiva' => round($califDefinitiva, 2),
+  'nivel_resultado' => $nivel,
+  'estado' => 'calificada',
+  'fecha_calificacion' => date('Y-m-d'),
+  ]);
 
  AuditoriaService::registrar('calificar_definitiva', 'evaluaciones', $id, null, [
  'calificacion_definitiva' => round($califDefinitiva, 2),
@@ -261,9 +259,78 @@ class EvaluacionService
  return $this->evaluacionRepo->compromisosPorEvaluacion($evaluacionId);
  }
 
- public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
+public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
+  {
+  $user = AuthMiddleware::user();
+  return $this->evaluacionRepo->pendientesPorEvaluador((int) $user['id'], $pagina, $porPagina);
+  }
+
+ public function guardar(int $id, array $datos): void
  {
- $user = AuthMiddleware::user();
- return $this->evaluacionRepo->pendientesPorEvaluador((int) $user['id'], $pagina, $porPagina);
+  $evaluacion = $this->evaluacionRepo->buscarPorId($id);
+  if (!$evaluacion) {
+   ResponseHelper::notFound('Evaluacion no encontrada');
+  }
+
+  if (!in_array($evaluacion['estado'], ['pendiente', 'en_proceso'])) {
+   ResponseHelper::error('La evaluacion no puede ser guardada en su estado actual', 400);
+  }
+
+  $permitidos = [
+   'cumplio_compromisos', 'aporte_adicional', 'descripcion_aporte',
+   'justificacion', 'tipo_evaluacion', 'motivo', 'razon',
+   'fecha_inicio_eval', 'fecha_fin_eval',
+  ];
+
+  $actualizar = array_intersect_key($datos, array_flip($permitidos));
+
+  if (!empty($datos['fecha_inicio_eval'])) {
+   $actualizar['fecha_inicio'] = $datos['fecha_inicio_eval'];
+  }
+  if (!empty($datos['fecha_fin_eval'])) {
+   $actualizar['fecha_fin'] = $datos['fecha_fin_eval'];
+  }
+
+  if (!empty($datos['tipo_evaluacion'])) {
+   $actualizar['tipo'] = $datos['tipo_evaluacion'];
+  }
+  if (!empty($datos['motivo'])) {
+   $actualizar['motivo_parcial_eventual'] = $datos['motivo'];
+  }
+
+  $actualizar['estado'] = 'en_proceso';
+  $actualizar['observaciones'] = ($datos['observaciones'] ?? '');
+
+  $this->evaluacionRepo->actualizar($id, $actualizar);
+  AuditoriaService::registrar('guardar_evaluacion', 'evaluaciones', $id);
+ }
+
+ public function solicitarRevision(int $id): void
+ {
+  $evaluacion = $this->evaluacionRepo->buscarPorId($id);
+  if (!$evaluacion) {
+   ResponseHelper::notFound('Evaluacion no encontrada');
+  }
+
+  $this->evaluacionRepo->actualizar($id, [
+   'estado' => 'pendiente',
+   'observaciones' => 'Revision solicitada por el evaluador',
+  ]);
+  AuditoriaService::registrar('solicitar_revision_evaluacion', 'evaluaciones', $id);
+ }
+
+ public function finalizar(int $id, array $datos): void
+ {
+  $evaluacion = $this->evaluacionRepo->buscarPorId($id);
+  if (!$evaluacion) {
+   ResponseHelper::notFound('Evaluacion no encontrada');
+  }
+
+  if (!in_array($evaluacion['estado'], ['en_proceso'])) {
+   ResponseHelper::error('La evaluacion debe estar en proceso para poder finalizarse', 400);
+  }
+
+  $this->calificarDefinitiva($id, $datos);
+  AuditoriaService::registrar('finalizar_evaluacion', 'evaluaciones', $id);
  }
 }

@@ -87,7 +87,7 @@ export default function AdminConfiguracion() {
      <button onClick={() => setMostrarNuevo(true)} className="edl-btn-primary text-sm">
       <span className="material-icons text-base align-middle mr-1">add</span>Nuevo
      </button>
-     <button onClick={guardarTodos} disabled={guardando} className="edl-btn-primary text-sm bg-inst-verde hover:bg-inst-verde/90">
+     <button onClick={guardarTodos} disabled={guardando} className="edl-btn-primary text-sm bg-inst-azul-osc hover:bg-inst-azul-osc/90">
       <span className="material-icons text-base align-middle mr-1">save</span>Guardar Todo
      </button>
     </div>
@@ -128,7 +128,7 @@ export default function AdminConfiguracion() {
           <td className="px-4 py-3"><span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-inst-azul/10 text-inst-azul">{p.tipo}</span></td>
           <td className="px-4 py-3 text-inst-texto-claro text-xs">{p.descripcion || '---'}</td>
           <td className="px-4 py-3">
-           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-verde hover:text-inst-verde/80" title="Guardar">
+           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-azul-osc hover:text-inst-azul-osc/80" title="Guardar">
             <span className="material-icons text-base">save</span>
            </button>
           </td>
@@ -173,7 +173,7 @@ export default function AdminConfiguracion() {
           <td className="px-4 py-3"><span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-inst-azul/10 text-inst-azul">{p.tipo}</span></td>
           <td className="px-4 py-3 text-inst-texto-claro text-xs">{p.descripcion || '---'}</td>
           <td className="px-4 py-3 flex items-center gap-2">
-           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-verde hover:text-inst-verde/80" title="Guardar">
+           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-azul-osc hover:text-inst-azul-osc/80" title="Guardar">
             <span className="material-icons text-base">save</span>
            </button>
            <button onClick={() => eliminarParametro(p.id)} className="text-inst-rojo hover:text-inst-rojo/80" title="Eliminar">

@@ -15,15 +15,31 @@ export interface LoginResponse {
 }
 
 export interface Usuario {
- id: number;
- documento: string;
- nombres: string;
- apellidos: string;
- email: string;
- estado: string;
- cargo: string;
- entidad_id: number | null;
- dependencia_id: number | null;
+	id: number;
+	documento: string;
+	tipo_documento: string;
+	primer_nombre: string;
+	segundo_nombre?: string;
+	primer_apellido: string;
+	segundo_apellido?: string;
+	nombre_completo?: string;
+	email: string;
+	telefono1?: string;
+	telefono2?: string;
+	estado: string;
+	genero?: string;
+	denominacion_empleo?: string;
+	cargo?: string;
+	nivel?: string;
+	naturaleza?: string;
+	tipo_nombramiento?: string;
+	es_contratista?: number;
+	en_periodo_prueba?: number;
+	intentos_fallidos?: number;
+	ultimo_acceso?: string;
+	email_confirmado?: number;
+	entidad_id: number | null;
+	dependencia_id: number | null;
 }
 
 export interface Rol {

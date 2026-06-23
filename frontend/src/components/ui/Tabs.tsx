@@ -27,7 +27,7 @@ export function Tabs({ items, activeKey, onChange, variant = 'underline', ariaLa
         const stateClass = active
           ? isPills
             ? 'bg-white text-inst-azul-osc shadow-sm'
-            : 'text-inst-azul-osc border-inst-verde'
+            : 'text-inst-azul-osc border-inst-azul-osc'
           : isPills
             ? 'text-inst-texto-claro hover:text-inst-texto'
             : 'text-inst-texto-claro border-transparent hover:text-inst-texto hover:border-inst-borde';

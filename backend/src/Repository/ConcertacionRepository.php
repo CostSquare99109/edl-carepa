@@ -15,17 +15,17 @@ class ConcertacionRepository extends BaseRepository
  $params = [];
 
  if (!empty($filtros['periodo_id'])) {
- $conditions[] = "c.meta_id IN (SELECT m.id FROM metas m WHERE m.periodo_id = ?)";
+  $conditions[] = "c.periodo_id = ?";
  $params[] = $filtros['periodo_id'];
  }
  if (!empty($filtros['evaluador_id'])) {
  $conditions[] = "c.evaluador_id = ?";
  $params[] = $filtros['evaluador_id'];
  }
- if (!empty($filtros['funcionario_id'])) {
- $conditions[] = "c.funcionario_id = ?";
- $params[] = $filtros['funcionario_id'];
- }
+  if (!empty($filtros['evaluado_id'])) {
+  $conditions[] = "c.evaluado_id = ?";
+  $params[] = $filtros['evaluado_id'];
+  }
  if (!empty($filtros['estado'])) {
  $conditions[] = "c.estado = ?";
  $params[] = $filtros['estado'];
@@ -38,20 +38,19 @@ class ConcertacionRepository extends BaseRepository
  $total = (int) $countStmt->fetchColumn();
 
  $offset = ($pagina - 1) * $porPagina;
- $stmt = $this->pdo->prepare("
- SELECT c.*,
- ev.nombres as ev_nombre, ev.apellidos as ev_apellido, ev.documento as ev_documento,
- ed.nombres as ed_nombre, ed.apellidos as ed_apellido, ed.documento as ed_documento,
- p.nombre as periodo_nombre
- FROM concertaciones c
- INNER JOIN usuarios ev ON ev.id = c.evaluador_id
- INNER JOIN usuarios ed ON ed.id = c.funcionario_id
- LEFT JOIN metas m ON m.id = c.meta_id
- LEFT JOIN periodos p ON p.id = m.periodo_id
- WHERE {$where}
- ORDER BY c.id DESC
- LIMIT ? OFFSET ?
- ");
+  $stmt = $this->pdo->prepare("
+  SELECT c.*,
+  ev.primer_nombre as ev_nombre, ev.primer_apellido as ev_apellido, ev.documento as ev_documento,
+  ed.primer_nombre as ed_nombre, ed.primer_apellido as ed_apellido, ed.documento as ed_documento,
+  p.nombre as periodo_nombre
+  FROM concertaciones c
+  INNER JOIN usuarios ev ON ev.id = c.evaluador_id
+  INNER JOIN usuarios ed ON ed.id = c.evaluado_id
+  LEFT JOIN periodos p ON p.id = c.periodo_id
+  WHERE {$where}
+  ORDER BY c.id DESC
+  LIMIT ? OFFSET ?
+  ");
  $params[] = $porPagina;
  $params[] = $offset;
  $stmt->execute($params);
@@ -60,7 +59,7 @@ class ConcertacionRepository extends BaseRepository
  foreach ($concertaciones as &$c) {
  $c['evaluador_nombre'] = trim(($c['ev_nombre'] ?? '') . ' ' . ($c['ev_apellido'] ?? ''));
  $c['evaluado_nombre'] = trim(($c['ed_nombre'] ?? '') . ' ' . ($c['ed_apellido'] ?? ''));
- $c['compromisos'] = $this->compromisosPorEvaluacion((int) $c['id']);
+	$c['compromisos'] = $this->compromisosPorConcertacion((int) $c['id']);
  }
 
  return [
@@ -72,50 +71,49 @@ class ConcertacionRepository extends BaseRepository
  ];
  }
 
- public function compromisosPorEvaluacion(int $evaluacionId): array
- {
- $stmt = $this->pdo->prepare("
- SELECT comp.*, m.descripcion as meta_descripcion
- FROM compromisos comp
- LEFT JOIN metas m ON m.id = comp.meta_id
- WHERE comp.evaluacion_id = ? AND comp.eliminado_en IS NULL
- ORDER BY comp.tipo, comp.id
- ");
- $stmt->execute([$evaluacionId]);
- return $stmt->fetchAll();
- }
+	public function compromisosPorEvaluacion(int $evaluacionId): array
+	{
+		$stmt = $this->pdo->prepare("
+			SELECT comp.*, m.descripcion as meta_descripcion
+			FROM compromisos comp
+			LEFT JOIN metas m ON m.id = comp.meta_id
+			INNER JOIN concertaciones c ON c.id = comp.concertacion_id
+			INNER JOIN evaluaciones e ON e.concertacion_id = c.id
+			WHERE e.id = ? AND comp.eliminado_en IS NULL
+			ORDER BY comp.tipo, comp.id
+		");
+		$stmt->execute([$evaluacionId]);
+		return $stmt->fetchAll();
+	}
 
- public function compromisosPorConcertacion(int $concertacionId): array
- {
- $stmt = $this->pdo->prepare("
- SELECT comp.*, m.descripcion as meta_descripcion
- FROM compromisos comp
- LEFT JOIN metas m ON m.id = comp.meta_id
- INNER JOIN evaluaciones e ON e.id = comp.evaluacion_id AND e.eliminado_en IS NULL
- INNER JOIN concertaciones c ON c.funcionario_id = e.evaluado_id AND c.eliminado_en IS NULL
- WHERE c.id = ? AND comp.eliminado_en IS NULL
- ORDER BY comp.tipo, comp.id
- ");
- $stmt->execute([$concertacionId]);
- return $stmt->fetchAll();
- }
+	public function compromisosPorConcertacion(int $concertacionId): array
+	{
+		$stmt = $this->pdo->prepare("
+			SELECT comp.*, m.descripcion as meta_descripcion
+			FROM compromisos comp
+			LEFT JOIN metas m ON m.id = comp.meta_id
+			WHERE comp.concertacion_id = ? AND comp.eliminado_en IS NULL
+			ORDER BY comp.tipo, comp.id
+		");
+		$stmt->execute([$concertacionId]);
+		return $stmt->fetchAll();
+	}
 
- public function buscarPorPeriodoYFuncionario(int $periodoId, int $funcionarioId): ?array
+ public function buscarPorPeriodoYFuncionario(int $periodoId, int $evaluadoId): ?array
  {
  $stmt = $this->pdo->prepare("
  SELECT c.* FROM concertaciones c
- INNER JOIN metas m ON m.id = c.meta_id
- WHERE m.periodo_id = ? AND c.funcionario_id = ? AND c.eliminado_en IS NULL
+ WHERE c.periodo_id = ? AND c.evaluado_id = ? AND c.eliminado_en IS NULL
  LIMIT 1
  ");
- $stmt->execute([$periodoId, $funcionarioId]);
+	$stmt->execute([$periodoId, $evaluadoId]);
  return $stmt->fetch() ?: null;
  }
 
- public function contarCompromisosPorTipo(int $evaluacionId, string $tipo): int
+ public function contarCompromisosPorConcertacionYTipo(int $concertacionId, string $tipo): int
  {
- $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE evaluacion_id = ? AND tipo = ? AND eliminado_en IS NULL");
- $stmt->execute([$evaluacionId, $tipo]);
+ $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND tipo = ? AND eliminado_en IS NULL");
+ $stmt->execute([$concertacionId, $tipo]);
  return (int) $stmt->fetchColumn();
  }
 }

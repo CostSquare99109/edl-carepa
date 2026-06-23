@@ -15,7 +15,7 @@ const NOTIF_ICON: Record<string, string> = {
   info: 'info', alerta: 'warning', exito: 'check_circle', error: 'error',
 };
 const NOTIF_COLOR: Record<string, string> = {
-  info: 'border-inst-azul', alerta: 'border-amber-500', exito: 'border-inst-verde', error: 'border-inst-rojo',
+  info: 'border-inst-azul', alerta: 'border-amber-500', exito: 'border-inst-azul-osc', error: 'border-inst-rojo',
 };
 const NOTIF_BG: Record<string, string> = {
   info: 'bg-blue-50', alerta: 'bg-amber-50', exito: 'bg-green-50', error: 'bg-red-50',

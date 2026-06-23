@@ -33,104 +33,111 @@ class CompromisoService
  return $this->compromisoRepo->listarConRelaciones($filtros, $pagina, $porPagina);
  }
 
- public function crear(array $datos): int
- {
- $user = AuthMiddleware::user();
- $rolActivo = AuthMiddleware::rolActivo();
+	public function crear(array $datos): int
+	{
+	$user = AuthMiddleware::user();
+	$rolActivo = AuthMiddleware::rolActivo();
 
- $evaluacionId = $datos['evaluacion_id'] ?? null;
- if (!$evaluacionId) {
- ResponseHelper::error('evaluacion_id es requerido', 422);
- }
+	$evaluacionId = $datos['evaluacion_id'] ?? null;
+	if (!$evaluacionId) {
+	ResponseHelper::error('evaluacion_id es requerido', 422);
+	}
 
- $tipo = $datos['tipo'] ?? 'funcional';
- if (!in_array($tipo, ['funcional', 'comportamental'])) {
- ResponseHelper::error('Tipo invalido. Debe ser: funcional o comportamental', 422);
- }
+	$tipo = $datos['tipo'] ?? 'funcional';
+	if (!in_array($tipo, ['funcional', 'comportamental'])) {
+	ResponseHelper::error('Tipo invalido. Debe ser: funcional o comportamental', 422);
+	}
 
- $this->validarLimitesCompromisos((int) $evaluacionId, $tipo);
+	$concertacionId = $this->compromisoRepo->resolverConcertacionId((int) $evaluacionId);
+	if (!$concertacionId) {
+	ResponseHelper::error('La evaluacion no tiene concertacion asociada', 422);
+	}
 
- $crearDatos = [
- 'evaluacion_id' => $evaluacionId,
- 'tipo' => $tipo,
- 'meta_id' => $datos['meta_id'] ?? null,
- 'descripcion' => $datos['descripcion'],
- 'peso' => $datos['peso'] ?? 0,
- 'evaluador_id' => $user['id'],
- 'responsable_id' => $datos['responsable_id'] ?? $user['id'],
- 'es_propuesto_jefe' => in_array($rolActivo, ['admin', 'evaluador']) ? 1 : 0,
- 'estado' => 'propuesto',
- ];
+	$this->validarLimitesCompromisos($concertacionId, $tipo);
 
- $id = $this->compromisoRepo->crear($crearDatos);
- AuditoriaService::registrar('crear_compromiso', 'compromisos', $id);
+	$crearDatos = [
+	'concertacion_id' => $concertacionId,
+	'tipo' => $tipo,
+	'meta_id' => $datos['meta_id'] ?? null,
+	'descripcion' => $datos['descripcion'],
+	'peso' => $datos['peso'] ?? 0,
+	'propuesto_por_jefe_entidad' => in_array($rolActivo, ['admin', 'evaluador']) ? 1 : 0,
+	'estado' => 'propuesto',
+	];
 
- return $id;
- }
+	$id = $this->compromisoRepo->crear($crearDatos);
+	AuditoriaService::registrar('crear_compromiso', 'compromisos', $id);
 
- public function enviar(array $datos, array $user): int
- {
- $evaluacionId = $datos['evaluacion_id'] ?? null;
- if (!$evaluacionId) {
- ResponseHelper::error('evaluacion_id es requerido', 422);
- }
+	return $id;
+	}
 
- $tipo = $datos['tipo'] ?? 'funcional';
- if (!in_array($tipo, ['funcional', 'comportamental'])) {
- ResponseHelper::error('Tipo invalido. Debe ser: funcional o comportamental', 422);
- }
+	public function enviar(array $datos, array $user): int
+	{
+	$evaluacionId = $datos['evaluacion_id'] ?? null;
+	if (!$evaluacionId) {
+	ResponseHelper::error('evaluacion_id es requerido', 422);
+	}
 
- $this->validarLimitesCompromisos((int) $evaluacionId, $tipo);
+	$tipo = $datos['tipo'] ?? 'funcional';
+	if (!in_array($tipo, ['funcional', 'comportamental'])) {
+	ResponseHelper::error('Tipo invalido. Debe ser: funcional o comportamental', 422);
+	}
 
- $crearDatos = [
- 'evaluacion_id' => $evaluacionId,
- 'tipo' => $tipo,
- 'descripcion' => $datos['descripcion'],
- 'peso' => $datos['peso'] ?? 0,
- 'evaluador_id' => $user['id'],
- 'responsable_id' => $datos['responsable_id'] ?? $user['id'],
- 'es_propuesto_jefe' => 0,
- 'estado' => 'propuesto',
- 'observaciones_evaluado' => $datos['observaciones_evaluado'] ?? null,
- ];
+	$concertacionId = $this->compromisoRepo->resolverConcertacionId((int) $evaluacionId);
+	if (!$concertacionId) {
+	ResponseHelper::error('La evaluacion no tiene concertacion asociada', 422);
+	}
 
- $id = $this->compromisoRepo->crear($crearDatos);
- AuditoriaService::registrar('enviar_compromiso', 'compromisos', $id);
+	$this->validarLimitesCompromisos($concertacionId, $tipo);
 
- return $id;
- }
+	$crearDatos = [
+	'concertacion_id' => $concertacionId,
+	'tipo' => $tipo,
+	'descripcion' => $datos['descripcion'],
+	'peso' => $datos['peso'] ?? 0,
+	'propuesto_por_jefe_entidad' => 0,
+	'es_propuesto_evaluado' => 1,
+	'estado' => 'propuesto',
+	'observaciones_evaluado' => $datos['observaciones_evaluado'] ?? null,
+	];
 
- public function aprobar(int $id, float $peso, string $observaciones, array $user): void
- {
- $compromiso = $this->compromisoRepo->buscarPorId($id);
- if (!$compromiso) {
- ResponseHelper::notFound('Compromiso no encontrado');
- }
+	$id = $this->compromisoRepo->crear($crearDatos);
+	AuditoriaService::registrar('enviar_compromiso', 'compromisos', $id);
 
- if ($compromiso['estado'] !== 'propuesto') {
- ResponseHelper::error('Solo se pueden aprobar compromisos en estado propuesto', 400);
- }
+	return $id;
+	}
 
- $evaluacionId = (int) $compromiso['evaluacion_id'];
- $tipo = $compromiso['tipo'];
+	public function aprobar(int $id, float $peso, string $observaciones, array $user): void
+	{
+	$compromiso = $this->compromisoRepo->buscarPorId($id);
+	if (!$compromiso) {
+	ResponseHelper::notFound('Compromiso no encontrado');
+	}
 
- $sumaActual = $this->compromisoRepo->sumPesosPorEvaluacionYTipo($evaluacionId, $tipo);
- $pesoActual = (float) $compromiso['peso'];
- $nuevaSuma = $sumaActual - $pesoActual + $peso;
+	if ($compromiso['estado'] !== 'propuesto') {
+	ResponseHelper::error('Solo se pueden aprobar compromisos en estado propuesto', 400);
+	}
 
- $maxPesos = $tipo === 'funcional' ? 85 : 15;
- if ($nuevaSuma > $maxPesos) {
- ResponseHelper::error("La suma de pesos {$tipo} excederia {$maxPesos}%. Actual: {$sumaActual}%, nuevo: {$nuevaSuma}%", 422);
- }
+	$concertacionId = (int) $compromiso['concertacion_id'];
+	$tipo = $compromiso['tipo'];
 
- $this->compromisoRepo->actualizar($id, [
- 'peso' => $peso,
- 'estado' => 'aprobado',
- 'observaciones_evaluador' => $observaciones ?: null,
- ]);
+	$sumaActual = $this->compromisoRepo->sumPesosPorConcertacionYTipo($concertacionId, $tipo);
+	$pesoActual = (float) $compromiso['peso'];
+	$nuevaSuma = $sumaActual - $pesoActual + $peso;
 
- AuditoriaService::registrar('aprobar_compromiso', 'compromisos', $id);
- }
+	$maxPesos = $tipo === 'funcional' ? 85 : 15;
+	if ($nuevaSuma > $maxPesos) {
+	ResponseHelper::error("La suma de pesos {$tipo} excederia {$maxPesos}%. Actual: {$sumaActual}%, nuevo: {$nuevaSuma}%", 422);
+	}
+
+	$this->compromisoRepo->actualizar($id, [
+	'peso' => $peso,
+	'estado' => 'aprobado',
+	'observaciones_evaluador' => $observaciones ?: null,
+	]);
+
+	AuditoriaService::registrar('aprobar_compromiso', 'compromisos', $id);
+	}
 
  public function rechazar(int $id, string $observaciones, array $user): void
  {
@@ -149,6 +156,11 @@ class CompromisoService
  ]);
 
  AuditoriaService::registrar('rechazar_compromiso', 'compromisos', $id);
+ }
+
+ public function compromisosConConductas(int $evaluacionId): array
+ {
+ return $this->compromisoRepo->buscarConConductas($evaluacionId);
  }
 
  public function devolver(int $id, string $observaciones, array $user): void
@@ -170,53 +182,57 @@ class CompromisoService
  AuditoriaService::registrar('devolver_compromiso', 'compromisos', $id);
  }
 
- public function calificar(int $id, float $puntaje, string $observaciones, array $user): void
- {
- $compromiso = $this->compromisoRepo->buscarPorId($id);
- if (!$compromiso) {
- ResponseHelper::notFound('Compromiso no encontrado');
- }
+public function calificar(int $id, float $puntaje, string $observaciones, ?array $conductas = null, array $user = []): void
+	{
+	$compromiso = $this->compromisoRepo->buscarPorId($id);
+	if (!$compromiso) {
+	ResponseHelper::notFound('Compromiso no encontrado');
+	}
 
- if ($compromiso['estado'] !== 'aprobado' && $compromiso['estado'] !== 'en_progreso') {
- ResponseHelper::error('Solo se pueden calificar compromisos aprobados o en progreso', 400);
- }
+	if ($compromiso['estado'] !== 'aprobado' && $compromiso['estado'] !== 'en_progreso') {
+	ResponseHelper::error('Solo se pueden calificar compromisos aprobados o en progreso', 400);
+	}
 
- $actualizar = [
- 'calificacion' => $puntaje,
- 'estado' => $puntaje >= 65 ? 'cumplido' : 'incumplido',
- 'observaciones_evaluador' => $observaciones ?: null,
- ];
+	$actualizar = [
+	'calificacion' => $puntaje,
+	'estado' => $puntaje >= 65 ? 'cumplido' : 'incumplido',
+	'observaciones_evaluador' => $observaciones ?: null,
+	];
 
- $this->compromisoRepo->actualizar($id, $actualizar);
- AuditoriaService::registrar('calificar_compromiso', 'compromisos', $id);
- }
+	if ($conductas !== null) {
+	$actualizar['conductas_json'] = json_encode($conductas, JSON_UNESCAPED_UNICODE);
+	}
 
- public function resumenPesos(int $id, array $user): array
- {
- $compromiso = $this->compromisoRepo->buscarPorId($id);
- if (!$compromiso) {
- ResponseHelper::notFound('Compromiso no encontrado');
- }
+	$this->compromisoRepo->actualizar($id, $actualizar);
+	AuditoriaService::registrar('calificar_compromiso', 'compromisos', $id);
+	}
 
- $evaluacionId = (int) $compromiso['evaluacion_id'];
- return $this->resumenPesosEvaluacion($evaluacionId);
- }
+	public function resumenPesos(int $id, array $user): array
+	{
+	$compromiso = $this->compromisoRepo->buscarPorId($id);
+	if (!$compromiso) {
+	ResponseHelper::notFound('Compromiso no encontrado');
+	}
 
- private function resumenPesosEvaluacion(int $evaluacionId): array
- {
- $sumaFunc = $this->compromisoRepo->sumPesosPorEvaluacionYTipo($evaluacionId, 'funcional');
- $sumaComp = $this->compromisoRepo->sumPesosPorEvaluacionYTipo($evaluacionId, 'comportamental');
- $countFunc = $this->compromisoRepo->contarPorEvaluacionYTipo($evaluacionId, 'funcional');
- $countComp = $this->compromisoRepo->contarPorEvaluacionYTipo($evaluacionId, 'comportamental');
+	$concertacionId = (int) $compromiso['concertacion_id'];
+	return $this->resumenPesosConcertacion($concertacionId);
+	}
 
- return [
- 'evaluacion_id' => $evaluacionId,
- 'funcionales' => ['suma_pesos' => $sumaFunc, 'cantidad' => $countFunc, 'maximo_permitido' => 85],
- 'comportamentales' => ['suma_pesos' => $sumaComp, 'cantidad' => $countComp, 'maximo_permitido' => 15],
- 'total_pesos' => $sumaFunc + $sumaComp,
- 'completo' => ($sumaFunc + $sumaComp) >= 100,
- ];
- }
+	private function resumenPesosConcertacion(int $concertacionId): array
+	{
+	$sumaFunc = $this->compromisoRepo->sumPesosPorConcertacionYTipo($concertacionId, 'funcional');
+	$sumaComp = $this->compromisoRepo->sumPesosPorConcertacionYTipo($concertacionId, 'comportamental');
+	$countFunc = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, 'funcional');
+	$countComp = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, 'comportamental');
+
+	return [
+	'concertacion_id' => $concertacionId,
+	'funcionales' => ['suma_pesos' => $sumaFunc, 'cantidad' => $countFunc, 'maximo_permitido' => 85],
+	'comportamentales' => ['suma_pesos' => $sumaComp, 'cantidad' => $countComp, 'maximo_permitido' => 15],
+	'total_pesos' => $sumaFunc + $sumaComp,
+	'completo' => ($sumaFunc + $sumaComp) >= 100,
+	];
+	}
 
  public function pendientesAprobacion(array $user, int $pagina = 1, int $porPagina = 20): array
  {
@@ -239,73 +255,73 @@ class CompromisoService
  }
  }
 
- private function validarLimitesCompromisos(int $evaluacionId, string $tipo): void
- {
- $count = $this->compromisoRepo->contarPorEvaluacionYTipo($evaluacionId, $tipo);
+	private function validarLimitesCompromisos(int $concertacionId, string $tipo): void
+	{
+	$count = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, $tipo);
 
- // Determinar si el evaluado esta en periodo de prueba
- $esPrueba = false;
- $stmtEval = $this->compromisoRepo->getPdo()->prepare(
- "SELECT u.en_periodo_prueba FROM evaluaciones e INNER JOIN usuarios u ON u.id = e.evaluado_id WHERE e.id = :eid AND e.eliminado_en IS NULL"
- );
- $stmtEval->execute(['eid' => $evaluacionId]);
- $pruebaVal = $stmtEval->fetchColumn();
- $esPrueba = !empty($pruebaVal) && (bool) $pruebaVal;
+	$esPrueba = false;
+	$stmtEval = $this->compromisoRepo->getPdo()->prepare(
+	"SELECT u.en_periodo_prueba
+	FROM concertaciones con
+	INNER JOIN usuarios u ON u.id = con.evaluado_id
+	WHERE con.id = :cid AND con.eliminado_en IS NULL"
+	);
+	$stmtEval->execute(['cid' => $concertacionId]);
+	$pruebaVal = $stmtEval->fetchColumn();
+	$esPrueba = !empty($pruebaVal) && (bool) $pruebaVal;
 
- if ($tipo === 'funcional') {
- // Anual: 1-5 funcionales; Prueba: max 3 funcionales
- $max = $esPrueba
- ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
- : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
- } else {
- // Comportamentales siempre 3-5
- $max = (int) Env::get('MAX_COMPROMISOS_COMPORTAMENTALES', 5);
- }
+	if ($tipo === 'funcional') {
+	$max = $esPrueba
+	? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
+	: (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
+	} else {
+	$max = (int) Env::get('MAX_COMPROMISOS_COMPORTAMENTALES', 5);
+	}
 
- if ($count >= $max) {
- $tipoLabel = $tipo === 'funcional' ? 'funcionales' : 'comportamentales';
- $periodoLabel = $esPrueba ? 'periodo de prueba' : 'evaluacion anual';
- ResponseHelper::error("No se pueden agregar mas compromisos {$tipoLabel}. Maximo permitido para {$periodoLabel}: {$max}", 422);
- }
- }
+	if ($count >= $max) {
+	$tipoLabel = $tipo === 'funcional' ? 'funcionales' : 'comportamentales';
+	$periodoLabel = $esPrueba ? 'periodo de prueba' : 'evaluacion anual';
+	ResponseHelper::error("No se pueden agregar mas compromisos {$tipoLabel}. Maximo permitido para {$periodoLabel}: {$max}", 422);
+	}
+	}
 
- public function validarCompromisosAntesDeFirmar(int $evaluacionId, int $evaluadoId): array
- {
- $usuario = (new \App\Repository\UsuarioRepository(Database::getInstance()))->buscarPorId($evaluadoId);
- $esPrueba = !empty($usuario['periodo_prueba']) && (bool) $usuario['periodo_prueba'];
+	public function validarCompromisosAntesDeFirmar(int $concertacionId, int $evaluadoId): array
+	{
+	$usuario = (new \App\Repository\UsuarioRepository(Database::getInstance()))->buscarPorId($evaluadoId);
+	$esPrueba = !empty($usuario['en_periodo_prueba']) && (bool) $usuario['en_periodo_prueba'];
 
- $countFunc = $this->compromisoRepo->contarPorEvaluacionYTipo($evaluacionId, 'funcional');
- $countComp = $this->compromisoRepo->contarPorEvaluacionYTipo($evaluacionId, 'comportamental');
+	$countFunc = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, 'funcional');
+	$countComp = $this->compromisoRepo->contarPorConcertacionYTipo($concertacionId, 'comportamental');
 
- $minFunc = $esPrueba
- ? (int) Env::get('MIN_COMPROMISOS_FUNCIONALES_PRUEBA', 1)
- : (int) Env::get('MIN_COMPROMISOS_FUNCIONALES', 1);
- $maxFunc = $esPrueba
- ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
- : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
- $minComp = (int) Env::get('MIN_COMPROMISOS_COMPORTAMENTALES', 3);
- $maxComp = (int) Env::get('MAX_COMPROMISOS_COMPORTAMENTALES', 5);
+	$minFunc = $esPrueba
+	? (int) Env::get('MIN_COMPROMISOS_FUNCIONALES_PRUEBA', 1)
+	: (int) Env::get('MIN_COMPROMISOS_FUNCIONALES', 1);
+	$maxFunc = $esPrueba
+	? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
+	: (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
+	$minComp = (int) Env::get('MIN_COMPROMISOS_COMPORTAMENTALES', 3);
+	$maxComp = (int) Env::get('MAX_COMPROMISOS_COMPORTAMENTALES', 5);
 
- $errores = [];
- if ($countFunc < $minFunc) {
- $errores[] = "Faltan compromisos funcionales. Minimo requerido: {$minFunc}, actual: {$countFunc}";
- }
- if ($countFunc > $maxFunc) {
- $errores[] = "Exceso de compromisos funcionales. Maximo permitido: {$maxFunc}, actual: {$countFunc}";
- }
- if ($countComp < $minComp) {
- $errores[] = "Faltan compromisos comportamentales. Minimo requerido: {$minComp}, actual: {$countComp}";
- }
- if ($countComp > $maxComp) {
- $errores[] = "Exceso de compromisos comportamentales. Maximo permitido: {$maxComp}, actual: {$countComp}";
- }
+	$errores = [];
+	if ($countFunc < $minFunc) {
+	$errores[] = "Faltan compromisos funcionales. Minimo requerido: {$minFunc}, actual: {$countFunc}";
+	}
+	if ($countFunc > $maxFunc) {
+	$errores[] = "Exceso de compromisos funcionales. Maximo permitido: {$maxFunc}, actual: {$countFunc}";
+	}
+	if ($countComp < $minComp) {
+	$errores[] = "Faltan compromisos comportamentales. Minimo requerido: {$minComp}, actual: {$countComp}";
+	}
+	if ($countComp > $maxComp) {
+	$errores[] = "Exceso de compromisos comportamentales. Maximo permitido: {$maxComp}, actual: {$countComp}";
+	}
 
- return [
- 'valido' => empty($errores),
- 'errores' => $errores,
- 'funcionales' => ['cantidad' => $countFunc, 'minimo' => $minFunc, 'maximo' => $maxFunc],
- 'comportamentales' => ['cantidad' => $countComp, 'minimo' => $minComp, 'maximo' => $maxComp],
- 'periodo_prueba' => $esPrueba,
- ];
- }
+	return [
+	'valido' => empty($errores),
+	'errores' => $errores,
+	'funcionales' => ['cantidad' => $countFunc, 'minimo' => $minFunc, 'maximo' => $maxFunc],
+	'comportamentales' => ['cantidad' => $countComp, 'minimo' => $minComp, 'maximo' => $maxComp],
+	'periodo_prueba' => $esPrueba,
+	];
+	}
 }

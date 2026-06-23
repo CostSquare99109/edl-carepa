@@ -36,6 +36,7 @@ class MetaService
         $v = new ValidatorHelper();
         $v->validate($datos, [
             'periodo_id' => 'required',
+            'dependencia_id' => 'required',
             'funcionario_id' => 'required',
             'evaluador_id' => 'required',
             'descripcion' => 'required',
@@ -62,10 +63,20 @@ class MetaService
         if (!$meta) {
             ResponseHelper::error('Meta no encontrada', 404);
         }
-        $permitidos = ['descripcion','tipo','peso','indicador','meta_numerica','unidad_medida','estado'];
+        $permitidos = ['dependencia_id','descripcion','tipo','peso','indicador','meta_numerica','unidad_medida','estado'];
         $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
         $this->repo->actualizar($id, $datosFiltrados);
         AuditoriaService::registrar('actualizar', 'metas', $id, $meta, $datosFiltrados);
+    }
+
+    public function eliminar(int $id): void
+    {
+        $meta = $this->repo->buscarPorId($id);
+        if (!$meta) {
+            ResponseHelper::error('Meta no encontrada', 404);
+        }
+        $this->repo->eliminar($id);
+        AuditoriaService::registrar('eliminar', 'metas', $id, $meta, null);
     }
 
     public function evidencias(int $metaId): array

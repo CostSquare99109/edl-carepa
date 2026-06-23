@@ -136,9 +136,9 @@ export default function VerificarCodigo() {
 								(e.target as HTMLImageElement).style.display = 'none'
 								const parent = (e.target as HTMLImageElement).parentElement
 								if (parent && !parent.querySelector('.escudo-fallback')) {
-									const span = document.createElement('span')
-'escudo-fallback text-3xl font-heading font-bold text-inst-azul'
-span.textContent = 'CAREPA'
+					const span = document.createElement('span')
+					span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul'
+					span.textContent = 'CAREPA'
 									parent.appendChild(span)
 								}
 							}}

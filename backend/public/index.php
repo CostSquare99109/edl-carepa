@@ -17,6 +17,13 @@ require EDL_ROOT . '/vendor/autoload.php';
 Env::load(EDL_ROOT . '/.env');
 Database::getInstance();
 
+$dirs = [EDL_ROOT . '/uploads', EDL_ROOT . '/storage/cargas'];
+foreach ($dirs as $dir) {
+	if (!is_dir($dir)) {
+		@mkdir($dir, 0755, true);
+	}
+}
+
 $router = new Router();
 
 $router->group('/api/v1', function (Router $r) {
@@ -77,6 +84,7 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/dependencias/{id}', [\App\Controller\DependenciaController::class, 'ver'], ['permiso:dependencias.listar']);
  $r->put('/dependencias/{id}', [\App\Controller\DependenciaController::class, 'actualizar'], ['permiso:dependencias.editar']);
  $r->delete('/dependencias/{id}', [\App\Controller\DependenciaController::class, 'eliminar'], ['permiso:dependencias.editar']);
+ $r->put('/dependencias/{id}/estado', [\App\Controller\DependenciaController::class, 'cambiarEstado'], ['permiso:dependencias.editar']);
 
  $r->get('/periodos', [\App\Controller\PeriodoController::class, 'listar'], ['permiso:periodos.listar']);
  $r->post('/periodos', [\App\Controller\PeriodoController::class, 'crear'], ['permiso:periodos.crear']);
@@ -89,6 +97,7 @@ $router->group('/api/v1', function (Router $r) {
  $r->post('/metas', [\App\Controller\MetaController::class, 'crear'], ['permiso:metas.crear']);
  $r->get('/metas/{id}', [\App\Controller\MetaController::class, 'ver'], ['permiso:metas.listar']);
  $r->put('/metas/{id}', [\App\Controller\MetaController::class, 'actualizar'], ['permiso:metas.editar']);
+ $r->delete('/metas/{id}', [\App\Controller\MetaController::class, 'eliminar'], ['permiso:metas.editar']);
  $r->get('/metas/{id}/evidencias', [\App\Controller\MetaController::class, 'evidencias'], ['permiso:evidencias.listar']);
 
  $r->get('/concertaciones', [\App\Controller\ConcertacionController::class, 'listar'], ['permiso:concertaciones.listar']);
@@ -97,6 +106,8 @@ $router->group('/api/v1', function (Router $r) {
  $r->put('/concertaciones/{id}', [\App\Controller\ConcertacionController::class, 'actualizar'], ['permiso:concertaciones.crear']);
  $r->put('/concertaciones/{id}/fijar', [\App\Controller\ConcertacionController::class, 'fijarCompromisos'], ['permiso:concertaciones.crear']);
  $r->get('/concertaciones/{id}/compromisos', [\App\Controller\ConcertacionController::class, 'compromisos'], ['permiso:compromisos.listar']);
+ $r->get('/concertaciones/{id}/verificar-fijacion', [\App\Controller\ConcertacionController::class, 'verificarFijacionUnilateral'], ['permiso:compromisos.listar']);
+ $r->put('/concertaciones/{id}/fijar-unilateral', [\App\Controller\ConcertacionController::class, 'fijarUnilateral'], ['permiso:concertaciones.crear']);
  $r->get('/concertaciones/{id}/validar-compromisos', [\App\Controller\CompromisoController::class, 'validarAntesDeFirmar'], ['permiso:compromisos.listar']);
  $r->post('/concertaciones/{id}/compromisos', [\App\Controller\CompromisoController::class, 'crear'], ['permiso:compromisos.crear']);
  $r->post('/concertaciones/{id}/compromisos-mejoramiento', [\App\Controller\CompromisoMejoramientoController::class, 'crear'], ['permiso:mejoramiento.crear']);
@@ -104,13 +115,16 @@ $router->group('/api/v1', function (Router $r) {
 
  $r->get('/evaluaciones', [\App\Controller\EvaluacionController::class, 'listar'], ['permiso:evaluaciones.listar']);
  $r->post('/evaluaciones', [\App\Controller\EvaluacionController::class, 'crear'], ['permiso:evaluaciones.crear']);
+ $r->get('/evaluaciones/pendientes-calificar', [\App\Controller\EvaluacionController::class, 'pendientesCalificar'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'ver'], ['permiso:evaluaciones.listar']);
  $r->put('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'calificar'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/{id}/compromisos', [\App\Controller\EvaluacionController::class, 'compromisos'], ['permiso:compromisos.listar']);
  $r->post('/evaluaciones/{id}/parcial', [\App\Controller\EvaluacionController::class, 'crearParcial'], ['permiso:evaluaciones.crear']);
  $r->put('/evaluaciones/{id}/definitiva', [\App\Controller\EvaluacionController::class, 'calificarDefinitiva'], ['permiso:evaluaciones.evaluar']);
  $r->put('/evaluaciones/{id}/comision', [\App\Controller\EvaluacionController::class, 'aprobarComision'], ['permiso:evaluaciones.comision']);
- $r->get('/evaluaciones/pendientes-calificar', [\App\Controller\EvaluacionController::class, 'pendientesCalificar'], ['permiso:evaluaciones.evaluar']);
+ $r->put('/evaluaciones/{id}/guardar', [\App\Controller\EvaluacionController::class, 'guardar'], ['permiso:evaluaciones.evaluar']);
+ $r->put('/evaluaciones/{id}/solicitar-revision', [\App\Controller\EvaluacionController::class, 'solicitarRevision'], ['permiso:evaluaciones.evaluar']);
+ $r->put('/evaluaciones/{id}/finalizar', [\App\Controller\EvaluacionController::class, 'finalizar'], ['permiso:evaluaciones.evaluar']);
 
  $r->get('/compromisos', [\App\Controller\CompromisoController::class, 'listar'], ['permiso:compromisos.listar']);
  $r->get('/compromisos/buscar-evaluado', [\App\Controller\CompromisoController::class, 'buscarEvaluado'], ['permiso:compromisos.listar']);
@@ -145,6 +159,7 @@ $router->group('/api/v1', function (Router $r) {
  $r->post('/evidencias', [\App\Controller\EvidenciaController::class, 'registrar'], ['permiso:evidencias.crear']);
  $r->get('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'ver'], ['permiso:evidencias.listar']);
  $r->put('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'actualizar'], ['permiso:evidencias.editar']);
+ $r->delete('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'eliminar'], ['permiso:evidencias.editar']);
 
  $r->get('/ausentismos', [\App\Controller\AusentismoController::class, 'listar'], ['permiso:ausentismos.listar']);
  $r->post('/ausentismos', [\App\Controller\AusentismoController::class, 'crear'], ['permiso:ausentismos.crear']);

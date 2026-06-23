@@ -78,7 +78,7 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-verde transition-colors"
+        className="relative p-2 rounded-lg hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-azul-osc transition-colors"
         title="Notificaciones"
       >
         <span className="material-icons text-xl">notifications</span>
@@ -126,7 +126,7 @@ export default function NotificationBell() {
                     handleClickNoti();
                   }}
                   className={`w-full flex items-start gap-3 px-4 py-3 text-left border-b border-inst-borde last:border-b-0 hover:bg-inst-gris transition-colors ${
-                    !n.leida ? 'bg-inst-verde-light/40' : ''
+                    !n.leida ? 'bg-inst-azul-osc-light/40' : ''
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${NOTI_COLOR[n.tipo] || 'bg-gray-100 text-gray-600'}`}>
@@ -144,7 +144,7 @@ export default function NotificationBell() {
                     </p>
                   </div>
                   {!n.leida && (
-                    <span className="w-2 h-2 rounded-full bg-inst-verde flex-shrink-0 mt-2" />
+                    <span className="w-2 h-2 rounded-full bg-inst-azul-osc flex-shrink-0 mt-2" />
                   )}
                 </button>
               ))
@@ -154,7 +154,7 @@ export default function NotificationBell() {
           <div className="border-t border-inst-borde px-4 py-2 bg-inst-gris-med">
             <button
               onClick={handleClickNoti}
-              className="w-full text-center text-xs font-medium text-inst-verde hover:text-inst-verde-hover py-1"
+              className="w-full text-center text-xs font-medium text-inst-azul-osc hover:text-inst-azul-osc-hover py-1"
             >
               Ver todas las notificaciones
             </button>

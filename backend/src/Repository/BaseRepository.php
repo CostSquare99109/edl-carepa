@@ -110,6 +110,11 @@ class BaseRepository
         return $stmt->execute([$id]);
     }
 
+    public function getPdo(): PDO
+    {
+        return $this->pdo;
+    }
+
     public function buscarPorCampo(string $campo, mixed $valor): ?array
     {
     	if (!preg_match('/^[a-zA-Z0-9_]+$/', $campo)) {

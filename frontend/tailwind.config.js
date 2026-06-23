@@ -4,13 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        'inst-verde': '#2E7D32',
-        'inst-verde-hover': '#1B5E20',
-        'inst-verde-light': '#E8F5E9',
+        'inst-azul-osc': '#0A2B5E',
+        'inst-azul-osc-hover': '#081F47',
+        'inst-azul-osc-light': '#E3EBF2',
         'inst-amarillo': '#F9B233',
         'inst-amarillo-hover': '#E0A020',
         'inst-amarillo-light': '#FFF8E1',
-        'inst-azul-osc': '#1A3A5C',
         'inst-fondo': '#FFFFFF',
         'inst-gris': '#F8FAFC',
         'inst-gris-med': '#F1F5F9',

@@ -40,8 +40,8 @@ class AuthController
 		if (!$v->validate($input, [
 			'documento' => 'required',
 			'tipo_documento' => 'required',
-			'nombres' => 'required',
-			'apellidos' => 'required',
+			'primer_nombre' => 'required',
+			'primer_apellido' => 'required',
 			'email' => 'required|email',
 			'password' => 'required|min:8',
 		])) {

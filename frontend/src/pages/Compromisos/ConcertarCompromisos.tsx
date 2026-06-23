@@ -225,10 +225,10 @@ export default function ConcertarCompromisos() {
  })));
  }
 
- // Si la evaluacion ya esta en estado concertacion o pendiente_evaluado, bloquear
- const evalRes = await api.get<any>(`/evaluaciones/${ev.evaluacion_id}`);
- if (evalRes?.estado === 'concertacion' || evalRes?.estado === 'pendiente_evaluado' || evalRes?.estado === 'fijacion_unilateral') {
- setConcertacionConfirmada(true);
+// Si la evaluacion ya esta en estado cerrada, bloquear
+const evalRes = await api.get<any>(`/evaluaciones/${ev.evaluacion_id}`);
+if (evalRes?.estado === 'cerrada' || evalRes?.estado === 'fijacion_unilateral') {
+setConcertacionConfirmada(true);
  }
  } catch {}
  }
@@ -427,7 +427,7 @@ export default function ConcertarCompromisos() {
  })),
  });
 
- // 3. Confirmar concertacion (cambia estado a pendiente_evaluado)
+ // 3. Confirmar concertacion (cambia estado a pendiente_aprobacion en compromisos, cerrada en evaluacion)
  await api.put(`/compromisos/confirmar-concertacion/${evaluado.evaluacion_id}`);
 
  setConcertacionConfirmada(true);

@@ -128,7 +128,7 @@ export function DataTable<Row>({
                     if (el) el.indeterminate = someSelected;
                   }}
                   onChange={toggleAll}
-                  className="rounded border-inst-borde text-inst-verde focus:ring-inst-verde"
+                  className="rounded border-inst-borde text-inst-azul-osc focus:ring-inst-azul-osc"
                 />
               </th>
             ) : null}
@@ -148,7 +148,7 @@ export function DataTable<Row>({
                       type="button"
                       onClick={() => handleSort(c)}
                       className={[
-                        'inline-flex items-center gap-1 font-semibold hover:text-inst-verde transition-colors',
+                        'inline-flex items-center gap-1 font-semibold hover:text-inst-azul-osc transition-colors',
                         alignClass[c.align ?? 'left'],
                       ].join(' ')}
                     >
@@ -170,7 +170,7 @@ export function DataTable<Row>({
             const id = rowKey(row);
             const isSelected = selectedIds.includes(id);
             return (
-              <tr key={id} className={isSelected ? 'bg-inst-verde-light/40' : ''}>
+              <tr key={id} className={isSelected ? 'bg-inst-azul-osc-light/40' : ''}>
                 {selectable ? (
                   <td>
                     <input
@@ -178,7 +178,7 @@ export function DataTable<Row>({
                       aria-label={`Seleccionar fila ${id}`}
                       checked={isSelected}
                       onChange={() => toggleRow(id)}
-                      className="rounded border-inst-borde text-inst-verde focus:ring-inst-verde"
+                      className="rounded border-inst-borde text-inst-azul-osc focus:ring-inst-azul-osc"
                     />
                   </td>
                 ) : null}

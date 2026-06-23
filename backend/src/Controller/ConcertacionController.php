@@ -57,4 +57,16 @@ class ConcertacionController
  $resultado = $this->service->compromisos($id);
  ResponseHelper::success($resultado);
  }
+
+ public function verificarFijacionUnilateral(int $id): void
+ {
+ $resultado = $this->service->puedeFijarUnilateral($id);
+ ResponseHelper::success($resultado);
+ }
+
+ public function fijarUnilateral(int $id): void
+ {
+ $this->service->fijarUnilateral($id);
+ ResponseHelper::success(null, 'Compromisos fijados unilateralmente por el evaluador');
+ }
 }

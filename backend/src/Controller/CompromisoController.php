@@ -41,8 +41,10 @@ class CompromisoController
 		$pdo = Database::getInstance();
 
 		$sql = "
-			SELECT u.id, u.documento, u.nombres, u.apellidos, u.cargo, u.grado,
-			       u.tipo_vinculacion, u.dependencia_id,
+			SELECT u.id, u.documento, u.primer_nombre, u.segundo_nombre,
+			       u.primer_apellido, u.segundo_apellido,
+			       u.denominacion_empleo AS cargo, u.grado_empleo AS grado,
+			       u.nivel, u.tipo_nombramiento AS tipo_vinculacion, u.dependencia_id,
 			       d.nombre AS dependencia_nombre,
 			       e.id AS evaluacion_id, e.estado AS evaluacion_estado,
 			       e.periodo_id, e.es_comision_evaluadora,
@@ -72,16 +74,15 @@ class CompromisoController
 			ResponseHelper::error('No se encontró un evaluado con ese documento registrado en el sistema.', 404);
 		}
 
-		$nombreCompleto = trim($evaluado['nombres'] . ' ' . $evaluado['apellidos']);
-		$primerNombre = explode(' ', $evaluado['nombres'])[0];
+		$nombreCompleto = trim(($evaluado['primer_nombre'] ?? '') . ' ' . ($evaluado['primer_apellido'] ?? ''));
+		$primerNombre = ($evaluado['primer_nombre'] ?? '');
 
-		// Mapear nivel según tipo_vinculacion y grado
-		$nivel = match($evaluado['tipo_vinculacion']) {
-			'planta' => 'Directivo',
-			'contrato' => 'Asesor',
-			'provisional' => 'Técnico',
-			'encargo' => 'Asesor',
-			'comision' => 'Profesional',
+		$nivel = match($evaluado['nivel'] ?? $evaluado['tipo_vinculacion'] ?? '') {
+			'directivo' => 'Directivo',
+			'asesor' => 'Asesor',
+			'profesional' => 'Profesional',
+			'tecnico' => 'Técnico',
+			'asistencial' => 'Asistencial',
 			default => 'Técnico'
 		};
 
@@ -89,17 +90,17 @@ class CompromisoController
 			'id' => (int) $evaluado['id'],
 			'documento' => $evaluado['documento'],
 			'nombre_completo' => $nombreCompleto,
-			'nombres' => $evaluado['nombres'],
-			'apellidos' => $evaluado['apellidos'],
+			'nombres' => $evaluado['primer_nombre'] ?? '',
+			'apellidos' => $evaluado['primer_apellido'] ?? '',
 			'nivel' => $nivel,
 			'denominacion' => $evaluado['cargo'] ?? '',
 			'codigo' => $evaluado['dependencia_nombre'] ? substr($evaluado['dependencia_nombre'], 0, 30) : '',
 			'grado' => $evaluado['grado'] ?? '',
-			'evaluacion_id' => (int) $evaluado['evaluacion_id'],
+			'evaluacion_id' => (int) ($evaluado['evaluacion_id'] ?? 0),
 			'evaluacion_estado' => $evaluado['evaluacion_estado'],
-			'periodo_id' => (int) $evaluado['periodo_id'],
+			'periodo_id' => (int) ($evaluado['periodo_id'] ?? 0),
 			'periodo_nombre' => $evaluado['periodo_nombre'],
-			'es_comision_evaluadora' => (int) $evaluado['es_comision_evaluadora'],
+			'es_comision_evaluadora' => (int) ($evaluado['es_comision_evaluadora'] ?? 0),
 		]);
 	}
 
@@ -107,7 +108,7 @@ class CompromisoController
 	public function competenciasComportamentales(): void
 	{
 		$pdo = Database::getInstance();
-		$stmt = $pdo->query("SELECT id, nombre, decreto, descripcion FROM competencias_comportamentales WHERE estado = 'activa' ORDER BY decreto, nombre");
+		$stmt = $pdo->query("SELECT codigo as id, nombre, decreto, descripcion FROM competencias ORDER BY decreto, nombre");
 		$competencias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 		ResponseHelper::success($competencias);
 	}
@@ -120,17 +121,12 @@ class CompromisoController
 
 		$pdo = Database::getInstance();
 
-		$stmtCon = $pdo->prepare("SELECT c.*, e.id as evaluacion_id FROM concertaciones c LEFT JOIN evaluaciones e ON e.evaluado_id = c.funcionario_id AND e.eliminado_en IS NULL WHERE c.id = ? AND c.eliminado_en IS NULL");
+		$stmtCon = $pdo->prepare("SELECT id, evaluado_id, evaluador_id, periodo_id, tipo_concertacion FROM concertaciones WHERE id = ? AND eliminado_en IS NULL");
 		$stmtCon->execute([$concertacionId]);
 		$concertacion = $stmtCon->fetch(\PDO::FETCH_ASSOC);
 
 		if (!$concertacion) {
 			ResponseHelper::error('Concertacion no encontrada', 404);
-		}
-
-		$evaluacionId = $input['evaluacion_id'] ?? $concertacion['evaluacion_id'] ?? null;
-		if (!$evaluacionId) {
-			ResponseHelper::error('No se encontró evaluación asociada. Proporcione evaluacion_id.', 422);
 		}
 
 		$tipo = $input['tipo'] ?? 'funcional';
@@ -144,33 +140,20 @@ class CompromisoController
 			ResponseHelper::error('peso debe ser mayor a 0 y maximo 100', 422);
 		}
 
-		$stmtEval = $pdo->prepare("SELECT evaluado_id FROM evaluaciones WHERE id = ? AND eliminado_en IS NULL");
-		$stmtEval->execute([$evaluacionId]);
-		$evaluadoId = $stmtEval->fetchColumn();
-		if (!$evaluadoId) {
-			ResponseHelper::error('Evaluacion no encontrada', 404);
-		}
-
 		$stmt = $pdo->prepare("
-			INSERT INTO compromisos (evaluacion_id, meta_id, competencia_id, tipo, peso, descripcion, plazo, responsable_id, evaluador_id, es_propuesto_jefe, tipo_concertacion, estado, resultado_esperado, medio_verificacion, observaciones_evaluador)
-			VALUES (:eid, :mid, :cid, :tipo, :peso, :desc, :plazo, :resp, :eval, :prop_jefe, :tconcert, :estado, :resultado, :verif, :obs_eval)
+			INSERT INTO compromisos (concertacion_id, meta_id, competencia_codigo, tipo, peso, descripcion, propuesto_por_jefe_entidad, estado, observaciones_evaluador)
+			VALUES (:cid, :mid, :cc, :tipo, :peso, :desc, :prop_jefe, :estado, :obs_eval)
 		");
 
 		$stmt->execute([
-			'eid' => $evaluacionId,
-			'mid' => $input['meta_id'] ?? $concertacion['meta_id'] ?? null,
-			'cid' => $input['competencia_id'] ?? null,
+			'cid' => $concertacionId,
+			'mid' => $input['meta_id'] ?? null,
+			'cc' => $input['competencia_codigo'] ?? $input['competencia_id'] ?? null,
 			'tipo' => $tipo,
 			'peso' => $peso,
 			'desc' => $descripcion,
-			'plazo' => $input['plazo'] ?? null,
-			'resp' => $input['responsable_id'] ?? $evaluadoId,
-			'eval' => $user['id'],
 			'prop_jefe' => $input['es_propuesto_jefe'] ?? 1,
-			'tconcert' => $input['tipo_concertacion'] ?? 'bilateral',
 			'estado' => $input['estado'] ?? 'propuesto',
-			'resultado' => $input['resultado_esperado'] ?? null,
-			'verif' => $input['medio_verificacion'] ?? null,
 			'obs_eval' => $input['observaciones_evaluador'] ?? null,
 		]);
 
@@ -178,7 +161,7 @@ class CompromisoController
 
 		\App\Service\AuditoriaService::registrar('crear_compromiso', 'compromisos', $compromisoId);
 
-		ResponseHelper::success(['id' => $compromisoId, 'evaluacion_id' => $evaluacionId], 'Compromiso creado', 201);
+		ResponseHelper::success(['id' => $compromisoId, 'concertacion_id' => $concertacionId], 'Compromiso creado', 201);
 	}
 
 	/** Guardar compromiso funcional (individual) */
@@ -202,45 +185,36 @@ class CompromisoController
 
 		$pdo = Database::getInstance();
 
-		// Obtener evaluado_id de la evaluación (el responsable es el evaluado)
-		$stmtEval = $pdo->prepare("SELECT evaluado_id FROM evaluaciones WHERE id = :eid");
+		$stmtEval = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :eid");
 		$stmtEval->execute(['eid' => $input['evaluacion_id']]);
-		$evaluadoId = $stmtEval->fetchColumn();
-		if (!$evaluadoId) {
+		$evaluacion = $stmtEval->fetch(\PDO::FETCH_ASSOC);
+		if (!$evaluacion) {
 			ResponseHelper::error('Evaluación no encontrada', 404);
 		}
-
-		// Verificar máximo 5 compromisos funcionales
-		$stmt = $pdo->prepare("SELECT COUNT(*) as total FROM compromisos WHERE evaluacion_id = :eid AND tipo = 'funcional' AND eliminado_en IS NULL");
-		$stmt->execute(['eid' => $input['evaluacion_id']]);
-		$count = $stmt->fetchColumn();
-
-		if ($count >= 5 && empty($input['id'])) {
-			ResponseHelper::error('No se pueden agregar más de 5 compromisos funcionales', 422);
+		$concertacionId = $evaluacion['concertacion_id'];
+		if (!$concertacionId) {
+			ResponseHelper::error('La evaluación no tiene una concertación asociada', 422);
 		}
 
-		$datos = [
-			'evaluacion_id' => (int) $input['evaluacion_id'],
-			'meta_id' => isset($input['meta_id']) ? (int) $input['meta_id'] : null,
-			'tipo' => 'funcional',
-			'descripcion' => $input['descripcion'],
-			'peso' => $peso,
-			'responsable_id' => $evaluadoId,
-			'evaluador_id' => $user['id'],
-			'estado' => 'aprobado',
-			'tipo_concertacion' => $input['tipo_concertacion'] ?? null,
-			'no_es_jefe_inmediato' => isset($input['no_es_jefe_inmediato']) ? (int) $input['no_es_jefe_inmediato'] : 0,
-			'motivo_cambio_evaluador' => $input['motivo_cambio_evaluador'] ?? null,
-		];
+		$stmt = $pdo->prepare("SELECT COUNT(*) as total FROM compromisos WHERE concertacion_id = :cid AND tipo = 'funcional' AND eliminado_en IS NULL");
+		$stmt->execute(['cid' => $concertacionId]);
+		$count = $stmt->fetchColumn();
+
+		$stmtPrueba = $pdo->prepare("SELECT u.en_periodo_prueba FROM usuarios u INNER JOIN concertaciones con ON con.evaluado_id = u.id WHERE con.id = :cid");
+		$stmtPrueba->execute(['cid' => $concertacionId]);
+		$esPrueba = (bool) $stmtPrueba->fetchColumn();
+		$maxFunc = $esPrueba ? (int) \App\Config\Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3) : (int) \App\Config\Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
+		if ($count >= $maxFunc && empty($input['id'])) {
+			ResponseHelper::error("No se pueden agregar más de {$maxFunc} compromisos funcionales", 422);
+		}
 
 		if (!empty($input['id'])) {
-			// Actualizar existente
 			$sets = [];
 			$params = [];
 			foreach (['meta_id', 'descripcion', 'peso'] as $col) {
-				if (isset($datos[$col])) {
+				if (isset($input[$col])) {
 					$sets[] = "{$col} = :{$col}";
-					$params[$col] = $datos[$col];
+					$params[$col] = $input[$col];
 				}
 			}
 			$sets[] = "actualizado_en = NOW()";
@@ -249,17 +223,19 @@ class CompromisoController
 			$stmt->execute($params);
 			$id = $input['id'];
 		} else {
-			// Crear nuevo
-			$columns = implode(', ', array_keys($datos));
-			$placeholders = implode(', ', array_map(fn($k) => ":$k", array_keys($datos)));
-			$stmt = $pdo->prepare("INSERT INTO compromisos ($columns) VALUES ($placeholders)");
-			$stmt->execute($datos);
+$stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, descripcion, peso, estado, es_propuesto_evaluado) VALUES (:cid, :mid, 'funcional', :desc, :peso, 'propuesto', :es_prop_evaluado)");
+		$stmt->execute([
+			'cid' => $concertacionId,
+			'mid' => isset($input['meta_id']) ? (int) $input['meta_id'] : null,
+			'desc' => $input['descripcion'],
+			'peso' => $peso,
+			'es_prop_evaluado' => isset($input['es_propuesto_evaluado']) ? 1 : 0,
+		]);
 			$id = $pdo->lastInsertId();
 		}
 
-		// Verificar suma de pesos
-		$stmt = $pdo->prepare("SELECT COALESCE(SUM(peso), 0) as total FROM compromisos WHERE evaluacion_id = :eid AND tipo = 'funcional' AND eliminado_en IS NULL");
-		$stmt->execute(['eid' => $input['evaluacion_id']]);
+		$stmt = $pdo->prepare("SELECT COALESCE(SUM(peso), 0) as total FROM compromisos WHERE concertacion_id = :cid AND tipo = 'funcional' AND eliminado_en IS NULL");
+		$stmt->execute(['cid' => $concertacionId]);
 		$sumaPesos = (float) $stmt->fetchColumn();
 
 		ResponseHelper::success([
@@ -274,21 +250,19 @@ class CompromisoController
 		$pdo = Database::getInstance();
 		$user = AuthMiddleware::user();
 
-		// Obtener evaluacion_id ANTES de eliminar
-		$stmtEval = $pdo->prepare("SELECT evaluacion_id FROM compromisos WHERE id = :id AND tipo = 'funcional' AND evaluador_id = :uid AND eliminado_en IS NULL");
+		$stmtEval = $pdo->prepare("SELECT c.id, con.id AS concertacion_id FROM compromisos c INNER JOIN concertaciones con ON con.id = c.concertacion_id WHERE c.id = :id AND c.tipo = 'funcional' AND con.evaluador_id = :uid AND c.eliminado_en IS NULL");
 		$stmtEval->execute(['id' => $id, 'uid' => $user['id']]);
-		$evalId = $stmtEval->fetchColumn();
+		$row = $stmtEval->fetch(\PDO::FETCH_ASSOC);
 
-		if (!$evalId) {
+		if (!$row) {
 			ResponseHelper::error('Compromiso no encontrado o no tiene permiso para eliminarlo', 404);
 		}
 
-		$stmt = $pdo->prepare("UPDATE compromisos SET eliminado_en = NOW() WHERE id = :id AND tipo = 'funcional' AND evaluador_id = :uid AND eliminado_en IS NULL");
-		$stmt->execute(['id' => $id, 'uid' => $user['id']]);
+		$stmt = $pdo->prepare("UPDATE compromisos SET eliminado_en = NOW() WHERE id = :id AND tipo = 'funcional' AND eliminado_en IS NULL");
+		$stmt->execute(['id' => $id]);
 
-		// Obtener suma de pesos restantes
-		$stmt3 = $pdo->prepare("SELECT COALESCE(SUM(peso), 0) as total FROM compromisos WHERE evaluacion_id = :eid AND tipo = 'funcional' AND eliminado_en IS NULL");
-		$stmt3->execute(['eid' => $evalId]);
+		$stmt3 = $pdo->prepare("SELECT COALESCE(SUM(peso), 0) as total FROM compromisos WHERE concertacion_id = :cid AND tipo = 'funcional' AND eliminado_en IS NULL");
+		$stmt3->execute(['cid' => $row['concertacion_id']]);
 
 		ResponseHelper::success(['suma_pesos_funcionales' => (float) $stmt3->fetchColumn()], 'Compromiso funcional eliminado');
 	}
@@ -299,16 +273,12 @@ class CompromisoController
 		$pdo = Database::getInstance();
 		$user = AuthMiddleware::user();
 
-		$stmt = $pdo->prepare("UPDATE compromisos SET eliminado_en = NOW() WHERE id = :id AND tipo = 'comportamental' AND evaluador_id = :uid AND eliminado_en IS NULL");
+		$stmt = $pdo->prepare("UPDATE compromisos c INNER JOIN concertaciones con ON con.id = c.concertacion_id SET c.eliminado_en = NOW() WHERE c.id = :id AND c.tipo = 'comportamental' AND con.evaluador_id = :uid AND c.eliminado_en IS NULL");
 		$stmt->execute(['id' => $id, 'uid' => $user['id']]);
 
 		if ($stmt->rowCount() === 0) {
 			ResponseHelper::error('Compromiso no encontrado o no tiene permiso para eliminarlo', 404);
 		}
-
-		// Eliminar también la relación en compromiso_comportamental
-		$stmt2 = $pdo->prepare("DELETE FROM compromiso_comportamental WHERE compromiso_id = :cid");
-		$stmt2->execute(['cid' => $id]);
 
 		ResponseHelper::success(null, 'Compromiso comportamental eliminado');
 	}
@@ -319,8 +289,7 @@ class CompromisoController
 		$pdo = Database::getInstance();
 		$user = AuthMiddleware::user();
 
-		// Verificar que el compromiso pertenece a este evaluado (responsable_id)
-		$stmt = $pdo->prepare("SELECT id, estado FROM compromisos WHERE id = :id AND responsable_id = :uid AND eliminado_en IS NULL");
+		$stmt = $pdo->prepare("SELECT c.id, c.estado FROM compromisos c INNER JOIN concertaciones con ON con.id = c.concertacion_id WHERE c.id = :id AND con.evaluado_id = :uid AND c.eliminado_en IS NULL");
 		$stmt->execute(['id' => $id, 'uid' => $user['id']]);
 		$comp = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -328,8 +297,8 @@ class CompromisoController
 			ResponseHelper::error('Compromiso no encontrado o no tiene permiso', 404);
 		}
 
-		if ($comp['estado'] !== 'propuesto' && $comp['estado'] !== 'aprobado') {
-			ResponseHelper::error('Solo puede aceptar compromisos en estado propuesto o aprobado', 400);
+		if (!in_array($comp['estado'], ['propuesto', 'aprobado', 'pendiente_aprobacion'])) {
+			ResponseHelper::error('Solo puede aceptar compromisos en estado propuesto, pendiente_aprobacion o aprobado', 400);
 		}
 
 		$input = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -337,10 +306,10 @@ class CompromisoController
 
 		$obs = isset($input['observaciones_evaluado']) ? trim($input['observaciones_evaluado']) : null;
 
-		$stmtUp = $pdo->prepare("UPDATE compromisos SET estado = 'aceptado_evaluado', observaciones_evaluado = COALESCE(:obs, observaciones_evaluado), actualizado_en = NOW() WHERE id = :id");
+		$stmtUp = $pdo->prepare("UPDATE compromisos SET estado = 'aprobado', observaciones_evaluado = COALESCE(:obs, observaciones_evaluado), actualizado_en = NOW() WHERE id = :id");
 		$stmtUp->execute(['id' => $id, 'obs' => $obs]);
 
-		ResponseHelper::success(['id' => $id, 'estado' => 'aceptado_evaluado'], 'Compromiso aceptado');
+		ResponseHelper::success(['id' => $id, 'estado' => 'aprobado'], 'Compromiso aprobado');
 	}
 
 	/** Rechazar compromiso por parte del evaluado */
@@ -349,8 +318,7 @@ class CompromisoController
 	$pdo = Database::getInstance();
 	$user = AuthMiddleware::user();
 
-	// Verificar que el compromiso pertenece a este evaluado (responsable_id)
-	$stmt = $pdo->prepare("SELECT id, estado FROM compromisos WHERE id = :id AND responsable_id = :uid AND eliminado_en IS NULL");
+	$stmt = $pdo->prepare("SELECT c.id, c.estado FROM compromisos c INNER JOIN concertaciones con ON con.id = c.concertacion_id WHERE c.id = :id AND con.evaluado_id = :uid AND c.eliminado_en IS NULL");
 	$stmt->execute(['id' => $id, 'uid' => $user['id']]);
 	$comp = $stmt->fetch(\PDO::FETCH_ASSOC);
 
@@ -358,8 +326,8 @@ class CompromisoController
 	ResponseHelper::error('Compromiso no encontrado o no tiene permiso', 404);
 	}
 
-	if ($comp['estado'] !== 'propuesto' && $comp['estado'] !== 'aprobado') {
-	ResponseHelper::error('Solo puede rechazar compromisos en estado propuesto o aprobado', 400);
+	if ($comp['estado'] !== 'propuesto') {
+	ResponseHelper::error('Solo puede rechazar compromisos en estado propuesto', 400);
 	}
 
 	$input = json_decode(file_get_contents('php://input'), true) ?: [];
@@ -370,10 +338,10 @@ class CompromisoController
 	ResponseHelper::error('Debe indicar el motivo del rechazo', 400);
 	}
 
-	$stmtUp = $pdo->prepare("UPDATE compromisos SET estado = 'rechazado_evaluado', observaciones_evaluado = :obs, actualizado_en = NOW() WHERE id = :id");
+	$stmtUp = $pdo->prepare("UPDATE compromisos SET estado = 'devuelto', observaciones_evaluado = :obs, actualizado_en = NOW() WHERE id = :id");
 	$stmtUp->execute(['id' => $id, 'obs' => $obs]);
 
-	ResponseHelper::success(['id' => $id, 'estado' => 'rechazado_evaluado'], 'Compromiso rechazado');
+	ResponseHelper::success(['id' => $id, 'estado' => 'devuelto'], 'Compromiso rechazado');
 	}
 
 	/** Evaluado acepta TODOS los compromisos de una evaluacion en bloque */
@@ -382,8 +350,7 @@ class CompromisoController
 	$pdo = Database::getInstance();
 	$user = AuthMiddleware::user();
 
-	// Verificar que la evaluacion pertenece a este evaluado
-	$stmt = $pdo->prepare("SELECT evaluado_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
+	$stmt = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
 	$stmt->execute(['id' => $evaluacionId]);
 	$eval = $stmt->fetch(\PDO::FETCH_ASSOC);
 	if (!$eval || (int) $eval['evaluado_id'] !== (int) $user['id']) {
@@ -393,17 +360,16 @@ class CompromisoController
 	$input = json_decode(file_get_contents('php://input'), true) ?: [];
 	$obs = isset($input['observaciones_evaluado']) ? trim($input['observaciones_evaluado']) : null;
 
-	// Cambiar todos los compromisos pendiente_evaluado a aceptado
 	$stmtUp = $pdo->prepare("
 	UPDATE compromisos
-	SET estado = 'aceptado_evaluado',
+	SET estado = 'aprobado',
 	observaciones_evaluado = COALESCE(:obs, observaciones_evaluado),
 	actualizado_en = NOW()
-	WHERE evaluacion_id = :eid
-	AND estado = 'pendiente_evaluado'
+	WHERE concertacion_id = :cid
+	AND estado IN ('propuesto', 'pendiente_aprobacion')
 	AND eliminado_en IS NULL
 	");
-	$stmtUp->execute(['eid' => $evaluacionId, 'obs' => $obs]);
+	$stmtUp->execute(['cid' => $eval['concertacion_id'], 'obs' => $obs]);
 
 	$afectados = $stmtUp->rowCount();
 
@@ -411,8 +377,7 @@ class CompromisoController
 	ResponseHelper::error('No hay compromisos pendientes de aceptación en esta evaluación', 400);
 	}
 
-	// Cambiar estado de la evaluacion
-	$stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'aceptada_evaluado', actualizado_en = NOW() WHERE id = :id");
+	$stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'cerrada', actualizado_en = NOW() WHERE id = :id");
 	$stmtEval->execute(['id' => $evaluacionId]);
 
 	ResponseHelper::success([
@@ -427,8 +392,7 @@ class CompromisoController
 	$pdo = Database::getInstance();
 	$user = AuthMiddleware::user();
 
-	// Verificar que la evaluacion pertenece a este evaluado
-	$stmt = $pdo->prepare("SELECT evaluado_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
+	$stmt = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
 	$stmt->execute(['id' => $evaluacionId]);
 	$eval = $stmt->fetch(\PDO::FETCH_ASSOC);
 	if (!$eval || (int) $eval['evaluado_id'] !== (int) $user['id']) {
@@ -441,17 +405,16 @@ class CompromisoController
 	ResponseHelper::error('Debe indicar el motivo del rechazo de la concertación', 400);
 	}
 
-	// Cambiar todos los compromisos pendiente_evaluado a rechazado
 	$stmtUp = $pdo->prepare("
 	UPDATE compromisos
-	SET estado = 'rechazado_evaluado',
+	SET estado = 'devuelto',
 	observaciones_evaluado = :obs,
 	actualizado_en = NOW()
-	WHERE evaluacion_id = :eid
-	AND estado = 'pendiente_evaluado'
+	WHERE concertacion_id = :cid
+	AND estado IN ('propuesto', 'pendiente_aprobacion')
 	AND eliminado_en IS NULL
 	");
-	$stmtUp->execute(['eid' => $evaluacionId, 'obs' => $obs]);
+	$stmtUp->execute(['cid' => $eval['concertacion_id'], 'obs' => $obs]);
 
 	$afectados = $stmtUp->rowCount();
 
@@ -459,18 +422,15 @@ class CompromisoController
 	ResponseHelper::error('No hay compromisos pendientes en esta evaluación', 400);
 	}
 
-	// Cambiar estado de la evaluacion a rechazada -> procede fijacion unilateral
-	$stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'rechazada_evaluado', actualizado_en = NOW() WHERE id = :id");
+	$stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'pendiente', actualizado_en = NOW() WHERE id = :id");
 	$stmtEval->execute(['id' => $evaluacionId]);
 
-	// Notificar al evaluador
 	$stmtNotif = $pdo->prepare("
-	INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, evaluacion_id, creado_en)
-	VALUES (:uid, 'rechazo_concertacion', 'Concertación rechazada por el evaluado', :msg, :eid, NOW())
+	INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
+	VALUES (:uid, 'alerta', 'Concertación rechazada por el evaluado', :msg, NOW())
 	");
 	$stmtNotif->execute([
 	'uid' => $eval['evaluado_id'],
-	'eid' => $evaluacionId,
 	'msg' => 'El evaluado ha rechazado la concertación de compromisos. Puede proceder con la fijación unilateral conforme al Art. 33 de la Resolución 1760 de 2010.',
 	]);
 
@@ -504,54 +464,43 @@ class CompromisoController
 
 		$pdo = Database::getInstance();
 
-		// Obtener evaluado_id de la evaluación
-		$stmtEval = $pdo->prepare("SELECT evaluado_id FROM evaluaciones WHERE id = :eid");
+		$stmtEval = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :eid");
 		$stmtEval->execute(['eid' => $input['evaluacion_id']]);
-		$evaluadoId = $stmtEval->fetchColumn();
-		if (!$evaluadoId) {
+		$evaluacion = $stmtEval->fetch(\PDO::FETCH_ASSOC);
+		if (!$evaluacion) {
 			ResponseHelper::error('Evaluación no encontrada', 404);
+		}
+		$concertacionId = $evaluacion['concertacion_id'];
+		if (!$concertacionId) {
+			ResponseHelper::error('La evaluación no tiene una concertación asociada', 422);
 		}
 
 		// Crear un compromiso comportamental por cada competencia seleccionada
 		$ids = [];
 		foreach ($competencias as $comp) {
-			$competenciaId = (int) ($comp['competencia_id'] ?? 0);
+			$competenciaCodigo = $comp['competencia_codigo'] ?? $comp['competencia_id'] ?? null;
 			$esPropuestoJefe = isset($comp['es_propuesto_jefe']) ? (int) $comp['es_propuesto_jefe'] : 0;
 
-			if ($competenciaId <= 0) continue;
+			if (!$competenciaCodigo) continue;
 
-			// Obtener nombre de la competencia
-			$stmtComp = $pdo->prepare("SELECT nombre FROM competencias_comportamentales WHERE id = :cid AND estado = 'activa'");
-			$stmtComp->execute(['cid' => $competenciaId]);
-			$nombreComp = $stmtComp->fetchColumn();
-			if (!$nombreComp) continue;
+			$stmtComp = $pdo->prepare("SELECT codigo, nombre FROM competencias WHERE codigo = :cod");
+			$stmtComp->execute(['cod' => $competenciaCodigo]);
+			$competencia = $stmtComp->fetch(\PDO::FETCH_ASSOC);
+			if (!$competencia) continue;
 
 		$stmt = $pdo->prepare("
-			INSERT INTO compromisos (evaluacion_id, tipo, descripcion, peso, responsable_id, evaluador_id, estado, es_propuesto_jefe, tipo_concertacion)
-			VALUES (:eid, 'comportamental', :desc, 0, :resp_id, :eval_id, 'aprobado', :prop_jefe, :tipo_conc)
+			INSERT INTO compromisos (concertacion_id, tipo, descripcion, peso, estado, competencia_codigo, propuesto_por_jefe_entidad, es_propuesto_evaluado)
+			VALUES (:cid, 'comportamental', :desc, 0, 'propuesto', :cc, :prop_jefe, :es_prop_evaluado)
 		");
 		$stmt->execute([
-			'eid' => $input['evaluacion_id'],
-			'desc' => $nombreComp,
-			'resp_id' => $evaluadoId,
-			'eval_id' => $user['id'],
+			'cid' => $concertacionId,
+			'desc' => $competencia['nombre'],
+			'cc' => $competencia['codigo'],
 			'prop_jefe' => $esPropuestoJefe,
-			'tipo_conc' => $input['tipo_concertacion'] ?? null,
+			'es_prop_evaluado' => isset($input['es_propuesto_evaluado']) ? 1 : 0,
 		]);
 
 			$compromisoId = $pdo->lastInsertId();
-
-			// Crear relación en compromiso_comportamental
-			$stmtRel = $pdo->prepare("
-				INSERT INTO compromiso_comportamental (compromiso_id, competencia_id, es_propuesto_jefe)
-				VALUES (:comp_id, :compet_id, :prop_jefe)
-			");
-			$stmtRel->execute([
-				'comp_id' => $compromisoId,
-				'compet_id' => $competenciaId,
-				'prop_jefe' => $esPropuestoJefe,
-			]);
-
 			$ids[] = (int) $compromisoId;
 		}
 
@@ -559,41 +508,25 @@ class CompromisoController
 	}
 
 	/** Listar compromisos de una evaluación (para el evaluador) */
+	/** Listar compromisos de una evaluación (para el evaluador) con conductas predefinidas */
 	public function listarPorEvaluacion(int $evaluacionId): void
 	{
-		$pdo = Database::getInstance();
+		$compromisos = $this->service->compromisosConConductas($evaluacionId);
 
-		$stmt = $pdo->prepare("
-			SELECT c.*, 
-			       cc.competencia_id,
-			       cb.nombre AS competencia_nombre,
-			       cb.decreto AS competencia_decreto
-			FROM compromisos c
-			LEFT JOIN compromiso_comportamental cc ON cc.compromiso_id = c.id
-			LEFT JOIN competencias_comportamentales cb ON cb.id = cc.competencia_id
-			WHERE c.evaluacion_id = :eid 
-			  AND c.eliminado_en IS NULL
-			ORDER BY c.tipo, c.id
-		");
-		$stmt->execute(['eid' => $evaluacionId]);
-		$rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-		// Agrupar compromisos comportamentales
 		$funcionales = [];
 		$comportamentales = [];
-
-		foreach ($rows as $row) {
-			if ($row['tipo'] === 'funcional') {
-				$funcionales[] = $row;
+		foreach ($compromisos as $c) {
+			if ($c['tipo'] === 'funcional') {
+				$funcionales[] = $c;
 			} else {
-				$comportamentales[] = $row;
+				$comportamentales[] = $c;
 			}
 		}
 
-		// Suma de pesos
-		$stmtP = $pdo->prepare("SELECT COALESCE(SUM(peso), 0) FROM compromisos WHERE evaluacion_id = :eid AND tipo = 'funcional' AND eliminado_en IS NULL");
-		$stmtP->execute(['eid' => $evaluacionId]);
-		$sumaPesos = (float) $stmtP->fetchColumn();
+		$sumaPesos = 0;
+		foreach ($funcionales as $f) {
+			$sumaPesos += (float) $f['peso'];
+		}
 
 		ResponseHelper::success([
 			'funcionales' => $funcionales,
@@ -608,7 +541,6 @@ class CompromisoController
 		$pdo = Database::getInstance();
 		$user = AuthMiddleware::user();
 
-		// Verificar que la evaluación pertenece a este evaluador
 		$stmt = $pdo->prepare("SELECT * FROM evaluaciones WHERE id = :id AND evaluador_id = :uid AND eliminado_en IS NULL");
 		$stmt->execute(['id' => $evaluacionId, 'uid' => $user['id']]);
 		$eval = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -616,9 +548,10 @@ class CompromisoController
 			ResponseHelper::error('Evaluación no encontrada o no tiene permiso', 404);
 		}
 
-		// Verificar compromisos funcionales (min 1, max 5)
-		$stmtF = $pdo->prepare("SELECT COUNT(*) as total, COALESCE(SUM(peso),0) as suma FROM compromisos WHERE evaluacion_id = :eid AND tipo = 'funcional' AND eliminado_en IS NULL");
-		$stmtF->execute(['eid' => $evaluacionId]);
+		$concertacionId = (int) $eval['concertacion_id'];
+
+		$stmtF = $pdo->prepare("SELECT COUNT(*) as total, COALESCE(SUM(peso),0) as suma FROM compromisos WHERE concertacion_id = :cid AND tipo = 'funcional' AND eliminado_en IS NULL");
+		$stmtF->execute(['cid' => $concertacionId]);
 		$funcData = $stmtF->fetch(\PDO::FETCH_ASSOC);
 
 		if ($funcData['total'] < 1) {
@@ -631,9 +564,8 @@ class CompromisoController
 			ResponseHelper::error('La suma de los pesos funcionales debe ser exactamente 100. Actualmente suma: ' . $funcData['suma'], 422);
 		}
 
-		// Verificar compromisos comportamentales (min 3, max 5)
-		$stmtC = $pdo->prepare("SELECT COUNT(*) as total FROM compromisos WHERE evaluacion_id = :eid AND tipo = 'comportamental' AND eliminado_en IS NULL");
-		$stmtC->execute(['eid' => $evaluacionId]);
+		$stmtC = $pdo->prepare("SELECT COUNT(*) as total FROM compromisos WHERE concertacion_id = :cid AND tipo = 'comportamental' AND eliminado_en IS NULL");
+		$stmtC->execute(['cid' => $concertacionId]);
 		$compTotal = (int) $stmtC->fetchColumn();
 
 		if ($compTotal < 3) {
@@ -643,27 +575,22 @@ class CompromisoController
 			ResponseHelper::error('No puede tener más de 5 compromisos comportamentales', 422);
 		}
 
-		// Cambiar todos los compromisos de la evaluacion a pendiente_evaluado
-		// para que el evaluado deba aceptar o rechazar
-		$stmtUp2 = $pdo->prepare("UPDATE compromisos SET estado = 'pendiente_evaluado', actualizado_en = NOW() WHERE evaluacion_id = :eid AND eliminado_en IS NULL");
-		$stmtUp2->execute(['eid' => $evaluacionId]);
+		$stmtUp2 = $pdo->prepare("UPDATE compromisos SET estado = 'pendiente_aprobacion', actualizado_en = NOW() WHERE concertacion_id = :cid AND eliminado_en IS NULL");
+		$stmtUp2->execute(['cid' => $concertacionId]);
 
-		// Crear notificacion al evaluado
-		$stmtNotif = $pdo->prepare("
-		INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, evaluacion_id, creado_en)
-		VALUES (:uid, 'concertacion', 'Concertación de compromisos pendiente', :msg, :eid, NOW())
-		");
-		$stmtNotif->execute([
-		'uid' => $eval['evaluado_id'],
-		'eid' => $evaluacionId,
-		'msg' => 'Su evaluador ha concertado compromisos funcionales y competencias comportamentales para su evaluación. Debe aceptar o rechazar la concertación.',
-		]);
+	$stmtNotif = $pdo->prepare("
+	INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
+	VALUES (:uid, 'info', 'Concertación de compromisos pendiente', :msg, NOW())
+	");
+	$stmtNotif->execute([
+	'uid' => $eval['evaluado_id'],
+	'msg' => 'Su evaluador ha concertado compromisos funcionales y competencias comportamentales para su evaluación. Debe aceptar o rechazar la concertación.',
+	]);
 
-		// Actualizar estado de la evaluación a 'concertacion'
-		$stmtUp = $pdo->prepare("UPDATE evaluaciones SET estado = 'concertacion', fecha_concertacion = CURDATE(), actualizado_en = NOW() WHERE id = :id");
+		$stmtUp = $pdo->prepare("UPDATE evaluaciones SET estado = 'cerrada', fecha_concertacion = CURDATE(), actualizado_en = NOW() WHERE id = :id");
 		$stmtUp->execute(['id' => $evaluacionId]);
 
-		ResponseHelper::success(null, 'Concertación de compromisos confirmada. Se ha notificado al evaluado para que acepte o rechace.');
+		ResponseHelper::success(null, 'Concertación de compromisos confirmada. Se ha notificado al evaluado.');
 	}
 
 	/** Funcionario envía un compromiso para aprobación del evaluador */
@@ -776,7 +703,8 @@ class CompromisoController
 		}
 
 		$observaciones = $input['observaciones'] ?? '';
-		$this->service->calificar($id, $puntaje, $observaciones, $user);
+		$conductas = $input['conductas'] ?? null;
+		$this->service->calificar($id, $puntaje, $observaciones, $conductas, $user);
 		ResponseHelper::success(null, 'Compromiso calificado');
 	}
 
@@ -821,9 +749,10 @@ class CompromisoController
 		CASE WHEN c.tipo = 'comportamental' THEN comp.nombre ELSE NULL END AS competencia_nombre,
 		CASE WHEN c.tipo = 'funcional' THEN m.descripcion ELSE NULL END AS meta_nombre
 		FROM compromisos c
-		LEFT JOIN competencias_comportamentales comp ON comp.id = c.competencia_id AND c.tipo = 'comportamental'
+		INNER JOIN concertaciones con ON con.id = c.concertacion_id
+		LEFT JOIN competencias comp ON comp.codigo = c.competencia_codigo AND c.tipo = 'comportamental'
 		LEFT JOIN metas m ON m.id = c.meta_id AND c.tipo = 'funcional'
-		WHERE c.evaluacion_id = :eid
+		WHERE con.id = (SELECT concertacion_id FROM evaluaciones WHERE id = :eid)
 		AND c.estado = 'propuesto'
 		AND c.eliminado_en IS NULL
 		ORDER BY c.tipo, c.id

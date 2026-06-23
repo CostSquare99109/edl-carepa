@@ -122,56 +122,64 @@ export default function ProponerCompromisos() {
 
  const totalPeso = funcionales.reduce((acc, f) => acc + (Number(f.peso) || 0), 0)
 
- async function guardarPropuesta() {
-  if (funcionales.length < 1) {
-   toast.error('Debe ingresar al menos 1 compromiso funcional.')
-   return
-  }
-  if (comportamentales.length < 3) {
-   toast.error('Debe seleccionar al menos 3 competencias comportamentales.')
-   return
-  }
-  if (totalPeso !== 100) {
-   toast.error('La suma de los pesos de los compromisos funcionales debe ser igual a 100.')
-   return
-  }
-  if (!evaluacionId) {
-   toast.error('No se encontró una evaluación activa para su usuario.')
-   return
-  }
+  async function guardarPropuesta() {
+   if (funcionales.length < 1) {
+    toast.error('Debe ingresar al menos 1 compromiso funcional.')
+    return
+   }
+   if (funcionales.length > 5) {
+    toast.error('Máximo 5 compromisos funcionales.')
+    return
+   }
+   if (comportamentales.length < 3) {
+    toast.error('Debe seleccionar al menos 3 competencias comportamentales.')
+    return
+   }
+   if (comportamentales.length > 5) {
+    toast.error('Máximo 5 competencias comportamentales.')
+    return
+   }
+   if (totalPeso !== 100) {
+    toast.error('La suma de los pesos de los compromisos funcionales debe ser igual a 100.')
+    return
+   }
+   if (!evaluacionId) {
+    toast.error('No se encontró una evaluación activa para su usuario.')
+    return
+   }
 
-  setGuardando(true)
-  try {
-   for (const f of funcionales) {
-    if (f.id) {
-     await api.put(`/compromisos/${f.id}`, {
-      descripcion: f.descripcion, resultado_esperado: f.resultado_esperado,
-      medio_verificacion: f.medio_verificacion, peso: f.peso, tipo: 'funcional'
-     })
-    } else {
-     await api.post('/compromisos/funcional', {
-      evaluacion_id: evaluacionId, descripcion: f.descripcion,
-      resultado_esperado: f.resultado_esperado, medio_verificacion: f.medio_verificacion,
-      peso: f.peso, es_propuesto_evaluado: true
+   setGuardando(true)
+   try {
+    for (const f of funcionales) {
+     if (f.id) {
+      await api.put(`/compromisos/${f.id}`, {
+       descripcion: f.descripcion, resultado_esperado: f.resultado_esperado,
+       medio_verificacion: f.medio_verificacion, peso: f.peso, tipo: 'funcional'
+      })
+     } else {
+      await api.post('/compromisos/funcional', {
+       evaluacion_id: evaluacionId, descripcion: f.descripcion,
+       resultado_esperado: f.resultado_esperado, medio_verificacion: f.medio_verificacion,
+       peso: f.peso, es_propuesto_evaluado: true
+      })
+     }
+    }
+
+    for (const c of comportamentales) {
+     if (c.id) continue
+     await api.post('/compromisos/comportamental', {
+      evaluacion_id: evaluacionId, competencia_id: c.competencia_id,
+      compromiso_competencia: c.competencia_nombre,
+      es_propuesto_jefe: c.es_propuesto_jefe, es_propuesto_evaluado: true
      })
     }
-   }
 
-   for (const c of comportamentales) {
-    if (c.id) continue
-    await api.post('/compromisos/comportamental', {
-     evaluacion_id: evaluacionId, competencia_id: c.competencia_id,
-     compromiso_competencia: c.competencia_nombre,
-     es_propuesto_jefe: c.es_propuesto_jefe, es_propuesto_evaluado: true
-    })
+    toast.success('Propuesta de compromisos enviada correctamente.')
+    buscarMiEvaluacion()
+   } catch (e: any) {
+    toast.error(e instanceof Error ? e.message : 'Error al guardar la propuesta')
    }
-
-   toast.success('Propuesta de compromisos enviada correctamente.')
-   buscarMiEvaluacion()
-  } catch (e: any) {
-   toast.error(e instanceof Error ? e.message : 'Error al guardar la propuesta')
-  }
-  setGuardando(false)
+   setGuardando(false)
  }
 
  const competenciasDisponibles = competencias.filter(
@@ -209,7 +217,7 @@ export default function ProponerCompromisos() {
      </button>
     </div>
     {funcionales.length === 0 ? (
-     <p className="text-sm text-inst-texto-claro">No hay compromisos funcionales. Agregue al menos 1.</p>
+     <p className="text-sm text-inst-texto-claro">No hay compromisos funcionales. Agregue entre 1 y 5.</p>
     ) : (
      <div className="space-y-4">
       {funcionales.map((f, idx) => (
@@ -243,7 +251,7 @@ export default function ProponerCompromisos() {
         </div>
        </div>
       ))}
-      <div className={`text-sm font-medium ${totalPeso === 100 ? 'text-inst-verde' : 'text-inst-rojo'}`}>
+      <div className={`text-sm font-medium ${totalPeso === 100 ? 'text-inst-azul-osc' : 'text-inst-rojo'}`}>
        Total pesos: {totalPeso}% {totalPeso !== 100 && '(debe sumar 100%)'}
       </div>
      </div>

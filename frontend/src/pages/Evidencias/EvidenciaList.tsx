@@ -21,7 +21,6 @@ interface Evidencia {
  ubicacion: string | null
  observacion: string | null
  tipo: string
- estado: string
  registrado_por: number
  registrado_nombre?: string
  creado_en: string
@@ -30,12 +29,13 @@ interface Evidencia {
 interface Evaluado {
  id: number
  documento: string
- nombres: string
- apellidos: string
- cargo: string
+ primer_nombre: string
+ primer_apellido: string
+ denominacion_empleo: string
  dependencia: string
  evaluador_nombre: string
  evaluacion_id?: number
+ concertacion_id?: number
 }
 
 export default function EvidenciaList() {
@@ -117,11 +117,12 @@ export default function EvidenciaList() {
  }
  setGuardando(true)
  try {
- const compromisoSel = compromisos.find(c => c.descripcion === formCompromiso || c.compromiso_competencia === formCompromiso)
- await api.post('/evidencias', {
- concertacion_id: evaluado?.evaluacion_id || 0,
- compromiso_id: compromisoSel?.id || null,
- compromiso_competencia: formCompromiso,
+  const compromisoSel = compromisos.find(c => c.descripcion === formCompromiso || c.compromiso_competencia === formCompromiso)
+  const concertacionId = evaluado?.concertacion_id || evaluado?.evaluacion_id || 0
+  await api.post('/evidencias', {
+   periodo_id: periodoId || undefined,
+   compromiso_id: compromisoSel?.id || null,
+   compromiso_competencia: formCompromiso,
  descripcion: formDescripcion.trim(),
  ubicacion: formUbicacion.trim() || null,
  observacion: formObservacion.trim() || null,
@@ -202,7 +203,7 @@ export default function EvidenciaList() {
  <Tooltip content="Editar evidencia">
  <button
  onClick={() => setEditando({ ...ev })}
- className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul-osc hover:text-inst-verde"
+ className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul-osc hover:text-inst-azul-osc"
  aria-label="Editar evidencia"
  >
  <span className="material-icons text-lg">edit</span>
@@ -275,11 +276,11 @@ export default function EvidenciaList() {
  <Card className="border-l-4 border-l-inst-azul-osc">
  <div className="flex items-center gap-2 mb-3">
  <span className="material-icons text-inst-azul-osc text-xl">account_circle</span>
- <span className="font-heading font-bold text-inst-texto">{evaluado.nombres} {evaluado.apellidos}</span>
+  <span className="font-heading font-bold text-inst-texto">{evaluado.primer_nombre} {evaluado.primer_apellido}</span>
  <Badge tone="info">{evaluado.documento}</Badge>
  </div>
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
- <div><span className="text-inst-texto-claro">Cargo:</span> <span className="font-medium">{evaluado.cargo}</span></div>
+  <div><span className="text-inst-texto-claro">Cargo:</span> <span className="font-medium">{evaluado.denominacion_empleo}</span></div>
  <div><span className="text-inst-texto-claro">Dependencia:</span> <span className="font-medium">{evaluado.dependencia}</span></div>
  <div><span className="text-inst-texto-claro">Evaluador:</span> <span className="font-medium">{evaluado.evaluador_nombre}</span></div>
  <div><span className="text-inst-texto-claro">Compromisos:</span> <span className="font-medium">{compromisos.length}</span></div>

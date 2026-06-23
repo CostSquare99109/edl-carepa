@@ -200,7 +200,7 @@ export default function Perfil() {
  <div>
  <h1 className="text-2xl font-heading font-bold text-inst-azul-osc">{nombreCompleto}</h1>
  <p className="text-sm text-inst-texto-claro">
- {perfil.usuario.cargo || 'Sin cargo asignado'} · Documento {perfil.usuario.documento}
+  {perfil.usuario.denominacion_empleo || perfil.usuario.cargo || 'Sin cargo asignado'} · Documento {perfil.usuario.documento}
  </p>
  <div className="flex gap-1.5 mt-2 flex-wrap">
  {perfil.roles.map(r => (
@@ -261,14 +261,10 @@ export default function Perfil() {
  Datos laborales
  </h3>
  <dl className="space-y-2 text-sm">
- <div>
- <dt className="text-xs text-inst-texto-claro uppercase tracking-wide">Cargo</dt>
- <dd className="font-medium text-inst-texto">{perfil.usuario.cargo || '—'}</dd>
- </div>
- <div>
- <dt className="text-xs text-inst-texto-claro uppercase tracking-wide">Denominación del empleo</dt>
- <dd className="font-medium text-inst-texto">{perfil.usuario.denominacion_empleo || '—'}</dd>
- </div>
+  <div>
+  <dt className="text-xs text-inst-texto-claro uppercase tracking-wide">Denominación del empleo</dt>
+  <dd className="font-medium text-inst-texto">{perfil.usuario.denominacion_empleo || perfil.usuario.cargo || '—'}</dd>
+  </div>
  <div>
  <dt className="text-xs text-inst-texto-claro uppercase tracking-wide">Nivel</dt>
  <dd className="font-medium text-inst-texto">

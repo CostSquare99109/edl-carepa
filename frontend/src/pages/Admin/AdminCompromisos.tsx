@@ -45,7 +45,7 @@ const ESTADO_LABELS: Record<string, string> = {
 
 const TIPO_COLORS: Record<string, string> = {
  funcional: 'bg-inst-azul/10 text-inst-azul',
- comportamental: 'bg-inst-verde/10 text-inst-verde',
+ comportamental: 'bg-inst-azul-osc/10 text-inst-azul-osc',
 }
 
 const TIPO_LABELS: Record<string, string> = {

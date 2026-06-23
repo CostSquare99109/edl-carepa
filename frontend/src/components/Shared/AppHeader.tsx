@@ -123,7 +123,7 @@ export default function AppHeader() {
  }, []);
 
  const nombreCompleto = usuario
- ? `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim()
+ ? `${usuario.primer_nombre || ''} ${usuario.primer_apellido || ''}`.trim() || usuario.nombre_completo || 'Usuario'
  : 'Usuario';
 
  return (
@@ -197,7 +197,7 @@ export default function AppHeader() {
  onClick={() => irAResultado(r)}
  onMouseEnter={() => setSeleccion(i)}
  className={`w-full text-left px-4 py-2 text-sm ${
- i === seleccion ? 'bg-inst-verde-light text-inst-verde' : 'hover:bg-inst-gris-med'
+ i === seleccion ? 'bg-inst-azul-osc-light text-inst-azul-osc' : 'hover:bg-inst-gris-med'
  }`}
  >
  <div className="font-medium">{r.label}</div>

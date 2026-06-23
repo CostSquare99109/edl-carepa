@@ -53,4 +53,24 @@ class DependenciaController
         $this->service->eliminar($id);
         ResponseHelper::success(null, 'Dependencia eliminada');
     }
+
+    /**
+     * Cambia el estado (activa/inactiva) de una dependencia.
+     *
+     * Body esperado: { "estado": "activa" | "inactiva" }
+     *
+     * Restriccion CNSC: solo se permite inactivar si no hay usuarios
+     * activos asociados. Devuelve HTTP 422 si se intenta con usuarios.
+     */
+    public function cambiarEstado(int $id): void
+    {
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $input = SanitizerHelper::sanitizeArray($input);
+
+        if (!isset($input['estado']) || !is_string($input['estado'])) {
+            \App\Helper\ResponseHelper::error('El campo "estado" es obligatorio.', 422);
+        }
+
+        $this->service->cambiarEstado($id, $input['estado']);
+    }
 }

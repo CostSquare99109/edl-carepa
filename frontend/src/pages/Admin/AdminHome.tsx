@@ -194,7 +194,7 @@ export default function AdminHome() {
             {stats.progreso_dependencias.map((dep, i) => {
               const tone: Tone = dep.progreso >= 75 ? 'success' : dep.progreso >= 50 ? 'warning' : 'danger';
               const barColor =
-                tone === 'success' ? 'bg-inst-verde' : tone === 'warning' ? 'bg-amber-500' : 'bg-inst-rojo';
+                tone === 'success' ? 'bg-inst-azul-osc' : tone === 'warning' ? 'bg-amber-500' : 'bg-inst-rojo';
               return (
                 <div key={i}>
                   <div className="flex items-center justify-between text-sm mb-1">

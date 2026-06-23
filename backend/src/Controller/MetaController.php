@@ -46,6 +46,12 @@ class MetaController
         ResponseHelper::success(null, 'Meta actualizada');
     }
 
+    public function eliminar(int $id): void
+    {
+        $this->service->eliminar($id);
+        ResponseHelper::success(null, 'Meta eliminada');
+    }
+
     public function evidencias(int $id): void
     {
         $evidencias = $this->service->evidencias($id);

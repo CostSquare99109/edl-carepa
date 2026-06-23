@@ -5,6 +5,64 @@
 
 ---
 
+## [1.3.0] — 2026-06-22
+
+### 📚 Nuevos documentos técnicos
+
+- **`16-glosario-cnsc.md`** — Glosario consolidado A-Z de todos los términos CNSC extraídos de las 25 transcripciones.
+- **`17-endpoints-api.md`** — Referencia completa de los 138 endpoints REST del backend, organizados por módulo.
+- **`18-arquitectura.md`** — Documentación arquitectónica del sistema: stack, capas, middleware, seguridad, ADRs.
+
+### 🔍 Re-auditoría v1.1 de hallazgos (AUDITORIA-DIRIGIDA)
+
+Se verificaron manualmente los 3 hallazgos de la auditoría v1.0:
+
+| # | Hallazgo | Estado v1.0 | Verificación v1.1 | Corrección |
+|---|---|---|---|---|
+| A3 | `cambiarEstado()` en Dependencias | ❌ Pendiente | ✅ **Ya implementado** (FASE 4) | Se corrigió el reporte — era falso positivo |
+| M4 | `mensajesCNSC.ts` norma derogada | ❌ Pendiente | ✅ **Ya actualizado** (Acuerdo 617/2018) | Se corrigió el reporte — era falso positivo |
+| P2 | Ruteo `/evaluaciones/pendientes-calificar` | ✅ Resuelto | ❌ **Sí estaba roto** | Corregido: movida ruta fija antes de `{id}` |
+
+### 🔧 Bug P2 corregido (confirmado real)
+
+Archivo modificado:
+- `backend/public/index.php` — la ruta `GET /evaluaciones/pendientes-calificar` (ahora línea 108) se movió **antes** de las rutas con parámetro `{id}` (líneas 109-114) para evitar que `pendientes-calificar` sea capturado como un ID.
+
+### 🧹 Borrado confirmado de archivos `docs/`
+
+Los 3 archivos `docs/*.md` (INFORME_TECNICO_ANALISIS_CNSC.md, REDISENO_UX_UI_AUDITORIA.md, CONTROLLERS_DOCUMENTACION.md) que estaban borrados del filesystem pero rastreados por git fueron confirmados como borrados en commit dedicado. Cero referencias rotas en el resto del proyecto.
+
+### 📊 Resumen de estado actual
+
+| Hallazgo | Estado anterior | Estado actual |
+|---|---|---|
+| Brecha B13 / Gap A3 — cambiarEstado dependencias | ❌ Pendiente | ✅ **Resuelto** |
+| M4 — mensajesCNSC.ts cita Resolución 1760/2010 | ⚠️ Pendiente | ✅ **Resuelto** |
+| 3 archivos `docs/` deleted | ⚠️ Sin commitear | ✅ **Commiteado** |
+
+---
+
+## [1.3.0] — 2026-06-22
+
+### 📚 Nuevos documentos técnicos
+
+- **`16-glosario-cnsc.md`** — Glosario consolidado A-Z de todos los términos CNSC extraídos de las 25 transcripciones, con referencias a los documentos fuente (01-15).
+- **`17-endpoints-api.md`** — Referencia completa de los 138 endpoints REST del backend, organizados por módulo, con métodos, permisos y descripciones. Incluye tabla de permisos RBAC.
+- **`18-arquitectura.md`** — Documentación arquitectónica del sistema: stack tecnológico, capas (Controller→Service→Repository), middleware, modelo de datos, seguridad, ADRs, diagrama de despliegue.
+
+### 🔧 Correcciones técnicas verificadas
+
+- **Re-auditoría v1.1 de `AUDITORIA-DIRIGIDA-2026-06-22.md`:** se verificaron manualmente los 3 hallazgos pendientes de la v1.0:
+  1. **A3 (cambiarEstado)** — falso positivo. **YA** implementado desde la FASE 4.
+  2. **M4 (mensajesCNSC.ts)** — falso positivo. **YA** actualizado al Acuerdo 617/2018.
+  3. **P2 (ruteo pendientes-calificar)** — error real encontrado y **corregido** moviendo la ruta fija antes de la paramétrica en `backend/public/index.php`.
+
+### 🗂️ Reorganización
+
+- Limpiados archivos auxiliares de `transcripciones_cnsc/` (scripts Python, archivos de grupo, temporales).
+
+---
+
 ## [1.2.0] — 2026-06-22
 
 ### 🎯 Decisiones de producto D1-D9

@@ -40,7 +40,7 @@ class MetaRepository extends BaseRepository
 
     public function evidenciasPorMeta(int $metaId): array
     {
-        $stmt = $this->pdo->prepare("SELECT e.*, TRIM(CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido)) as registrado_por_nombre FROM evidencias e INNER JOIN usuarios u ON u.id = e.registrado_por WHERE e.meta_id = ? AND e.eliminado_en IS NULL ORDER BY e.id DESC");
+        $stmt = $this->pdo->prepare("SELECT e.*, TRIM(CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido)) as registrado_por_nombre FROM evidencias e INNER JOIN usuarios u ON u.id = e.registrado_por INNER JOIN compromisos c ON c.id = e.compromiso_id AND c.meta_id = ? WHERE e.eliminado_en IS NULL ORDER BY e.id DESC");
         $stmt->execute([$metaId]);
         return $stmt->fetchAll();
     }

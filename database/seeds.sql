@@ -164,9 +164,9 @@ INSERT INTO `periodos` (`id`, `nombre`, `anio`, `fecha_inicio`, `fecha_fin`, `es
 -- ============================================================================
 -- METAS INSTITUCIONALES
 -- ============================================================================
-INSERT INTO `metas` (`id`, `periodo_id`, `dependencia_id`, `descripcion`) VALUES
-(1, 1, 2, 'Implementar el sistema de evaluacion del desempeño laboral en la entidad'),
-(2, 1, 3, 'Formular y actualizar el plan de desarrollo del municipio'),
-(3, 1, 4, 'Mejorar los indicadores de calidad educativa en las instituciones del municipio'),
-(4, 1, 1, 'Fortalecer la gestion administrativa y financiera de la alcaldia'),
-(5, 1, 5, 'Modernizar los procesos y servicios digitales de la entidad');
+INSERT INTO `metas` (`id`, `periodo_id`, `dependencia_id`, `tipo`, `descripcion`) VALUES
+(1, 1, 2, 'cuantitativa', 'Implementar el sistema de evaluación del desempeño laboral en la entidad'),
+(2, 1, 3, 'cuantitativa', 'Formular y actualizar el plan de desarrollo del municipio'),
+(3, 1, 4, 'cuantitativa', 'Mejorar los indicadores de calidad educativa en las instituciones del municipio'),
+(4, 1, 1, 'cuantitativa', 'Fortalecer la gestión administrativa y financiera de la alcaldía'),
+(5, 1, 5, 'cuantitativa', 'Modernizar los procesos y servicios digitales de la entidad');

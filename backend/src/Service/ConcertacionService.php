@@ -69,40 +69,51 @@ class ConcertacionService
  ResponseHelper::forbidden('Solo administradores o evaluadores pueden crear concertaciones');
  }
 
- $metaId = $datos['meta_id'] ?? null;
- $funcionarioId = $datos['funcionario_id'] ?? $datos['evaluado_id'] ?? null;
- $evaluadorId = $datos['evaluador_id'] ?? $user['id'];
+  $periodoId = $datos['periodo_id'] ?? null;
+  $evaluadoId = $datos['evaluado_id'] ?? null;
+  $evaluadorId = $datos['evaluador_id'] ?? $user['id'];
+  $tipoConcertacion = $datos['tipo_concertacion'] ?? 'concertacion_bilateral';
 
- if (!$metaId || !$funcionarioId) {
- ResponseHelper::error('meta_id y funcionario_id son requeridos', 422);
- }
+  if (!$periodoId || !$evaluadoId) {
+   ResponseHelper::error('periodo_id y evaluado_id son requeridos', 422);
+  }
 
- $evaluado = $this->usuarioRepo->buscarPorId((int) $funcionarioId);
- if ($evaluado && !empty($evaluado['periodo_prueba']) && (bool) $evaluado['periodo_prueba']) {
- $fechaInicio = $evaluado['fecha_vinculacion'] ?? $evaluado['creado_en'] ?? null;
- if ($fechaInicio) {
- $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
- if ($dias <= 120) {
- ResponseHelper::error('El funcionario se encuentra en periodo de prueba (menos de 4 meses). No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
- }
- }
- }
+  $evaluado = $this->usuarioRepo->buscarPorId((int) $evaluadoId);
+  if ($evaluado && !empty($evaluado['en_periodo_prueba']) && (bool) $evaluado['en_periodo_prueba']) {
+   $fechaInicio = $evaluado['fecha_posesion'] ?? $evaluado['creado_en'] ?? null;
+   if ($fechaInicio) {
+    $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
+    if ($dias <= 120) {
+     ResponseHelper::error('El funcionario se encuentra en periodo de prueba (menos de 4 meses). No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
+    }
+   }
+  }
 
- $estado = $datos['estado'] ?? 'pendiente';
- $estadosValidos = ['pendiente', 'concertada', 'no_concertada', 'revisada', 'aprobada'];
- if (!in_array($estado, $estadosValidos)) {
- $estado = 'pendiente';
- }
+  $estado = $datos['estado'] ?? 'pendiente';
+  $estadosValidos = ['pendiente', 'concertada', 'propuesta_evaluado', 'aprobada_evaluado', 'rechazada_evaluado', 'fijada'];
+  if (!in_array($estado, $estadosValidos)) {
+   $estado = 'pendiente';
+  }
 
- $crearDatos = [
- 'meta_id' => $metaId,
- 'evaluador_id' => $evaluadorId,
- 'funcionario_id' => $funcionarioId,
- 'estado' => $estado,
- 'observaciones' => $datos['observaciones'] ?? null,
+  $tiposConcertacionValidos = ['concertacion_bilateral', 'fijados_evaluador'];
+  if (!in_array($tipoConcertacion, $tiposConcertacionValidos)) {
+   $tipoConcertacion = 'concertacion_bilateral';
+  }
+
+  $crearDatos = [
+   'periodo_id' => $periodoId,
+   'evaluador_id' => $evaluadorId,
+   'evaluado_id' => $evaluadoId,
+   'tipo_concertacion' => $tipoConcertacion,
+   'estado' => $estado,
+   'observaciones' => $datos['observaciones'] ?? null,
  ];
 
- $id = $this->concertacionRepo->crear($crearDatos);
+  $id = $this->concertacionRepo->crear($crearDatos);
+
+  $pdo = Database::getInstance();
+  $stmt = $pdo->prepare("UPDATE evaluaciones SET concertacion_id = ? WHERE evaluado_id = ? AND periodo_id = ? AND concertacion_id IS NULL AND eliminado_en IS NULL LIMIT 1");
+  $stmt->execute([$id, $evaluadoId, $periodoId]);
 
  AuditoriaService::registrar('crear_concertacion', 'concertaciones', $id);
 

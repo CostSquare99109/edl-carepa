@@ -168,7 +168,7 @@ export default function CargaUsuarios() {
      }}
      className={[
       'flex flex-col items-center justify-center w-full px-4 py-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
-      arrastrando ? 'border-inst-verde bg-inst-verde-light/30' : 'border-inst-borde hover:border-inst-verde hover:bg-inst-gris/50',
+      arrastrando ? 'border-inst-azul-osc bg-inst-azul-osc-light/30' : 'border-inst-borde hover:border-inst-azul-osc hover:bg-inst-gris/50',
      ].join(' ')}
     >
      <span className="material-icons text-4xl text-inst-texto-claro mb-2">cloud_upload</span>
