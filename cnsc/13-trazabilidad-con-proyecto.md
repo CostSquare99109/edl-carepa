@@ -6,14 +6,15 @@
 
 ---
 
-## ⚠️ Aclaración importante (corregida en esta versión)
+## ⚠️ Aclaración importante
 
-En una primera pasada se referenciaron tres documentos (`INFORME_TECNICO_ANALISIS_CNSC.md`, `REDISENO_UX_UI_AUDITORIA.md`, `CONTROLLERS_DOCUMENTACION.md`) que **no existen físicamente** en el proyecto. El único documento de auditoría previo verificable es `FASE3_GAPS.md`.
+En una primera pasada se referenciaron tres documentos previos (`INFORME_TECNICO_ANALISIS_CNSC.md`, `REDISENO_UX_UI_AUDITORIA.md`, `CONTROLLERS_DOCUMENTACION.md`) como si fueran el cuerpo principal de auditoría del proyecto. La auditoría posterior (ver `AUDITORIA-DIRIGIDA-2026-06-22.md` §3.5) descubrió que estos 3 archivos **estaban borrados del working tree pero seguían rastreados por git** (sin commit del borrado). El único documento de auditoría previo **verificable en el working tree** es `FASE3_GAPS.md`.
 
 Este documento, corregido, mapea contra:
 - `../FASE3_GAPS.md` (raíz del proyecto) — gaps documentados.
 - `../README.md` (raíz del proyecto) — descripción general.
-- **Inventario real** de archivos en `../backend/src/`, `../frontend/src/`, `../database/`.
+- **Inventario real verificado** de archivos en `../backend/src/`, `../frontend/src/`, `../database/`.
+- **Auditoría dirigida** documentada en `AUDITORIA-DIRIGIDA-2026-06-22.md`.
 
 ---
 

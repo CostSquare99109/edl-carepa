@@ -41,7 +41,7 @@ Derivados del espíritu de las transcripciones CNSC:
 
 | # | Cambio | Esfuerzo | Prioridad | Trazabilidad |
 |---|---|---|---|---|
-| 0.1 | Corregir `Database.php`: `\Pdo\Mysql::ATTR_FOUND_ROWS` → `PDO::MYSQL_ATTR_FOUND_ROWS` | 5 min | 🔴 Crítica | Bug P1 — `INFORME_TECNICO_ANALISIS_CNSC.md` |
+| 0.1 | Corregir `Database.php`: `\Pdo\Mysql::ATTR_FOUND_ROWS` → `PDO::MYSQL_ATTR_FOUND_ROWS` | 5 min | 🔴 Crítica | Bug P1 — `FASE3_GAPS.md` |
 | 0.2 | Corregir conflicto de rutas: registrar `/evaluaciones/pendientes-calificar` ANTES de `/evaluaciones/{id}` | 10 min | 🔴 Crítica | Bug P2 |
 | 0.3 | Completar modelos `Evaluacion.php` y `Compromiso.php` con propiedades faltantes | 30 min | 🔴 Crítica | Bug P3 |
 | 0.4 | Unificar variable JWT: `JWT_EXPIRATION` → `JWT_EXPIRACION_MINUTOS` | 10 min | 🔴 Crítica | Bug P4 |
@@ -127,15 +127,15 @@ Derivados del espíritu de las transcripciones CNSC:
 
 | # | Cambio | Esfuerzo | Prioridad | Trazabilidad |
 |---|---|---|---|---|
-| 4.1 | Implementar Design System base (tokens, componentes primitivos) | 16h | 🟡 Alta | `REDISENO_UX_UI_AUDITORIA.md` §10 |
+| 4.1 | Implementar Design System base (tokens, componentes primitivos) | 16h | 🟡 Alta | `REDISENO_UX_UI_AUDITORIA.md` (borrado, consultar git HEAD) §10 |
 | 4.2 | Crear 26 componentes UI primitivos | 24h | 🟡 Alta | Mismo |
 | 4.3 | Rediseñar AdminHome, EvaluadorHome, EvaluadoHome, ComisionHome | 24h | 🟡 Alta | Mismo §7-9 |
 | 4.4 | Implementar microinteracciones (skeletons, toasts, animaciones) | 12h | 🟢 Media | Mismo §15 |
 | 4.5 | Accesibilidad WCAG 2.1 nivel AA (ARIA, foco, contraste) | 16h | 🟡 Alta | Mismo §12 |
 | 4.6 | Refactor responsive (mobile-first en DataTable, formularios) | 16h | 🟡 Alta | Mismo §13 |
 | 4.7 | Quick Wins (QW-1 a QW-10) | 32h | 🟢 Media | Mismo §16 |
-| 4.8 | Estandarizar mensajes del sistema con literales CNSC | 4h | 🟢 Media | `INFORME_TECNICO_ANALISIS_CNSC.md` §M4 |
-| 4.9 | Implementar refresh token JWT y aviso previo a expiración | 4h | 🟢 Media | `INFORME_TECNICO_ANALISIS_CNSC.md` FASE 4 |
+| 4.8 | Estandarizar mensajes del sistema con literales CNSC | 4h | 🟢 Media | `FASE3_GAPS.md` §M4 |
+| 4.9 | Implementar refresh token JWT y aviso previo a expiración | 4h | 🟢 Media | `FASE3_GAPS.md` FASE 4 |
 | 4.10 | Reemplazar `window.location.href` por React Router en 401 | 2h | 🟢 Media | Mismo |
 | 4.11 | Eliminar colores hardcoded, usar tokens institucionales | 4h | 🟢 Media | Mismo |
 | 4.12 | Unificar modelo de roles (RoleSelector / AdminUsuarios / ProtectedRoute) | 4h | 🟢 Media | Mismo |
@@ -150,7 +150,7 @@ Derivados del espíritu de las transcripciones CNSC:
 
 | # | Cambio | Esfuerzo | Prioridad | Trazabilidad |
 |---|---|---|---|---|
-| 5.1 | Autocompletado de evaluado por documento (cascada con dependencia) | 8h | 🟢 Media | `REDISENO_UX_UI_AUDITORIA.md` §14 |
+| 5.1 | Autocompletado de evaluado por documento (cascada con dependencia) | 8h | 🟢 Media | `REDISENO_UX_UI_AUDITORIA.md` (borrado, consultar git HEAD) §14 |
 | 5.2 | Plantillas de compromisos por nivel (Directivo, Asesor, etc.) | 8h | 🟢 Media | Mismo |
 | 5.3 | Acciones masivas en tablas (aprobar varias evaluaciones, etc.) | 12h | 🟢 Media | Mismo |
 | 5.4 | Atajos de teclado (`g+e`, `g+c`, `n`, `/`, `?`) | 8h | 🟢 Baja | Mismo |
@@ -159,7 +159,7 @@ Derivados del espíritu de las transcripciones CNSC:
 | 5.7 | Detección de cuellos de botella (ej. "12 evaluaciones sin iniciar, 8 días restantes") | 8h | 🟢 Media | Mismo |
 | 5.8 | Recordatorios automáticos a evaluadores (3 días antes del vencimiento) | 8h | 🟢 Media | Mismo |
 | 5.9 | Wizard de primera evaluación guiado | 8h | 🟢 Media | `Tutorial_para_la_realización_de_la_primera_evaluación_parcia.md` |
-| 5.10 | Búsqueda global en el header | 12h | 🟢 Media | `REDISENO_UX_UI_AUDITORIA.md` |
+| 5.10 | Búsqueda global en el header | 12h | 🟢 Media | `REDISENO_UX_UI_AUDITORIA.md` (borrado, consultar git HEAD) |
 
 **Entregable FASE 5:** sistema con productividad comparable a SaaS modernos.
 
@@ -171,11 +171,11 @@ Derivados del espíritu de las transcripciones CNSC:
 
 | # | Cambio | Esfuerzo | Prioridad | Trazabilidad |
 |---|---|---|---|---|
-| 6.1 | Tests E2E con Playwright de flujos críticos | 24h | 🟡 Alta | `REDISENO_UX_UI_AUDITORIA.md` Anexo A |
+| 6.1 | Tests E2E con Playwright de flujos críticos | 24h | 🟡 Alta | `REDISENO_UX_UI_AUDITORIA.md` (borrado, consultar git HEAD) Anexo A |
 | 6.2 | Tests unitarios con Vitest + RTL para primitivos | 16h | 🟢 Media | Mismo |
 | 6.3 | Tests de accesibilidad con axe-core en CI | 8h | 🟢 Media | Mismo |
 | 6.4 | Logging estructurado (JSON) + correlación por request | 8h | 🟢 Media | Buenas prácticas |
-| 6.5 | Métricas de uso (eventos básicos sin PII) | 12h | 🟢 Baja | `REDISENO_UX_UI_AUDITORIA.md` §22 |
+| 6.5 | Métricas de uso (eventos básicos sin PII) | 12h | 🟢 Baja | `REDISENO_UX_UI_AUDITORIA.md` (borrado, consultar git HEAD) §22 |
 | 6.6 | Soporte multi-año (consultar histórico de períodos anteriores) | 16h | 🟢 Baja | Madurez |
 | 6.7 | Soporte multi-entidad (si Carepa lo requiere) | 40h | 🟢 Baja | Madurez |
 | 6.8 | Integración con SUIT (Sistema Único de Información de Trámites) | 40h | ⚪ Futura | Alineación nacional |

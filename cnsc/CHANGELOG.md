@@ -44,7 +44,7 @@ Los archivos `docs/INFORME_TECNICO_ANALISIS_CNSC.md`, `docs/REDISENO_UX_UI_AUDIT
 
 ### 🔧 Corrección crítica en `13-trazabilidad-con-proyecto.md`
 
-**Problema detectado:** durante la primera pasada, el documento referenciaba tres archivos previos (`INFORME_TECNICO_ANALISIS_CNSC.md`, `REDISENO_UX_UI_AUDITORIA.md`, `CONTROLLERS_DOCUMENTACION.md`) que **no existen físicamente** en el proyecto. El único documento de auditoría previo verificable es `FASE3_GAPS.md`.
+**Problema detectado:** durante la primera pasada, el documento referenciaba tres archivos previos (`INFORME_TECNICO_ANALISIS_CNSC.md`, `REDISENO_UX_UI_AUDITORIA.md`, `CONTROLLERS_DOCUMENTACION.md`). El único documento de auditoría previo verificable en el working tree es `FASE3_GAPS.md`. La auditoría posterior descubrió que esos 3 archivos estaban borrados del filesystem pero seguían en git (sin commit del borrado).
 
 Además, varios archivos marcados como "faltantes" en el documento original **ya existen** en el proyecto (gracias a trabajo previo del equipo de desarrollo):
 
@@ -111,7 +111,7 @@ Además, varios archivos marcados como "faltantes" en el documento original **ya
 |---|---|
 | **Mover, renombrar o eliminar transcripciones originales** | Las transcripciones son evidencia primaria. Esta carpeta las referencia, no las reemplaza. |
 | **Modificar archivos del proyecto** (`backend/`, `frontend/`, `database/`, `test_*.py`) | Esta carpeta es **documentación**, no código. Los cambios de código van en PRs separados, validados por el equipo. |
-| **Sobreescribir `INFORME_TECNICO_ANALISIS_CNSC.md`, `FASE3_GAPS.md`, `REDISENO_UX_UI_AUDITORIA.md`** | Estos documentos ya contienen análisis valiosos. `13-trazabilidad-con-proyecto.md` los referencia y los complementa con timestamp literal de cada transcripción. |
+| **Sobreescribir `FASE3_GAPS.md`** | Este documento ya contiene análisis valioso. `13-trazabilidad-con-proyecto.md` lo referencia y lo complementa con timestamp literal de cada transcripción. |
 | **Implementar código** (páginas faltantes, endpoints, migraciones) | Eso es trabajo de Fase 0-3 (ver `14-futuro-del-proyecto.md`). Esta carpeta solo documenta. |
 | **Tomar decisiones de producto** (D1-D9 en `14-futuro-del-proyecto.md`) | Esas decisiones requieren validación del director. |
 | **Comprometer** cambios a git | No se solicitó. La carpeta es nueva y debe ser revisada antes de commitear. |
