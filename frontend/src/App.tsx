@@ -40,7 +40,6 @@ import AdminEvaluaciones from './pages/Admin/AdminEvaluaciones'
 import AdminReportes from './pages/Admin/AdminReportes'
 import AdminNotificaciones from './pages/Admin/AdminNotificaciones'
 import AdminConfiguracion from './pages/Admin/AdminConfiguracion'
-import AdminNuevaDependencia from './pages/Admin/AdminNuevaDependencia'
 import Perfil from './pages/Perfil'
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
@@ -81,7 +80,6 @@ export default function App() {
     <Route path="admin-reportes" element={<AdminReportes />} />
     <Route path="notificaciones" element={<AdminNotificaciones />} />
     <Route path="configuracion" element={<AdminConfiguracion />} />
-    <Route path="admin-nueva-dependencia" element={<ProtectedRoute allowedRoles={["admin_carepa"]}><AdminNuevaDependencia /></ProtectedRoute>} />
     <Route path="consulta-funcionario" element={<ConsultaFuncionario />} />
     <Route path="compromisos-y-competencias" element={<CompromisosYCompetencias />} />
     <Route path="compromisos/mios" element={<MisCompromisos />} />

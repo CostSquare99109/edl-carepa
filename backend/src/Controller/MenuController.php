@@ -38,14 +38,8 @@ class MenuController
     'ruta' => '/',
     'permisos' => ['dashboard.ver'],
    ],
-   [
-    'label' => 'Nueva Dependencia con Jefe',
-    'icon' => 'business',
-    'ruta' => '/admin-nueva-dependencia',
-    'permisos' => ['entidades.crear', 'entidades.listar'],
-   ],
-   [
-    'label' => 'Usuarios',
+    [
+     'label' => 'Usuarios',
     'icon' => 'people',
     'ruta' => '/admin-usuarios',
     'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],

@@ -48,8 +48,6 @@ const ICON_MAP: Record<string, string> = {
   admin_dependencias: 'account_tree',
   admin_compromisos: 'task_alt',
   admin_evaluaciones: 'assessment',
-  admin_nueva_dependencia: 'business',
-  'admin-nueva-dependencia': 'business',
 };
 
 const LABEL_MAP: Record<string, string> = {
