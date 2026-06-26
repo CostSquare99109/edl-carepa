@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { Modal } from '../../components/ui/Modal';
 
 interface Evaluado {
  id: number;
@@ -111,8 +112,11 @@ export default function ConcertarCompromisos() {
  // Estado de la concertacion
  const [concertacionConfirmada, setConcertacionConfirmada] = useState(false);
 
- // Alerta inicial
- const [showAlerta, setShowAlerta] = useState(false);
+	// Alerta inicial
+	const [showAlerta, setShowAlerta] = useState(false);
+
+	// Modal confirmar concertacion
+	const [showConfirmModal, setShowConfirmModal] = useState(false);
 
  // Loading
  const [loading, setLoading] = useState(false);
@@ -455,13 +459,16 @@ setConcertacionConfirmada(true);
  return;
  }
 
- if (!confirm('Esta seguro de confirmar la concertacion? Una vez confirmada no podra editar los compromisos hasta que el evaluado acepte o rechace.')) return;
+	setShowConfirmModal(true);
+	}
 
- setSaving(true);
- setMensaje(null);
+	async function handleConfirmar() {
+	setSaving(true);
+	setMensaje(null);
+	setShowConfirmModal(false);
 
- try {
- // 1. Guardar compromisos funcionales
+	try {
+	// 1. Guardar compromisos funcionales
  for (const f of funcionales) {
  await api.post('/compromisos/funcional', {
  evaluacion_id: evaluado.evaluacion_id,
@@ -984,7 +991,21 @@ setConcertacionConfirmada(true);
  </div>
  )}
 
- {/* ===== MODAL: Compromisos propuestos por el evaluado ===== */}
+	{/* ===== MODAL: Confirmar concertacion ===== */}
+	<Modal open={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="Confirmar concertación" size="sm">
+	<p className="text-sm text-inst-texto">
+	Esta seguro de confirmar la concertacion? Una vez confirmada no podra editar los compromisos hasta que el evaluado acepte o rechace.
+	</p>
+	<div className="flex gap-3 justify-end mt-4">
+	<button onClick={handleConfirmar} disabled={saving} className="edl-btn-primary flex items-center gap-2">
+	<span className="material-icons text-lg">check_circle</span>
+	{saving ? 'Confirmando...' : 'Si, confirmar'}
+	</button>
+	<button onClick={() => setShowConfirmModal(false)} className="edl-btn-secondary">Cancelar</button>
+	</div>
+	</Modal>
+
+	{/* ===== MODAL: Compromisos propuestos por el evaluado ===== */}
  {showModalPropuestos && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
  <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
