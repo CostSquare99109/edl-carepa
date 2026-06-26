@@ -23,14 +23,16 @@ class CompromisoService
 
  public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
  {
- $user = AuthMiddleware::user();
- $rolActivo = AuthMiddleware::rolActivo();
+  $user = AuthMiddleware::user();
+  $rolActivo = AuthMiddleware::rolActivo();
 
- if ($rolActivo === 'evaluador') {
- $filtros['evaluador_id'] = $user['id'];
- }
+  if ($rolActivo === 'evaluador') {
+  $filtros['evaluador_id'] = $user['id'];
+  } elseif ($rolActivo === 'evaluado') {
+  $filtros['evaluado_id'] = $user['id'];
+  }
 
- return $this->compromisoRepo->listarConRelaciones($filtros, $pagina, $porPagina);
+  return $this->compromisoRepo->listarConRelaciones($filtros, $pagina, $porPagina);
  }
 
  public function crear(array $datos): int

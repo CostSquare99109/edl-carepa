@@ -293,10 +293,10 @@ export default function AdminUsuarios() {
     if (!editando && !form.password) return 'La contraseña es requerida para usuarios nuevos';
     if (!editando && form.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
     if (form.es_contratista === 0) {
-      if (!form.nivel) return 'El nivel es requerido para servidores (no contratistas)';
-      if (!form.naturaleza) return 'La naturaleza es requerida para servidores (no contratistas)';
-      if (!form.tipo_nombramiento) return 'El tipo de nombramiento es requerido';
-      if (!form.denominacion_empleo.trim()) return 'La denominación del empleo es requerida';
+      if (!form.nivel && !editando) return 'El nivel es requerido para servidores (no contratistas)';
+      if (!form.naturaleza && !editando) return 'La naturaleza es requerida para servidores (no contratistas)';
+      if (!form.tipo_nombramiento && !editando) return 'El tipo de nombramiento es requerido';
+      if (!form.denominacion_empleo.trim() && !editando) return 'La denominación del empleo es requerida';
       if (!form.dependencia_id) return 'La dependencia es requerida';
     }
     if (form.es_evaluador_y_evaluado === 1 && !form.dependencia_evaluacion_id) {

@@ -10,34 +10,48 @@ class CompromisoRepository extends BaseRepository
 
  public function listarConRelaciones(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
  {
- $conditions = ['c.eliminado_en IS NULL'];
- $params = [];
+  $joins = '';
+  $conditions = ['c.eliminado_en IS NULL'];
+  $params = [];
 
- if (!empty($filtros['tipo'])) { $conditions[] = "c.tipo = ?"; $params[] = $filtros['tipo']; }
- if (!empty($filtros['estado'])) { $conditions[] = "c.estado = ?"; $params[] = $filtros['estado']; }
+  if (!empty($filtros['tipo'])) { $conditions[] = "c.tipo = ?"; $params[] = $filtros['tipo']; }
+  if (!empty($filtros['estado'])) { $conditions[] = "c.estado = ?"; $params[] = $filtros['estado']; }
   if (!empty($filtros['concertacion_id'])) { $conditions[] = "c.concertacion_id = ?"; $params[] = $filtros['concertacion_id']; }
- if (!empty($filtros['competencia_codigo'])) { $conditions[] = "c.competencia_codigo = ?"; $params[] = $filtros['competencia_codigo']; }
+  if (!empty($filtros['competencia_codigo'])) { $conditions[] = "c.competencia_codigo = ?"; $params[] = $filtros['competencia_codigo']; }
 
- $where = implode(' AND ', $conditions);
- $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos c WHERE {$where}");
- $countStmt->execute($params);
- $total = (int) $countStmt->fetchColumn();
+  if (!empty($filtros['evaluador_id'])) {
+  $joins = "INNER JOIN concertaciones con ON con.id = c.concertacion_id";
+  $conditions[] = "con.evaluador_id = ?";
+  $params[] = $filtros['evaluador_id'];
+  }
+  if (!empty($filtros['evaluado_id'])) {
+  if (empty($joins)) $joins = "INNER JOIN concertaciones con ON con.id = c.concertacion_id";
+  $conditions[] = "con.evaluado_id = ?";
+  $params[] = $filtros['evaluado_id'];
+  }
 
- $offset = ($pagina - 1) * $porPagina;
- $stmt = $this->pdo->prepare("
- SELECT c.*,
- m.descripcion as meta_descripcion
- FROM compromisos c
- LEFT JOIN metas m ON m.id = c.meta_id
- WHERE {$where}
- ORDER BY c.tipo, c.id
- LIMIT ? OFFSET ?
- ");
- $params[] = $porPagina;
- $params[] = $offset;
- $stmt->execute($params);
+  $where = implode(' AND ', $conditions);
+  $countStmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos c {$joins} WHERE {$where}");
+  $countStmt->execute($params);
+  $total = (int) $countStmt->fetchColumn();
 
- return ['data' => $stmt->fetchAll(), 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
+  $offset = ($pagina - 1) * $porPagina;
+  $stmt = $this->pdo->prepare("
+  SELECT c.*,
+  con.evaluador_id, con.evaluado_id,
+  m.descripcion as meta_descripcion
+  FROM compromisos c
+  {$joins}
+  LEFT JOIN metas m ON m.id = c.meta_id
+  WHERE {$where}
+  ORDER BY c.tipo, c.id
+  LIMIT ? OFFSET ?
+  ");
+  $params[] = $porPagina;
+  $params[] = $offset;
+  $stmt->execute($params);
+
+  return ['data' => $stmt->fetchAll(), 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
  }
 
 	public function pendientesPorEvaluador(int $evaluadorId, int $pagina = 1, int $porPagina = 20): array

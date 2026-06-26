@@ -18,6 +18,7 @@ interface Compromiso {
  observaciones_evaluador: string | null;
  creado_en: string;
  competencia_nombre?: string;
+ meta_descripcion?: string;
 }
 
 interface Evaluacion {
@@ -199,7 +200,7 @@ export default function MisCompromisos() {
  }
 
  function tienePendientes(comps: Compromiso[]) {
- return comps.some(c => c.estado === 'pendiente_aprobacion');
+  return comps.some(c => c.estado === 'propuesto' || c.estado === 'pendiente_aprobacion');
  }
 
  return (
@@ -269,33 +270,86 @@ export default function MisCompromisos() {
  </div>
  </div>
 
- {/* Compromisos expandidos */}
- {expandido && (
- <div className="mt-4 space-y-2 border-t border-inst-borde pt-4">
- {pkg.compromisos.map(c => {
- const tipoInfo = TIPO_LABELS[c.tipo] || { label: c.tipo, icon: 'chevron_right' };
- const estadoInfo = ESTADO_LABELS[c.estado] || { label: c.estado, color: 'bg-gray-200 text-gray-700' };
- return (
- <div key={c.id} className="flex items-start gap-2 p-3 bg-white rounded border">
- <span className="material-icons text-sm text-inst-azul mt-0.5">{tipoInfo.icon}</span>
- <div className="flex-1 min-w-0">
- <div className="flex items-center gap-2 mb-0.5">
- <span className="text-xs text-inst-texto-claro uppercase font-medium">{tipoInfo.label}</span>
- <span className={`text-xs px-1.5 py-0.5 rounded-full ${estadoInfo.color}`}>{estadoInfo.label}</span>
- </div>
- <p className="text-sm text-inst-texto">{c.descripcion || c.competencia_nombre}</p>
- {c.peso > 0 && <span className="text-xs text-inst-azul font-semibold">Peso: {c.peso}%</span>}
- {c.observaciones_evaluador && (
- <div className="mt-1 p-2 bg-red-50 rounded text-xs text-red-700">
- Observaciones: {c.observaciones_evaluador}
- </div>
- )}
- </div>
- </div>
- );
- })}
- </div>
- )}
+ {/* Compromisos expandidos - tabla agrupada */}
+  {expandido && (
+  <div className="mt-4 border-t border-inst-borde pt-4">
+  {(() => {
+  const funcionales = pkg.compromisos.filter(c => c.tipo === 'funcional');
+  const comportamentales = pkg.compromisos.filter(c => c.tipo === 'comportamental');
+  const getEstadoInfo = (estado: string) => ESTADO_LABELS[estado] || { label: estado, color: 'bg-gray-200 text-gray-700' };
+  return (
+  <div className="space-y-4">
+  {funcionales.length > 0 && (
+  <div>
+  <h4 className="text-xs uppercase font-bold text-inst-azul mb-2 flex items-center gap-1">
+  <span className="material-icons text-sm">task_alt</span> Compromisos Funcionales
+  </h4>
+  <div className="overflow-x-auto rounded border">
+  <table className="w-full text-sm">
+  <thead className="bg-inst-gris">
+  <tr>
+  <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">#</th>
+  <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">Meta</th>
+  <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">Compromiso</th>
+  <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Peso</th>
+  <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Estado</th>
+  </tr>
+  </thead>
+  <tbody className="divide-y">
+  {funcionales.map((c, i) => (
+  <tr key={c.id} className="hover:bg-gray-50">
+  <td className="px-3 py-2 text-xs text-inst-texto-claro">{i + 1}</td>
+  <td className="px-3 py-2 text-xs text-inst-texto">{c.meta_descripcion || '—'}</td>
+  <td className="px-3 py-2 text-sm text-inst-texto">{c.descripcion}</td>
+  <td className="px-3 py-2 text-center text-sm font-semibold text-inst-azul">{c.peso}%</td>
+  <td className="px-3 py-2 text-center"><span className={`text-xs px-1.5 py-0.5 rounded-full ${getEstadoInfo(c.estado).color}`}>{getEstadoInfo(c.estado).label}</span></td>
+  </tr>
+  ))}
+  </tbody>
+  </table>
+  </div>
+  <div className="flex justify-end px-3 py-1 text-xs text-inst-texto-claro">
+  Total pesos: <span className="font-bold text-inst-azul ml-1">{funcionales.reduce((s, c) => s + c.peso, 0)}%</span>
+  </div>
+  </div>
+  )}
+  {comportamentales.length > 0 && (
+  <div>
+  <h4 className="text-xs uppercase font-bold text-inst-azul mb-2 flex items-center gap-1">
+  <span className="material-icons text-sm">psychology</span> Competencias Comportamentales
+  </h4>
+  <div className="overflow-x-auto rounded border">
+  <table className="w-full text-sm">
+  <thead className="bg-inst-gris">
+  <tr>
+  <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">#</th>
+  <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">Competencia</th>
+  <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">Descripción</th>
+  <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Estado</th>
+  </tr>
+  </thead>
+  <tbody className="divide-y">
+  {comportamentales.map((c, i) => (
+  <tr key={c.id} className="hover:bg-gray-50">
+  <td className="px-3 py-2 text-xs text-inst-texto-claro">{i + 1}</td>
+  <td className="px-3 py-2 text-xs font-medium text-inst-texto">{c.competencia_nombre || '—'}</td>
+  <td className="px-3 py-2 text-sm text-inst-texto">{c.descripcion}</td>
+  <td className="px-3 py-2 text-center"><span className={`text-xs px-1.5 py-0.5 rounded-full ${getEstadoInfo(c.estado).color}`}>{getEstadoInfo(c.estado).label}</span></td>
+  </tr>
+  ))}
+  </tbody>
+  </table>
+  </div>
+  </div>
+  )}
+  {pkg.compromisos.length === 0 && (
+  <p className="text-sm text-inst-texto-claro text-center py-4">No hay compromisos registrados.</p>
+  )}
+  </div>
+  );
+  })()}
+  </div>
+  )}
 
  {/* Botones aceptar/rechazar */}
  {pendiente && (
