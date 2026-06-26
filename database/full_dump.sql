@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS `edl_carepa` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */;
+USE `edl_carepa`;
+
 /*M!999999\- enable the sandbox mode */ 
 -- MariaDB dump 10.19-12.3.2-MariaDB, for Android (aarch64)
 --
