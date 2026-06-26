@@ -1,4 +1,3 @@
-mysqldump: Deprecated program name. It will be removed in a future release, use '/data/data/com.termux/files/usr/bin/mariadb-dump' instead
 /*M!999999\- enable the sandbox mode */ 
 -- MariaDB dump 10.19-12.3.2-MariaDB, for Android (aarch64)
 --
@@ -3515,4 +3514,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-06-26 14:05:09
+-- Dump completed on 2026-06-26 14:27:11
