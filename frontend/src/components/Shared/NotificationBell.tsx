@@ -71,7 +71,7 @@ export default function NotificationBell() {
 
   function handleClickNoti() {
     setOpen(false);
-    navigate('/notificaciones');
+    navigate('/dashboard/notificaciones');
   }
 
   return (

@@ -215,9 +215,9 @@ export default function AppHeader() {
 
  <Tooltip content="Notificaciones">
  <button
- onClick={() => navigate('/notificaciones')}
- className="relative p-2 rounded-md text-inst-texto-claro hover:bg-inst-gris-med hover:text-inst-azul-osc transition-colors"
- aria-label={`Notificaciones${contadorNotif > 0 ? ` (${contadorNotif} sin leer)` : ''}`}
+onClick={() => navigate('/dashboard/notificaciones')}
+					className="relative p-2 rounded-md text-inst-texto-claro hover:bg-inst-gris-med hover:text-inst-azul-osc transition-colors"
+					aria-label={`Notificaciones${contadorNotif > 0 ? ` (${contadorNotif} sin leer)` : ''}`}
  >
  <span className="material-icons text-xl">notifications</span>
  {contadorNotif > 0 ? (
