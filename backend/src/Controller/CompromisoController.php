@@ -402,7 +402,7 @@ $stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, 
 	$pdo = Database::getInstance();
 	$user = AuthMiddleware::user();
 
-	$stmt = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
+	$stmt = $pdo->prepare("SELECT evaluado_id, evaluador_id, concertacion_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
 	$stmt->execute(['id' => $evaluacionId]);
 	$eval = $stmt->fetch(\PDO::FETCH_ASSOC);
 	if (!$eval || (int) $eval['evaluado_id'] !== (int) $user['id']) {
@@ -440,7 +440,7 @@ $stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, 
 	VALUES (:uid, 'alerta', 'Concertación rechazada por el evaluado', :msg, NOW())
 	");
 	$stmtNotif->execute([
-	'uid' => $eval['evaluado_id'],
+	'uid' => $eval['evaluador_id'],
 	'msg' => 'El evaluado ha rechazado la concertación de compromisos. Puede proceder con la fijación unilateral conforme al Art. 33 de la Resolución 1760 de 2010.',
 	]);
 
