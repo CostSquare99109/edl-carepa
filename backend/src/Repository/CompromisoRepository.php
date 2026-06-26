@@ -35,10 +35,10 @@ class CompromisoRepository extends BaseRepository
   $countStmt->execute($params);
   $total = (int) $countStmt->fetchColumn();
 
+  $selectExtra = $joins ? ', con.evaluador_id, con.evaluado_id' : ', NULL AS evaluador_id, NULL AS evaluado_id';
   $offset = ($pagina - 1) * $porPagina;
   $stmt = $this->pdo->prepare("
-  SELECT c.*,
-  con.evaluador_id, con.evaluado_id,
+  SELECT c.*{$selectExtra},
   m.descripcion as meta_descripcion
   FROM compromisos c
   {$joins}
