@@ -360,7 +360,7 @@ $stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, 
 	$pdo = Database::getInstance();
 	$user = AuthMiddleware::user();
 
-	$stmt = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
+	$stmt = $pdo->prepare("SELECT evaluado_id, evaluador_id, concertacion_id FROM evaluaciones WHERE id = :id AND eliminado_en IS NULL");
 	$stmt->execute(['id' => $evaluacionId]);
 	$eval = $stmt->fetch(\PDO::FETCH_ASSOC);
 	if (!$eval || (int) $eval['evaluado_id'] !== (int) $user['id']) {
@@ -389,6 +389,15 @@ $stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, 
 
 	$stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'cerrada', actualizado_en = NOW() WHERE id = :id");
 	$stmtEval->execute(['id' => $evaluacionId]);
+
+	$stmtNotif = $pdo->prepare("
+	INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
+	VALUES (:uid, 'exito', 'Concertación aceptada por el evaluado', :msg, NOW())
+	");
+	$stmtNotif->execute([
+	'uid' => $eval['evaluador_id'],
+	'msg' => 'El evaluado ha aceptado la concertación de compromisos. Los compromisos están aprobados y listos para la etapa de evaluación.',
+	]);
 
 	ResponseHelper::success([
 	'evaluacion_id' => $evaluacionId,
