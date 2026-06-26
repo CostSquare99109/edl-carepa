@@ -139,13 +139,15 @@ Key groups (base: `/api/v1`):
 - `reportes/*` (10): concertacion, evaluaciones, funcionario, resumen, entidad, dependencia, compromisos, excel, pdf
 - `ausentismos/*` (5), `movilidades/*` (6), `cargas/*` (6), `competencias/*` (2)
 
-## Test Users (from seed_usuarios.sql)
+## Test Users
 
-| User | Password | Role |
-|------|----------|------|
-| admin | Admin123! | admin_carepa |
-| evaluador | Eval123! | evaluador |
-| evaluado | Eval123! | evaluado |
+Todos los usuarios tienen contraseña: **12345678**
+
+| Documento | Nombre | Roles |
+|-----------|--------|-------|
+| admin | Admin | admin_carepa |
+| 43141896 | LUSELY OREJUELA | evaluador, jefe_dependencia |
+| 1040353165 | YEISON ROMAÑA | evaluado, admin_carepa |
 
 ## Current Known Gaps (from FASE3_GAPS.md)
 
