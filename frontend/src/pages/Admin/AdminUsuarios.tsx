@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api, PaginatedData } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, DataTable, Tooltip, SkeletonText } from '../../components/ui';
 import type { DataTableColumn } from '../../components/ui';
 import { toast } from 'sonner';
@@ -48,9 +49,11 @@ interface Dependencia {
 }
 
 const ROLES_SISTEMA = [
-  { codigo: 'admin', nombre: 'Administrador' },
+  { codigo: 'jefe_dependencia', nombre: 'Jefe de Dependencia' },
+  { codigo: 'admin_carepa', nombre: 'Administrador CAREPA' },
   { codigo: 'evaluador', nombre: 'Evaluador' },
   { codigo: 'evaluado', nombre: 'Evaluado' },
+  { codigo: 'comision_evaluadora', nombre: 'Comisión Evaluadora' },
 ];
 
 // Constantes alineadas con el enum del schema SQL
@@ -115,6 +118,7 @@ const MOTIVOS_FECHA_INICIO = [
 ];
 
 export default function AdminUsuarios() {
+  const { usuario, rolActivo } = useAuth();
   const [searchParams] = useSearchParams();
   const filtroInicial = searchParams.get('filtro') || '';
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -165,18 +169,28 @@ export default function AdminUsuarios() {
     roles: ['evaluado'] as string[],
   });
 
+  const ROLES_VALIDOS = ['jefe_dependencia', 'admin_carepa', 'evaluador', 'evaluado', 'comision_evaluadora'];
+
   const cargar = useCallback(async () => {
     setCargando(true); setError('');
     try {
+      // Validar y sanear filtroRol
+      const rolValido = filtroRol && ROLES_VALIDOS.includes(filtroRol) ? filtroRol : '';
+      if (rolValido !== filtroRol && filtroRol) {
+        setFiltroRol(''); // Limpiar filtro inválido
+      }
       let url = `/usuarios?pagina=${pagina}&por_pagina=20`;
       if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`;
-      if (filtroRol) url += `&rol=${encodeURIComponent(filtroRol)}`;
+      if (rolValido) url += `&rol=${encodeURIComponent(rolValido)}`;
+      if (rolActivo === 'jefe_dependencia' && usuario?.dependencia_id) {
+        url += `&dependencia_id=${usuario.dependencia_id}`;
+      }
       const res = await api.get<PaginatedData<Usuario>>(url);
       setUsuarios(res.data || []);
       setTotal(res.total || 0);
     } catch (e) { setError(e instanceof Error ? e.message : 'Error desconocido'); }
     setCargando(false);
-  }, [pagina, busqueda, filtroRol]);
+  }, [pagina, busqueda, filtroRol, rolActivo, usuario?.dependencia_id]);
 
   const cargarDependencias = useCallback(async () => {
     try {
@@ -186,6 +200,8 @@ export default function AdminUsuarios() {
   }, []);
 
   useEffect(() => { cargar(); }, [cargar]);
+  // Carga forzada al montar (garantiza carga inicial aunque falle useEffect anterior)
+  useEffect(() => { cargar(); }, []);
   useEffect(() => { if (modalAbierto) cargarDependencias(); }, [modalAbierto, cargarDependencias]);
 
   const resetForm = () => ({
@@ -384,10 +400,11 @@ export default function AdminUsuarios() {
     {
       key: 'nombre',
       header: 'Nombre',
-      render: (u) => `${u.primer_nombre} ${u.segundo_nombre || ''} ${u.primer_apellido} ${u.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim()
+      render: (u) => `${u.primer_nombre || ''} ${u.segundo_nombre || ''} ${u.primer_apellido || ''} ${u.segundo_apellido || ''}`.replace(/\s+/g, ' ').trim() || '—'
     },
     { key: 'email', header: 'Email', render: (u) => u.email || <span className="text-inst-texto-claro">—</span> },
     { key: 'cargo', header: 'Cargo', render: (u) => u.denominacion_empleo || <span className="text-inst-texto-claro">—</span> },
+    { key: 'grado', header: 'Grado', render: (u) => u.grado_empleo || <span className="text-inst-texto-claro">—</span> },
     { key: 'dependencia', header: 'Dependencia', render: (u) => u.dependencia_nombre || <span className="text-inst-texto-claro">—</span> },
     {
       key: 'roles',
@@ -395,7 +412,7 @@ export default function AdminUsuarios() {
       render: (u) => (
         <div className="flex gap-1 flex-wrap">
           {(u.roles || []).map((r) => (
-            <Badge key={r.codigo} tone={r.codigo === 'admin' ? 'danger' : r.codigo === 'evaluador' ? 'success' : 'info'}>
+            <Badge key={r.codigo} tone={r.codigo.startsWith('admin') ? 'danger' : r.codigo === 'evaluador' ? 'success' : 'info'}>
               {r.nombre || r.codigo}
             </Badge>
           ))}
@@ -508,16 +525,39 @@ export default function AdminUsuarios() {
         )}
 
         {totalPages > 1 && !cargando && usuarios.length > 0 && (
-          <div className="flex items-center justify-center gap-2 p-3 mt-3 border-t border-inst-borde">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
+          <div className="flex items-center justify-between gap-3 p-3 mt-3 border-t border-inst-borde">
+            <div className="text-sm text-inst-texto-claro">
+              Mostrando {((pagina - 1) * 20) + 1} - {Math.min(pagina * 20, total)} de {total} usuarios
+            </div>
+            <div className="flex items-center gap-1">
               <button
-                key={p}
-                onClick={() => setPagina(p)}
-                className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+                onClick={() => setPagina(p => Math.max(1, p - 1))}
+                disabled={pagina === 1}
+                className="px-3 py-3 py-1 rounded text-sm bg-white border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Página anterior"
               >
-                {p}
+                <span className="material-icons text-sm">chevron_left</span>
               </button>
-            ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(Math.max(0, pagina - 3), pagina + 2)
+                .map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPagina(p)}
+                    className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              <button
+                onClick={() => setPagina(p => Math.min(totalPages, p + 1))}
+                disabled={pagina === totalPages}
+                className="px-3 py-1 rounded text-sm bg-white border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Página siguiente"
+              >
+                <span className="material-icons text-sm">chevron_right</span>
+              </button>
+            </div>
           </div>
         )}
       </Card>
@@ -746,7 +786,7 @@ export default function AdminUsuarios() {
                       aria-pressed={active}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition ${
                         active
-                          ? r.codigo === 'admin'
+                          ? r.codigo.startsWith('admin')
                             ? 'bg-red-50 text-red-800 border-red-300'
                             : r.codigo === 'evaluador'
                               ? 'bg-green-50 text-green-800 border-green-300'

@@ -69,4 +69,16 @@ class EntidadController
     $this->service->habilitar($id);
     ResponseHelper::success(null, 'Entidad habilitada');
     }
+
+    /**
+     * Crea una entidad con su primer Jefe de Personal (jefe_dependencia).
+     * Solo admin_carepa (superadmin).
+     */
+    public function crearConJefePersonal(): void
+    {
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $input = SanitizerHelper::sanitizeArray($input);
+    $resultado = $this->service->crearConJefePersonal($input);
+    ResponseHelper::success($resultado, 'Entidad y Jefe de Personal creados correctamente', 201);
+    }
     }

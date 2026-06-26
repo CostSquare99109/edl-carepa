@@ -31,17 +31,18 @@ export function Modal({
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; });
 
   useEffect(() => {
     if (!open) return;
     previousFocusRef.current = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    // focus first focusable inside dialog
     requestAnimationFrame(() => {
       const first = dialogRef.current?.querySelector<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
@@ -53,7 +54,7 @@ export function Modal({
       document.body.style.overflow = prevOverflow;
       previousFocusRef.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -72,12 +73,12 @@ export function Modal({
       <div
         ref={dialogRef}
         className={[
-          'relative w-full bg-white rounded-xl shadow-2xl overflow-hidden',
+          'relative w-full bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh]',
           sizeClass[size],
         ].join(' ')}
       >
         {title || description ? (
-          <div className="px-5 pt-5 pb-3 border-b border-inst-borde">
+          <div className="flex-shrink-0 px-5 pt-5 pb-3 border-b border-inst-borde">
             {title ? (
               <h2 id="modal-title" className="text-base font-heading font-semibold text-inst-azul-osc">
                 {title}
@@ -90,9 +91,9 @@ export function Modal({
             ) : null}
           </div>
         ) : null}
-        <div className="px-5 py-4">{children}</div>
+        <div className="px-5 py-4 overflow-y-auto">{children}</div>
         {footer ? (
-          <div className="px-5 py-3 bg-inst-gris border-t border-inst-borde flex justify-end gap-2">
+          <div className="flex-shrink-0 px-5 py-3 bg-inst-gris border-t border-inst-borde flex justify-end gap-2">
             {footer}
           </div>
         ) : null}

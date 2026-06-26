@@ -7,7 +7,6 @@ import NuevaContrasena from './pages/NuevaContrasena'
 import CambioForzadoPassword from './pages/CambioForzadoPassword'
 import SelectRolePage from './pages/SelectRolePage'
 import Dashboard from './pages/Dashboard'
-import EntidadList from './pages/Entidades/EntidadList'
 import UsuarioList from './pages/Usuarios/UsuarioList'
 import PeriodoList from './pages/Periodos/PeriodoList'
 import MetaList from './pages/Metas/MetaList'
@@ -32,7 +31,7 @@ import ConsultaFuncionario from './pages/ConsultaFuncionario'
 import DependenciaList from './pages/Admin/DependenciaList'
 import MovilidadList from './pages/Admin/MovilidadList'
 import ComisionEvaluadora from './pages/Evaluaciones/ComisionEvaluadora'
-import PanelEvaluador from './pages/Evaluaciones/PanelEvaluador'
+import EvaluarPage from './pages/Evaluaciones/EvaluarPage'
 import AdminHome from './pages/Admin/AdminHome'
 import AdminUsuarios from './pages/Admin/AdminUsuarios'
 import AdminCompromisos from './pages/Admin/AdminCompromisos'
@@ -41,6 +40,7 @@ import AdminEvaluaciones from './pages/Admin/AdminEvaluaciones'
 import AdminReportes from './pages/Admin/AdminReportes'
 import AdminNotificaciones from './pages/Admin/AdminNotificaciones'
 import AdminConfiguracion from './pages/Admin/AdminConfiguracion'
+import AdminNuevaDependencia from './pages/Admin/AdminNuevaDependencia'
 import Perfil from './pages/Perfil'
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
@@ -60,10 +60,12 @@ export default function App() {
    <Route path="/nueva-contraseña" element={<NuevaContrasena />} />
    <Route path="/cambio-forzado-password" element={<ProtectedRoute><CambioForzadoPassword /></ProtectedRoute>} />
    <Route path="/seleccionar-rol" element={<ProtectedRoute><SelectRolePage /></ProtectedRoute>} />
-   <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+   {/* Raíz siempre redirige a login (landing page) */}
+   <Route path="/" element={<Navigate to="/login" replace />} />
+   {/* Dashboard protegido en su propia ruta */}
+   <Route path="/dashboard" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
     <Route index element={<Dashboard />} />
     <Route path="admin" element={<AdminHome />} />
-    <Route path="entidades" element={<EntidadList />} />
     <Route path="usuarios" element={<UsuarioList />} />
     <Route path="admin-usuarios" element={<AdminUsuarios />} />
     <Route path="periodos" element={<PeriodoList />} />
@@ -79,6 +81,7 @@ export default function App() {
     <Route path="admin-reportes" element={<AdminReportes />} />
     <Route path="notificaciones" element={<AdminNotificaciones />} />
     <Route path="configuracion" element={<AdminConfiguracion />} />
+    <Route path="admin-nueva-dependencia" element={<ProtectedRoute allowedRoles={["admin_carepa"]}><AdminNuevaDependencia /></ProtectedRoute>} />
     <Route path="consulta-funcionario" element={<ConsultaFuncionario />} />
     <Route path="compromisos-y-competencias" element={<CompromisosYCompetencias />} />
     <Route path="compromisos/mios" element={<MisCompromisos />} />
@@ -94,7 +97,7 @@ export default function App() {
     <Route path="admin-compromisos" element={<AdminCompromisos />} />
     <Route path="ausentismos" element={<AusentismoList />} />
     <Route path="movilidad" element={<MovilidadList />} />
-    <Route path="evaluar" element={<PanelEvaluador />} />
+    <Route path="evaluar" element={<EvaluarPage />} />
     <Route path="comision-evaluadora" element={<ComisionEvaluadora />} />
     <Route path="carga-usuarios" element={<CargaUsuarios />} />
     <Route path="admin/carga-usuarios" element={<CargaUsuarios />} />

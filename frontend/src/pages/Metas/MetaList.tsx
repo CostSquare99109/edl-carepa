@@ -1,22 +1,15 @@
 import { useEffect, useState } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
-import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, DataTable, Tooltip, SkeletonText } from '../../components/ui'
+import { Card, Button, Select, Alert, Modal, EmptyState, DataTable, Tooltip, SkeletonText } from '../../components/ui'
 import type { DataTableColumn } from '../../components/ui'
 import { toast } from 'sonner'
 
 interface Meta {
  id: number
  periodo_id: number
- funcionario_id: number
  dependencia_id: number | null
  descripcion: string
- tipo: string
- peso: number
- indicador: string
- meta_numerica: number | null
- unidad_medida: string
- estado: string
 }
 
 interface DependenciaOption {
@@ -25,25 +18,8 @@ interface DependenciaOption {
  codigo: string
 }
 
-const TIPOS_META: { value: Meta['tipo']; label: string }[] = [
- { value: 'cualitativa', label: 'Cualitativa' },
- { value: 'cuantitativa', label: 'Cuantitativa' },
- { value: 'mixta', label: 'Mixta' },
-];
-
-const ESTADO_META: Record<string, { tone: 'neutral' | 'warning' | 'success' | 'info' | 'danger'; label: string }> = {
- pendiente: { tone: 'warning', label: 'Pendiente' },
- concertada: { tone: 'info', label: 'Concertada' },
- aprobada: { tone: 'success', label: 'Aprobada' },
- en_seguimiento: { tone: 'info', label: 'En seguimiento' },
- evaluada: { tone: 'success', label: 'Evaluada' },
- cerrada: { tone: 'neutral', label: 'Cerrada' },
-};
-
-const ESTADOS_META = Object.keys(ESTADO_META);
-
 export default function MetaList() {
-  const { usuario } = useAuth();
+  const { usuario, rolActivo } = useAuth();
   const [items, setItems] = useState<Meta[]>([])
   const [total, setTotal] = useState(0)
   const [pagina, setPagina] = useState(1)
@@ -55,16 +31,14 @@ export default function MetaList() {
   const [periodos, setPeriodos] = useState<{ id: number; nombre: string }[]>([])
   const [error, setError] = useState('');
 
-  // Estado para crear nueva meta
+  const dependenciasVisibles = (rolActivo === 'jefe_dependencia' && usuario?.dependencia_id)
+    ? dependencias.filter(d => d.id === usuario.dependencia_id)
+    : dependencias;
+
   const [formNueva, setFormNueva] = useState({
     periodo_id: '' as string | number,
     dependencia_id: '' as string | number,
     descripcion: '',
-    tipo: 'cuantitativa' as Meta['tipo'],
-    peso: 0,
-    indicador: '',
-    meta_numerica: null as number | null,
-    unidad_medida: '',
   });
 
   function cargar() {
@@ -90,24 +64,25 @@ export default function MetaList() {
   useEffect(() => { cargar(); cargarDependencias(); cargarPeriodos(); }, [pagina])
 
   function abrirCrear() {
+    const periodoActual = periodos.length > 0 ? periodos[0].id : '';
     setFormNueva({
-      periodo_id: '',
+      periodo_id: periodoActual,
       dependencia_id: '',
       descripcion: '',
-      tipo: 'cuantitativa',
-      peso: 0,
-      indicador: '',
-      meta_numerica: null,
-      unidad_medida: '',
     });
     setCreando(true);
+  }
+
+  function contarPalabras(texto: string): number {
+    return texto.trim() ? texto.trim().split(/\s+/).length : 0;
   }
 
   async function crearMeta() {
     if (!formNueva.periodo_id) { toast.error('Seleccione un período'); return; }
     if (!formNueva.dependencia_id) { toast.error('Seleccione una dependencia'); return; }
-    if (formNueva.descripcion.length < 50) { toast.error('La descripción debe tener al menos 50 caracteres'); return; }
-    if (formNueva.descripcion.length > 1000) { toast.error('La descripción no puede tener más de 1000 caracteres'); return; }
+    const palabras = contarPalabras(formNueva.descripcion);
+    if (palabras > 20) { toast.error(`La descripción no debe exceder 20 palabras (actual: ${palabras})`); return; }
+    if (!formNueva.descripcion.trim()) { toast.error('La descripción es obligatoria'); return; }
     if (!usuario) { toast.error('No hay sesión activa'); return; }
     setSaving(true);
     try {
@@ -117,12 +92,6 @@ export default function MetaList() {
         funcionario_id: usuario.id,
         evaluador_id: usuario.id,
         descripcion: formNueva.descripcion.trim(),
-        tipo: formNueva.tipo,
-        peso: formNueva.peso,
-        indicador: formNueva.indicador.trim(),
-        meta_numerica: formNueva.meta_numerica,
-        unidad_medida: formNueva.unidad_medida.trim(),
-        estado: 'pendiente',
       });
       toast.success('Meta creada correctamente');
       setCreando(false);
@@ -140,17 +109,13 @@ export default function MetaList() {
      toast.error('La descripción es obligatoria');
      return;
     }
+    const palabras = contarPalabras(editando.descripcion);
+    if (palabras > 20) { toast.error(`La descripción no debe exceder 20 palabras (actual: ${palabras})`); return; }
     setSaving(true)
     try {
       await api.put(`/metas/${editando.id}`, {
-      dependencia_id: editando.dependencia_id,
-      descripcion: editando.descripcion,
-        tipo: editando.tipo,
-        peso: editando.peso,
-        indicador: editando.indicador,
-        meta_numerica: editando.meta_numerica,
-        unidad_medida: editando.unidad_medida,
-        estado: editando.estado,
+        dependencia_id: editando.dependencia_id,
+        descripcion: editando.descripcion,
       })
       toast.success('Meta actualizada correctamente');
       setEditando(null)
@@ -174,26 +139,11 @@ export default function MetaList() {
     render: (m) => <span className="max-w-md truncate inline-block">{m.descripcion}</span>,
    },
    {
-    key: 'tipo',
-    header: 'Tipo',
-    render: (m) => <Badge tone="neutral">{TIPOS_META.find(t => t.value === m.tipo)?.label || m.tipo}</Badge>,
-   },
-   { key: 'peso', header: 'Peso', align: 'center', render: (m) => <span className="font-mono">{m.peso}%</span> },
-   { key: 'indicador', header: 'Indicador', render: (m) => <span className="max-w-xs truncate inline-block">{m.indicador || '-'}</span> },
-   {
-    key: 'estado',
-    header: 'Estado',
-    render: (m) => {
-     const e = ESTADO_META[m.estado] ?? { tone: 'neutral' as const, label: m.estado };
-     return <Badge tone={e.tone}>{e.label}</Badge>;
-    },
-   },
-   {
     key: 'acciones',
     header: 'Editar',
     align: 'center',
     render: (m) => (
-     <Tooltip content={m.estado === 'cerrada' ? 'Reabrir/Editar meta' : 'Editar meta'}>
+      <Tooltip content="Editar meta">
       <Button
        variant="ghost"
        size="sm"
@@ -257,21 +207,14 @@ export default function MetaList() {
       title="Editar Meta"
       size="md"
      >
-      {editando.estado === 'cerrada' ? (
-       <Alert tone="warning" title="Meta cerrada" className="mb-3">
-        Esta meta está cerrada. Puede reabrirla cambiando el estado a "Pendiente" o "En seguimiento".
-       </Alert>
-      ) : null}
-
       <div className="space-y-3">
        <Select
-        label="Dependencia"
-        value={editando.dependencia_id || ''}
-        onChange={e => setEditando({ ...editando, dependencia_id: e.target.value ? Number(e.target.value) : null })}
-        placeholder="Sin dependencia"
-        options={dependencias.map(d => ({ value: String(d.id), label: d.nombre }))}
-        helperText="Asocia la meta a una dependencia específica"
-       />
+         label="Dependencia"
+         value={editando.dependencia_id || ''}
+         onChange={e => setEditando({ ...editando, dependencia_id: e.target.value ? Number(e.target.value) : null })}
+         placeholder="Seleccione una dependencia..."
+         options={dependenciasVisibles.map(d => ({ value: String(d.id), label: d.nombre }))}
+        />
 
        <div>
         <label htmlFor="meta-desc" className="edl-label">Descripción <span className="text-inst-rojo">*</span></label>
@@ -284,54 +227,6 @@ export default function MetaList() {
         />
        </div>
 
-       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Select
-         label="Tipo"
-         value={editando.tipo}
-         onChange={e => setEditando({ ...editando, tipo: e.target.value })}
-         options={TIPOS_META.map(t => ({ value: t.value, label: t.label }))}
-        />
-        <Input
-         label="Peso (%)"
-         type="number"
-         value={editando.peso}
-         onChange={e => setEditando({ ...editando, peso: parseFloat(e.target.value) || 0 })}
-         min={0}
-         max={100}
-         step={0.01}
-         helperText="0 a 100"
-        />
-       </div>
-
-       <Input
-        label="Indicador"
-        type="text"
-        value={editando.indicador || ''}
-        onChange={e => setEditando({ ...editando, indicador: e.target.value })}
-       />
-
-       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Input
-         label="Meta numérica"
-         type="number"
-         value={editando.meta_numerica ?? ''}
-         onChange={e => setEditando({ ...editando, meta_numerica: e.target.value ? parseFloat(e.target.value) : null })}
-         step={0.01}
-        />
-        <Input
-         label="Unidad de medida"
-         type="text"
-         value={editando.unidad_medida || ''}
-         onChange={e => setEditando({ ...editando, unidad_medida: e.target.value })}
-        />
-       </div>
-
-       <Select
-        label="Estado"
-        value={editando.estado}
-        onChange={e => setEditando({ ...editando, estado: e.target.value })}
-        options={ESTADOS_META.map(e => ({ value: e, label: ESTADO_META[e]?.label || e }))}
-       />
       </div>
 
       <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">
@@ -345,37 +240,21 @@ export default function MetaList() {
         open={true}
         onClose={() => setCreando(false)}
         title="Nueva Meta"
-        description="Crear meta asociada a un período y dependencia"
-        size="lg"
+        size="md"
       >
-        <Alert tone="info" className="mb-3">
-          <p className="text-xs">
-            <strong>Pasos:</strong> 1) Seleccione período y dependencia. 2) Ingrese descripción (50-1000 caracteres).
-            3) Configure tipo, peso e indicador. 4) Guarde para crear la meta.
-          </p>
-        </Alert>
         <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Select
-              label="Período *"
-              value={formNueva.periodo_id}
-              onChange={e => setFormNueva({ ...formNueva, periodo_id: e.target.value })}
-              placeholder="Seleccionar período..."
-              options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
-            />
-            <Select
-              label="Dependencia *"
-              value={formNueva.dependencia_id}
-              onChange={e => setFormNueva({ ...formNueva, dependencia_id: e.target.value })}
-              placeholder="Seleccionar dependencia..."
-              options={dependencias.map(d => ({ value: String(d.id), label: d.nombre }))}
-            />
-          </div>
+          <Select
+            label="Dependencia *"
+            value={formNueva.dependencia_id}
+            onChange={e => setFormNueva({ ...formNueva, dependencia_id: e.target.value })}
+            placeholder="Seleccione una dependencia..."
+            options={dependenciasVisibles.map(d => ({ value: String(d.id), label: d.nombre }))}
+          />
           <div>
             <label htmlFor="nueva-meta-desc" className="edl-label">
               Descripción *
-              <span className={`text-xs ml-2 ${formNueva.descripcion.length >= 50 && formNueva.descripcion.length <= 1000 ? 'text-inst-azul-osc' : 'text-inst-texto-claro'}`}>
-                ({formNueva.descripcion.length}/1000, mínimo 50 caracteres)
+              <span className={`text-xs ml-2 ${contarPalabras(formNueva.descripcion) <= 20 ? 'text-inst-azul-osc' : 'text-inst-rojo'}`}>
+                ({contarPalabras(formNueva.descripcion)}/20 palabras)
               </span>
             </label>
             <textarea
@@ -384,56 +263,11 @@ export default function MetaList() {
               onChange={e => setFormNueva({ ...formNueva, descripcion: e.target.value })}
               className="edl-input w-full"
               rows={4}
-              placeholder="Descripción de la meta (mínimo 50 caracteres)..."
+              placeholder="Descripción de la meta (máximo 20 palabras)..."
             />
-            {formNueva.descripcion.length > 0 && formNueva.descripcion.length < 50 && (
-              <p className="text-xs text-inst-rojo mt-1">Faltan {50 - formNueva.descripcion.length} caracteres para el mínimo requerido.</p>
+            {contarPalabras(formNueva.descripcion) > 20 && (
+              <p className="text-xs text-inst-rojo mt-1">Ha excedido el máximo de 20 palabras.</p>
             )}
-            {formNueva.descripcion.length > 1000 && (
-              <p className="text-xs text-inst-rojo mt-1">Ha excedido el máximo de 1000 caracteres.</p>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Select
-              label="Tipo"
-              value={formNueva.tipo}
-              onChange={e => setFormNueva({ ...formNueva, tipo: e.target.value as Meta['tipo'] })}
-              options={TIPOS_META.map(t => ({ value: t.value, label: t.label }))}
-            />
-            <Input
-              label="Peso (%)"
-              type="number"
-              value={formNueva.peso || ''}
-              onChange={e => setFormNueva({ ...formNueva, peso: parseFloat(e.target.value) || 0 })}
-              min={0}
-              max={100}
-              step={0.01}
-              helperText="Peso porcentual de la meta (0-100)"
-            />
-          </div>
-          <Input
-            label="Indicador"
-            type="text"
-            value={formNueva.indicador}
-            onChange={e => setFormNueva({ ...formNueva, indicador: e.target.value })}
-            placeholder="Indicador de medición"
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input
-              label="Meta numérica"
-              type="number"
-              value={formNueva.meta_numerica ?? ''}
-              onChange={e => setFormNueva({ ...formNueva, meta_numerica: e.target.value ? parseFloat(e.target.value) : null })}
-              step={0.01}
-              placeholder="Opcional"
-            />
-            <Input
-              label="Unidad de medida"
-              type="text"
-              value={formNueva.unidad_medida}
-              onChange={e => setFormNueva({ ...formNueva, unidad_medida: e.target.value })}
-              placeholder="Opcional (ej: %, unidades, km)"
-            />
           </div>
         </div>
         <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">

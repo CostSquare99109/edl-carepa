@@ -23,7 +23,7 @@ class UsuarioService
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (!in_array('admin', $roles) && !in_array('evaluador', $roles)) {
+  if (!in_array('admin_carepa', $roles) && !in_array('jefe_dependencia', $roles) && !in_array('evaluador', $roles)) {
  if (!empty($user['entidad_id'])) {
  $filtros['entidad_id'] = $user['entidad_id'];
  }

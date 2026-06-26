@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\CompromisoService;
+use App\Service\ConcertacionService;
 use App\Service\AuditoriaService;
 use App\Helper\ResponseHelper;
 use App\Helper\SanitizerHelper;
@@ -185,7 +186,7 @@ class CompromisoController
 
 		$pdo = Database::getInstance();
 
-		$stmtEval = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :eid");
+		$stmtEval = $pdo->prepare("SELECT evaluado_id, periodo_id, concertacion_id FROM evaluaciones WHERE id = :eid");
 		$stmtEval->execute(['eid' => $input['evaluacion_id']]);
 		$evaluacion = $stmtEval->fetch(\PDO::FETCH_ASSOC);
 		if (!$evaluacion) {
@@ -193,7 +194,13 @@ class CompromisoController
 		}
 		$concertacionId = $evaluacion['concertacion_id'];
 		if (!$concertacionId) {
-			ResponseHelper::error('La evaluación no tiene una concertación asociada', 422);
+			$concertacionService = new ConcertacionService();
+			$concertacionId = $concertacionService->crear([
+				'periodo_id' => $evaluacion['periodo_id'],
+				'evaluado_id' => $evaluacion['evaluado_id'],
+				'evaluador_id' => $user['id'],
+				'tipo_concertacion' => $input['tipo_concertacion'] ?? 'concertacion_bilateral',
+			]);
 		}
 
 		$stmt = $pdo->prepare("SELECT COUNT(*) as total FROM compromisos WHERE concertacion_id = :cid AND tipo = 'funcional' AND eliminado_en IS NULL");
@@ -207,6 +214,9 @@ class CompromisoController
 		if ($count >= $maxFunc && empty($input['id'])) {
 			ResponseHelper::error("No se pueden agregar más de {$maxFunc} compromisos funcionales", 422);
 		}
+
+		// Validacion CNSC: estructura verbo + objeto + condicion de resultado
+		\App\Service\CompromisoService::validarEstructuraVerboObjetoCondicionStatic($input['descripcion']);
 
 		if (!empty($input['id'])) {
 			$sets = [];
@@ -464,7 +474,7 @@ $stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, 
 
 		$pdo = Database::getInstance();
 
-		$stmtEval = $pdo->prepare("SELECT evaluado_id, concertacion_id FROM evaluaciones WHERE id = :eid");
+		$stmtEval = $pdo->prepare("SELECT evaluado_id, periodo_id, concertacion_id FROM evaluaciones WHERE id = :eid");
 		$stmtEval->execute(['eid' => $input['evaluacion_id']]);
 		$evaluacion = $stmtEval->fetch(\PDO::FETCH_ASSOC);
 		if (!$evaluacion) {
@@ -472,7 +482,13 @@ $stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, 
 		}
 		$concertacionId = $evaluacion['concertacion_id'];
 		if (!$concertacionId) {
-			ResponseHelper::error('La evaluación no tiene una concertación asociada', 422);
+			$concertacionService = new ConcertacionService();
+			$concertacionId = $concertacionService->crear([
+				'periodo_id' => $evaluacion['periodo_id'],
+				'evaluado_id' => $evaluacion['evaluado_id'],
+				'evaluador_id' => $user['id'],
+				'tipo_concertacion' => $input['tipo_concertacion'] ?? 'concertacion_bilateral',
+			]);
 		}
 
 		// Crear un compromiso comportamental por cada competencia seleccionada
@@ -690,22 +706,26 @@ $stmt = $pdo->prepare("INSERT INTO compromisos (concertacion_id, meta_id, tipo, 
 	/** Evaluador califica un compromiso */
 	public function calificar(int $id): void
 	{
-		$input = json_decode(file_get_contents('php://input'), true) ?: [];
+		$input = json_decode(file_get_contents("php://input"), true) ?: [];
 		$input = SanitizerHelper::sanitizeArray($input);
 		$user = AuthMiddleware::user();
 
-		$puntaje = isset($input['puntaje']) ? (float) $input['puntaje'] : null;
+		$puntaje = isset($input["puntaje"]) ? (float) $input["puntaje"] : null;
 		if ($puntaje === null) {
-			ResponseHelper::error('El puntaje es requerido', 400);
+			ResponseHelper::error("El puntaje es requerido", 400);
 		}
 		if ($puntaje < 0 || $puntaje > 100) {
-			ResponseHelper::error('El puntaje debe estar entre 0 y 100', 400);
+			ResponseHelper::error("El puntaje debe estar entre 0 y 100", 400);
 		}
 
-		$observaciones = $input['observaciones'] ?? '';
-		$conductas = $input['conductas'] ?? null;
-		$this->service->calificar($id, $puntaje, $observaciones, $conductas, $user);
-		ResponseHelper::success(null, 'Compromiso calificado');
+		$observaciones = $input["observaciones"] ?? "";
+		$conductas = $input["conductas"] ?? null;
+		$impactoAporta = $input["impacto_aporta_compromisos"] ?? null;
+		$impactoExcede = $input["impacto_excede_estipulado"] ?? null;
+		$justificacionExcede = $input["justificacion_excede"] ?? null;
+
+		$this->service->calificar($id, $puntaje, $observaciones, $conductas, $user, $impactoAporta, $impactoExcede, $justificacionExcede);
+		ResponseHelper::success(null, "Compromiso calificado");
 	}
 
 	/** Evaluador devuelve un compromiso al evaluado */

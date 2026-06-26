@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+const API = import.meta.env.VITE_API_URL
 
 export default function VerificarCodigo() {
 	const [searchParams] = useSearchParams()

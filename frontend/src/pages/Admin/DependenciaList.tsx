@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
+import { Input } from '../../components/ui'
 
 interface Dependencia {
  id: number
@@ -12,11 +13,14 @@ interface Dependencia {
  estado: string
 }
 
-interface UsuarioOption {
+interface UsuarioResult {
  id: number
- nombres: string
- apellidos: string
  documento: string
+ primer_nombre: string
+ segundo_nombre: string | null
+ primer_apellido: string
+ segundo_apellido: string | null
+ email: string
 }
 
 export default function DependenciaList() {
@@ -30,11 +34,44 @@ export default function DependenciaList() {
  const [modalAbierto, setModalAbierto] = useState(false)
  const [editando, setEditando] = useState<Dependencia | null>(null)
  const [guardando, setGuardando] = useState(false)
- const [usuarios, setUsuarios] = useState<UsuarioOption[]>([])
+ const [busquedaJefe, setBusquedaJefe] = useState('')
+ const [todosUsuarios, setTodosUsuarios] = useState<UsuarioResult[]>([])
+ const [jefeSeleccionado, setJefeSeleccionado] = useState<UsuarioResult | null>(null)
+ const [cargandoUsuarios, setCargandoUsuarios] = useState(false)
+ const [mostrarResultados, setMostrarResultados] = useState(false)
+ const searchRef = useRef<HTMLDivElement>(null)
 
  const [form, setForm] = useState({
   codigo: '', nombre: '', jefe_id: 0, estado: 'activa',
  })
+
+ async function cargarUsuarios() {
+  setCargandoUsuarios(true)
+  try {
+   const res = await api.get<PaginatedData<UsuarioResult>>('/usuarios?por_pagina=99999&estado=activo')
+   setTodosUsuarios(res.data || [])
+  } catch (e) {
+   console.error('Error al cargar usuarios:', e)
+  }
+  setCargandoUsuarios(false)
+ }
+
+ useEffect(() => {
+  cargarUsuarios()
+ }, [])
+
+ const resultadosJefe = busquedaJefe.trim()
+  ? todosUsuarios.filter(u => {
+     const q = busquedaJefe.trim().toLowerCase()
+     const palabras = q.split(/\s+/).filter(Boolean)
+     const texto = [
+      u.primer_nombre, u.segundo_nombre,
+      u.primer_apellido, u.segundo_apellido,
+      u.documento,
+     ].filter(Boolean).join(' ').toLowerCase()
+     return palabras.every(p => texto.includes(p))
+    })
+  : todosUsuarios
 
  const cargar = useCallback(async () => {
   setCargando(true)
@@ -49,19 +86,42 @@ export default function DependenciaList() {
   setCargando(false)
  }, [pagina, busqueda, filtroEstado])
 
- const cargarUsuarios = useCallback(async () => {
-  try {
-   const res = await api.get<PaginatedData<UsuarioOption>>('/usuarios?por_pagina=100&estado=activo')
-   setUsuarios(res.data || [])
-  } catch {}
+ useEffect(() => { cargar(); }, [cargar])
+
+ useEffect(() => {
+  function handleClickOutside(e: MouseEvent) {
+   if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+    setMostrarResultados(false)
+   }
+  }
+  document.addEventListener('mousedown', handleClickOutside)
+  return () => document.removeEventListener('mousedown', handleClickOutside)
  }, [])
 
- useEffect(() => { cargar(); }, [cargar])
- useEffect(() => { if (modalAbierto) cargarUsuarios(); }, [modalAbierto, cargarUsuarios])
+ useEffect(() => {
+  if (!modalAbierto) {
+   setJefeSeleccionado(null)
+   setBusquedaJefe('')
+  }
+ }, [modalAbierto])
+
+ function seleccionarJefe(u: UsuarioResult) {
+  setJefeSeleccionado(u)
+  setBusquedaJefe(`${u.primer_nombre} ${u.primer_apellido} - ${u.documento}`)
+  setMostrarResultados(false)
+ }
+
+ function limpiarJefe() {
+  setJefeSeleccionado(null)
+  setBusquedaJefe('')
+ }
 
  const abrirCrear = () => {
   setEditando(null)
   setForm({ codigo: '', nombre: '', jefe_id: 0, estado: 'activa' })
+  setJefeSeleccionado(null)
+  setBusquedaJefe('')
+  setMostrarResultados(false)
   setModalAbierto(true)
  }
 
@@ -71,14 +131,22 @@ export default function DependenciaList() {
    codigo: d.codigo, nombre: d.nombre,
    jefe_id: d.jefe_id || 0, estado: d.estado,
   })
+  setJefeSeleccionado(null)
+  setBusquedaJefe('')
+  setMostrarResultados(false)
   setModalAbierto(true)
  }
 
  const guardar = async () => {
   setGuardando(true)
   try {
-   const payload = { ...form }
-   if (!payload.jefe_id) delete (payload as any).jefe_id
+   const jefeId = jefeSeleccionado ? jefeSeleccionado.id : (editando ? editando.jefe_id : null)
+   const payload: any = {
+    codigo: form.codigo,
+    nombre: form.nombre,
+    estado: form.estado,
+   }
+   if (jefeId) payload.jefe_id = jefeId
    if (editando) {
     await api.put(`/dependencias/${editando.id}`, payload)
    } else {
@@ -210,15 +278,61 @@ export default function DependenciaList() {
         <input value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})}
          className="edl-input" placeholder="Nombre de la dependencia" />
        </div>
-       <div>
-        <label className="edl-label">Jefe de la dependencia</label>
-        <select value={form.jefe_id} onChange={e => setForm({...form, jefe_id: Number(e.target.value)})} className="edl-input">
-         <option value={0}>Sin asignar</option>
-         {usuarios.map(u => (
-          <option key={u.id} value={u.id}>{u.nombres} {u.apellidos} - {u.documento}</option>
-         ))}
-        </select>
-       </div>
+         <div ref={searchRef}>
+          <label className="edl-label">Jefe de la dependencia</label>
+          <div className="relative">
+           <Input
+            value={busquedaJefe}
+            onChange={e => {
+             setBusquedaJefe(e.target.value)
+             setJefeSeleccionado(null)
+             setMostrarResultados(true)
+            }}
+            onFocus={() => {
+             setBusquedaJefe('')
+             setMostrarResultados(true)
+            }}
+            placeholder="Buscar por nombre o documento..."
+            iconLeft={<span className="material-icons text-base">search</span>}
+            iconRight={jefeSeleccionado ? (
+             <button type="button" onClick={limpiarJefe} className="text-inst-texto-claro hover:text-inst-rojo">
+              <span className="material-icons text-base">close</span>
+             </button>
+            ) : undefined}
+           />
+           {cargandoUsuarios && todosUsuarios.length === 0 && (
+            <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg p-4 text-center text-sm text-inst-texto-claro">
+             Cargando usuarios...
+            </div>
+           )}
+           {mostrarResultados && !cargandoUsuarios && (
+            <>
+             {resultadosJefe.length > 0 ? (
+              <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg max-h-60 overflow-y-auto">
+               {resultadosJefe.map(u => (
+                <button
+                 key={u.id}
+                 type="button"
+                 onClick={() => seleccionarJefe(u)}
+                 className="w-full text-left px-4 py-3 hover:bg-inst-azul/5 border-b border-inst-borde/50 last:border-b-0 transition-colors"
+                >
+                 <p className="text-sm font-medium text-inst-texto">{u.primer_nombre} {u.segundo_nombre} {u.primer_apellido} {u.segundo_apellido}</p>
+                 <p className="text-xs text-inst-texto-claro flex items-center gap-3 mt-0.5">
+                  <span>{u.documento}</span>
+                  <span>{u.email}</span>
+                 </p>
+                </button>
+               ))}
+              </div>
+             ) : (
+              <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg p-4 text-center text-sm text-inst-texto-claro">
+               No se encontraron usuarios con ese criterio
+              </div>
+             )}
+            </>
+           )}
+          </div>
+         </div>
       </div>
       <div className="px-6 py-4 border-t border-inst-borde flex justify-end gap-2">
        <button onClick={() => setModalAbierto(false)} className="edl-btn-outline">Cancelar</button>

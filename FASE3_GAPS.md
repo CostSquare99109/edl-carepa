@@ -72,21 +72,13 @@ pero NO existe pagina frontend para este modulo.
 - backend/src/Controller/EvaluacionController.php (VERIFICAR endpoints)
 - backend/src/Service/EvaluacionService.php (VERIFICAR logica de notas)
 
-### C4. Flujo Evaluado - Propuesta de compromisos
+### ~~C4. Flujo Evaluado - Propuesta de compromisos~~ **RESUELTO**
 **Doc ref:** video_07
-**Estado actual:** No existe vista para que el evaluado proponga compromisos
-cuando el evaluador omite la concertacion. Solo existe VerCompromisosPropuestos
-para verlos, no para crearlos.
-**Lo que dice la doc:** El evaluado debe poder:
-1. Seleccionar "Proponer compromisos" en Compromisos y Competencias
-2. Ingresar compromisos funcionales y comportamentales
-3. Guardar propuesta completa
-4. El evaluador luego los acepta o rechaza
-**Archivos afectados:**
-- NUEVO: frontend/src/pages/Compromisos/ProponerCompromisos.tsx
-- frontend/src/App.tsx (agregar ruta)
-- backend/src/Controller/CompromisoController.php (VERIFICAR endpoint)
-- frontend/src/pages/Compromisos/CompromisosYCompetencias.tsx (agregar opcion para evaluado)
+**Estado actual:** ProponerCompromisos.tsx existe (313 líneas) con formulario completo:
+funcionales (descripción, resultado esperado, medio verificación, peso) +
+comportamentales (selección de catálogo + propuesto por jefe). Ruta
+`/compromisos/proponer` registrada en App.tsx. MenuController ya incluye
+"Proponer Compromisos" para rol evaluado.
 
 ### C5. Login - Etiquetas incorrectas
 **Doc ref:** video_02, video_05, video_06, video_08, video_12
@@ -224,17 +216,13 @@ el flujo es muy basico.
 - frontend/src/pages/Evaluaciones/PanelEvaluador.tsx (mostrar escala)
 - BD: posible nueva tabla parametros_escala
 
-### A7. Menu del Evaluado - Opciones faltantes
+### ~~A7. Menu del Evaluado - Opciones faltantes~~ **RESUELTO**
 **Doc ref:** video_07, video_12
-**Estado actual:** MenuController ya tiene opciones para evaluado, pero falta
-la opcion "Proponer compromisos" y la pagina asociada.
-**Lo que dice la doc:** Evaluado debe ver en Compromisos y Competencias:
-- Proponer compromisos
-- Ver compromisos concertados
-- Ver compromisos por aprobar
-**Archivos afectados:**
-- backend/src/Controller/MenuController.php (VERIFICAR opciones evaluado)
-- frontend/src/pages/Compromisos/CompromisosYCompetencias.tsx (agregar vista evaluado)
+**Estado actual:** MenuController::menuEvaluado() retorna 5 items incluyendo:
+"Compromisos y Competencias" (`/compromisos/mios`), "Proponer Compromisos"
+(`/compromisos/proponer`). Sidebar los renderiza correctamente para evaluado.
+MisCompromisos.tsx fue actualizado con filtro "Pendientes de aprobación" y
+descarga de PDF de concertación.
 
 ---
 
@@ -313,20 +301,22 @@ La doc CNSC usa azul #0056b3. Se mantiene la paleta de Carepa.
 
 ---
 
-## PLAN DE EJECUCION (priorizado)
+## PLAN DE EJECUCION (priorizado) — ACTUALIZADO
 
-1. C1 - Reescribir Evidencias (CRITICO)
-2. C2 - Crear Compromisos de Mejoramiento (CRITICO)
-3. C5 - Corregir etiquetas Login (CRITICO - rapido)
-4. C4 - Crear Propuesta Compromisos Evaluado (CRITICO)
-5. C6 - Crear Ausentismos (CRITICO)
-6. C7 - Crear Carga Masiva (CRITICO)
-7. C3 - Mejorar PanelEvaluador (CRITICO - grande)
-8. A6 - Escalas de calificacion (ALTO)
-9. A2 - Expandir formulario Usuarios (ALTO)
-10. A3 - Cambio estado Dependencias (ALTO)
-11. A5 - Flujo Comision Evaluadora (ALTO)
-12. A7 - Menu evaluado + Proponer (ALTO)
-13. A1 - Metas con Dependencia (ALTO)
-14. M1-M7 - Gaps medios
-15. B1-B3 - Gaps bajos
+1. C5 - Corregir etiquetas Login "Documento" → "Nombre de usuario" (CRITICO - rapido, ~5 min)
+2. C1 - Reescribir modulo Evidencias modo descriptivo (CRITICO)
+3. C6 - Crear pagina frontend Ausentismos (CRITICO)
+4. C7 - Crear pagina frontend Carga Masiva Usuarios (CRITICO)
+5. C2 - Completar pagina Compromisos de Mejoramiento (CRITICO)
+6. C3 - Mejorar PanelEvaluador con escalas, fechas, motivos (CRITICO - grande)
+7. A2 - Expandir formulario Usuarios (ALTO)
+8. A6 - Escalas de calificacion backend + frontend (ALTO)
+9. A5 - Flujo Comision Evaluadora (ALTO)
+10. A1 - Metas con Dependencia (ALTO)
+11. A3 - Cambio estado Dependencias (ALTO)
+12. M1-M7 - Gaps medios
+13. B1-B3 - Gaps bajos
+
+**NOTA:** ~~C4~~ (ProponerCompromisos) y ~~A7~~ (Menu evaluado) están RESUELTOS.
+M3 (PDF descarga) implementado en MisCompromisos.tsx + VerCompromisos.tsx.
+M7 (Checkbox propuesto jefe) ya estaba implementado en ConcertarCompromisos.tsx.

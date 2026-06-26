@@ -129,6 +129,43 @@ export default function UsuarioList() {
         </div>
       )}
 
+      {total > 0 && (
+        <div className="flex items-center justify-between gap-3 p-3 mt-3 border-t border-inst-borde">
+          <div className="text-sm text-inst-texto-claro">
+            Mostrando {((pagina - 1) * 20) + 1} - {Math.min(pagina * 20, total)} de {total} usuarios
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPagina(p => Math.max(1, p - 1))}
+              disabled={pagina === 1}
+              className="px-3 py-1 rounded text-sm bg-white border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Página anterior"
+            >
+              <span className="material-icons text-sm">chevron_left</span>
+            </button>
+            {Array.from({ length: Math.ceil(total / 20) }, (_, i) => i + 1)
+              .slice(Math.max(0, pagina - 3), pagina + 2)
+              .map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPagina(p)}
+                  className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+                >
+                  {p}
+                </button>
+              ))}
+            <button
+              onClick={() => setPagina(p => Math.min(Math.ceil(total / 20), p + 1))}
+              disabled={pagina === Math.ceil(total / 20)}
+              className="px-3 py-1 rounded text-sm bg-white border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Página siguiente"
+            >
+              <span className="material-icons text-sm">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modal de edición */}
       {editando && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">

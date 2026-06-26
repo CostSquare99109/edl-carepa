@@ -16,6 +16,7 @@ interface Evaluado {
  periodo_id: number;
  periodo_nombre: string;
  es_comision_evaluadora: number;
+ dependencia_id: number;
 }
 
 export default function CompromisosYCompetencias() {
@@ -43,28 +44,28 @@ export default function CompromisosYCompetencias() {
 
  function handleConcertar() {
   if (!evaluado) return;
-  navigate(`/compromisos/concertar/${evaluado.evaluacion_id}`, {
+  navigate(`/dashboard/compromisos/concertar/${evaluado.evaluacion_id}`, {
    state: { evaluado },
   });
  }
 
  function handleVerCompromisos() {
   if (!evaluado) return;
-  navigate(`/compromisos/ver/${evaluado.evaluacion_id}`, {
+  navigate(`/dashboard/compromisos/ver/${evaluado.evaluacion_id}`, {
    state: { evaluado },
   });
  }
 
  function handleVerPropuestos() {
   if (!evaluado) return;
-  navigate(`/compromisos/propuestos`, {
+  navigate(`/dashboard/compromisos/propuestos`, {
    state: { evaluado },
   });
  }
 
  function handleAjustar() {
   if (!evaluado) return;
-  navigate(`/compromisos/ajustar/${evaluado.evaluacion_id}`, {
+  navigate(`/dashboard/compromisos/ajustar/${evaluado.evaluacion_id}`, {
    state: { evaluado },
   });
  }

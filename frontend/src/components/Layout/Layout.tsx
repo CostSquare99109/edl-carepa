@@ -5,19 +5,48 @@ import Sidebar from './Sidebar';
 import RoleSelector from '../Shared/RoleSelector';
 import NotificationBell from '../Shared/NotificationBell';
 
+// Breakpoint aligned with Tailwind's `lg` (1024px)
+const LG_BREAKPOINT = 1024;
+
 export default function Layout() {
   const navigate = useNavigate();
   const { usuario, rolActivo, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(() => {
-    return localStorage.getItem('edl_sidebar_collapsed') === '1';
+
+  // Desktop sidebar expanded/collapsed state.
+  // Always starts OPEN by default. User preference is persisted after they toggle.
+  // We use a version key so any stale "collapsed" preference from previous builds
+  // is ignored once and the user gets the intended default behavior.
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+    const LAYOUT_VERSION = 'v2-open-by-default';
+    if (localStorage.getItem('edl_layout_version') !== LAYOUT_VERSION) {
+      localStorage.setItem('edl_layout_version', LAYOUT_VERSION);
+      localStorage.setItem('edl_sidebar_open', '1');
+      return true;
+    }
+    return localStorage.getItem('edl_sidebar_open') !== '0';
   });
+
+  // Mobile drawer open state (separate from desktop collapse)
   const [mobileOpen, setMobileOpen] = useState(false);
+
   const [menuPerfilAbierto, setMenuPerfilAbierto] = useState(false);
   const perfilRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    localStorage.setItem('edl_sidebar_collapsed', collapsed ? '1' : '0');
-  }, [collapsed]);
+    localStorage.setItem('edl_layout_version', 'v2-open-by-default');
+    localStorage.setItem('edl_sidebar_open', sidebarOpen ? '1' : '0');
+  }, [sidebarOpen]);
+
+  // Close mobile drawer when crossing up into desktop breakpoint
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth >= LG_BREAKPOINT && mobileOpen) {
+        setMobileOpen(false);
+      }
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [mobileOpen]);
 
   useEffect(() => {
     if (!menuPerfilAbierto) return;
@@ -42,60 +71,84 @@ export default function Layout() {
     ? `${(usuario.primer_nombre || '?')[0]}${(usuario.primer_apellido || '?')[0]}`.toUpperCase()
     : '?';
 
+  /**
+   * Header hamburger handler.
+   *
+   * - On mobile (<lg): toggles the slide-in drawer (sidebar overlays content).
+   * - On desktop (>=lg): toggles the collapsed/expanded sidebar width.
+   *   The sidebar and main column are flex siblings, so they move coordinately
+   *   without gaps or overlap.
+   */
+  function handleHamburgerClick() {
+    if (typeof window !== 'undefined' && window.innerWidth < LG_BREAKPOINT) {
+      setMobileOpen((v) => !v);
+    } else {
+      setSidebarOpen((v) => !v);
+    }
+  }
+
+  function closeMobileDrawer() {
+    setMobileOpen(false);
+  }
+
+  const hamburgerLabel = sidebarOpen ? 'Colapsar menú lateral' : 'Expandir menú lateral';
+
   return (
+    // The root flex container holds BOTH sidebar and main column as siblings.
+    // This is what makes them move coordinately: when the sidebar's width
+    // changes, the flex-1 main column reflows automatically.
     <div className="min-h-screen bg-inst-gris flex">
       <Sidebar
-        collapsed={collapsed}
-        onToggle={() => setCollapsed(!collapsed)}
-        mobileOpen={mobileOpen}
-        onMobileClose={() => setMobileOpen(false)}
+        isOpen={sidebarOpen}
+        isMobileOpen={mobileOpen}
+        onClose={closeMobileDrawer}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-inst-borde sticky top-0 z-20">
+        <header className="bg-white border-b border-inst-borde sticky top-0 z-30">
           <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 h-14">
+            {/* Hamburger button - ALWAYS in the header, ALWAYS at the start,
+                NEVER moves out of the header. Toggles sidebar open/close. */}
             <button
               type="button"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Abrir menú lateral"
-              aria-expanded={mobileOpen}
+              onClick={handleHamburgerClick}
+              aria-label={hamburgerLabel}
+              aria-expanded={sidebarOpen}
               aria-controls="sidebar-main"
-              className="lg:hidden p-2 -ml-1 rounded-md text-inst-azul-osc hover:bg-inst-gris-med focus:outline-none focus:ring-2 focus:ring-inst-azul-osc"
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-inst-texto-claro hover:bg-inst-gris-med hover:text-inst-azul-osc active:bg-inst-azul-osc-light transition-colors focus:outline-none focus:ring-2 focus:ring-inst-azul-osc/30"
             >
-              <span className="material-icons text-2xl">menu</span>
+              <span className="material-icons text-2xl leading-none">menu</span>
             </button>
 
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <img
-                src={`${import.meta.env.BASE_URL}escudo.png`}
-                alt="Carepa"
-                className="h-9 w-9 sm:h-10 sm:w-10 object-contain"
-                onError={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  img.style.display = 'none';
-                  const parent = img.parentElement;
-                  if (parent && !parent.querySelector('.escudo-fallback')) {
-                    const wrap = document.createElement('div');
-                    wrap.className = 'escudo-fallback flex items-center gap-2';
-                    wrap.innerHTML = `
-                      <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-inst-azul-osc flex items-center justify-center text-white font-heading font-bold text-sm">C</div>
-                      <div class="leading-tight hidden sm:block">
-                        <h1 class="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">EDL Digital</h1>
-                        <p class="text-[10px] text-inst-texto-claro">Alcaldia de Carepa</p>
-                      </div>
-                    `;
-                    parent.appendChild(wrap);
-                  }
-                }}
-              />
-              <div className="leading-tight hidden sm:block">
-                <h1 className="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">
-                  EDL Digital
-                </h1>
-                <p className="text-[10px] text-inst-texto-claro">
-                  Evaluacion del Desempeno Laboral
-                </p>
-              </div>
+            <img
+              src={`${import.meta.env.BASE_URL}escudo.png`}
+              alt="Carepa"
+              className="h-9 w-9 sm:h-10 sm:w-10 object-contain flex-shrink-0"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                img.style.display = 'none';
+                const parent = img.parentElement;
+                if (parent && !parent.querySelector('.escudo-fallback')) {
+                  const wrap = document.createElement('div');
+                  wrap.className = 'escudo-fallback flex items-center gap-2';
+                  wrap.innerHTML = `
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-inst-azul-osc flex items-center justify-center text-white font-heading font-bold text-sm">C</div>
+                    <div class="leading-tight hidden sm:block">
+                      <h1 class="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">EDL Digital</h1>
+                      <p class="text-[10px] text-inst-texto-claro">Alcaldia de Carepa</p>
+                    </div>
+                  `;
+                  parent.appendChild(wrap);
+                }
+              }}
+            />
+            <div className="leading-tight hidden sm:block">
+              <h1 className="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">
+                EDL Digital
+              </h1>
+              <p className="text-[10px] text-inst-texto-claro">
+                Evaluacion del Desempeno Laboral
+              </p>
             </div>
 
             <div className="flex-1" />

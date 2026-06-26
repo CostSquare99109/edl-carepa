@@ -13,7 +13,7 @@ class PeriodoRepository extends BaseRepository
         $stmt->execute([$periodoId]);
         $total = (int) $stmt->fetchColumn();
 
-        $stmt = $this->pdo->prepare("SELECT m.*, CONCAT(f.primer_nombre, ' ', f.primer_apellido) as funcionario_nombre, CONCAT(e.primer_nombre, ' ', e.primer_apellido) as evaluador_nombre FROM metas m INNER JOIN usuarios f ON f.id = m.funcionario_id INNER JOIN usuarios e ON e.id = m.evaluador_id WHERE m.periodo_id = ? AND m.eliminado_en IS NULL ORDER BY m.id ASC LIMIT ? OFFSET ?");
+        $stmt = $this->pdo->prepare("SELECT m.*, COALESCE(CONCAT(f.primer_nombre, ' ', f.primer_apellido), '') as funcionario_nombre, COALESCE(CONCAT(e.primer_nombre, ' ', e.primer_apellido), '') as evaluador_nombre FROM metas m LEFT JOIN usuarios f ON f.id = m.funcionario_id LEFT JOIN usuarios e ON e.id = m.evaluador_id WHERE m.periodo_id = ? AND m.eliminado_en IS NULL ORDER BY m.id ASC LIMIT ? OFFSET ?");
         $stmt->execute([$periodoId, $porPagina, $offset]);
         return ['data' => $stmt->fetchAll(), 'total' => $total, 'pagina' => $pagina, 'por_pagina' => $porPagina, 'total_paginas' => ceil($total / $porPagina)];
     }

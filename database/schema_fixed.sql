@@ -281,11 +281,15 @@ CREATE TABLE `concertaciones` (
  `tipo_concertacion` enum('concertacion_bilateral','fijados_evaluador') NOT NULL DEFAULT 'concertacion_bilateral',
  `conformar_comision_evaluadora` tinyint(1) NOT NULL DEFAULT 0,
  `comision_evaluador_id` bigint(20) unsigned DEFAULT NULL,
+ `testigo_id` bigint(20) unsigned DEFAULT NULL,
+ `fecha_testigo` datetime DEFAULT NULL,
  `evaluador_no_jefe` tinyint(1) NOT NULL DEFAULT 0,
  `motivo_no_jefe` enum('retiro_empleado_responsable','impedimento','recusacion') DEFAULT NULL,
+ `motivo_fijacion_unilateral` enum('no_conformidad_evaluado','vencimiento_plazo_sin_firma','negativa_concertar','omision_evaluador','otro') DEFAULT NULL,
  `estado` enum('pendiente','concertada','propuesta_evaluado','aprobada_evaluado','rechazada_evaluado','fijada') NOT NULL DEFAULT 'pendiente',
  `observaciones` text DEFAULT NULL,
  `fecha_concertacion` datetime DEFAULT NULL,
+ `fecha_limite_concertacion` date DEFAULT NULL,
  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
  `actualizado_en` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
  `eliminado_en` datetime DEFAULT NULL,
@@ -294,11 +298,13 @@ CREATE TABLE `concertaciones` (
  KEY `idx_evaluador` (`evaluador_id`),
  KEY `idx_evaluado` (`evaluado_id`),
  KEY `idx_estado` (`estado`),
+ KEY `idx_conc_testigo` (`testigo_id`),
  UNIQUE KEY `uk_periodo_evaluado` (`periodo_id`, `evaluado_id`),
  CONSTRAINT `fk_conc_periodo` FOREIGN KEY (`periodo_id`) REFERENCES `periodos` (`id`) ON DELETE CASCADE,
  CONSTRAINT `fk_conc_evaluador` FOREIGN KEY (`evaluador_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
  CONSTRAINT `fk_conc_evaluado` FOREIGN KEY (`evaluado_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
- CONSTRAINT `fk_conc_comision` FOREIGN KEY (`comision_evaluador_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
+ CONSTRAINT `fk_conc_comision` FOREIGN KEY (`comision_evaluador_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+ CONSTRAINT `fk_conc_testigo` FOREIGN KEY (`testigo_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
@@ -314,6 +320,7 @@ CREATE TABLE `compromisos` (
  `peso` decimal(5,2) NOT NULL DEFAULT 0.00,
  `competencia_codigo` varchar(60) DEFAULT NULL,
  `propuesto_por_jefe_entidad` tinyint(1) NOT NULL DEFAULT 0,
+ `propuesto_por_secretario_educacion` tinyint(1) NOT NULL DEFAULT 0,
  `es_propuesto_evaluado` tinyint(1) NOT NULL DEFAULT 0,
  `estado` enum('propuesto','pendiente_aprobacion','aprobado','devuelto','rechazado','en_progreso','cumplido','incumplido') NOT NULL DEFAULT 'propuesto',
  `calificacion` decimal(5,2) DEFAULT NULL,
@@ -326,6 +333,8 @@ CREATE TABLE `compromisos` (
  `observaciones_evaluador` text DEFAULT NULL,
  `observaciones_evaluado` text DEFAULT NULL,
  `conductas_json` json DEFAULT NULL,
+ `motivo_ajuste` enum('cambios_planes_metas','separacion_temporal_30_dias','asignacion_funciones','cambio_empleo_traslado_reubicacion','decision_comision_personal') DEFAULT NULL,
+ `fecha_ajuste` datetime DEFAULT NULL,
  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
  `actualizado_en` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
  `eliminado_en` datetime DEFAULT NULL,
@@ -335,6 +344,7 @@ CREATE TABLE `compromisos` (
  KEY `idx_estado` (`estado`),
  KEY `idx_meta` (`meta_id`),
  KEY `idx_competencia` (`competencia_codigo`),
+ KEY `idx_comp_motivo_ajuste` (`motivo_ajuste`),
  CONSTRAINT `fk_comp_concertacion` FOREIGN KEY (`concertacion_id`) REFERENCES `concertaciones` (`id`) ON DELETE CASCADE,
  CONSTRAINT `fk_comp_meta` FOREIGN KEY (`meta_id`) REFERENCES `metas` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

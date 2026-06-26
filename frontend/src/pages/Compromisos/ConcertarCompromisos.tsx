@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { api } from '../../lib/api';
 
 interface Evaluado {
@@ -12,14 +12,17 @@ interface Evaluado {
  codigo: string;
  grado: string;
  evaluacion_id: number;
+ evaluacion_estado: string;
  periodo_id: number;
  periodo_nombre: string;
  es_comision_evaluadora: number;
+ dependencia_id: number;
 }
 
 interface Meta {
  id: number;
  descripcion: string;
+ dependencia_id: number;
  entidad_id: number;
  entidad_nombre: string;
 }
@@ -58,6 +61,8 @@ interface CompromisoPropuesto {
 
 export default function ConcertarCompromisos() {
  const navigate = useNavigate();
+ const { evaluacionId } = useParams();
+ const location = useLocation();
 
  // Busqueda
  const [busquedaDocumento, setBusquedaDocumento] = useState('');
@@ -115,20 +120,52 @@ export default function ConcertarCompromisos() {
  const [mensaje, setMensaje] = useState<{ tipo: 'ok' | 'error' | 'warn'; texto: string } | null>(null);
 
  useEffect(() => {
- cargarInicial();
+  const inicial = async () => {
+   await cargarInicial();
+   if (!evaluacionId) return;
+   // Intentar desde location.state (navegación desde CompromisosYCompetencias)
+   const incoming = (location.state as { evaluado?: Evaluado })?.evaluado;
+   if (incoming?.evaluacion_id === Number(evaluacionId)) {
+    try { await seleccionarEvaluado(incoming); } catch {}
+    return;
+   }
+   // Fallback: obtener datos del evaluado desde la evaluación
+   try {
+    const evalRes = await api.get<any>(`/evaluaciones/${evaluacionId}`);
+    if (evalRes) {
+      const ev: Evaluado = {
+       id: evalRes.evaluado_id || evalRes.funcionario_id || 0,
+       documento: evalRes.evaluado_documento || '',
+       nombre_completo: evalRes.evaluado_nombre || evalRes.funcionario_nombre || '',
+       primer_nombre: (evalRes.evaluado_nombre || evalRes.funcionario_nombre || '').split(' ')[0],
+       nivel: evalRes.nivel || '',
+       denominacion: evalRes.denominacion || '',
+       codigo: evalRes.codigo || '',
+       grado: evalRes.grado || '',
+       evaluacion_id: Number(evaluacionId),
+       periodo_id: evalRes.periodo_id || 0,
+       periodo_nombre: evalRes.periodo_nombre || '',
+       es_comision_evaluadora: evalRes.es_comision_evaluadora || 0,
+       dependencia_id: evalRes.dependencia_id || 0,
+      };
+     await seleccionarEvaluado(ev);
+    }
+   } catch {}
+  };
+  inicial();
  }, []);
 
  async function cargarInicial() {
  setLoading(true);
  try {
  const [periodosRes, competenciasRes] = await Promise.all([
- api.get('/periodos'),
- api.get('/competencias'),
+  api.get('/periodos'),
+  api.get('/competencias'),
  ]);
- const periodosArray: any[] = Array.isArray(periodosRes) ? periodosRes : [];
- setPeriodos(periodosArray);
- const competenciasArray: any[] = Array.isArray(competenciasRes) ? competenciasRes : [];
- setCompetencias(competenciasArray);
+ const periodosRaw = Array.isArray(periodosRes) ? periodosRes : (periodosRes?.data || []);
+ setPeriodos(periodosRaw);
+ const competenciasRaw = Array.isArray(competenciasRes) ? competenciasRes : (competenciasRes?.data || []);
+ setCompetencias(competenciasRaw);
 
  try {
  const usersRes = await api.get<any>('/usuarios?por_pagina=100');
@@ -161,20 +198,21 @@ export default function ConcertarCompromisos() {
  return;
  }
 
- const evaluadosList: Evaluado[] = evals.map((ev: any) => ({
- id: ev.evaluado_id || ev.funcionario_id,
- documento: doc,
- nombre_completo: ev.evaluado_nombre || ev.funcionario_nombre || '',
- primer_nombre: (ev.evaluado_nombre || ev.funcionario_nombre || '').split(' ')[0],
- nivel: ev.nivel || '',
- denominacion: ev.denominacion || '',
- codigo: ev.codigo || '',
- grado: ev.grado || '',
- evaluacion_id: ev.id,
- periodo_id: ev.periodo_id || 0,
- periodo_nombre: ev.periodo_nombre || '',
- es_comision_evaluadora: ev.es_comision_evaluadora || 0,
- }));
+  const evaluadosList: Evaluado[] = evals.map((ev: any) => ({
+  id: ev.evaluado_id || ev.funcionario_id,
+  documento: doc,
+  nombre_completo: ev.evaluado_nombre || ev.funcionario_nombre || '',
+  primer_nombre: (ev.evaluado_nombre || ev.funcionario_nombre || '').split(' ')[0],
+  nivel: ev.nivel || '',
+  denominacion: ev.denominacion || '',
+  codigo: ev.codigo || '',
+  grado: ev.grado || '',
+  evaluacion_id: ev.id,
+  periodo_id: ev.periodo_id || 0,
+  periodo_nombre: ev.periodo_nombre || '',
+  es_comision_evaluadora: ev.es_comision_evaluadora || 0,
+  dependencia_id: ev.dependencia_id || 0,
+  }));
 
  setEvaluados(evaluadosList);
  } catch (err: any) {
@@ -185,22 +223,31 @@ export default function ConcertarCompromisos() {
  }
 
  async function seleccionarEvaluado(ev: Evaluado) {
- setEvaluado(ev);
- setEvaluados([]);
- setBusquedaDocumento('');
- setPeriodoId(ev.periodo_id);
- setConcertacionConfirmada(false);
- setShowAlerta(true);
- setTimeout(() => setShowAlerta(false), 5000);
+  setEvaluado(ev);
+  setEvaluados([]);
+  setBusquedaDocumento('');
+  setPeriodoId(ev.periodo_id);
+  setConcertacionConfirmada(false);
+  setShowAlerta(true);
+  setTimeout(() => setShowAlerta(false), 5000);
 
- // Cargar metas del periodo
- if (ev.periodo_id) {
- try {
- const metasRes = await api.get<any>(`/periodos/${ev.periodo_id}/metas`);
- const m = Array.isArray(metasRes) ? metasRes : (metasRes?.data || []);
- setMetas(m);
- } catch {}
- }
+  // Obtener dependencia del evaluado
+  let dependenciaId = ev.dependencia_id;
+  if (!dependenciaId && ev.id) {
+   try {
+    const userRes = await api.get<any>(`/usuarios/${ev.id}`);
+    dependenciaId = userRes?.dependencia_id || 0;
+   } catch {}
+  }
+
+  // Cargar metas del periodo y filtrar por dependencia
+  if (ev.periodo_id) {
+  try {
+  const metasRes = await api.get<any>(`/periodos/${ev.periodo_id}/metas`);
+  const m = Array.isArray(metasRes) ? metasRes : (metasRes?.data || []);
+  setMetas(dependenciaId ? m.filter((meta: Meta) => meta.dependencia_id === dependenciaId) : m);
+  } catch {}
+  }
 
  // Cargar compromisos existentes de la evaluacion
  if (ev.evaluacion_id) {
@@ -266,18 +313,29 @@ setConcertacionConfirmada(true);
  }
 
  function guardarFuncional() {
- if (!fDescripcion.trim()) {
- setMensaje({ tipo: 'error', texto: 'La descripcion del compromiso es requerida.' });
- return;
- }
- if (fPeso <= 0) {
- setMensaje({ tipo: 'error', texto: 'El peso debe ser mayor a 0.' });
- return;
- }
- if (fPeso > 100) {
- setMensaje({ tipo: 'error', texto: 'El peso no puede ser mayor a 100.' });
- return;
- }
+  if (!fDescripcion.trim()) {
+   setMensaje({ tipo: 'error', texto: 'La descripcion del compromiso es requerida.' });
+   return;
+  }
+  if (fMetaId <= 0) {
+   setMensaje({ tipo: 'error', texto: 'Debe seleccionar la meta a la cual desea asociar el compromiso.' });
+   return;
+  }
+  if (fPeso <= 0) {
+   setMensaje({ tipo: 'error', texto: 'El peso debe ser mayor a 0.' });
+   return;
+  }
+  if (fPeso > 100) {
+   setMensaje({ tipo: 'error', texto: 'El peso no puede ser mayor a 100.' });
+   return;
+  }
+  const nuevoTotal = funcionalEditIndex !== null
+   ? sumaPesosFuncionales - (funcionales[funcionalEditIndex]?.peso || 0) + fPeso
+   : sumaPesosFuncionales + fPeso;
+  if (nuevoTotal > 100) {
+   setMensaje({ tipo: 'error', texto: `El peso total de los compromisos funcionales no puede superar 100%. Actual: ${sumaPesosFuncionales}%, con este compromiso seria ${nuevoTotal}%.` });
+   return;
+  }
 
  const metaNombre = metas.find(m => m.id === fMetaId)?.descripcion || 'Sin meta asociada';
 
@@ -292,9 +350,9 @@ setConcertacionConfirmada(true);
  };
  setFuncionales(nuevos);
  } else {
- if (funcionales.length >= 5) {
- setMensaje({ tipo: 'error', texto: 'No se pueden agregar mas de 5 compromisos funcionales.' });
- return;
+  if (funcionales.length >= 3) {
+   setMensaje({ tipo: 'error', texto: 'No se pueden agregar mas de 3 compromisos funcionales.' });
+   return;
  }
  setFuncionales([...funcionales, {
  meta_id: fMetaId,
@@ -380,9 +438,9 @@ setConcertacionConfirmada(true);
  setMensaje({ tipo: 'error', texto: 'Debe ingresar al menos 1 compromiso funcional.' });
  return;
  }
- if (funcionales.length > 5) {
- setMensaje({ tipo: 'error', texto: 'No puede tener mas de 5 compromisos funcionales.' });
- return;
+  if (funcionales.length > 3) {
+   setMensaje({ tipo: 'error', texto: 'No puede tener mas de 3 compromisos funcionales.' });
+   return;
  }
  if (Math.abs(sumaPesosFuncionales - 100) > 0.01) {
  setMensaje({ tipo: 'error', texto: `La suma de los pesos funcionales debe ser exactamente 100%. Actualmente suma: ${sumaPesosFuncionales}%` });
@@ -525,7 +583,7 @@ setConcertacionConfirmada(true);
  <span className="material-icons text-4xl text-yellow-500 mb-2">warning</span>
  <h3 className="font-heading font-bold text-inst-azul mb-2">Recuerde</h3>
  <p className="text-sm text-inst-texto">
- El evaluado <strong>{evaluado.primer_nombre}</strong> requiere minimo <strong>1</strong> y maximo <strong>5</strong> compromisos funcionales, y entre <strong>3</strong> y <strong>5</strong> competencias comportamentales. Los pesos funcionales deben sumar <strong>100%</strong>.
+  El evaluado <strong>{evaluado.primer_nombre}</strong> requiere minimo <strong>1</strong> y maximo <strong>3</strong> compromisos funcionales, y entre <strong>3</strong> y <strong>5</strong> competencias comportamentales. Los pesos funcionales deben sumar <strong>100%</strong>.
  </p>
  <button onClick={() => setShowAlerta(false)} className="edl-btn-primary mt-4 text-sm">
  Entendido
@@ -657,7 +715,7 @@ setConcertacionConfirmada(true);
  </h3>
 
  {!concertacionConfirmada && (
- <button onClick={() => openModalFuncional(null)} className="edl-btn-primary flex items-center gap-2 mb-4" disabled={funcionales.length >= 5}>
+  <button onClick={() => openModalFuncional(null)} className="edl-btn-primary flex items-center gap-2 mb-4" disabled={funcionales.length >= 3}>
  <span className="material-icons text-lg">add</span>
  Ingresar compromiso funcional
  </button>

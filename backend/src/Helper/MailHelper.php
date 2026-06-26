@@ -2,10 +2,9 @@
 
 namespace App\Helper;
 
-use App\Config\Env;
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
+use App\Config\Env;
 
 class MailHelper
 {
@@ -15,11 +14,11 @@ class MailHelper
 
 		try {
 			$mail->isSMTP();
-			$mail->Host = Env::get('MAIL_HOST', 'smtp.gmail.com');
-			$mail->Port = (int) Env::get('MAIL_PORT', '587');
+			$mail->Host = Env::require('MAIL_HOST');
+			$mail->Port = (int) Env::require('MAIL_PORT');
 			$mail->SMTPAuth = true;
-			$mail->Username = Env::get('MAIL_USER', '');
-			$mail->Password = Env::get('MAIL_PASS', '');
+			$mail->Username = Env::require('MAIL_USER');
+			$mail->Password = Env::require('MAIL_PASS');
 			$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 			$mail->CharSet = 'UTF-8';
 
@@ -50,35 +49,56 @@ class MailHelper
 		}
 	}
 
-	public static function enviarRecuperacion(string $emailDest, string $nombreDest, string $codigo): bool
+	public static function enviarCodigoVerificacion(string $destinatario, string $nombreDest, string $codigo): bool
 	{
-		$frontendUrl = Env::get('FRONTEND_URL', 'http://localhost:5173');
-		$link = $frontendUrl . '/verificar-codigo?email=' . urlencode($emailDest);
-
-		$html = '
-		<div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-			<div style="background: #003366; padding: 24px 32px; text-align: center;">
-				<h1 style="color: #ffffff; margin: 0; font-size: 22px;">EDL-CAREPA</h1>
-				<p style="color: #b0c4de; margin: 4px 0 0; font-size: 14px;">Evaluación del Desempeño Laboral</p>
+		$asunto = 'Código de verificación - EDL-CAREPA';
+		$cuerpoHTML = "
+		<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">
+			<div style=\"background-color: #0A2B5E; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;\">
+				<h1 style=\"margin: 0; font-size: 24px;\">EDL-CAREPA</h1>
+				<p style=\"margin: 5px 0 0; font-size: 14px;\">Sistema de Evaluación del Desempeño Laboral</p>
 			</div>
-			<div style="padding: 32px;">
-				<p style="font-size: 16px; color: #333;">Hola <strong>' . htmlspecialchars($nombreDest) . '</strong>,</p>
-				<p style="font-size: 15px; color: #555;">Recibimos una solicitud para restablecer su contraseña. Ingrese el siguiente código en la página de verificación:</p>
-				<div style="background: #f5f7fa; border: 1px dashed #003366; border-radius: 6px; padding: 16px; text-align: center; margin: 20px 0;">
-					<span style="font-family: monospace; font-size: 28px; font-weight: bold; letter-spacing: 8px; color: #003366;">' . $codigo . '</span>
+			<div style=\"background-color: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0;\">
+				<h2 style=\"color: #0A2B5E; margin-top: 0;\">Código de verificación</h2>
+				<p>Hola <strong>{$nombreDest}</strong>,</p>
+				<p>Tu código de verificación es:</p>
+				<div style=\"background-color: white; border: 2px solid #0A2B5E; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;\">
+					<span style=\"font-size: 32px; font-weight: bold; color: #0A2B5E; letter-spacing: 4px;\">{$codigo}</span>
 				</div>
-				<div style="text-align: center; margin: 20px 0;">
-					<a href="' . $link . '" style="background: #003366; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-size: 15px; display: inline-block;">Verificar código</a>
+				<p style=\"font-size: 13px; color: #666;\">Este código expira en 1 hora. Si no solicitó este cambio, ignore este correo.</p>
+			</div>
+			<p style=\"font-size: 12px; color: #999; text-align: center; margin-top: 20px;\">Alcaldía de Carepa — Sistema EDL-CAREPA</p>
+		</div>
+		";
+		$cuerpoTexto = "Tu código de verificación EDL-CAREPA es: {$codigo}. Expira en 1 hora.";
+
+		return self::enviar($destinatario, $nombreDest, $asunto, $cuerpoHTML, $cuerpoTexto);
+	}
+
+	public static function enviarNuevaContrasena(string $destinatario, string $nombreDest, string $contrasenaTemporal): bool
+	{
+		$asunto = 'Nueva contraseña temporal - EDL-CAREPA';
+		$cuerpoHTML = "
+		<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">
+			<div style=\"background-color: #0A2B5E; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;\">
+				<h1 style=\"margin: 0; font-size: 24px;\">EDL-CAREPA</h1>
+				<p style=\"margin: 5px 0 0; font-size: 14px;\">Sistema de Evaluación del Desempeño Laboral</p>
+			</div>
+			<div style=\"background-color: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0;\">
+				<h2 style=\"color: #0A2B5E; margin-top: 0;\">Nueva contraseña temporal</h2>
+				<p>Hola <strong>{$nombreDest}</strong>,</p>
+				<p>Se ha generado una nueva contraseña temporal para tu cuenta:</p>
+				<div style=\"background-color: white; border: 2px solid #F9B233; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;\">
+					<span style=\"font-size: 24px; font-weight: bold; color: #0A2B5E; font-family: monospace;\">{$contrasenaTemporal}</span>
 				</div>
-				<p style="font-size: 13px; color: #999; border-top: 1px solid #eee; padding-top: 16px;">Este código expira en 1 hora. Si no solicitó este cambio, ignore este correo.</p>
+				<p style=\"color: #DC2626; font-weight: bold;\">Por seguridad, debes cambiar esta contraseña al iniciar sesión por primera vez.</p>
+				<p style=\"font-size: 13px; color: #666;\">Si no solicitó este cambio, contacte al administrador del sistema.</p>
 			</div>
-			<div style="background: #f5f7fa; padding: 12px 32px; text-align: center;">
-				<p style="font-size: 12px; color: #999; margin: 0;">Alcaldía de Carepa — Sistema EDL-CAREPA</p>
-			</div>
-		</div>';
+			<p style=\"font-size: 12px; color: #999; text-align: center; margin-top: 20px;\">Alcaldía de Carepa — Sistema EDL-CAREPA</p>
+		</div>
+		";
+		$cuerpoTexto = "Tu nueva contraseña temporal EDL-CAREPA es: {$contrasenaTemporal}. Debes cambiarla al iniciar sesión.";
 
-		$texto = "Hola {$nombreDest},\n\nSu código de recuperación es: {$codigo}\n\nO visite: {$link}\n\nEste código expira en 1 hora.";
-
-		return self::enviar($emailDest, $nombreDest, 'Código de recuperación — EDL-CAREPA', $html, $texto);
+		return self::enviar($destinatario, $nombreDest, $asunto, $cuerpoHTML, $cuerpoTexto);
 	}
 }

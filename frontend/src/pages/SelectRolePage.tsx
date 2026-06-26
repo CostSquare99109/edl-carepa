@@ -12,12 +12,28 @@ interface RolConfig {
  colorTexto: string;
  badge: 'danger' | 'success' | 'info';
 }const ROLES_CONFIG: Record<string, RolConfig> = {
+ admin_carepa: {
+  icon: 'shield',
+  descripcion: 'Superadministrador global del sistema. Gestión de usuarios, dependencias, periodos, evaluaciones, reportes y configuración general.',
+  colorBarra: 'border-l-red-600',
+  colorFondo: 'bg-red-100',
+  colorTexto: 'text-red-800',
+  badge: 'danger',
+ },
  admin: {
   icon: 'shield',
   descripcion: 'Administrador del sistema. Gestión de usuarios, dependencias, evaluaciones, reportes, parámetros y configuración general.',
   colorBarra: 'border-l-red-600',
   colorFondo: 'bg-red-100',
   colorTexto: 'text-red-800',
+  badge: 'danger',
+ },
+ jefe_dependencia: {
+  icon: 'supervisor_account',
+  descripcion: 'Jefe de dependencia. Administra los usuarios de su dependencia, restablece contraseñas y realiza seguimiento.',
+  colorBarra: 'border-l-purple-600',
+  colorFondo: 'bg-purple-100',
+  colorTexto: 'text-purple-800',
   badge: 'danger',
  },
  evaluador: {
@@ -34,6 +50,14 @@ interface RolConfig {
   colorBarra: 'border-l-blue-600',
   colorFondo: 'bg-blue-100',
   colorTexto: 'text-blue-800',
+  badge: 'info',
+ },
+ comision_evaluadora: {
+  icon: 'groups',
+  descripcion: 'Órgano evaluador colegiado. Realiza evaluaciones conjuntas y aprueba calificaciones definitivas.',
+  colorBarra: 'border-l-amber-600',
+  colorFondo: 'bg-amber-100',
+  colorTexto: 'text-amber-800',
   badge: 'info',
  },
 };
@@ -62,7 +86,7 @@ export default function SelectRolePage() {
   setCargando(rol.codigo);
   try {
    await cambiarRol(rol.codigo);
-   navigate('/', { replace: true });
+   navigate('/dashboard', { replace: true });
   } catch (err) {
    setError(err instanceof Error ? err.message : 'Error al cambiar de rol. Intente de nuevo.');
    setCargando(null);

@@ -7,90 +7,129 @@ use App\Helper\ResponseHelper;
 
 class UploadHelper
 {
- private static array $allowedMimes = [
- 'pdf' => 'application/pdf',
- 'jpg' => 'image/jpeg',
- 'jpeg' => 'image/jpeg',
- 'png' => 'image/png',
- 'doc' => 'application/msword',
- 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
- 'xls' => 'application/vnd.ms-excel',
- 'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
- ];
+	private static array $allowedMimesCache = [];
+	private static int $maxSizeBytesCache = 0;
 
- private static int $maxSizeBytes = 10485760;
+	private static function getAllowedMimes(): array
+	{
+		if (self::$allowedMimesCache) {
+			return self::$allowedMimesCache;
+		}
 
- public static function validar(array $file): array
- {
- if (empty($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
- ResponseHelper::error('Error al subir archivo', 422);
- }
+		$csv = Env::get('UPLOAD_MIMES_PERMITIDOS', '');
+		if ($csv) {
+			$extensions = array_map('trim', explode(',', $csv));
+			$fullMap = [
+				'pdf'  => 'application/pdf',
+				'jpg'  => 'image/jpeg',
+				'jpeg' => 'image/jpeg',
+				'png'  => 'image/png',
+				'doc'  => 'application/msword',
+				'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+				'xls'  => 'application/vnd.ms-excel',
+				'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			];
+			self::$allowedMimesCache = array_intersect_key($fullMap, array_flip($extensions));
+			return self::$allowedMimesCache;
+		}
 
- if ($file['size'] > self::$maxSizeBytes) {
- $maxMB = self::$maxSizeBytes / 1048576;
- ResponseHelper::error("El archivo excede el tamaño maximo de {$maxMB}MB", 422);
- }
+		// Default completo si no se define en .env
+		self::$allowedMimesCache = [
+			'pdf'  => 'application/pdf',
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'png'  => 'image/png',
+			'doc'  => 'application/msword',
+			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'xls'  => 'application/vnd.ms-excel',
+			'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		];
+		return self::$allowedMimesCache;
+	}
 
- $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
- if (!isset(self::$allowedMimes[$extension])) {
- $permitidas = implode(', ', array_keys(self::$allowedMimes));
- ResponseHelper::error("Tipo de archivo no permitido. Extensiones validas: {$permitidas}", 422);
- }
+	private static function getMaxSizeBytes(): int
+	{
+		if (self::$maxSizeBytesCache) {
+			return self::$maxSizeBytesCache;
+		}
+		$maxMB = (int) Env::get('UPLOAD_TAMANO_MAXIMO_MB', '10');
+		self::$maxSizeBytesCache = $maxMB * 1048576;
+		return self::$maxSizeBytesCache;
+	}
 
- $finfo = finfo_open(FILEINFO_MIME_TYPE);
- $mimeType = finfo_file($finfo, $file['tmp_name']);
- finfo_close($finfo);
+	public static function validar(array $file): array
+	{
+		if (empty($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+			ResponseHelper::error('Error al subir archivo', 422);
+		}
 
- $expectedMime = self::$allowedMimes[$extension];
- if ($mimeType !== $expectedMime && !self::mimeTypeCompatible($mimeType, $expectedMime)) {
- ResponseHelper::error('El tipo MIME del archivo no coincide con su extension', 422);
- }
+		if ($file['size'] > self::getMaxSizeBytes()) {
+			$maxMB = self::getMaxSizeBytes() / 1048576;
+			ResponseHelper::error("El archivo excede el tamaño máximo de {$maxMB}MB", 422);
+		}
 
- return [
- 'extension' => $extension,
- 'mime_type' => $mimeType,
- 'size' => $file['size'],
- 'tmp_name' => $file['tmp_name'],
- 'original_name' => $file['name']
- ];
- }
+		$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		$allowedMimes = self::getAllowedMimes();
 
- public static function guardar(array $file, string $subdirectorio = ''): string
- {
- $validado = self::validar($file);
+		if (!isset($allowedMimes[$extension])) {
+			$permitidas = implode(', ', array_keys($allowedMimes));
+			ResponseHelper::error("Tipo de archivo no permitido. Extensiones válidas: {$permitidas}", 422);
+		}
 
- $uploadDir = Env::get('UPLOAD_DIR', EDL_ROOT . '/uploads');
- if ($subdirectorio) {
- $uploadDir .= '/' . trim($subdirectorio, '/');
- }
+		$finfo = finfo_open(FILEINFO_MIME_TYPE);
+		$mimeType = finfo_file($finfo, $file['tmp_name']);
+		finfo_close($finfo);
 
- if (!is_dir($uploadDir)) {
- mkdir($uploadDir, 0755, true);
- }
+		$expectedMime = $allowedMimes[$extension];
+		if ($mimeType !== $expectedMime && !self::mimeTypeCompatible($mimeType, $expectedMime)) {
+			ResponseHelper::error('El tipo MIME del archivo no coincide con su extensión', 422);
+		}
 
- $hash = hash('sha256', $validado['original_name'] . microtime(true) . random_bytes(16));
- $nombreSeguro = substr($hash, 0, 32) . '.' . $validado['extension'];
- $rutaCompleta = $uploadDir . '/' . $nombreSeguro;
+		return [
+			'extension'     => $extension,
+			'mime_type'     => $mimeType,
+			'size'          => $file['size'],
+			'tmp_name'      => $file['tmp_name'],
+			'original_name' => $file['name'],
+		];
+	}
 
- if (!move_uploaded_file($validado['tmp_name'], $rutaCompleta)) {
- ResponseHelper::error('Error al guardar archivo', 500);
- }
+	public static function guardar(array $file, string $subdirectorio = ''): string
+	{
+		$validado = self::validar($file);
 
- $rutaRelativa = ($subdirectorio ? trim($subdirectorio, '/') . '/' : '') . $nombreSeguro;
- return $rutaRelativa;
- }
+		$uploadDir = Env::get('UPLOAD_DIR', EDL_ROOT . '/uploads');
+		if ($subdirectorio) {
+			$uploadDir .= '/' . trim($subdirectorio, '/');
+		}
 
- private static function mimeTypeCompatible(string $detected, string $expected): bool
- {
- $compatibles = [
- 'application/vnd.ms-excel' => ['application/vnd.ms-excel', 'application/octet-stream'],
- 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip', 'application/octet-stream'],
- 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/octet-stream'],
- 'image/jpeg' => ['image/jpeg'],
- 'image/png' => ['image/png'],
- 'application/pdf' => ['application/pdf']
- ];
+		if (!is_dir($uploadDir)) {
+			mkdir($uploadDir, 0755, true);
+		}
 
- return isset($compatibles[$expected]) && in_array($detected, $compatibles[$expected]);
- }
+		$hash = hash('sha256', $validado['original_name'] . microtime(true) . random_bytes(16));
+		$nombreSeguro = substr($hash, 0, 32) . '.' . $validado['extension'];
+		$rutaCompleta = $uploadDir . '/' . $nombreSeguro;
+
+		if (!move_uploaded_file($validado['tmp_name'], $rutaCompleta)) {
+			ResponseHelper::error('Error al guardar archivo', 500);
+		}
+
+		$rutaRelativa = ($subdirectorio ? trim($subdirectorio, '/') . '/' : '') . $nombreSeguro;
+		return $rutaRelativa;
+	}
+
+	private static function mimeTypeCompatible(string $detected, string $expected): bool
+	{
+		$compatibles = [
+			'application/vnd.ms-excel' => ['application/vnd.ms-excel', 'application/octet-stream'],
+			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip', 'application/octet-stream'],
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/octet-stream'],
+			'image/jpeg' => ['image/jpeg'],
+			'image/png' => ['image/png'],
+			'application/pdf' => ['application/pdf'],
+		];
+
+		return isset($compatibles[$expected]) && in_array($detected, $compatibles[$expected]);
+	}
 }

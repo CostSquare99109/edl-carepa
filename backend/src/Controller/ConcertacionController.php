@@ -66,7 +66,9 @@ class ConcertacionController
 
  public function fijarUnilateral(int $id): void
  {
- $this->service->fijarUnilateral($id);
- ResponseHelper::success(null, 'Compromisos fijados unilateralmente por el evaluador');
+ $input = json_decode(file_get_contents('php://input'), true) ?: [];
+ $input = SanitizerHelper::sanitizeArray($input);
+ $this->service->fijarUnilateral($id, $input);
+ ResponseHelper::success(null, 'Compromisos fijados unilateralmente por el evaluador conforme al Art. 33 Res. 1760/2010');
  }
 }

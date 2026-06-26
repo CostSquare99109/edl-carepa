@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { Select } from '../../components/ui';
 
 interface Evaluado {
   documento: string;
@@ -19,6 +20,8 @@ interface CompromisoFuncional {
   resultado_esperado?: string;
   medio_verificacion?: string;
   plazo?: string;
+  motivo_ajuste?: string;
+  fecha_ajuste?: string;
 }
 
 interface CompromisoComportamental {
@@ -29,7 +32,17 @@ interface CompromisoComportamental {
   competencia_nombre?: string;
   competencia_decreto?: string;
   es_propuesto_jefe?: number;
+  motivo_ajuste?: string;
+  fecha_ajuste?: string;
 }
+
+const MOTIVOS_AJUSTE = [
+  { value: 'cambios_planes_metas', label: 'Cambios en los planes institucionales o metas' },
+  { value: 'separacion_temporal_30_dias', label: 'Separación temporal del cargo por >30 días calendario' },
+  { value: 'asignacion_funciones', label: 'Asignación de funciones' },
+  { value: 'cambio_empleo_traslado_reubicacion', label: 'Cambio de empleo por traslado o reubicación' },
+  { value: 'decision_comision_personal', label: 'Decisión de la Comisión de Personal ante reclamación' },
+];
 
 export default function AjustarCompromisos() {
   const navigate = useNavigate();
@@ -47,6 +60,7 @@ export default function AjustarCompromisos() {
   // Campos de edición funcional
   const [editDescripcion, setEditDescripcion] = useState('');
   const [editPeso, setEditPeso] = useState<number>(0);
+  const [editMotivoAjuste, setEditMotivoAjuste] = useState('');
 
   useEffect(() => {
     if (evaluacionId) cargarCompromisos();
@@ -58,10 +72,10 @@ export default function AjustarCompromisos() {
       const res = await api.get<any>(`/compromisos/evaluacion/${evaluacionId}`);
       // Solo compromisos concertados (aprobados o en progreso) se pueden ajustar
       const funcs = (res?.funcionales || []).filter((c: CompromisoFuncional) =>
-        ['aprobado', 'en_progreso', 'enviado', 'en_revision'].includes(c.estado)
+        ['aprobado', 'en_progreso', 'enviado', 'en_revision', 'devuelto'].includes(c.estado)
       );
       const comps = (res?.comportamentales || []).filter((c: CompromisoComportamental) =>
-        ['aprobado', 'en_progreso', 'enviado', 'en_revision'].includes(c.estado)
+        ['aprobado', 'en_progreso', 'enviado', 'en_revision', 'devuelto'].includes(c.estado)
       );
       setFuncionales(funcs);
       setComportamentales(comps);
@@ -76,12 +90,14 @@ export default function AjustarCompromisos() {
     setEditandoId(c.id);
     setEditDescripcion(c.descripcion);
     setEditPeso(parseFloat(String(c.peso)) || 0);
+    setEditMotivoAjuste(c.motivo_ajuste || '');
   }
 
   function cancelarEdicion() {
     setEditandoId(null);
     setEditDescripcion('');
     setEditPeso(0);
+    setEditMotivoAjuste('');
   }
 
   async function guardarEdicionFuncional(c: CompromisoFuncional) {
@@ -93,14 +109,21 @@ export default function AjustarCompromisos() {
       setMensaje('El peso debe estar entre 1 y 100');
       return;
     }
+    // Motivo de ajuste es obligatorio cuando se edita un compromiso concertado
+    if (!editMotivoAjuste) {
+      setMensaje('Debe seleccionar el motivo del ajuste (Acuerdo 617/2018, Anexo Tecnico)');
+      return;
+    }
 
     setSaving(true);
     try {
       await api.put(`/compromisos/${c.id}`, {
         descripcion: editDescripcion.trim(),
         peso: editPeso,
+        motivo_ajuste: editMotivoAjuste,
+        fecha_ajuste: new Date().toISOString().slice(0, 19).replace('T', ' '),
       });
-      setMensaje('Compromiso funcional actualizado');
+      setMensaje('Compromiso funcional ajustado con motivo registrado');
       setEditandoId(null);
       cargarCompromisos();
     } catch (err: any) {
@@ -184,6 +207,7 @@ export default function AjustarCompromisos() {
                     <tr className="bg-inst-azul/5 text-left">
                       <th className="px-3 py-2 font-medium text-inst-azul">Compromiso</th>
                       <th className="px-3 py-2 font-medium text-inst-azul text-center">Peso</th>
+                      <th className="px-3 py-2 font-medium text-inst-azul">Motivo ajuste</th>
                       <th className="px-3 py-2 font-medium text-inst-azul">Estado</th>
                       <th className="px-3 py-2 font-medium text-inst-azul text-center">Opciones</th>
                     </tr>
@@ -208,6 +232,15 @@ export default function AjustarCompromisos() {
                                 className="edl-input w-20 text-center text-sm"
                                 min={1}
                                 max={100}
+                              />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Select
+                                value={editMotivoAjuste}
+                                onChange={e => setEditMotivoAjuste(e.target.value)}
+                                options={MOTIVOS_AJUSTE}
+                                placeholder="Motivo del ajuste (obligatorio)"
+                                className="edl-input text-xs"
                               />
                             </td>
                             <td className="px-3 py-2">
@@ -237,6 +270,11 @@ export default function AjustarCompromisos() {
                           <>
                             <td className="px-3 py-2 text-inst-texto">{c.descripcion}</td>
                             <td className="px-3 py-2 text-center font-semibold">{parseFloat(String(c.peso))}%</td>
+                            <td className="px-3 py-2 text-inst-texto-claro text-xs">
+                              {c.motivo_ajuste
+                                ? MOTIVOS_AJUSTE.find(m => m.value === c.motivo_ajuste)?.label
+                                : '-'}
+                            </td>
                             <td className="px-3 py-2">
                               <span className={`text-xs px-2 py-0.5 rounded-full ${
                                 c.estado === 'aprobado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'

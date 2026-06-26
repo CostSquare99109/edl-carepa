@@ -72,6 +72,7 @@ $router->group('/api/v1', function (Router $r) {
 
  $r->get('/entidades', [\App\Controller\EntidadController::class, 'listar'], ['permiso:entidades.listar']);
  $r->post('/entidades', [\App\Controller\EntidadController::class, 'crear'], ['permiso:entidades.crear']);
+ $r->post('/entidades/con-jefe-personal', [\App\Controller\EntidadController::class, 'crearConJefePersonal'], ['permiso:entidades.crear']);
  $r->get('/entidades/{id}', [\App\Controller\EntidadController::class, 'ver'], ['permiso:entidades.listar']);
  $r->put('/entidades/{id}', [\App\Controller\EntidadController::class, 'actualizar'], ['permiso:entidades.editar']);
  $r->delete('/entidades/{id}', [\App\Controller\EntidadController::class, 'eliminar'], ['permiso:entidades.eliminar']);
@@ -116,7 +117,11 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/evaluaciones', [\App\Controller\EvaluacionController::class, 'listar'], ['permiso:evaluaciones.listar']);
  $r->post('/evaluaciones', [\App\Controller\EvaluacionController::class, 'crear'], ['permiso:evaluaciones.crear']);
  $r->get('/evaluaciones/pendientes-calificar', [\App\Controller\EvaluacionController::class, 'pendientesCalificar'], ['permiso:evaluaciones.evaluar']);
+ $r->get('/evaluaciones/buscar-evaluado', [\App\Controller\EvaluacionController::class, 'buscarEvaluado'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'ver'], ['permiso:evaluaciones.listar']);
+  $r->get('/evaluaciones/{id}/evaluaciones-previas', [\App\Controller\EvaluacionController::class, 'verEvaluacionesPrevias'], ['permiso:evaluaciones.listar']);
+ $r->get('/evaluaciones/evaluado/{id}/previas', [\App\Controller\EvaluacionController::class, 'verEvaluacionesPorEvaluado'], ['permiso:evaluaciones.listar']);
+ $r->get('/evaluaciones/evaluado/{id}/primer-semestre-existe', [\App\Controller\EvaluacionController::class, 'existePrimerSemestre'], ['permiso:evaluaciones.evaluar']);
  $r->put('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'calificar'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/{id}/compromisos', [\App\Controller\EvaluacionController::class, 'compromisos'], ['permiso:compromisos.listar']);
  $r->post('/evaluaciones/{id}/parcial', [\App\Controller\EvaluacionController::class, 'crearParcial'], ['permiso:evaluaciones.crear']);

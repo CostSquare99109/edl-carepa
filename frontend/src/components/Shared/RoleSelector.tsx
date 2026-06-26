@@ -57,7 +57,7 @@ export default function RoleSelector({ variant = 'header', onRolChange }: RoleSe
    if (onRolChange) {
     onRolChange(codigo);
    } else {
-    navigate('/', { replace: true });
+    navigate('/dashboard', { replace: true });
    }
   } catch (err) {
    console.error('Error al cambiar rol:', err);

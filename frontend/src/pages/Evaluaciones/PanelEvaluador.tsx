@@ -61,27 +61,57 @@ const ESTADO_COMPROMISO: Record<string, { label: string; color: string; bg: stri
 
 type ValoracionFrecuencia = 'nunca' | 'algunas_veces' | 'frecuentemente' | 'siempre';
 
-// Mapeo de frecuencia -> puntaje base (4-15) según CNSC Anexo Técnico
+// Mapeo de frecuencia -> puntaje base (4-15) segun CNSC Anexo Tecnico
 const FRECUENCIA_PUNTAJE: Record<ValoracionFrecuencia, number> = {
-  nunca: 4,        // Bajo (4-6)
-  algunas_veces: 7, // Aceptable (7-9)
-  frecuentemente: 10, // Alto (10-12)
-  siempre: 13,        // Muy Alto (13-15)
+  nunca: 4,
+  algunas_veces: 7,
+  frecuentemente: 10,
+  siempre: 13,
 };
 
-const VALORACION_OPTIONS: { value: ValoracionFrecuencia; label: string; color: string; puntaje: number }[] = [
-  { value: 'nunca', label: 'Nunca', color: 'bg-red-100 text-red-700 border-red-300', puntaje: 4 },
-  { value: 'algunas_veces', label: 'Algunas veces', color: 'bg-amber-100 text-amber-700 border-amber-300', puntaje: 7 },
-  { value: 'frecuentemente', label: 'Frecuentemente', color: 'bg-blue-100 text-blue-700 border-blue-300', puntaje: 10 },
-  { value: 'siempre', label: 'Siempre', color: 'bg-green-100 text-green-700 border-green-300', puntaje: 13 },
+// Helpers visuales para los selectores de frecuencia (segun la tarea)
+const COLOR_FRECUENCIA: Record<ValoracionFrecuencia, string> = {
+  nunca: 'bg-red-100 text-red-700 border-red-300',
+  algunas_veces: 'bg-amber-100 text-amber-700 border-amber-300',
+  frecuentemente: 'bg-blue-100 text-blue-700 border-blue-300',
+  siempre: 'bg-green-100 text-green-700 border-green-300',
+};
+
+const OPCIONES_FRECUENCIA: { value: ValoracionFrecuencia; label: string; color: string; puntaje: number }[] = [
+  { value: 'nunca', label: 'Nunca', color: COLOR_FRECUENCIA.nunca, puntaje: 4 },
+  { value: 'algunas_veces', label: 'Algunas veces', color: COLOR_FRECUENCIA.algunas_veces, puntaje: 7 },
+  { value: 'frecuentemente', label: 'Frecuentemente', color: COLOR_FRECUENCIA.frecuentemente, puntaje: 10 },
+  { value: 'siempre', label: 'Siempre', color: COLOR_FRECUENCIA.siempre, puntaje: 13 },
 ];
 
-const TIPOS_EVALUACION = [
-  { value: 'parcial_eventual', label: 'Evaluación Parcial Eventual', backend: 'parcial_eventual' },
-  { value: 'primer_semestre', label: 'Evaluación 1er Semestre', backend: 'parcial_primer_semestre' },
-  { value: 'segundo_semestre', label: 'Evaluación 2do Semestre', backend: 'parcial_segundo_semestre' },
-  { value: 'extraordinaria', label: 'Calificación Extraordinaria', backend: 'calificacion_extraordinaria' },
+// Selectores exactos de la tarea
+const OPCIONES_APORTE_LOGRO = [
+  { value: 'si', label: 'Si' },
+  { value: 'moderadamente', label: 'Moderadamente' },
+  { value: 'no', label: 'No' },
 ] as const;
+
+const OPCIONES_EXCEDE_ESTIPULADO = [
+  { value: 'si', label: 'Si' },
+  { value: 'no', label: 'No' },
+] as const;
+
+// Tipos de evaluacion con etiqueta EXACTA segun tarea_evaluador.md
+const TIPOS_EVALUACION = [
+  { value: 'parcial_eventual', label: 'Evaluacion parcial eventual', backend: 'parcial_eventual' },
+  { value: 'primer_semestre', label: 'Evaluacion 1 semestre', backend: 'parcial_primer_semestre' },
+  { value: 'segundo_semestre', label: 'Evaluacion 2 semestre', backend: 'parcial_segundo_semestre' },
+  { value: 'extraordinaria', label: 'Calificacion extraordinaria', backend: 'calificacion_extraordinaria' },
+] as const;
+
+// Conductas oficiales Compromisos con la organizacion - Decreto 815/2018 (segun tarea_evaluador.md)
+const CONDUCTAS_COMPROMISO_ORGANIZACION = [
+  'Promueve el cumplimiento de las metas de la organizacion y respeta sus normas.',
+  'Aunque pone las necesidades de la organizacion por encima de sus propias necesidades.',
+  'Apoya la organizacion en situaciones difficiles.',
+  'Demuestra sentido de pertenencia en todas sus actuaciones.',
+  'Toma la iniciativa de colaborar con sus companeros y con otras areas cuando se requiere, sin descuidar sus tareas.',
+];
 
 // Motivos según backend enum: cambio_evaluador, lapso_ultima_evaluacion, periodo_prueba_otro_empleo, separacion_temporal_mas_30_dias, cambio_empleo_traslado
 const MOTIVOS_PARCIAL = [
@@ -92,7 +122,7 @@ const MOTIVOS_PARCIAL = [
   { value: 'cambio_empleo_traslado', label: 'Cambio de empleo por traslado o reubicación' },
 ] as const;
 
-// Razones para separación temporal según Video 9 CNSC
+// Razones para separacion temporal segun Video 9 CNSC
 const RAZONES_SEPARACION = [
   { value: 'suspension', label: 'Suspensión' },
   { value: 'encargo', label: 'Por asumir o finalizar encargo en funciones de otro empleo' },
@@ -118,6 +148,30 @@ const PESO_FUNCIONALES = 85;
 const PESO_COMPORTAMENTALES = 15;
 const UMBRAL_SOBRESALIENTE = 90;
 const UMBRAL_SATISFACTORIO = 65;
+const MIN_CARACTERES_EXCEDE = 40;
+
+// Extrae el anio de inicio de un nombre de periodo tipo "2026-2027"
+function getAnioInicioPeriodo(nombre?: string | null): number | null {
+  if (!nombre) return null;
+  const m = /^(\d{4})/.exec(nombre.trim());
+  return m ? parseInt(m[1], 10) : null;
+}
+
+// Valida que las fechas de evaluacion caigan entre 01-08-Anio y 31-01-Anio+1
+function validarFechas2doSemestreLocal(
+  fechaInicio: string,
+  fechaFin: string,
+  nombrePeriodo: string | null | undefined,
+): string | null {
+  const anio = getAnioInicioPeriodo(nombrePeriodo);
+  if (!anio || !fechaInicio || !fechaFin) return null;
+  const fechaMin = `${anio}-08-01`;
+  const fechaMax = `${anio + 1}-01-31`;
+  if (fechaInicio < fechaMin) return `La fecha de inicio debe ser >= ${fechaMin} (01-08-${anio}).`;
+  if (fechaFin > fechaMax) return `La fecha de fin debe ser <= ${fechaMax} (31-01-${anio + 1}).`;
+  if (fechaInicio > fechaFin) return 'La fecha de inicio no puede ser posterior a la fecha de fin.';
+  return null;
+}
 
 function escalaComportamental(puntaje: number): string {
   if (puntaje >= 13) return 'Muy Alto';
@@ -214,8 +268,20 @@ export default function PanelEvaluador() {
   const [descAporte, setDescAporte] = useState('');
   const [justificacion, setJustificacion] = useState('');
 
+  // Preguntas de impacto por compromiso comportamental (segun tarea_evaluador.md)
+  const [impactoAporta, setImpactoAporta] = useState<'' | 'si' | 'no' | 'moderadamente'>('');
+  const [impactoExcede, setImpactoExcede] = useState<'' | 'si' | 'no'>('');
+  const [justificacionExcede, setJustificacionExcede] = useState('');
+
   const [saving, setSaving] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ type: 'guardar' | 'revision' | 'finalizar'; msg: string } | null>(null);
+
+  // Mensaje de validacion de fechas 2do semestre (computado on-demand)
+  const validacionFechasMsg = useMemo(() => {
+    if (tipoEvaluacion !== 'segundo_semestre') return null;
+    const periodo = periodos.find(p => p.id === periodoId);
+    return validarFechas2doSemestreLocal(fechaInicio, fechaFin, periodo?.nombre);
+  }, [tipoEvaluacion, fechaInicio, fechaFin, periodoId, periodos]);
 
   useEffect(() => { cargarPeriodos(); }, []);
 
@@ -249,17 +315,63 @@ export default function PanelEvaluador() {
     setBuscando(true);
     setErrorBusqueda('');
     try {
-      const res = await api.get<PaginatedData<EvaluacionAsignada>>(
-        `/evaluaciones?evaluador=me&documento=${busquedaDoc.trim()}&por_pagina=10`
-      );
-      const encontrados = res.data || [];
+      const termino = busquedaDoc.trim();
+      const esNumerico = /^\d+$/.test(termino);
+      let encontrados: EvaluacionAsignada[] = [];
+
+      // Estrategia combinada: endpoint dedicado /buscar-evaluado (doc | nombre)
+      // + fallback a listado por documento para mantener compatibilidad.
+      try {
+        const params: Record<string, string | number> = { por_pagina: 30 };
+        if (periodoId > 0) params.periodo_id = periodoId;
+        if (esNumerico) {
+          params.documento = termino;
+        } else {
+          params.nombre = termino;
+        }
+        const qs = new URLSearchParams(
+          Object.entries(params).map(([k, v]) => [k, String(v)]),
+        ).toString();
+        const res = await api.get<any>(`/evaluaciones/buscar-evaluado?${qs}`);
+        const data: any[] = Array.isArray(res) ? res : (res.data || []);
+        encontrados = data.map((row: any) => ({
+          id: row.evaluacion_id && row.evaluacion_id > 0 ? row.evaluacion_id : row.id,
+          evaluado_id: row.id,
+          evaluado_nombre: row.nombre_completo || row.evaluado_nombre || '',
+          evaluado_cargo: row.denominacion || row.cargo || row.evaluado_cargo || '',
+          evaluado_documento: row.documento || row.evaluado_documento || '',
+          evaluado_dependencia: row.dependencia || row.dependencia_nombre || row.evaluado_dependencia || '',
+          evaluado_vinculacion: row.tipo_vinculacion || row.evaluado_vinculacion || '',
+          tipo: row.evaluacion_tipo || 'parcial_primer_semestre',
+          estado: row.evaluacion_estado || 'pendiente',
+          periodo_nombre: row.periodo_nombre || (periodos.find(p => p.id === periodoId)?.nombre ?? ''),
+          periodo_id: periodoId,
+          puntaje_final: row.calificacion_definitiva ?? null,
+          compromisos_count: 0,
+          compromisos_evaluados: 0,
+          evaluado_nivel: row.nivel || '',
+          evaluado_codigo: row.codigo || row.dependencia_codigo || '',
+          evaluado_grado: row.grado || '',
+        } as EvaluacionAsignada));
+      } catch {
+        // Fallback legacy
+        const res = await api.get<PaginatedData<EvaluacionAsignada>>(
+          `/evaluaciones?evaluador=me&documento=${encodeURIComponent(termino)}&por_pagina=10`,
+        );
+        encontrados = res.data || [];
+      }
+
       if (encontrados.length === 0) {
-        setErrorBusqueda('No se encontró un evaluado con ese documento para el período seleccionado.');
+        setErrorBusqueda(
+          esNumerico
+            ? 'No se encontro un evaluado con ese documento para el periodo seleccionado.'
+            : 'No se encontro un evaluado con ese nombre para el periodo seleccionado.',
+        );
       } else {
         setEvaluaciones(encontrados);
       }
     } catch (err: any) {
-      setErrorBusqueda(err.message || 'Error en la búsqueda');
+      setErrorBusqueda(err.message || 'Error en la busqueda');
     } finally { setBuscando(false); }
   }
 
@@ -514,101 +626,136 @@ export default function PanelEvaluador() {
       <div className="animate-fadeIn">
         <div className="flex items-center gap-2 mb-1">
           <span className="material-icons text-inst-azul-osc text-xl">rate_review</span>
-          <h2 className="edl-section-title">Evaluar Desempeño</h2>
+          <h2 className="edl-section-title">Evaluar</h2>
         </div>
         <p className="text-sm text-inst-texto-claro ml-7">
-          Calificación de compromisos funcionales y competencias comportamentales — Sistema Tipo EDL (Acuerdo 617/2018)
+          Periodo - Calificacion de compromisos funcionales y competencias comportamentales (Sistema Tipo EDL, Acuerdo 617/2018)
         </p>
       </div>
 
       <Card>
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <Select
-              label="Período de evaluación"
-              value={periodoId || ''}
-              onChange={e => setPeriodoId(Number(e.target.value))}
-              placeholder="Seleccione un período..."
-              options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
-            />
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2 border-b border-inst-borde pb-3">
+            <span className="material-icons text-inst-azul">calendar_today</span>
+            <h3 className="font-heading font-bold text-lg text-inst-texto">Periodo</h3>
           </div>
-          <div className="flex-1 min-w-[280px]">
-            <div className="flex gap-2 items-end">
-              <div className="flex-1">
-                <Input
-                  label="Buscar evaluado por documento"
-                  type="text"
-                  value={busquedaDoc}
-                  onChange={e => setBusquedaDoc(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && buscarEvaluado()}
-                  placeholder="Número de documento..."
-                />
-              </div>
-              <Tooltip content="Buscar evaluaciones por documento">
-                <Button
-                  variant="primary"
-                  onClick={buscarEvaluado}
-                  loading={buscando}
-                  disabled={!busquedaDoc.trim()}
-                >
-                  Buscar
-                </Button>
-              </Tooltip>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[240px]">
+              <Select
+                label="Seleccione un periodo"
+                value={periodoId || ''}
+                onChange={e => setPeriodoId(Number(e.target.value))}
+                placeholder="Seleccione un periodo..."
+                options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
+              />
             </div>
-            {errorBusqueda ? (
-              <Alert tone="danger" className="mt-2">{errorBusqueda}</Alert>
-            ) : null}
+            <div className="flex-1 min-w-[320px]">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Input
+                    label="Buscar evaluado por documento o nombre"
+                    type="text"
+                    value={busquedaDoc}
+                    onChange={e => setBusquedaDoc(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && buscarEvaluado()}
+                    placeholder="Numero de documento o nombre del evaluado..."
+                  />
+                </div>
+                <Tooltip content="Buscar evaluado en el periodo seleccionado">
+                  <Button
+                    variant="primary"
+                    onClick={buscarEvaluado}
+                    loading={buscando}
+                    disabled={!busquedaDoc.trim()}
+                  >
+                    Buscar evaluado
+                  </Button>
+                </Tooltip>
+              </div>
+              {errorBusqueda ? (
+                <Alert tone="danger" className="mt-2">{errorBusqueda}</Alert>
+              ) : null}
+              {evaluaciones.length > 0 && !evaluacionSel && (
+                <p className="text-xs text-inst-texto-claro mt-2">
+                  Se encontraron {evaluaciones.length} evaluado(s). Use los botones <b>Evaluar</b> o <b>Ver evaluaciones</b> en la columna <b>Opciones</b>.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </Card>
 
       {!evaluacionSel ? (
-        <div>
+        <Card>
+          <div className="flex items-center gap-2 border-b border-inst-borde pb-3 mb-3">
+            <span className="material-icons text-inst-azul">group</span>
+            <h3 className="font-heading font-bold text-lg text-inst-texto">Evaluados del periodo</h3>
+          </div>
           {loading ? (
-            <Card><SkeletonText lines={6} /></Card>
+            <SkeletonText lines={8} />
           ) : evaluaciones.length === 0 ? (
-            <Card>
-              <EmptyState
-                icon={<span className="material-icons text-3xl">assignment_late</span>}
-                title="Sin evaluaciones asignadas"
-                description="No tiene evaluaciones pendientes para este período. Cuando le sean asignadas, aparecerán aquí."
-              />
-            </Card>
+            <EmptyState
+              icon={<span className="material-icons text-3xl">assignment_late</span>}
+              title="Sin evaluados en el periodo"
+              description="No hay evaluados disponibles para el periodo seleccionado. Use el buscador por documento o nombre para localizar uno."
+            />
           ) : (
-            <div className="space-y-3">
-              {evaluaciones.map(ev => {
-                const estadoInfo = ESTADO_COMPROMISO[ev.estado] || ESTADO_COMPROMISO.pendiente;
-                return (
-                  <div key={ev.id}
-                    className="edl-card cursor-pointer hover:border-inst-azul/30 hover:shadow-md transition-all group"
-                    onClick={() => seleccionarEvaluacion(ev)}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="material-icons text-lg text-inst-azul group-hover:text-inst-rojo transition-colors">person</span>
-                          <span className="font-heading font-bold text-inst-texto">{ev.evaluado_nombre}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${estadoInfo.bg} ${estadoInfo.color}`}>{estadoInfo.label}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-inst-texto-claro ml-7">
-                          <span>Cargo: {ev.evaluado_cargo}</span>
-                          <span>Dep: {ev.evaluado_dependencia}</span>
-                          <span>CC: {ev.evaluado_documento}</span>
-                          <span>Evaluados: {ev.compromisos_evaluados}/{ev.compromisos_count}</span>
-                          {ev.puntaje_final !== null && (
-                            <span className={`font-bold ${ev.puntaje_final >= UMBRAL_SOBRESALIENTE ? 'text-green-600' : ev.puntaje_final > UMBRAL_SATISFACTORIO ? 'text-amber-600' : 'text-red-600'}`}>
-                              Final: {ev.puntaje_final.toFixed(1)}%
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="material-icons text-inst-texto-claro group-hover:text-inst-azul">chevron_right</span>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="overflow-x-auto">
+              <table className="edl-table">
+                <thead>
+                  <tr>
+                    <th>Documento</th>
+                    <th>Evaluado</th>
+                    <th>Nivel</th>
+                    <th>Denominacion</th>
+                    <th>Codigo</th>
+                    <th>Grado</th>
+                    <th className="w-56">Opciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evaluaciones.map(ev => {
+                    return (
+                      <tr key={ev.id}>
+                        <td className="font-mono text-sm">{ev.evaluado_documento || '-'}</td>
+                        <td className="text-sm">
+                          <div className="font-medium">{ev.evaluado_nombre}</div>
+                          <div className="text-xs text-inst-texto-claro">{ev.evaluado_dependencia || ''}</div>
+                        </td>
+                        <td className="text-sm">{(ev as any).evaluado_nivel || '-'}</td>
+                        <td className="text-sm">{ev.evaluado_cargo || '-'}</td>
+                        <td className="font-mono text-sm">{(ev as any).evaluado_codigo || '-'}</td>
+                        <td className="text-center text-sm">{(ev as any).evaluado_grado || '-'}</td>
+                        <td className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              onClick={() => seleccionarEvaluacion(ev)}
+                              title={`Evaluar a ${ev.evaluado_nombre}`}
+                            >
+                              <span className="material-icons text-sm mr-1">edit</span>
+                              Evaluar
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.location.assign(`/dashboard/evaluar/${ev.id}/historial`)}
+                              title={`Ver evaluaciones de ${ev.evaluado_nombre}`}
+                            >
+                              <span className="material-icons text-sm mr-1">visibility</span>
+                              Ver evaluaciones
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
+        </Card>
       ) : !evaluacionIniciada ? (
         <div className="edl-card">
           <div className="border-l-4 border-l-inst-azul p-4 mb-6">
@@ -626,12 +773,52 @@ export default function PanelEvaluador() {
 
           <div className="space-y-4">
             <div>
-              <label className="edl-label">Tipo de evaluación *</label>
-              <select value={tipoEvaluacion} onChange={e => setTipoEvaluacion(e.target.value)} className="edl-input">
+              <label className="edl-label">Tipo de evaluacion *</label>
+              <select
+                value={tipoEvaluacion}
+                onChange={e => setTipoEvaluacion(e.target.value)}
+                aria-label="Tipo de evaluacion"
+                className="edl-input"
+              >
                 <option value="">Seleccione...</option>
                 {TIPOS_EVALUACION.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
+
+            {/* Panel especifico Evaluacion 2 Semestre (segun tarea_evaluador.md) */}
+            {tipoEvaluacion === 'segundo_semestre' && (
+              <div className="edl-card border-l-4 border-l-inst-amarillo bg-amber-50">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="material-icons text-inst-amarillo">warning_amber</span>
+                  <h4 className="font-heading font-bold text-inst-texto">Evaluacion 2 Semestre</h4>
+                </div>
+                <ol className="list-decimal ml-5 space-y-1 text-sm text-inst-texto">
+                  <li>Debe tener una evaluacion para el primer semestre.</li>
+                  <li>
+                    La fecha de evaluacion debe estar entre <b>01-08-Anio</b> y <b>31-01-Anio+1</b>.
+                    {(() => {
+                      const anio = getAnioInicioPeriodo(periodos.find(p => p.id === periodoId)?.nombre);
+                      if (!anio) return null;
+                      return (
+                        <span className="block mt-1 text-xs text-inst-texto-claro">
+                          Para este periodo ({anio}-{anio + 1}): desde <b>{anio}-08-01</b> hasta <b>{anio + 1}-01-31</b>.
+                        </span>
+                      );
+                    })()}
+                  </li>
+                </ol>
+                {validacionFechasMsg ? (
+                  <Alert tone="danger" className="mt-3 text-xs">{validacionFechasMsg}</Alert>
+                ) : (
+                  fechaInicio && fechaFin && tipoEvaluacion === 'segundo_semestre' && (
+                    <Alert tone="success" className="mt-3 text-xs">Fechas dentro del rango permitido.</Alert>
+                  )
+                )}
+                <div className="flex justify-end mt-3">
+                  <button type="button" onClick={cancelar} className="edl-btn-outline">Cerrar</button>
+                </div>
+              </div>
+            )}
 
             {tipoEvaluacion === 'parcial_eventual' && (
               <>
@@ -798,19 +985,17 @@ export default function PanelEvaluador() {
                           </div>
                         </div>
                         {c.conductas && c.conductas.length > 0 && (
-                          <div className="ml-4 space-y-1">
+                          <div className="ml-4 space-y-2">
+                            <p className="text-xs font-semibold text-inst-texto-claro uppercase tracking-wider">Conductas asociadas</p>
                             {c.conductas.map(cond => (
-                              <div key={cond.id} className="flex items-center gap-2 text-sm">
-                                <span className="text-inst-texto-claro flex-1">{cond.descripcion}</span>
-                                <div className="flex gap-1">
-                                  {VALORACION_OPTIONS.map(vo => (
-                                    <button key={vo.value}
-                                      onClick={() => setConductasForm(prev => ({ ...prev, [cond.id]: vo.value }))}
-                                      className={`text-xs px-1.5 py-0.5 rounded border ${conductasForm[cond.id] === vo.value ? vo.color : 'border-gray-200 text-gray-400'}`}>
-                                      {vo.label}
-                                    </button>
-                                  ))}
-                                </div>
+                              <div key={cond.id} className="flex items-center gap-2 text-sm pl-2 border-l-2 border-inst-azul-osc-light">
+                                <span className="flex-1">{cond.descripcion}</span>
+                                <Select
+                                  value={conductasForm[cond.id] || ''}
+                                  onChange={e => setConductasForm(prev => ({ ...prev, [cond.id]: e.target.value as ValoracionFrecuencia }))}
+                                  placeholder="Evaluar"
+                                  options={OPCIONES_FRECUENCIA.map(v => ({ value: v.value, label: v.label }))}
+                                />
                               </div>
                             ))}
                           </div>
@@ -1048,10 +1233,11 @@ export default function PanelEvaluador() {
                           <div key={cond.id} className="border border-inst-borde rounded p-3">
                             <p className="text-sm mb-2 font-medium">{cond.descripcion}</p>
                             <div className="flex gap-2">
-                              {VALORACION_OPTIONS.map(vo => (
+                              {OPCIONES_FRECUENCIA.map(vo => (
                                 <button key={vo.value}
                                   onClick={() => setConductasForm(prev => ({ ...prev, [cond.id]: vo.value }))}
-                                  className={`text-xs px-3 py-1.5 rounded border flex-1 transition-colors ${conductasForm[cond.id] === vo.value ? vo.color : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}>
+                                  className={`text-xs px-3 py-1.5 rounded border flex-1 transition-colors ${conductasForm[cond.id] === vo.value ? vo.color : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
+                                  title={`${vo.label} (${vo.puntaje} pts)`}>
                                   {vo.label}
                                 </button>
                               ))}

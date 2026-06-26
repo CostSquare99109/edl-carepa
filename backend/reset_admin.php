@@ -20,16 +20,31 @@ try {
     $stmt->execute([$documento]);
     $existe = $stmt->fetchColumn();
 
+    // Buscar rol admin_carepa dinámicamente
+    $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = 'admin_carepa' LIMIT 1");
+    $stmt->execute();
+    $adminRolId = $stmt->fetchColumn();
+    if (!$adminRolId) {
+        // Fallback: buscar cualquier rol con 'admin' en el nombre
+        $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo LIKE '%admin%' LIMIT 1");
+        $stmt->execute();
+        $adminRolId = $stmt->fetchColumn() ?: 1;
+    }
+
     if ($existe) {
         $pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0 WHERE documento = ?")
             ->execute([$hash, $documento]);
+        // Asegurar que tenga el rol admin_carepa
+        $uid = $existe;
+        $pdo->prepare("INSERT IGNORE INTO usuario_rol (usuario_id, rol_id) VALUES (?, ?)")
+            ->execute([$uid, $adminRolId]);
         echo "Usuario '{$documento}' actualizado. Password: {$password}\n";
     } else {
         $pdo->prepare("INSERT INTO usuarios (documento, tipo_documento, primer_nombre, primer_apellido, email, password_hash, estado, entidad_id, dependencia_id, denominacion_empleo, grado_empleo, tipo_nombramiento) VALUES (?, 'CC', 'Admin', 'Principal', ?, ?, 'activo', 1, 1, 'Administrador', '25', 'hecho_en_carrera')")
             ->execute([$documento, "{$documento}@carepa.gov.co", $hash]);
         $uid = $pdo->lastInsertId();
-        $pdo->prepare("INSERT IGNORE INTO usuario_rol (usuario_id, rol_id) VALUES (?, 1)")
-            ->execute([$uid]);
+        $pdo->prepare("INSERT IGNORE INTO usuario_rol (usuario_id, rol_id) VALUES (?, ?)")
+            ->execute([$uid, $adminRolId]);
         echo "Usuario '{$documento}' creado (ID:{$uid}). Password: {$password}\n";
     }
 

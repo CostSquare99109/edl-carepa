@@ -50,8 +50,9 @@ class AuthService
   $roles = $this->usuarioRepo->obtenerRoles($usuario['id']);
   $rolCodigos = array_column($roles, 'codigo');
   $entidadId = $usuario['entidad_id'];
+  $dependenciaId = $usuario['dependencia_id'];
 
-  $prioridad = ['admin', 'evaluador', 'evaluado'];
+  $prioridad = ['admin_carepa', 'jefe_dependencia', 'evaluador', 'evaluado'];
   $rolActivo = null;
   foreach ($prioridad as $p) {
    if (in_array($p, $rolCodigos)) {
@@ -61,7 +62,7 @@ class AuthService
   }
   $rolActivo = $rolActivo ?? ($rolCodigos[0] ?? null);
 
-  $token = JwtHelper::generate($usuario['id'], $usuario['documento'], $rolCodigos, $entidadId, $rolActivo);
+  $token = JwtHelper::generate($usuario['id'], $usuario['documento'], $rolCodigos, $entidadId, $rolActivo, $dependenciaId);
   $tokenHash = hash('sha256', $token);
   $expiracion = date('Y-m-d H:i:s', time() + ((int) Env::get('JWT_EXPIRACION_MINUTOS', 120)) * 60);
 
@@ -340,9 +341,10 @@ class AuthService
 
   $roles = $payload['roles'] ?? [];
   $entidadId = $payload['entidad_id'] ?? $usuario['entidad_id'];
+  $dependenciaId = $payload['dependencia_id'] ?? $usuario['dependencia_id'];
   $rolActivo = $payload['rol_activo'] ?? ($roles[0] ?? null);
 
-  $nuevoToken = JwtHelper::generate($usuarioId, $usuario['documento'], $roles, $entidadId, $rolActivo);
+  $nuevoToken = JwtHelper::generate($usuarioId, $usuario['documento'], $roles, $entidadId, $rolActivo, $dependenciaId);
   $nuevoHash = hash('sha256', $nuevoToken);
   $expiracion = date('Y-m-d H:i:s', time() + ((int) Env::get('JWT_EXPIRACION_MINUTOS', 120)) * 60);
 
@@ -378,7 +380,8 @@ class AuthService
   }
 
   $entidadId = $usuario['entidad_id'];
-  $token = JwtHelper::generate($usuarioId, $usuario['documento'], $rolCodigos, $entidadId, $rolCodigo);
+  $dependenciaId = $usuario['dependencia_id'];
+  $token = JwtHelper::generate($usuarioId, $usuario['documento'], $rolCodigos, $entidadId, $rolCodigo, $dependenciaId);
   $tokenHash = hash('sha256', $token);
   $expiracion = date('Y-m-d H:i:s', time() + ((int) Env::get('JWT_EXPIRACION_MINUTOS', 120)) * 60);
 

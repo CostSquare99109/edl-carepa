@@ -8,7 +8,7 @@ class CorsMiddleware
 {
 	public static function handle(): void
 	{
-		$originConfig = Env::get('CORS_ORIGIN', 'http://localhost:5173');
+		$originConfig = Env::require('CORS_ORIGIN');
 		$allowedOrigins = array_map('trim', explode(',', $originConfig));
 
 		$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';

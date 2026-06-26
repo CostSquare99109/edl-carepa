@@ -40,8 +40,17 @@ class MetaService
             'funcionario_id' => 'required',
             'evaluador_id' => 'required',
             'descripcion' => 'required',
-            'peso' => 'required'
         ]);
+
+        $descripcion = trim((string) ($datos['descripcion'] ?? ''));
+        $palabras = str_word_count($descripcion, 0, 'áéíóúÁÉÍÓÚñÑ');
+        if ($palabras > 20) {
+            ResponseHelper::error(
+                'La descripcion de la meta no debe exceder 20 palabras. Actual: ' . $palabras,
+                422
+            );
+        }
+        $datos['descripcion'] = $descripcion;
 
         $id = $this->repo->crear($datos);
         AuditoriaService::registrar('crear', 'metas', $id, null, $datos);
@@ -52,7 +61,7 @@ class MetaService
     {
         $meta = $this->repo->buscarPorId($id);
         if (!$meta) {
-            ResponseHelper::error('Meta no encontrada', 404);
+            ResponseHelper::error('Meta no encontrada', 204);
         }
         return $meta;
     }
@@ -61,10 +70,23 @@ class MetaService
     {
         $meta = $this->repo->buscarPorId($id);
         if (!$meta) {
-            ResponseHelper::error('Meta no encontrada', 404);
+            ResponseHelper::error('Meta no encontrada', 204);
         }
         $permitidos = ['dependencia_id','descripcion','tipo','peso','indicador','meta_numerica','unidad_medida','estado'];
         $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
+
+        if (array_key_exists('descripcion', $datosFiltrados)) {
+            $descripcion = trim((string) $datosFiltrados['descripcion']);
+            $palabras = str_word_count($descripcion, 0, 'áéíóúÁÉÍÓÚñÑ');
+            if ($palabras > 20) {
+                ResponseHelper::error(
+                    'La descripcion de la meta no debe exceder 20 palabras. Actual: ' . $palabras,
+                    422
+                );
+            }
+            $datosFiltrados['descripcion'] = $descripcion;
+        }
+
         $this->repo->actualizar($id, $datosFiltrados);
         AuditoriaService::registrar('actualizar', 'metas', $id, $meta, $datosFiltrados);
     }
@@ -73,7 +95,7 @@ class MetaService
     {
         $meta = $this->repo->buscarPorId($id);
         if (!$meta) {
-            ResponseHelper::error('Meta no encontrada', 404);
+            ResponseHelper::error('Meta no encontrada', 204);
         }
         $this->repo->eliminar($id);
         AuditoriaService::registrar('eliminar', 'metas', $id, $meta, null);
@@ -89,7 +111,7 @@ class MetaService
     {
         $meta = $this->repo->buscarPorId($metaId);
         if (!$meta) {
-            ResponseHelper::error('Meta no encontrada', 404);
+            ResponseHelper::error('Meta no encontrada', 204);
         }
 
         $user = AuthMiddleware::user();

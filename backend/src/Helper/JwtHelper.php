@@ -25,7 +25,7 @@ class JwtHelper
         return (int) Env::get('JWT_EXPIRACION_MINUTOS', 120);
     }
 
- public static function generate(int $userId, string $documento, array $roles = [], ?int $entidadId = null, ?string $rolActivo = null): string
+ public static function generate(int $userId, string $documento, array $roles = [], ?int $entidadId = null, ?string $rolActivo = null, ?int $dependenciaId = null): string
  {
  $now = time();
  $payload = [
@@ -35,6 +35,7 @@ class JwtHelper
  'documento' => $documento,
  'roles' => $roles,
  'entidad_id' => $entidadId,
+ 'dependencia_id' => $dependenciaId,
  'rol_activo' => $rolActivo ?? ($roles[0] ?? null),
  ];
 
@@ -53,6 +54,20 @@ class JwtHelper
  try {
  $payload = self::validate($token);
  return $payload['rol_activo'] ?? null;
+ } catch (\Exception $e) {
+ return null;
+ }
+ }
+
+ public static function getDependenciaId(): ?int
+ {
+ $token = self::extractFromHeader();
+ if (!$token) {
+ return null;
+ }
+ try {
+ $payload = self::validate($token);
+ return $payload['dependencia_id'] ?? null;
  } catch (\Exception $e) {
  return null;
  }

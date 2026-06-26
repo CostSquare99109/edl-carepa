@@ -7,7 +7,7 @@ use PDO;
 class DependenciaRepository extends BaseRepository
 {
     protected string $table = 'dependencias';
-    protected array $allowedFilterFields = ['codigo', 'nombre', 'estado', 'entidad_id'];
+    protected array $allowedFilterFields = ['codigo', 'nombre', 'estado', 'entidad_id', 'jefe_id'];
 
     /**
      * Listar dependencias con conteo de usuarios activos asociados
@@ -50,8 +50,10 @@ class DependenciaRepository extends BaseRepository
                 (SELECT COUNT(*) FROM usuarios u
                  WHERE u.dependencia_id = d.id
                    AND u.estado = 'activo'
-                   AND u.eliminado_en IS NULL) AS usuarios_count
+                   AND u.eliminado_en IS NULL) AS usuarios_count,
+                TRIM(CONCAT_WS(' ', uj.primer_nombre, uj.segundo_nombre, uj.primer_apellido, uj.segundo_apellido)) AS jefe_nombre
              FROM `{$this->table}` d
+             LEFT JOIN usuarios uj ON uj.id = d.jefe_id AND uj.eliminado_en IS NULL
              WHERE {$where}
              ORDER BY d.id ASC
              LIMIT ? OFFSET ?"

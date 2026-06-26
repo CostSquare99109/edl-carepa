@@ -47,13 +47,14 @@ class AuthMiddleware
 			ResponseHelper::error('Sesion expirada', 401);
 		}
 
-		error_log("[AUTH OK] {$method} {$uri} — user={$payload['sub']} rol={$payload['rol_activo']}");
+		error_log("[AUTH OK] {$method} {$uri} — user={$payload['sub']} rol={$payload['rol_activo']} dep={$payload['dependencia_id']}");
 
  self::$user = [
  'id' => $payload['sub'],
  'documento' => $payload['documento'] ?? '',
  'roles' => $payload['roles'] ?? [],
  'entidad_id' => $payload['entidad_id'] ?? null,
+ 'dependencia_id' => $payload['dependencia_id'] ?? null,
  'rol_activo' => $payload['rol_activo'] ?? ($payload['roles'][0] ?? null),
  ];
  }

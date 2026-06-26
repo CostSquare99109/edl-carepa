@@ -38,7 +38,7 @@ export default function Login() {
       if (roles.length > 1) {
         navigate('/seleccionar-rol', { replace: true })
       } else {
-        navigate('/', { replace: true })
+        navigate('/dashboard', { replace: true })
       }
     } catch {
       setError('Usuario o contraseña incorrectos')

@@ -18,10 +18,12 @@ class MenuController
   }
 
   $menu = match ($rolActivo) {
-   'admin' => $this->menuAdmin(),
-   'evaluador' => $this->menuEvaluador(),
-   'evaluado' => $this->menuEvaluado(),
-   default => $this->menuPorPermisos($user),
+    'admin_carepa' => $this->menuAdmin(),
+    'jefe_dependencia' => $this->menuJefeDependencia($user),
+    'evaluador' => $this->menuEvaluador(),
+    'comision_evaluadora' => $this->menuComisionEvaluadora(),
+    'evaluado' => $this->menuEvaluado(),
+    default => $this->menuPorPermisos($user),
   };
 
   ResponseHelper::success($menu);
@@ -37,16 +39,16 @@ class MenuController
     'permisos' => ['dashboard.ver'],
    ],
    [
-    'label' => 'Usuarios',
-    'icon' => 'people',
-    'ruta' => '/usuarios',
-    'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],
+    'label' => 'Nueva Dependencia con Jefe',
+    'icon' => 'business',
+    'ruta' => '/admin-nueva-dependencia',
+    'permisos' => ['entidades.crear', 'entidades.listar'],
    ],
    [
-    'label' => 'Entidades',
-    'icon' => 'business',
-    'ruta' => '/entidades',
-    'permisos' => ['entidades.listar', 'entidades.crear', 'entidades.editar', 'entidades.habilitar'],
+    'label' => 'Usuarios',
+    'icon' => 'people',
+    'ruta' => '/admin-usuarios',
+    'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],
    ],
    [
     'label' => 'Dependencias',
@@ -105,7 +107,7 @@ class MenuController
   ];
  }
 
- private function menuEvaluador(): array
+ private function menuJefeDependencia(array $user): array
  {
   return [
    [
@@ -115,45 +117,117 @@ class MenuController
     'permisos' => ['dashboard.ver'],
    ],
    [
-    'label' => 'Compromisos y Competencias',
-    'icon' => 'task_alt',
-    'ruta' => '/compromisos-y-competencias',
-    'permisos' => ['compromisos.listar', 'compromisos.crear'],
+    'label' => 'Períodos',
+    'icon' => 'calendar_today',
+    'ruta' => '/periodos',
+    'permisos' => ['periodos.listar'],
    ],
    [
-    'label' => 'Evidencias',
-    'icon' => 'attach_file',
-    'ruta' => '/evidencias',
-    'permisos' => ['evidencias.listar', 'evidencias.verificar'],
+    'label' => 'Metas',
+    'icon' => 'flag',
+    'ruta' => '/metas',
+    'permisos' => ['metas.listar', 'metas.crear', 'metas.editar'],
    ],
    [
-    'label' => 'Compromisos de mejoramiento',
-    'icon' => 'trending_up',
-    'ruta' => '/compromisos/mejoramiento',
-    'permisos' => ['mejoramiento.listar', 'mejoramiento.crear'],
+    'label' => 'Usuarios',
+    'icon' => 'people',
+    'ruta' => '/admin-usuarios',
+    'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],
    ],
    [
-   'label' => 'Ausentismos',
-   'icon' => 'event_busy',
-   'ruta' => '/ausentismos',
-   'permisos' => ['ausentismos.listar', 'ausentismos.crear'],
+    'label' => 'Ausentismos',
+    'icon' => 'event_busy',
+    'ruta' => '/ausentismos',
+    'permisos' => ['ausentismos.listar', 'ausentismos.crear'],
    ],
    [
-   'label' => 'Fijacion Unilateral',
-   'icon' => 'gavel',
-   'ruta' => '/compromisos/fijacion-unilateral',
-   'permisos' => ['compromisos.fijar'],
+    'label' => 'Evaluaciones y Calificación',
+    'icon' => 'assessment',
+    'ruta' => '/evaluaciones',
+    'permisos' => ['evaluaciones.listar', 'evaluaciones.crear'],
    ],
    [
-   'label' => 'Evaluar',
-   'icon' => 'rate_review',
-   'ruta' => '/evaluar',
-   'permisos' => ['evaluaciones.evaluar'],
+    'label' => 'Carga Masiva',
+    'icon' => 'upload_file',
+    'ruta' => '/admin/carga-usuarios',
+    'permisos' => ['cargas.ejecutar'],
    ],
-   ];
+  ];
  }
 
- private function menuEvaluado(): array
+  private function menuEvaluador(): array
+  {
+   return [
+    [
+     'label' => 'Inicio',
+     'icon' => 'dashboard',
+     'ruta' => '/',
+     'permisos' => ['dashboard.ver'],
+    ],
+    [
+     'label' => 'Compromisos y Competencias',
+     'icon' => 'task_alt',
+     'ruta' => '/compromisos-y-competencias',
+     'permisos' => ['compromisos.listar', 'compromisos.crear'],
+    ],
+    [
+     'label' => 'Evidencias',
+     'icon' => 'folder_open',
+     'ruta' => '/evidencias',
+     'permisos' => ['evidencias.listar', 'evidencias.verificar'],
+    ],
+    [
+     'label' => 'Compromisos de Mejoramiento',
+     'icon' => 'trending_up',
+     'ruta' => '/compromisos/mejoramiento',
+     'permisos' => ['mejoramiento.listar', 'mejoramiento.crear'],
+    ],
+    [
+    'label' => 'Evaluar',
+    'icon' => 'rate_review',
+    'ruta' => '/evaluar',
+    'permisos' => ['evaluaciones.evaluar'],
+    ],
+   ];
+  }
+
+  private function menuComisionEvaluadora(): array
+  {
+   return [
+    [
+     'label' => 'Inicio',
+     'icon' => 'dashboard',
+     'ruta' => '/',
+     'permisos' => ['dashboard.ver'],
+    ],
+    [
+     'label' => 'Compromisos y Competencias',
+     'icon' => 'task_alt',
+     'ruta' => '/compromisos-y-competencias',
+     'permisos' => ['compromisos.listar'],
+    ],
+    [
+     'label' => 'Evidencias',
+     'icon' => 'folder_open',
+     'ruta' => '/evidencias',
+     'permisos' => ['evidencias.listar', 'evidencias.verificar'],
+    ],
+    [
+     'label' => 'Compromisos de Mejoramiento',
+     'icon' => 'trending_up',
+     'ruta' => '/compromisos/mejoramiento',
+     'permisos' => ['mejoramiento.listar'],
+    ],
+    [
+     'label' => 'Evaluar',
+     'icon' => 'rate_review',
+     'ruta' => '/comision-evaluadora',
+     'permisos' => ['evaluaciones.comision'],
+    ],
+   ];
+  }
+
+  private function menuEvaluado(): array
  {
   return [
    [
@@ -218,7 +292,7 @@ class MenuController
 
   $menu = [];
   $menuMap = [
-   'entidades' => ['label' => 'Entidades', 'icon' => 'business', 'ruta' => '/entidades'],
+
    'dependencias' => ['label' => 'Dependencias', 'icon' => 'account_tree', 'ruta' => '/dependencias'],
    'usuarios' => ['label' => 'Usuarios', 'icon' => 'people', 'ruta' => '/usuarios'],
    'periodos' => ['label' => 'Periodos', 'icon' => 'calendar_today', 'ruta' => '/periodos'],
@@ -226,7 +300,7 @@ class MenuController
    'concertaciones' => ['label' => 'Concertaciones', 'icon' => 'handshake', 'ruta' => '/concertaciones'],
    'evaluaciones' => ['label' => 'Evaluaciones', 'icon' => 'assessment', 'ruta' => '/evaluaciones'],
    'compromisos' => ['label' => 'Compromisos', 'icon' => 'task_alt', 'ruta' => '/compromisos/mios'],
- 'admin_compromisos' => ['label' => 'Gestion Compromisos', 'icon' => 'task', 'ruta' => '/admin/admin-compromisos'],
+   'admin_compromisos' => ['label' => 'Gestion Compromisos', 'icon' => 'task', 'ruta' => '/admin/admin-compromisos'],
    'evidencias' => ['label' => 'Evidencias', 'icon' => 'attach_file', 'ruta' => '/evidencias'],
    'ausentismos' => ['label' => 'Ausentismos', 'icon' => 'event_busy', 'ruta' => '/ausentismos'],
    'movilidades' => ['label' => 'Movilidad', 'icon' => 'swap_horiz', 'ruta' => '/movilidad'],

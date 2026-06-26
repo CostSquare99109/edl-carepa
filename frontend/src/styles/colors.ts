@@ -27,16 +27,16 @@ export const COLORES_TAILWIND = {
 } as const;
 
 export const ROLES_SISTEMA = [
- { codigo: 'admin', nombre: 'Administrador' },
+ { codigo: 'jefe_dependencia', nombre: 'Jefe de Dependencia' },
+ { codigo: 'admin_carepa', nombre: 'Administrador CAREPA' },
  { codigo: 'evaluador', nombre: 'Evaluador' },
  { codigo: 'evaluado', nombre: 'Evaluado' },
 ] as const;
 
 export const ROLE_COLORS: Record<string, string> = {
- admin: 'bg-red-100 text-red-800 border-red-200',
+ jefe_dependencia: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+ admin_carepa: 'bg-red-900 text-red-100 border-red-700',
  evaluador: 'bg-blue-100 text-blue-800 border-blue-200',
  evaluado: 'bg-sky-100 text-sky-800 border-sky-200',
  comision_evaluadora: 'bg-purple-100 text-purple-800 border-purple-200',
- admin_entidad: 'bg-indigo-100 text-indigo-800 border-indigo-200',
- admin_carepa: 'bg-red-900 text-red-100 border-red-700',
 };
