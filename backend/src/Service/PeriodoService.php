@@ -20,24 +20,30 @@ class PeriodoService
         return $this->repo->listar($filtros, $pagina, $porPagina);
     }
 
-    public function crear(array $datos): int
-    {
-        $v = new ValidatorHelper();
-        $v->validate($datos, [
-        'nombre' => 'required|max:100',
-        'fecha_inicio' => 'required',
-        'fecha_fin' => 'required'
-        ]);
+	public function crear(array $datos): int
+	{
+		$v = new ValidatorHelper();
+		$v->validate($datos, [
+		'nombre' => 'max:100',
+		'fecha_inicio' => 'required',
+		'fecha_fin' => 'required'
+		]);
 
-        $estadosValidos = ['configuracion','concertacion','seguimiento','evaluacion','calificacion','cerrado'];
-        if (!isset($datos['estado']) || !in_array($datos['estado'], $estadosValidos)) {
-        $datos['estado'] = 'configuracion';
-        }
+		// Auto-generar nombre como "Año-Año+1" desde fecha_inicio
+		if (!empty($datos['fecha_inicio'])) {
+		$anio = (int) date('Y', strtotime($datos['fecha_inicio']));
+		$datos['nombre'] = $anio . '-' . ($anio + 1);
+		}
 
-        $id = $this->repo->crear($datos);
-        AuditoriaService::registrar('crear', 'periodos', $id, null, $datos);
-        return $id;
-    }
+		$estadosValidos = ['configuracion','concertacion','seguimiento','evaluacion','calificacion','cerrado'];
+		if (!isset($datos['estado']) || !in_array($datos['estado'], $estadosValidos)) {
+		$datos['estado'] = 'configuracion';
+		}
+
+		$id = $this->repo->crear($datos);
+		AuditoriaService::registrar('crear', 'periodos', $id, null, $datos);
+		return $id;
+	}
 
     public function ver(int $id): ?array
     {
