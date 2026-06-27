@@ -112,11 +112,8 @@ edl-carepa/
 │   ├── tsconfig.json               # Configuración de TypeScript
 │   └── vite.config.ts              # Configuración de Vite (proxy API incluido)
 │
-├── database/                       # Esquemas y migraciones SQL
-│   ├── schema.sql                  # Esquema completo de la base de datos (16 tablas)
-│   ├── seeds.sql                   # Datos semilla (roles, permisos, asignaciones)
-│   ├── seed_usuarios.sql           # Usuarios de prueba
-│   └── migration_*.sql             # 6 migraciones incrementales
+├── database/                       # Dump SQL consolidado (schema + seed + datos en un solo archivo)
+│   └── full_dump.sql               # Dump completo de la base de datos (32 tablas)
 │
 ├── cnsc/                           # Documentación técnica alineada con la CNSC
 │   ├── 00-indice-maestro.md        # Índice maestro de documentación técnica
@@ -181,22 +178,8 @@ cd edl-carepa
 # Crear la base de datos
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS edl_carepa CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# Cargar el esquema completo
-mysql -u root -p edl_carepa < database/schema.sql
-
-# Cargar datos semilla (roles, permisos y asignaciones)
-mysql -u root -p edl_carepa < database/seeds.sql
-
-# (Opcional) Cargar usuarios de prueba
-mysql -u root -p edl_carepa < database/seed_usuarios.sql
-
-# Aplicar migraciones en orden
-mysql -u root -p edl_carepa < database/migration_edl_carepa.sql
-mysql -u root -p edl_carepa < database/migration_conductas.sql
-mysql -u root -p edl_carepa < database/migration_evaluacion_campo_cnsz.sql
-mysql -u root -p edl_carepa < database/migration_evidencias_descriptivas.sql
-mysql -u root -p edl_carepa < database/migration_notificaciones_evaluacion_id.sql
-mysql -u root -p edl_carepa < database/migration_competencias_comportamentales.sql
+# Cargar el dump consolidado (esquema completo, datos semilla y usuarios de prueba)
+mysql -u root -p edl_carepa < database/full_dump.sql
 ```
 
 ### 3. Configurar el backend

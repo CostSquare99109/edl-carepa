@@ -53,7 +53,7 @@ edl-carepa/
 │   │   └── styles/colors.ts    # Institutional palette (Carepa blue #0A2B5E)
 │   ├── vite.config.ts          # Proxy /api → http://localhost:8000
 │   └── tailwind.config.js      # Institutional colors configured
-├── database/                   # 9 SQL files (schema + seeds + 6 migrations)
+├── database/                   # 1 SQL file: full_dump.sql (esquema + seed + datos en un solo dump)
 ├── cnsc/                       # Technical docs aligned with CNSC Acuerdo 617/2018
 │   ├── 17-endpoints-api.md     # 138 endpoints documented
 │   ├── 18-arquitectura.md      # Architecture reference
@@ -70,8 +70,7 @@ edl-carepa/
 | Backend with router | `php -S 0.0.0.0:8000 -t backend/public/ backend/public/router.php` |
 | Frontend dev | `cd frontend && npm run dev` |
 | Frontend build | `cd frontend && npm run build` |
-| DB setup | `mysql -u root -p edl_carepa < database/schema.sql && mysql -u root -p edl_carepa < database/seeds.sql` |
-| Apply migrations | Run 6 migration_*.sql files in order (see README) |
+| DB setup | `mysql -u root -p edl_carepa < database/full_dump.sql` (dump consolidado: esquema + seed + datos) |
 | API tests | `python tests/api_test.py` (requires pytest, requests) |
 | Flow tests | `python tests/flow_test.py` |
 | Shell endpoint tests | `bash test_endpoints.sh` |
@@ -120,7 +119,7 @@ edl-carepa/
 ### SQL
 - snake_case table/column names
 - FK naming: `fk_<tabla_origen>_<tabla_destino>`
-- Migrations as incremental `.sql` files in `database/`
+- El esquema vive en un único dump consolidado `database/full_dump.sql` (regenerar con `mysqldump` completo; no hay migraciones incrementales en el repo)
 
 ## API Endpoints (138 total)
 
