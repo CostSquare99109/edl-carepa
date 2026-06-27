@@ -22,3 +22,6 @@ coverage/
 *.sql.bak
 # Local Pi runtime state
 .atl/
+
+# Documentos auxiliares (inventario, auditorías efímeras)
+estructura.md
