@@ -29,6 +29,7 @@ interface Evaluado {
  cargo: string
  dependencia: string
  evaluacion_id: number | null
+ periodo_id?: number
 }
 
 interface Compromiso {
@@ -36,6 +37,11 @@ interface Compromiso {
  tipo: string
  descripcion: string
  compromiso_competencia?: string
+}
+
+interface Periodo {
+ id: number
+ nombre: string
 }
 
 const MOTIVOS = [
@@ -51,6 +57,8 @@ export default function CompromisosMejoramiento() {
  const [pagina, setPagina] = useState(1)
  const [loading, setLoading] = useState(true)
 
+ const [periodos, setPeriodos] = useState<Periodo[]>([])
+ const [periodoId, setPeriodoId] = useState<number>(0)
  const [documento, setDocumento] = useState('')
  const [evaluado, setEvaluado] = useState<Evaluado | null>(null)
  const [buscando, setBuscando] = useState(false)
@@ -64,30 +72,49 @@ export default function CompromisosMejoramiento() {
  const [formAspecto, setFormAspecto] = useState('')
  const [formAcciones, setFormAcciones] = useState('')
  const [formObservacion, setFormObservacion] = useState('')
+ const [formPlazo, setFormPlazo] = useState('')
  const [guardando, setGuardando] = useState(false)
 
  const [editando, setEditando] = useState<Mejoramiento | null>(null)
 
+ async function cargarPeriodos() {
+  try {
+   const res = await api.get<PaginatedData<Periodo>>('/periodos?por_pagina=50')
+   setPeriodos(res.data || [])
+   if (res.data && res.data.length > 0 && !periodoId) {
+    setPeriodoId(res.data[0].id)
+   }
+  } catch {}
+ }
+
+ useEffect(() => { cargarPeriodos() }, [])
+
  async function cargar() {
+  if (!periodoId) {
+   setItems([])
+   setTotal(0)
+   setLoading(false)
+   return
+  }
   setLoading(true)
   try {
-   const res = await api.get<PaginatedData<Mejoramiento>>(`/compromisos-mejoramiento?pagina=${pagina}&por_pagina=20`)
+   const res = await api.get<PaginatedData<Mejoramiento>>(`/compromisos-mejoramiento?pagina=${pagina}&por_pagina=20&periodo_id=${periodoId}`)
    setItems(res.data || [])
    setTotal(res.total || 0)
   } catch {}
   setLoading(false)
  }
 
- useEffect(() => { cargar() }, [pagina])
+ useEffect(() => { cargar() }, [pagina, periodoId])
 
  async function buscarEvaluado() {
-  if (!documento.trim()) return
+  if (!documento.trim() || !periodoId) return
   setBuscando(true)
   setErrorBusqueda('')
   setEvaluado(null)
   setCompromisos([])
   try {
-   const data: any = await api.get(`/compromisos/buscar-evaluado?documento=${documento.trim()}`)
+   const data: any = await api.get(`/compromisos/buscar-evaluado?documento=${documento.trim()}&periodo_id=${periodoId}`)
    if (data.evaluado) {
     setEvaluado(data.evaluado)
     if (data.evaluado.evaluacion_id) {
@@ -97,7 +124,7 @@ export default function CompromisosMejoramiento() {
      setCompromisos(compRes.data || [])
     }
    } else {
-    setErrorBusqueda('No se encontro un evaluado con ese documento.')
+    setErrorBusqueda('No se encontro un evaluado con ese documento en el periodo seleccionado.')
    }
   } catch (e: any) {
    setErrorBusqueda(e.message || 'Error en la busqueda')
@@ -124,6 +151,7 @@ export default function CompromisosMejoramiento() {
     aspecto_corregir: formAspecto.trim(),
     acciones_mejoramiento: formAcciones.trim(),
     observacion: formObservacion.trim() || null,
+    plazo_cumplimiento: formPlazo || null,
    })
    setMostrarForm(false)
    setFormCompromiso('')
@@ -131,6 +159,7 @@ export default function CompromisosMejoramiento() {
    setFormAspecto('')
    setFormAcciones('')
    setFormObservacion('')
+   setFormPlazo('')
    toast.success('La creación del compromiso de mejoramiento se realizó correctamente.', { duration: 5000 })
    cargar()
   } catch (e) {
@@ -147,6 +176,7 @@ export default function CompromisosMejoramiento() {
     aspecto_corregir: editando.aspecto_corregir,
     acciones_mejoramiento: editando.acciones_mejoramiento,
     observacion: editando.observacion,
+    plazo_cumplimiento: editando.plazo_cumplimiento,
    })
    toast.success('Compromiso de mejoramiento actualizado')
    setEditando(null)
@@ -248,6 +278,11 @@ export default function CompromisosMejoramiento() {
        <textarea value={formObservacion} onChange={e => setFormObservacion(e.target.value)}
         className="edl-input min-h-[60px]" placeholder="Observaciones adicionales" />
       </div>
+      <div>
+       <label className="edl-label">Plazo de cumplimiento (opcional)</label>
+       <input type="date" value={formPlazo} onChange={e => setFormPlazo(e.target.value)}
+        className="edl-input" />
+      </div>
       <div className="flex justify-end gap-3">
        <button onClick={() => setMostrarForm(false)} className="edl-btn-outline">Cancelar</button>
        <button onClick={guardar} disabled={guardando} className="edl-btn-primary disabled:opacity-50">
@@ -272,6 +307,7 @@ export default function CompromisosMejoramiento() {
         <th>Aspecto a corregir</th>
         <th>Acciones</th>
         <th>Estado</th>
+        <th>Plazo</th>
         <th>Fecha</th>
         <th className="text-center w-16">Editar</th>
        </tr>
@@ -290,6 +326,7 @@ export default function CompromisosMejoramiento() {
            'bg-amber-100 text-amber-700'
           }`}>{cm.estado}</span>
          </td>
+         <td className="text-xs">{cm.plazo_cumplimiento ? new Date(cm.plazo_cumplimiento).toLocaleDateString('es-CO') : '-'}</td>
          <td className="text-xs">{new Date(cm.creado_en).toLocaleDateString('es-CO')}</td>
          <td className="text-center">
           <button onClick={() => setEditando({ ...cm })}
@@ -341,6 +378,12 @@ export default function CompromisosMejoramiento() {
         <textarea value={editando.observacion || ''}
          onChange={e => setEditando({ ...editando, observacion: e.target.value })}
          className="edl-input min-h-[60px]" />
+       </div>
+       <div>
+        <label className="edl-label">Plazo de cumplimiento</label>
+        <input type="date" value={editando.plazo_cumplimiento || ''}
+         onChange={e => setEditando({ ...editando, plazo_cumplimiento: e.target.value })}
+         className="edl-input" />
        </div>
       </div>
       <div className="flex justify-end gap-3 p-4 border-t border-inst-borde">
