@@ -75,6 +75,40 @@ class ReporteController
  ResponseHelper::success($resultado);
  }
 
+ public function concertacionesAprobadas(): void
+ {
+ $filtros = SanitizerHelper::sanitizeArray($_GET);
+ $periodoId = (int) ($filtros['periodo_id'] ?? 0);
+ if (!$periodoId) {
+ ResponseHelper::error('periodo_id es requerido', 422);
+ }
+ $resultado = $this->service->concertacionesAprobadas($periodoId);
+ ResponseHelper::success($resultado);
+ }
+
+ public function descargarExcelConcertaciones(): void
+ {
+ $filtros = SanitizerHelper::sanitizeArray($_GET);
+ $periodoId = (int) ($filtros['periodo_id'] ?? 0);
+ if (!$periodoId) {
+ ResponseHelper::error('periodo_id es requerido', 422);
+ }
+
+ while (ob_get_level()) ob_end_clean();
+
+ $html = $this->service->generarExcelConcertacionesAprobadas($periodoId);
+ $filename = "concertaciones_aprobadas_{$periodoId}_" . date('Ymd_His') . '.xls';
+
+ header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+ header('Content-Disposition: attachment; filename="' . $filename . '"');
+ header('Content-Length: ' . strlen($html));
+ header('Cache-Control: no-cache, must-revalidate');
+ header('Pragma: no-cache');
+
+ echo $html;
+ exit;
+ }
+
  public function descargarExcel(string $tipo): void
  {
  $filtros = SanitizerHelper::sanitizeArray($_GET);
@@ -91,17 +125,19 @@ class ReporteController
  exit;
  }
 
- public function pdfConcertacion(int $id): void
- {
- $data = $this->service->datosConcertacionPdf($id);
- $html = \App\Helper\PdfHelper::concertacionPdf($data['concertacion'], $data['compromisos']);
- \App\Helper\PdfHelper::generar($html, "concertacion_{$id}.pdf");
- }
+public function pdfConcertacion(int $id): void
+    {
+    $data = $this->service->datosConcertacionPdf($id);
+    $html = \App\Helper\PdfHelper::concertacionPdf($data['concertacion'], $data['compromisos']);
+    $idPie = \App\Helper\PdfHelper::idPie($data['concertacion']);
+    \App\Helper\PdfHelper::generar($html, "concertacion_{$id}.pdf", true, $idPie);
+    }
 
- public function pdfEvaluacion(int $id): void
- {
- $data = $this->service->datosEvaluacionPdf($id);
- $html = \App\Helper\PdfHelper::evaluacionPdf($data['evaluacion'], $data['detalles']);
- \App\Helper\PdfHelper::generar($html, "evaluacion_{$id}.pdf");
- }
+    public function pdfEvaluacion(int $id): void
+    {
+    $data = $this->service->datosEvaluacionPdf($id);
+    $html = \App\Helper\PdfHelper::evaluacionPdf($data['evaluacion'], $data['detalles']);
+    $idPie = \App\Helper\PdfHelper::idPie($data['evaluacion']);
+    \App\Helper\PdfHelper::generar($html, "evaluacion_{$id}.pdf", true, $idPie);
+    }
 }

@@ -70,9 +70,13 @@ Este documento, corregido, mapea contra:
 
 **Helpers frontend:** `mensajesCNSC.ts` (¡ya existe!), `useContadores.ts`.
 
-### 0.3 Database (9 archivos SQL)
+### 0.3 Database (1 dump consolidado)
 
-`schema.sql` (29.692 bytes), `schema_fixed.sql`, `seeds.sql`, `seed_usuarios.sql`, `migration_edl_carepa.sql`, `migration_compromisos.sql`, `migration_competencias_comportamentales.sql`, `migration_evidencias_descriptivas.sql`, `migration_debe_cambiar_password.sql`.
+Tras la consolidacion operativa del proyecto, el esquema vive en un unico archivo:
+
+- `database/full_dump.sql` (esquema completo + seed + datos de prueba).
+
+No hay migraciones incrementales en el repo. Cualquier cambio de esquema se aplica regenerando el dump completo.
 
 ### 0.4 Conclusión del inventario
 

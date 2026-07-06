@@ -72,7 +72,7 @@ class EntidadController
 
     /**
      * Crea una entidad con su primer Jefe de Personal (jefe_dependencia).
-     * Solo admin_carepa (superadmin).
+     * Solo jefe_personal (superadmin).
      */
     public function crearConJefePersonal(): void
     {

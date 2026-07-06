@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { api, type PaginatedData } from '../../lib/api';
+import { api } from '../../lib/api';
 import { Card, Button, Badge, Alert, EmptyState, SkeletonText, Modal } from '../../components/ui';
 import { toast } from 'sonner';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Props {
   evaluacionIdParam?: number;
@@ -29,6 +30,21 @@ interface EvaluacionPrevia {
   fecha_evaluacion: string | null;
   fecha_calificacion: string | null;
   observaciones: string | null;
+  motivo_anulacion?: string | null;
+  es_comision_evaluadora?: number;
+  comision_evaluadora_id?: number | null;
+  evaluado_nombre?: string | null;
+  evaluado_documento?: string | null;
+  evaluador_nombre?: string | null;
+  evaluador_documento?: string | null;
+  resp_nombre?: string | null;
+  resp_apellido?: string | null;
+  resp_documento?: string | null;
+  cumplio_compromisos?: string | null;
+  aporte_adicional?: string | null;
+  descripcion_aporte?: string | null;
+  justificacion?: string | null;
+  concertacion_id?: number | null;
 }
 
 interface DetalleEvaluacion extends EvaluacionPrevia {
@@ -95,7 +111,27 @@ const ESTADO_LABELS: Record<string, { label: string; tone: 'success' | 'info' | 
   'aprobada_comision': { label: 'Aprobada por Comisión', tone: 'success' },
   'rechazada_comision': { label: 'Rechazada por Comisión', tone: 'danger' },
   'cerrada': { label: 'Cerrada', tone: 'neutral' },
+  'anulada': { label: 'Anulada', tone: 'danger' },
 };
+
+function formatearNota(valor: unknown, decimales = 1): string {
+  if (valor == null || valor === '') return '—';
+  const num = typeof valor === 'number' ? valor : Number(valor);
+  return isNaN(num) || !isFinite(num) ? '—' : `${num.toFixed(decimales)}%`;
+}
+
+function formatearPuntaje(valor: unknown, decimales = 1): string {
+  if (valor == null || valor === '') return '—';
+  const num = typeof valor === 'number' ? valor : Number(valor);
+  return isNaN(num) || !isFinite(num) ? '—' : `${num.toFixed(decimales)}`;
+}
+
+function getEstadoLabel(ev: EvaluacionPrevia): { label: string; tone: 'success' | 'info' | 'warning' | 'danger' | 'neutral' } {
+  if (ev.estado === 'calificada' && ev.es_comision_evaluadora === 1) {
+    return { label: 'Pendiente aprobación Comisión', tone: 'warning' };
+  }
+  return ESTADO_LABELS[ev.estado] || { label: ev.estado || '—', tone: 'neutral' };
+}
 
 const NIVEL_LABELS: Record<string, string> = {
   'sobresaliente': 'Sobresaliente',
@@ -113,7 +149,10 @@ const VALORACION_FRECUENCIA_LABELS: Record<string, string> = {
 export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: Props) {
   const navigate = useNavigate();
   const { evaluacionId } = useParams();
+  const { usuario } = useAuth();
   const evaluacionIdNum = evaluacionIdParam || (evaluacionId ? parseInt(evaluacionId, 10) : 0);
+  const selfMode = !evaluacionIdNum && !evaluadoIdParam && !!usuario?.id;
+  const resolvedEvaluadoId = evaluadoIdParam || (selfMode ? usuario!.id : 0);
 
   const [evaluaciones, setEvaluaciones] = useState<EvaluacionPrevia[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,11 +167,39 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
   const [detalleDocumentoEvaluado, setDetalleDocumentoEvaluado] = useState('');
   const [detalleLoading, setDetalleLoading] = useState(false);
 
+  const [anularOpen, setAnularOpen] = useState(false);
+  const [anularData, setAnularData] = useState<EvaluacionPrevia | null>(null);
+  const [anularMotivo, setAnularMotivo] = useState('');
+  const [anulando, setAnulando] = useState(false);
+
   useEffect(() => {
-    if (evaluacionIdNum || evaluadoIdParam) {
+    if (evaluacionIdNum || resolvedEvaluadoId) {
       cargarEvaluacionesPrevias();
     }
-  }, [evaluacionIdNum, evaluadoIdParam]);
+  }, [evaluacionIdNum, resolvedEvaluadoId]);
+
+  useEffect(() => {
+    if (resolvedEvaluadoId) {
+      cargarInfoEvaluado();
+    }
+  }, [resolvedEvaluadoId]);
+
+  async function cargarInfoEvaluado() {
+    try {
+      const res: any = await api.get<any>(`/usuarios/${resolvedEvaluadoId}`);
+      const data = res && typeof res === 'object' && 'data' in res ? res.data : res;
+      if (data) {
+        setEvaluadoInfo({
+          nombre: data.nombre_completo || '',
+          documento: data.documento || '',
+          cargo: data.denominacion_empleo || data.cargo || '',
+        });
+      }
+    } catch {
+      // Si no se puede cargar el detalle del evaluado, usar el nombre
+      // del primer registro de evaluacion cuando llegue
+    }
+  }
 
   async function cargarEvaluacionesPrevias() {
     setLoading(true);
@@ -141,8 +208,12 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
       let res;
       if (evaluacionIdNum > 0) {
         res = await api.get<any>(`/evaluaciones/${evaluacionIdNum}/evaluaciones-previas`);
-      } else if (evaluadoIdParam) {
-        res = await api.get<any>(`/evaluaciones/evaluado/${evaluadoIdParam}/previas`);
+      } else if (resolvedEvaluadoId > 0) {
+        if (selfMode) {
+          res = await api.get<any>(`/evaluaciones/mias`);
+        } else {
+          res = await api.get<any>(`/evaluaciones/evaluado/${resolvedEvaluadoId}/previas`);
+        }
       } else {
         setEvaluaciones([]);
         setLoading(false);
@@ -150,15 +221,16 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
       }
       const data = Array.isArray(res) ? res : (res.data || []);
       setEvaluaciones(data);
-
-      // Obtener info del evaluado desde la primera evaluación si existe
-      if (data.length > 0) {
-        const primera = data[0];
-        setEvaluadoInfo({
-          nombre: '', // Se obtendría de la API si está disponible
-          documento: '',
-          cargo: '',
-        });
+      // Auto-poblar info del evaluado a partir del primer registro
+      if (data.length > 0 && !evaluadoInfo) {
+        const first = data[0];
+        if (first.evaluado_nombre || first.evaluado_documento) {
+          setEvaluadoInfo({
+            nombre: first.evaluado_nombre || '',
+            documento: first.evaluado_documento || '',
+            cargo: '',
+          });
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Error al cargar evaluaciones previas');
@@ -182,7 +254,10 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
     return MOTIVO_NO_JEFE_LABELS[motivo] || motivo;
   }
 
-  function getEstadoInfo(estado: string) {
+  function getEstadoInfo(estado: string, ev?: EvaluacionPrevia) {
+    if (ev) {
+      return getEstadoLabel(ev);
+    }
     return ESTADO_LABELS[estado] || { label: estado, tone: 'neutral' };
   }
 
@@ -191,10 +266,21 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
     return NIVEL_LABELS[nivel] || nivel;
   }
 
+  function parseDateLocal(dateStr: string): Date {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  function formatDateLocal(dateStr: string | null): string {
+    if (!dateStr) return '—';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return `${d.toString().padStart(2, '0')}/${m.toString().padStart(2, '0')}/${y}`;
+  }
+
   function calcularDias(inicio: string | null, fin: string | null): number {
     if (!inicio || !fin) return 0;
-    const f1 = new Date(inicio);
-    const f2 = new Date(fin);
+    const f1 = parseDateLocal(inicio);
+    const f2 = parseDateLocal(fin);
     const diff = f2.getTime() - f1.getTime();
     return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
   }
@@ -243,10 +329,46 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
 
   async function handleDescargarPDF(evalData: EvaluacionPrevia) {
     try {
-      window.open(`/api/v1/reportes/evaluacion-pdf/${evalData.id}`, '_blank');
+      api.download(`/reportes/evaluacion-pdf/${evalData.id}`, `evaluacion_${evalData.id}.pdf`);
     } catch (err: any) {
-      toast.error(err?.message || 'No se pudo abrir el PDF de la evaluación.');
+      toast.error(err?.message || 'No se pudo descargar el PDF de la evaluación.');
     }
+  }
+
+  function handleOpenAnular(evalData: EvaluacionPrevia) {
+    setAnularData(evalData);
+    setAnularMotivo('');
+    setAnularOpen(true);
+  }
+
+  function handleCloseAnular() {
+    if (anulando) return;
+    setAnularOpen(false);
+    setAnularData(null);
+    setAnularMotivo('');
+  }
+
+  async function handleConfirmarAnular() {
+    if (!anularData) return;
+    if (!anularMotivo.trim() || anularMotivo.trim().length < 10) {
+      toast.error('Indique un motivo de anulación de al menos 10 caracteres.');
+      return;
+    }
+    setAnulando(true);
+    try {
+      await api.put<any>(`/evaluaciones/${anularData.id}/anular`, { motivo: anularMotivo.trim() });
+      toast.success('Evaluación anulada correctamente.');
+      handleCloseAnular();
+      await cargarEvaluacionesPrevias();
+    } catch (err: any) {
+      toast.error(err?.message || 'No se pudo anular la evaluación.');
+    } finally {
+      setAnulando(false);
+    }
+  }
+
+  function esAnulable(estado: string): boolean {
+    return !['cerrada', 'aprobada_comision', 'anulada'].includes(estado);
   }
 
   if (loading) {
@@ -294,10 +416,22 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
       <Card className="border-l-4 border-l-inst-azul-osc">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="edl-section-title">Evaluaciones Previas del Servidor</h2>
-            <p className="text-sm text-inst-texto-claro mt-1">
-              Historial de evaluaciones realizadas en períodos anteriores
-            </p>
+            <h2 className="edl-section-title">Evaluaciones del Servidor</h2>
+            {evaluadoInfo && (evaluadoInfo.nombre || evaluadoInfo.documento) ? (
+              <div className="mt-1 text-sm text-inst-texto-claro">
+                <p className="font-medium text-inst-texto">
+                  {evaluadoInfo.nombre || 'Servidor'}
+                  {evaluadoInfo.documento && (
+                    <span className="font-mono text-inst-texto-claro ml-2">CC {evaluadoInfo.documento}</span>
+                  )}
+                </p>
+                {evaluadoInfo.cargo && <p className="text-xs">{evaluadoInfo.cargo}</p>}
+              </div>
+            ) : (
+              <p className="text-sm text-inst-texto-claro mt-1">
+                Historial de evaluaciones realizadas en este y anteriores períodos
+              </p>
+            )}
           </div>
           <Button variant="outline" onClick={() => navigate(-1)}>
             <span className="material-icons text-sm mr-1">arrow_back</span>
@@ -326,7 +460,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
             </thead>
             <tbody>
               {evaluaciones.map((ev) => {
-                const estadoInfo = getEstadoInfo(ev.estado);
+                const estadoInfo = getEstadoInfo(ev.estado, ev);
                 const dias = calcularDias(ev.fecha_inicio, ev.fecha_fin);
                 return (
                   <tr key={ev.id}>
@@ -344,22 +478,20 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                       )}
                     </td>
                     <td className="text-sm whitespace-nowrap">
-                      {ev.fecha_inicio ? new Date(ev.fecha_inicio).toLocaleDateString('es-CO') : '—'}
+                      {formatDateLocal(ev.fecha_inicio)}
                       {' '}
                       <span className="text-inst-texto-claro">→</span>
                       {' '}
-                      {ev.fecha_fin ? new Date(ev.fecha_fin).toLocaleDateString('es-CO') : '—'}
+                      {formatDateLocal(ev.fecha_fin)}
                     </td>
                     <td className="text-center text-sm">{dias > 0 ? dias : '—'}</td>
                     <td className="text-center text-sm">
-                      {ev.nota_funcionales !== null ? `${ev.nota_funcionales.toFixed(1)}%` : '—'}
+                      {formatearNota(ev.nota_funcionales, 2)}
                       {' / '}
-                      {ev.nota_comportamentales !== null ? `${ev.nota_comportamentales.toFixed(1)}%` : '—'}
+                      {formatearNota(ev.nota_comportamentales, 2)}
                     </td>
                     <td className="text-center font-bold text-lg">
-                      {ev.calificacion_definitiva !== null
-                        ? `${ev.calificacion_definitiva.toFixed(1)}%`
-                        : '—'}
+                      {formatearNota(ev.calificacion_definitiva, 2)}
                     </td>
                     <td className="text-center">
                       <Badge tone={ev.nivel_resultado === 'sobresaliente' ? 'success' : ev.nivel_resultado === 'satisfactorio' ? 'info' : ev.nivel_resultado === 'no_satisfactorio' ? 'danger' : 'neutral'}>
@@ -387,6 +519,16 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                         >
                           <span className="material-icons text-base">picture_as_pdf</span>
                         </Button>
+                        {esAnulable(ev.estado) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenAnular(ev)}
+                            title="Anular evaluación"
+                          >
+                            <span className="material-icons text-base text-inst-rojo">block</span>
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -426,6 +568,18 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                     <p className="text-xs text-inst-texto-claro uppercase">Tipo de evaluación</p>
                     <p>{getTipoLabel(detalleData.tipo)}</p>
                   </div>
+                  {detalleData.tipo === 'parcial_primer_semestre' && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-inst-texto-claro uppercase">Período evaluado</p>
+                      <p>1 de febrero — 31 de julio (Acuerdo 617 de 2018, art. 6)</p>
+                    </div>
+                  )}
+                  {detalleData.tipo === 'parcial_segundo_semestre' && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-inst-texto-claro uppercase">Período evaluado</p>
+                      <p>1 de agosto — 31 de enero del año siguiente (Acuerdo 617 de 2018, art. 6)</p>
+                    </div>
+                  )}
                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Motivo / Causal</p>
                     <p>
@@ -436,17 +590,17 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                   </div>
                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Estado</p>
-                    <Badge tone={getEstadoInfo(detalleData.estado).tone}>
-                      {getEstadoInfo(detalleData.estado).label}
+                    <Badge tone={getEstadoInfo(detalleData.estado, detalleData).tone}>
+                      {getEstadoInfo(detalleData.estado, detalleData).label}
                     </Badge>
                   </div>
                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Fecha inicio</p>
-                    <p>{detalleData.fecha_inicio ? new Date(detalleData.fecha_inicio).toLocaleDateString('es-CO') : '—'}</p>
+                    <p>{detalleData.fecha_inicio ? formatDateLocal(detalleData.fecha_inicio) : '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Fecha fin</p>
-                    <p>{detalleData.fecha_fin ? new Date(detalleData.fecha_fin).toLocaleDateString('es-CO') : '—'}</p>
+                    <p>{detalleData.fecha_fin ? formatDateLocal(detalleData.fecha_fin) : '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Días evaluados</p>
@@ -460,16 +614,16 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                   </div>
                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Nota funcionales</p>
-                    <p>{detalleData.nota_funcionales !== null ? `${detalleData.nota_funcionales.toFixed(1)}%` : '—'}</p>
-                  </div>
-                  <div>
+                    <p>{formatearNota(detalleData.nota_funcionales, 2)}</p>
+                   </div>
+                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Nota comportamentales</p>
-                    <p>{detalleData.nota_comportamentales !== null ? `${detalleData.nota_comportamentales.toFixed(1)}%` : '—'}</p>
-                  </div>
-                  <div>
+                    <p>{formatearNota(detalleData.nota_comportamentales, 2)}</p>
+                   </div>
+                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Definitiva</p>
                     <p className="text-xl font-bold text-inst-azul-osc">
-                      {detalleData.calificacion_definitiva !== null ? `${detalleData.calificacion_definitiva.toFixed(1)}%` : '—'}
+                      {formatearNota(detalleData.calificacion_definitiva, 2)}
                     </p>
                   </div>
                   <div>
@@ -480,9 +634,47 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                   </div>
                   <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Fecha de calificación</p>
-                    <p>{detalleData.fecha_calificacion ? new Date(detalleData.fecha_calificacion).toLocaleDateString('es-CO') : '—'}</p>
+                    <p>{detalleData.fecha_calificacion ? new Date(detalleData.fecha_calificacion.replace(' ', 'T')).toLocaleDateString('es-CO') : '—'}</p>
                   </div>
-                  <div>
+                  {detalleData.cumplio_compromisos && (
+                    <div>
+                      <p className="text-xs text-inst-texto-claro uppercase">Cumplió compromisos</p>
+                      <p>{detalleData.cumplio_compromisos === 'si' ? 'Sí' : detalleData.cumplio_compromisos === 'moderadamente' ? 'Moderadamente' : detalleData.cumplio_compromisos === 'no' ? 'No' : detalleData.cumplio_compromisos}</p>
+                    </div>
+                  )}
+                  {detalleData.aporte_adicional && (
+                    <div>
+                      <p className="text-xs text-inst-texto-claro uppercase">Aporte adicional</p>
+                      <p>{detalleData.aporte_adicional === 'si' ? 'Sí' : detalleData.aporte_adicional === 'no' ? 'No' : detalleData.aporte_adicional}</p>
+                    </div>
+                  )}
+                  {detalleData.justificacion && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-inst-texto-claro uppercase">Justificación del evaluador</p>
+                      <p className="italic text-inst-texto">"{detalleData.justificacion}"</p>
+                    </div>
+                  )}
+                  {detalleData.es_comision_evaluadora === 1 && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-inst-texto-claro uppercase">Aprobada por Comisión Evaluadora</p>
+                      <p>
+                        {detalleData.resp_nombre || detalleData.resp_apellido
+                          ? `${(detalleData.resp_nombre || '').trim()} ${(detalleData.resp_apellido || '').trim()}`.trim() +
+                            (detalleData.resp_documento ? ` (CC ${detalleData.resp_documento})` : '')
+                          : 'Servidor de libre nombramiento y remoción (Comisión Evaluadora)'}
+                      </p>
+                      <p className="text-xs text-inst-texto-claro mt-1">
+                        La evaluación queda en firme tras la aprobación de la Comisión Evaluadora (Acuerdo 617 de 2018).
+                      </p>
+                    </div>
+                  )}
+                  {detalleData.estado === 'anulada' && detalleData.motivo_anulacion && (
+                    <div className="col-span-2">
+                      <p className="text-xs text-inst-texto-claro uppercase">Motivo de anulación</p>
+                      <p className="italic text-inst-rojo">{detalleData.motivo_anulacion}</p>
+                    </div>
+                  )}
+                  <div className="col-span-2">
                     <p className="text-xs text-inst-texto-claro uppercase">Observaciones</p>
                     <p>{detalleData.observaciones || '—'}</p>
                   </div>
@@ -509,7 +701,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                             <td className="text-sm">{c.descripcion}</td>
                             <td className="text-center text-sm">{c.peso}%</td>
                             <td className="text-center text-sm font-semibold">
-                              {c.puntaje !== null ? `${c.puntaje.toFixed(1)}` : '—'}
+                              {formatearPuntaje(c.puntaje)}
                             </td>
                           </tr>
                         ))}
@@ -587,6 +779,60 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
               </Button>
             )}
             <Button variant="outline" onClick={cerrarDetalle}>Cerrar</Button>
+          </div>
+        </Modal>
+      )}
+
+      {anularOpen && anularData && (
+        <Modal
+          open
+          onClose={handleCloseAnular}
+          title="Anular evaluación"
+          size="md"
+        >
+          <Alert tone="warning" className="mb-4">
+            Esta acción marca la evaluación como <strong>anulada</strong> y no podrá revertirse.
+            Use esta opción únicamente cuando existan motivos justificados (Acuerdo 617 de 2018).
+          </Alert>
+          <div className="space-y-3 text-sm">
+            <p>
+              <strong>Servidor:</strong> {evaluadoInfo?.nombre || '—'}
+              {evaluadoInfo?.documento && <span className="font-mono text-inst-texto-claro ml-2">CC {evaluadoInfo.documento}</span>}
+            </p>
+            <p>
+              <strong>Tipo:</strong> {getTipoLabel(anularData.tipo)} — <strong>Período:</strong> {anularData.periodo_nombre || `#${anularData.periodo_id}`}
+            </p>
+            <p>
+              <strong>Estado actual:</strong>{' '}
+              <Badge tone={getEstadoInfo(anularData.estado, anularData).tone}>{getEstadoInfo(anularData.estado, anularData).label}</Badge>
+            </p>
+            <div>
+              <label className="block text-xs font-semibold text-inst-texto uppercase mb-1">
+                Motivo de anulación (mínimo 10 caracteres)
+              </label>
+              <textarea
+                value={anularMotivo}
+                onChange={e => setAnularMotivo(e.target.value)}
+                rows={4}
+                className="edl-input w-full"
+                placeholder="Describa el motivo por el cual se anula la evaluación..."
+              />
+              <p className="text-xs text-inst-texto-claro mt-1">
+                {anularMotivo.trim().length} / 10 caracteres
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-inst-borde">
+            <Button variant="outline" onClick={handleCloseAnular} disabled={anulando}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleConfirmarAnular}
+              disabled={anulando || anularMotivo.trim().length < 10}
+            >
+              {anulando ? 'Anulando...' : 'Confirmar anulación'}
+            </Button>
           </div>
         </Modal>
       )}

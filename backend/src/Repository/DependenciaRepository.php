@@ -72,6 +72,15 @@ class DependenciaRepository extends BaseRepository
     }
 
     /**
+     * Eliminación física (no soft delete)
+     */
+    public function eliminar(int $id): bool
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM {$this->table} WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    /**
      * Cuenta usuarios activos asociados a una dependencia
      */
     public function contarUsuariosActivos(int $id): int

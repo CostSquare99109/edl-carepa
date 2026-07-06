@@ -9,6 +9,27 @@ class Database
 {
  private static ?PDO $instance = null;
 
+ /**
+ * Resuelve la constante MySQL_ATTR_FOUND_ROWS segun la version de PHP.
+ *
+ * PHP 8.5 deprecó la constante global PDO::MYSQL_ATTR_FOUND_ROWS a favor
+ * de la constante tipada \Pdo\Mysql::ATTR_FOUND_ROWS. Este helper
+ * selecciona la constante disponible en tiempo de ejecucion y permite
+ * que el codigo siga funcionando en PHP 8.2-8.4 y en 8.5+.
+ *
+ * @return int
+ */
+ private static function pdoMysqlAttr(): int
+ {
+ if (defined('\\Pdo\\Mysql::ATTR_FOUND_ROWS')) {
+ return \Pdo\Mysql::ATTR_FOUND_ROWS;
+ }
+ if (defined('PDO::MYSQL_ATTR_FOUND_ROWS')) {
+ return \PDO::MYSQL_ATTR_FOUND_ROWS;
+ }
+ return -1;
+ }
+
  public static function getInstance(): PDO
  {
  if (self::$instance === null) {
@@ -36,10 +57,10 @@ class Database
 
  try {
  self::$instance = new PDO($dsn, $user, $pass, [
+ self::pdoMysqlAttr() => true,
  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
  PDO::ATTR_EMULATE_PREPARES => false,
- PDO::MYSQL_ATTR_FOUND_ROWS => true,
  ]);
  } catch (PDOException $e) {
  throw new \RuntimeException('Database connection failed');

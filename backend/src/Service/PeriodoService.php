@@ -29,10 +29,11 @@ class PeriodoService
 		'fecha_fin' => 'required'
 		]);
 
-		// Auto-generar nombre como "Año-Año+1" desde fecha_inicio
+		// Auto-generar nombre y anio como "Año-Año+1" desde fecha_inicio
 		if (!empty($datos['fecha_inicio'])) {
 		$anio = (int) date('Y', strtotime($datos['fecha_inicio']));
 		$datos['nombre'] = $anio . '-' . ($anio + 1);
+		$datos['anio'] = $anio . '-' . ($anio + 1);
 		}
 
 		$estadosValidos = ['configuracion','concertacion','seguimiento','evaluacion','calificacion','cerrado'];
@@ -60,7 +61,16 @@ class PeriodoService
         if (!$periodo) {
             ResponseHelper::error('Periodo no encontrado', 404);
         }
-        $permitidos = ['nombre','fecha_inicio','fecha_fin','estado'];
+        $permitidos = [
+            'nombre','anio','fecha_inicio','fecha_fin','estado',
+            'fecha_inicio_concertacion','fecha_fin_concertacion',
+            'fecha_inicio_seguimiento','fecha_fin_seguimiento',
+            'fecha_inicio_evaluacion','fecha_fin_evaluacion',
+            'fecha_inicio_calificacion_parcial','fecha_fin_calificacion_parcial',
+            'fecha_inicio_calificacion','fecha_fin_calificacion',
+            'fecha_inicio_evaluacion_segundo','fecha_fin_evaluacion_segundo',
+            'fecha_inicio_calificacion_definitiva','fecha_fin_calificacion_definitiva',
+        ];
         $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
         $this->repo->actualizar($id, $datosFiltrados);
         AuditoriaService::registrar('actualizar', 'periodos', $id, $periodo, $datosFiltrados);

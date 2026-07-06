@@ -158,7 +158,15 @@ export default function DependenciaList() {
   setGuardando(false)
  }
 
- const toggleEstado = async (d: Dependencia) => {
+  const eliminar = async (d: Dependencia) => {
+   if (!confirm(`¿Eliminar permanentemente la dependencia "${d.nombre}"?\n\nEsta acción no se puede deshacer. Se eliminarán también las metas asociadas.`)) return;
+   try {
+    await api.delete(`/dependencias/${d.id}`);
+    cargar();
+   } catch (e: any) { alert(e.message || 'Error al eliminar') }
+  }
+
+  const toggleEstado = async (d: Dependencia) => {
   const nuevo = d.estado === 'activa' ? 'inactiva' : 'activa'
   try {
    await api.put(`/dependencias/${d.id}`, { estado: nuevo })
@@ -227,10 +235,15 @@ export default function DependenciaList() {
           </button>
          </td>
          <td className="text-center">
-          <button onClick={() => abrirEditar(d)} className="p-1 rounded hover:bg-inst-gris text-inst-azul">
-           <span className="material-icons text-lg">edit</span>
-          </button>
-         </td>
+          <div className="flex items-center justify-center gap-1">
+           <button onClick={() => abrirEditar(d)} className="p-1 rounded hover:bg-inst-gris text-inst-azul" title="Editar">
+            <span className="material-icons text-lg">edit</span>
+           </button>
+           <button onClick={() => eliminar(d)} className="p-1 rounded hover:bg-red-50 text-red-600" title="Eliminar">
+            <span className="material-icons text-lg">delete</span>
+           </button>
+          </div>
+          </td>
         </tr>
        ))}
        {deps.length === 0 && (

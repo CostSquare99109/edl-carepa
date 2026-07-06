@@ -76,14 +76,12 @@ class UploadHelper
 			ResponseHelper::error("Tipo de archivo no permitido. Extensiones válidas: {$permitidas}", 422);
 		}
 
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mimeType = finfo_file($finfo, $file['tmp_name']);
-		finfo_close($finfo);
+  $mimeType = mime_content_type($file['tmp_name']);
 
-		$expectedMime = $allowedMimes[$extension];
-		if ($mimeType !== $expectedMime && !self::mimeTypeCompatible($mimeType, $expectedMime)) {
-			ResponseHelper::error('El tipo MIME del archivo no coincide con su extensión', 422);
-		}
+  $expectedMime = $allowedMimes[$extension];
+  if (!self::mimeTypeCompatible($mimeType, $expectedMime)) {
+  ResponseHelper::error('El tipo MIME del archivo no coincide con su extension. Detectado: ' . ($mimeType ?: 'desconocido') . ', esperado: ' . $expectedMime, 422);
+  }
 
 		return [
 			'extension'     => $extension,
@@ -96,7 +94,9 @@ class UploadHelper
 
 	public static function guardar(array $file, string $subdirectorio = ''): string
 	{
-		$validado = self::validar($file);
+		if (empty($file['tmp_name']) || empty($file['name'])) {
+			ResponseHelper::error('Archivo invalido', 422);
+		}
 
 		$uploadDir = Env::get('UPLOAD_DIR', EDL_ROOT . '/uploads');
 		if ($subdirectorio) {
@@ -107,12 +107,15 @@ class UploadHelper
 			mkdir($uploadDir, 0755, true);
 		}
 
-		$hash = hash('sha256', $validado['original_name'] . microtime(true) . random_bytes(16));
-		$nombreSeguro = substr($hash, 0, 32) . '.' . $validado['extension'];
+		$hash = hash('sha256', $file['name'] . microtime(true) . random_bytes(16));
+		$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		$nombreSeguro = substr($hash, 0, 32) . '.' . $extension;
 		$rutaCompleta = $uploadDir . '/' . $nombreSeguro;
 
-		if (!move_uploaded_file($validado['tmp_name'], $rutaCompleta)) {
-			ResponseHelper::error('Error al guardar archivo', 500);
+		if (!move_uploaded_file($file['tmp_name'], $rutaCompleta)) {
+			$lastError = error_get_last();
+			$msg = $lastError ? $lastError['message'] : 'desconocido';
+			ResponseHelper::error('Error al guardar archivo: ' . $msg . ' (origen=' . $file['tmp_name'] . ', destino=' . $rutaCompleta . ')', 500);
 		}
 
 		$rutaRelativa = ($subdirectorio ? trim($subdirectorio, '/') . '/' : '') . $nombreSeguro;

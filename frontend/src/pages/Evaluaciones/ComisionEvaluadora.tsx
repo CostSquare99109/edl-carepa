@@ -49,21 +49,26 @@ export default function ComisionEvaluadora() {
 
  useEffect(() => { cargarEvaluaciones() }, [pagina, tabActiva])
 
- async function cargarEvaluaciones() {
- setCargando(true)
- try {
- const estado = estadoMap[tabActiva];
- let url = `/evaluaciones?por_pagina=20&pagina=${pagina}`
- if (estado) url += `&estado=${estado}`
- if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`
- const res = await api.get<PaginatedData<EvaluacionComision>>(url)
- setEvaluaciones(res.data || [])
- setTotal(res.total || 0)
- } catch (e) {
- toast.error(e instanceof Error ? e.message : 'Error al cargar evaluaciones')
- } finally {
- setCargando(false)
- }
+async function cargarEvaluaciones() {
+  setCargando(true)
+  try {
+  const estado = estadoMap[tabActiva];
+  let url = `/evaluaciones?por_pagina=20&pagina=${pagina}`
+  if (estado) url += `&estado=${estado}`
+  // La Comision Evaluadora solo ve calificaciones que requieren su
+  // aprobacion (es_comision_evaluadora=1) segun Acuerdo 617 de 2018.
+  if (tabActiva === 'por_aprobar' || tabActiva === 'aprobadas' || tabActiva === 'rechazadas') {
+   url += '&es_comision_evaluadora=1'
+  }
+  if (busqueda) url += `&busqueda=${encodeURIComponent(busqueda)}`
+  const res = await api.get<PaginatedData<EvaluacionComision>>(url)
+  setEvaluaciones(res.data || [])
+  setTotal(res.total || 0)
+  } catch (e) {
+  toast.error(e instanceof Error ? e.message : 'Error al cargar evaluaciones')
+  } finally {
+  setCargando(false)
+  }
  }
 
  async function aprobarEvaluacion(accion: 'aprobar' | 'rechazar') {

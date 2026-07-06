@@ -17,12 +17,18 @@ class AuthMiddleware
 		$uri = $_SERVER['REQUEST_URI'] ?? '';
 		$method = $_SERVER['REQUEST_METHOD'] ?? '';
 
-		if (!$header || !preg_match('/^Bearer\s+(.+)$/', $header, $matches)) {
-			error_log("[AUTH 401] {$method} {$uri} — Sin token Bearer");
-			ResponseHelper::error('Token de autenticacion requerido', 401);
+		$token = '';
+
+		if ($header && preg_match('/^Bearer\s+(.+)$/', $header, $matches)) {
+			$token = $matches[1];
+		} elseif (!empty($_GET['token'])) {
+			$token = $_GET['token'];
 		}
 
-		$token = $matches[1];
+		if (!$token) {
+			error_log("[AUTH 401] {$method} {$uri} — Sin token Bearer ni token en query");
+			ResponseHelper::error('Token de autenticacion requerido', 401);
+		}
 
 		try {
 			$payload = JwtHelper::validate($token);

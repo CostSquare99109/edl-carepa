@@ -147,6 +147,7 @@ export default function ConcertarCompromisos() {
        codigo: evalRes.codigo || '',
        grado: evalRes.grado || '',
        evaluacion_id: Number(evaluacionId),
+       evaluacion_estado: evalRes.estado || evalRes.evaluacion_estado || '',
        periodo_id: evalRes.periodo_id || 0,
        periodo_nombre: evalRes.periodo_nombre || '',
        es_comision_evaluadora: evalRes.es_comision_evaluadora || 0,
@@ -162,26 +163,26 @@ export default function ConcertarCompromisos() {
  async function cargarInicial() {
  setLoading(true);
  try {
- const [periodosRes, competenciasRes] = await Promise.all([
-  api.get('/periodos'),
-  api.get('/competencias'),
- ]);
- const periodosRaw = Array.isArray(periodosRes) ? periodosRes : (periodosRes?.data || []);
- setPeriodos(periodosRaw);
- const competenciasRaw = Array.isArray(competenciasRes) ? competenciasRes : (competenciasRes?.data || []);
- setCompetencias(competenciasRaw);
+  const [periodosRes, competenciasRes] = await Promise.all([
+   api.get('/periodos'),
+   api.get('/competencias'),
+  ]);
+  const periodosRaw: any[] = Array.isArray(periodosRes) ? periodosRes : ((periodosRes as any)?.data || []);
+  setPeriodos(periodosRaw);
+  const competenciasRaw: any[] = Array.isArray(competenciasRes) ? competenciasRes : ((competenciasRes as any)?.data || []);
+  setCompetencias(competenciasRaw);
 
- try {
- const usersRes = await api.get<any>('/usuarios?por_pagina=100');
- const users = Array.isArray(usersRes) ? usersRes : (usersRes?.data || []);
- setUsuariosComision(users.map((u: any) => ({ id: u.id, nombre: `${u.nombres} ${u.apellidos}` })));
- } catch {}
- } catch (err) {
- console.error('Error cargando datos:', err);
- } finally {
- setLoading(false);
- }
- }
+  try {
+  const usersRes = await api.get<any>('/usuarios/evaluadores-por-dependencia');
+  const users = Array.isArray(usersRes) ? usersRes : (usersRes?.data || []);
+  setUsuariosComision(users.map((u: any) => ({ id: u.id, nombre: u.nombre })));
+  } catch {}
+  } catch (err) {
+  console.error('Error cargando datos:', err);
+  } finally {
+  setLoading(false);
+  }
+  }
 
  async function buscarEvaluado() {
  const doc = busquedaDocumento.trim();
@@ -202,21 +203,21 @@ export default function ConcertarCompromisos() {
  return;
  }
 
-  const evaluadosList: Evaluado[] = evals.map((ev: any) => ({
-  id: ev.evaluado_id || ev.funcionario_id,
-  documento: doc,
-  nombre_completo: ev.evaluado_nombre || ev.funcionario_nombre || '',
-  primer_nombre: (ev.evaluado_nombre || ev.funcionario_nombre || '').split(' ')[0],
-  nivel: ev.nivel || '',
-  denominacion: ev.denominacion || '',
-  codigo: ev.codigo || '',
-  grado: ev.grado || '',
-  evaluacion_id: ev.id,
-  periodo_id: ev.periodo_id || 0,
-  periodo_nombre: ev.periodo_nombre || '',
-  es_comision_evaluadora: ev.es_comision_evaluadora || 0,
-  dependencia_id: ev.dependencia_id || 0,
-  }));
+   const evaluadosList: Evaluado[] = evals.map((ev: any) => ({
+   id: ev.evaluado_id || ev.funcionario_id,
+   documento: doc,
+   nombre_completo: ev.evaluado_nombre || ev.funcionario_nombre || '',
+   primer_nombre: (ev.evaluado_nombre || ev.funcionario_nombre || '').split(' ')[0],
+   nivel: ev.nivel || '',
+   denominacion: ev.denominacion || '',
+   codigo: ev.codigo || '',
+   grado: ev.grado || '',
+   evaluacion_id: ev.id,
+   periodo_id: ev.periodo_id || 0,
+   periodo_nombre: ev.periodo_nombre || '',
+   es_comision_evaluadora: ev.es_comision_evaluadora || 0,
+   dependencia_id: ev.evaluado_dependencia_id || ev.dependencia_id || 0,
+   }));
 
  setEvaluados(evaluadosList);
  } catch (err: any) {
@@ -226,7 +227,11 @@ export default function ConcertarCompromisos() {
  }
  }
 
- async function seleccionarEvaluado(ev: Evaluado) {
+  async function seleccionarEvaluado(ev: Evaluado) {
+   if (!ev) {
+     setMensaje({ tipo: 'error', texto: 'No se encontraron datos del evaluado.' });
+     return;
+   }
   setEvaluado(ev);
   setEvaluados([]);
   setBusquedaDocumento('');
@@ -235,46 +240,66 @@ export default function ConcertarCompromisos() {
   setShowAlerta(true);
   setTimeout(() => setShowAlerta(false), 5000);
 
-  // Obtener dependencia del evaluado
+  // Dependencia del evaluado (desde la evaluacion o el usuario)
   let dependenciaId = ev.dependencia_id;
-  if (!dependenciaId && ev.id) {
+
+  // Determinar periodo activo
+  let pid = ev.periodo_id;
+  if (!pid) {
    try {
-    const userRes = await api.get<any>(`/usuarios/${ev.id}`);
-    dependenciaId = userRes?.dependencia_id || 0;
+    const periodoActivo = await api.get<any>('/dashboard/periodo-activo');
+    pid = periodoActivo?.periodo?.id || 0;
    } catch {}
   }
+  if (pid) setPeriodoId(pid);
 
   // Cargar metas del periodo y filtrar por dependencia
-  if (ev.periodo_id) {
+  if (pid) {
   try {
-  const metasRes = await api.get<any>(`/periodos/${ev.periodo_id}/metas`);
+  const metasRes = await api.get<any>(`/periodos/${pid}/metas`);
   const m = Array.isArray(metasRes) ? metasRes : (metasRes?.data || []);
-  setMetas(dependenciaId ? m.filter((meta: Meta) => meta.dependencia_id === dependenciaId) : m);
-  } catch {}
+  const metasFiltradas = dependenciaId ? m.filter((meta: Meta) => meta.dependencia_id === dependenciaId) : m;
+  setMetas(metasFiltradas);
+  } catch (err) {
+   console.error('Error al cargar metas:', err);
+  }
   }
 
- // Cargar compromisos existentes de la evaluacion
- if (ev.evaluacion_id) {
- try {
- const compRes = await api.get<any>(`/compromisos/evaluacion/${ev.evaluacion_id}`);
- if (compRes?.funcionales) {
- setFuncionales(compRes.funcionales.map((c: any) => ({
- id: c.id,
- meta_id: c.meta_id || 0,
- meta_nombre: c.meta_nombre || 'Sin meta',
- descripcion: c.descripcion,
- peso: parseFloat(c.peso) || 0,
- })));
- }
- if (compRes?.comportamentales) {
- setComportamentales(compRes.comportamentales.map((c: any) => ({
- id: c.id,
- competencia_id: c.competencia_id || 0,
- competencia_nombre: c.competencia_nombre || c.descripcion,
- decreto: c.competencia_decreto || '',
- es_propuesto_jefe: !!c.es_propuesto_jefe,
- })));
- }
+// Cargar compromisos existentes de la evaluacion.
+// Paquete 1 (funcionales) y Paquete 2 (comportamentales) se consultan por
+// separado y se unifican en el estado local.
+  if (ev.evaluacion_id) {
+  try {
+  const [funcRes, compRes] = await Promise.all([
+  api.get<any>(`/compromisos/evaluacion/${ev.evaluacion_id}`),
+  api.get<any>(`/compromisos-comportamentales/evaluacion/${ev.evaluacion_id}`),
+  ]);
+  const terminales = ['cumplido', 'incumplido', 'rechazado'];
+  if (funcRes?.funcionales) {
+  setFuncionales(funcRes.funcionales
+  .filter((c: any) => !terminales.includes(c.estado))
+  .map((c: any) => ({
+  id: c.id,
+  meta_id: c.meta_id || 0,
+  meta_nombre: c.meta_descripcion || c.meta_nombre || 'Sin meta',
+  descripcion: c.descripcion,
+  peso: parseFloat(c.peso) || 0,
+  })));
+  }
+  // Paquete 2: comportamentales. El endpoint /compromisos-comportamentales/evaluacion/{id}
+  // devuelve directamente la lista (no envuelta en {funcionales, comportamentales}).
+  const compLista = Array.isArray(compRes) ? compRes : (compRes?.data || compRes?.comportamentales || []);
+  if (compLista.length > 0 || compRes?.comportamentales) {
+  setComportamentales(compLista
+  .filter((c: any) => !terminales.includes(c.estado))
+  .map((c: any) => ({
+  id: c.id,
+  competencia_id: c.competencia_codigo || 0,
+  competencia_nombre: c.competencia_nombre || c.descripcion,
+  decreto: c.competencia_decreto || '',
+  es_propuesto_jefe: !!c.propuesto_por_jefe_entidad,
+  })));
+  }
 
 // Si la evaluacion ya esta en estado cerrada, bloquear
 const evalRes = await api.get<any>(`/evaluaciones/${ev.evaluacion_id}`);
@@ -285,18 +310,24 @@ setConcertacionConfirmada(true);
  }
  }
 
- async function verCompromisosPropuestos() {
- if (!evaluado) return;
- try {
- const res = await api.get<any>(`/compromisos/propuestos-evaluado?evaluacion_id=${evaluado.evaluacion_id}`);
- const list = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
- setCompromisosPropuestos(list);
- setShowModalPropuestos(true);
- } catch {
- setCompromisosPropuestos([]);
- setShowModalPropuestos(true);
- }
- }
+async function verCompromisosPropuestos() {
+  if (!evaluado) return;
+  try {
+  // Paquete 1 + Paquete 2 (cada uno expone sus propios "propuestos por evaluado").
+  const [funcRes, compRes] = await Promise.all([
+  api.get<any>(`/compromisos/propuestos-evaluado?evaluacion_id=${evaluado.evaluacion_id}`),
+  api.get<any>(`/compromisos-comportamentales/pendientes`),
+  ]);
+  const funcList = Array.isArray(funcRes?.data) ? funcRes.data : (Array.isArray(funcRes) ? funcRes : []);
+  const compList = Array.isArray(compRes?.data) ? compRes.data : (Array.isArray(compRes) ? compRes : []);
+  const list = [...funcList, ...compList];
+  setCompromisosPropuestos(list);
+  setShowModalPropuestos(true);
+  } catch {
+  setCompromisosPropuestos([]);
+  setShowModalPropuestos(true);
+  }
+  }
 
  const sumaPesosFuncionales = funcionales.reduce((sum, f) => sum + f.peso, 0);
 
@@ -425,7 +456,7 @@ setConcertacionConfirmada(true);
  const comp = comportamentales[idx];
  if (comp.id) {
  try {
- await api.delete(`/compromisos/comportamental/${comp.id}`);
+ await api.delete(`/compromisos-comportamentales/${comp.id}`);
  } catch (err: any) {
  setMensaje({ tipo: 'error', texto: 'Error al eliminar compromiso comportamental: ' + (err.message || '') });
  return;
@@ -462,40 +493,71 @@ setConcertacionConfirmada(true);
 	setShowConfirmModal(true);
 	}
 
-	async function handleConfirmar() {
+async function handleConfirmar() {
+	if (!evaluado) return;
+
 	setSaving(true);
 	setMensaje(null);
 	setShowConfirmModal(false);
 
+	let eid = evaluado.evaluacion_id;
+
+	// Si no hay evaluacion, crearla automaticamente
+	if (!eid || eid <= 0) {
+	try {
+		const nuevaEval = await api.post<any>('/evaluaciones', {
+		periodo_id: periodoId || evaluado.periodo_id,
+		evaluado_id: evaluado.id,
+		tipo: 'parcial_primer_semestre',
+		});
+		eid = nuevaEval?.id || 0;
+		if (eid > 0) {
+		setEvaluado({ ...evaluado, evaluacion_id: eid });
+		}
+	} catch (err: any) {
+		setSaving(false);
+		setMensaje({ tipo: 'error', texto: 'Error al crear la evaluacion: ' + (err.message || '') });
+		return;
+	}
+	}
+
+	if (!eid || eid <= 0) {
+	setSaving(false);
+	setMensaje({ tipo: 'error', texto: 'No se pudo obtener una evaluacion valida para el evaluado.' });
+	return;
+	}
+
 	try {
 	// 1. Guardar compromisos funcionales
- for (const f of funcionales) {
- await api.post('/compromisos/funcional', {
- evaluacion_id: evaluado.evaluacion_id,
- meta_id: f.meta_id || null,
- descripcion: f.descripcion,
- peso: f.peso,
- tipo_concertacion: tipoConcertacion,
- no_es_jefe_inmediato: noEsJefe ? 1 : 0,
- motivo_cambio_evaluador: noEsJefe ? motivoCambio : null,
- ...(f.id ? { id: f.id } : {}),
- });
- }
+  for (const f of funcionales) {
+  await api.post('/compromisos/funcional', {
+  evaluacion_id: eid,
+  evaluado_id: evaluado.id,
+  meta_id: f.meta_id || null,
+  descripcion: f.descripcion,
+  peso: f.peso,
+  tipo_concertacion: tipoConcertacion,
+  no_es_jefe_inmediato: noEsJefe ? 1 : 0,
+  motivo_cambio_evaluador: noEsJefe ? motivoCambio : null,
+  ...(f.id ? { id: f.id } : {}),
+  });
+  }
 
- // 2. Guardar compromisos comportamentales
- await api.post('/compromisos/comportamental', {
- evaluacion_id: evaluado.evaluacion_id,
- tipo_concertacion: tipoConcertacion,
- competencias: comportamentales.map(c => ({
- competencia_id: c.competencia_id,
- es_propuesto_jefe: c.es_propuesto_jefe ? 1 : 0,
- })),
- });
+  // 2. Guardar compromisos comportamentales
+  await api.post('/compromisos-comportamentales/guardar', {
+  evaluacion_id: eid,
+  evaluado_id: evaluado.id,
+  tipo_concertacion: tipoConcertacion,
+  competencias: comportamentales.map(c => ({
+  competencia_id: c.competencia_id,
+  es_propuesto_jefe: c.es_propuesto_jefe ? 1 : 0,
+  })),
+  });
 
- // 3. Confirmar concertacion (cambia estado a pendiente_aprobacion en compromisos, cerrada en evaluacion)
- await api.put(`/compromisos/confirmar-concertacion/${evaluado.evaluacion_id}`);
+  // 3. Confirmar concertacion (cambia estado a pendiente_aprobacion en compromisos, cerrada en evaluacion)
+  await api.put(`/compromisos/confirmar-concertacion/${eid}`);
 
- setConcertacionConfirmada(true);
+  setConcertacionConfirmada(true);
  setMensaje({ tipo: 'ok', texto: 'Se registró la concertación de compromisos correctamente. El evaluado debe aceptar o rechazar los compromisos.' });
  } catch (err: any) {
  setMensaje({ tipo: 'error', texto: err.message || 'Error al guardar la concertacion.' });
@@ -663,7 +725,7 @@ setConcertacionConfirmada(true);
  className="edl-input"
  disabled={concertacionConfirmada}
  >
- <option value={0}>--</option>
+                <option value={0}>Seleccione un periodo</option>
  {periodos.map(p => (
  <option key={p.id} value={p.id}>{p.nombre}</option>
  ))}

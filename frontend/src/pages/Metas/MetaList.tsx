@@ -30,6 +30,8 @@ export default function MetaList() {
   const [dependencias, setDependencias] = useState<DependenciaOption[]>([])
   const [periodos, setPeriodos] = useState<{ id: number; nombre: string }[]>([])
   const [error, setError] = useState('');
+  const [eliminando, setEliminando] = useState<Meta | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const dependenciasVisibles = (rolActivo === 'jefe_dependencia' && usuario?.dependencia_id)
     ? dependencias.filter(d => d.id === usuario.dependencia_id)
@@ -103,6 +105,21 @@ export default function MetaList() {
     }
   }
 
+  async function eliminarMeta() {
+    if (!eliminando) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/metas/${eliminando.id}`);
+      toast.success('Meta eliminada correctamente');
+      setEliminando(null);
+      cargar();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al eliminar la meta');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   async function guardar() {
     if (!editando) return
     if (!editando.descripcion.trim()) {
@@ -138,23 +155,35 @@ export default function MetaList() {
     header: 'Descripción',
     render: (m) => <span className="max-w-md truncate inline-block">{m.descripcion}</span>,
    },
-   {
-    key: 'acciones',
-    header: 'Editar',
-    align: 'center',
-    render: (m) => (
-      <Tooltip content="Editar meta">
-      <Button
-       variant="ghost"
-       size="sm"
-       onClick={() => setEditando({ ...m })}
-       aria-label={`Editar meta ${m.descripcion.slice(0, 30)}`}
-      >
-       <span className="material-icons text-base">edit</span>
-      </Button>
-     </Tooltip>
-    ),
-   },
+    {
+     key: 'acciones',
+     header: 'Acciones',
+     align: 'center',
+     render: (m) => (
+      <div className="flex items-center justify-center gap-1">
+       <Tooltip content="Editar meta">
+        <Button
+         variant="ghost"
+         size="sm"
+         onClick={() => setEditando({ ...m })}
+         aria-label={`Editar meta ${m.descripcion.slice(0, 30)}`}
+        >
+         <span className="material-icons text-base">edit</span>
+        </Button>
+       </Tooltip>
+       <Tooltip content="Eliminar meta">
+        <Button
+         variant="ghost"
+         size="sm"
+         onClick={() => setEliminando(m)}
+         aria-label={`Eliminar meta ${m.descripcion.slice(0, 30)}`}
+        >
+         <span className="material-icons text-base text-inst-rojo">delete</span>
+        </Button>
+       </Tooltip>
+      </div>
+     ),
+    },
   ];
 
   return (
@@ -275,6 +304,25 @@ export default function MetaList() {
           <Button variant="primary" loading={saving} onClick={crearMeta}>
             Crear Meta
           </Button>
+        </div>
+      </Modal>
+    ) : null}
+    {eliminando ? (
+      <Modal
+        open={true}
+        onClose={() => setEliminando(null)}
+        title="Eliminar Meta"
+        size="sm"
+      >
+        <p className="text-sm">
+          ¿Está seguro de eliminar la meta <strong>"{eliminando.descripcion.slice(0, 80)}"</strong>?
+        </p>
+        <p className="text-xs text-inst-texto-claro mt-1">
+          Esta acción no se puede deshacer.
+        </p>
+        <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">
+          <Button variant="outline" onClick={() => setEliminando(null)} disabled={deleting}>Cancelar</Button>
+          <Button variant="danger" loading={deleting} onClick={eliminarMeta}>Eliminar</Button>
         </div>
       </Modal>
     ) : null}

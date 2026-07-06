@@ -31,7 +31,7 @@ class DashboardController
             if (is_array($r) && isset($r['codigo'])) { $rolCodigos[] = $r['codigo']; }
             elseif (is_string($r)) { $rolCodigos[] = $r; }
         }
-        $puedeAprobar = !empty(array_intersect($rolCodigos, ['evaluador', 'jefe_entidad', 'jefe_dependencia', 'admin']));
+        $puedeAprobar = !empty(array_intersect($rolCodigos, ['evaluador', 'jefe_entidad', 'jefe_dependencia']));
         if ($puedeAprobar) {
             $compromisosPendientes = $notiService->compromisosPendientesPorAprobar((int) $user['id']);
         }
@@ -261,6 +261,271 @@ class DashboardController
             'pagina' => $pagina,
             'por_pagina' => $porPagina,
             'total_paginas' => (int) ceil($total / max($porPagina, 1)),
+        ]);
+    }
+
+    /** Dashboard específico para el rol Evaluado con KPIs relevantes */
+    public function evaluado(): void
+    {
+        $db = Database::getInstance();
+        $user = AuthMiddleware::user();
+        $userId = (int) $user['id'];
+
+        // Período activo
+        $periodoActivo = $db->query("
+            SELECT id, nombre, fecha_inicio, fecha_fin, estado
+            FROM periodos
+            WHERE estado IN ('configuracion','concertacion','seguimiento','evaluacion','calificacion') AND eliminado_en IS NULL
+            ORDER BY fecha_inicio DESC LIMIT 1
+        ")->fetch(\PDO::FETCH_ASSOC);
+
+        $periodoId = $periodoActivo ? (int) $periodoActivo['id'] : 0;
+
+        // Evaluaciones del usuario
+        $evaluaciones = [];
+        $evaluacionActual = null;
+        if ($periodoId > 0) {
+            $stmt = $db->prepare("
+                SELECT e.*, p.nombre as periodo_nombre
+                FROM evaluaciones e
+                INNER JOIN periodos p ON p.id = e.periodo_id
+                WHERE e.evaluado_id = ? AND e.eliminado_en IS NULL
+                ORDER BY e.creado_en DESC
+            ");
+            $stmt->execute([$userId]);
+            $evaluaciones = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $evaluacionActual = $evaluaciones[0] ?? null;
+        }
+
+        // Compromisos del evaluado (agrupados por evaluación)
+        $compromisosStats = [
+            'total' => 0,
+            'funcionales' => 0,
+            'comportamentales' => 0,
+            'propuestos' => 0,
+            'pendientes_aprobacion' => 0,
+            'aceptados' => 0,
+            'en_progreso' => 0,
+            'cumplidos' => 0,
+            'rechazados' => 0,
+            'vencidos' => 0,
+        ];
+
+        if ($periodoId > 0) {
+            $stmt = $db->prepare("
+                SELECT c.*, ev.id as evaluacion_id, ev.tipo as evaluacion_tipo
+                FROM compromisos c
+                INNER JOIN concertaciones con ON con.id = c.concertacion_id AND con.eliminado_en IS NULL
+                INNER JOIN evaluaciones ev ON ev.concertacion_id = con.id AND ev.eliminado_en IS NULL
+                WHERE ev.evaluado_id = ? AND c.eliminado_en IS NULL
+            ");
+            $stmt->execute([$userId]);
+            $compromisos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            $compromisosStats['total'] = count($compromisos);
+            foreach ($compromisos as $c) {
+                if ($c['tipo'] === 'funcional') $compromisosStats['funcionales']++;
+                elseif ($c['tipo'] === 'comportamental') $compromisosStats['comportamentales']++;
+
+                $estado = $c['estado'] ?? '';
+                if ($estado === 'propuesto') $compromisosStats['propuestos']++;
+                elseif ($estado === 'pendiente_aprobacion') $compromisosStats['pendientes_aprobacion']++;
+                elseif ($estado === 'aceptado_evaluado' || $estado === 'aprobado') $compromisosStats['aceptados']++;
+                elseif ($estado === 'en_progreso') $compromisosStats['en_progreso']++;
+                elseif ($estado === 'cumplido') $compromisosStats['cumplidos']++;
+                elseif (in_array($estado, ['rechazado_evaluado', 'rechazado', 'devuelto'])) $compromisosStats['rechazados']++;
+                elseif ($estado === 'vencido') $compromisosStats['vencidos']++;
+            }
+        }
+
+        // Evidencias del evaluado
+        $evidenciasStats = [
+            'total' => 0,
+            'este_periodo' => 0,
+            'compromisos_con_evidencia' => 0,
+            'competencias_con_evidencia' => 0,
+        ];
+
+        if ($periodoId > 0) {
+            $stmt = $db->prepare("
+                SELECT e.*, c.tipo as compromiso_tipo
+                FROM evidencias e
+                LEFT JOIN compromisos c ON c.id = e.compromiso_id
+                WHERE e.periodo_id = ? AND e.eliminado_en IS NULL
+                ORDER BY e.creado_en DESC
+            ");
+            $stmt->execute([$periodoId]);
+            $evidencias = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            $evidenciasStats['total'] = count($evidencias);
+            $evidenciasStats['este_periodo'] = count($evidencias);
+            foreach ($evidencias as $e) {
+                if (($e['compromiso_tipo'] ?? '') === 'funcional') $evidenciasStats['compromisos_con_evidencia']++;
+                elseif (($e['compromiso_tipo'] ?? '') === 'comportamental') $evidenciasStats['competencias_con_evidencia']++;
+            }
+        }
+
+        // Compromisos pendientes de aceptación/rechazo de concertación
+        $concertacionesPendientes = 0;
+        if ($periodoId > 0) {
+            $stmt = $db->prepare("
+                SELECT c.id
+                FROM concertaciones c
+                WHERE c.evaluado_id = ? AND c.periodo_id = ? AND c.estado = 'propuesta_evaluado' AND c.eliminado_en IS NULL
+            ");
+            $stmt->execute([$userId, $periodoId]);
+            $concertacionesPendientes = $stmt->rowCount();
+        }
+
+        // Próximos vencimientos (compromisos con plazo o fechas de evaluación)
+        $proximosVencimientos = [];
+        if ($periodoId > 0 && $evaluacionActual) {
+            $hoy = new \DateTime();
+            $finEvaluacion = new \DateTime($evaluacionActual['fecha_fin'] ?? $periodoActivo['fecha_fin']);
+            $diasRestantes = max(0, $hoy->diff($finEvaluacion)->days);
+            $proximosVencimientos[] = [
+                'tipo' => 'evaluacion',
+                'label' => 'Fin período de evaluación',
+                'fecha' => $finEvaluacion->format('Y-m-d'),
+                'dias_restantes' => $diasRestantes,
+                'critico' => $diasRestantes <= 7,
+            ];
+        }
+
+        // Notificaciones no leídas
+        $notiService = new \App\Service\NotificacionService();
+        $notificacionesNoLeidas = $notiService->contarNoLeidas($userId);
+
+        // Compromisos de mejoramiento del evaluado
+        $mejoramientosStats = [
+            'total' => 0,
+            'pendientes' => 0,
+            'en_seguimiento' => 0,
+            'completados' => 0,
+        ];
+
+        if ($periodoId > 0) {
+            $stmt = $db->prepare("
+                SELECT cm.*
+                FROM compromisos_mejoramiento cm
+                INNER JOIN concertaciones con ON con.id = cm.concertacion_id AND con.eliminado_en IS NULL
+                WHERE con.evaluado_id = ? AND cm.eliminado_en IS NULL
+            ");
+            $stmt->execute([$userId]);
+            $mejoramientos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            $mejoramientosStats['total'] = count($mejoramientos);
+            foreach ($mejoramientos as $m) {
+                $estado = $m['estado'] ?? 'pendiente';
+                if ($estado === 'pendiente') $mejoramientosStats['pendientes']++;
+                elseif ($estado === 'en_progreso') $mejoramientosStats['en_seguimiento']++;
+                elseif ($estado === 'completado') $mejoramientosStats['completados']++;
+            }
+        }
+
+        // Ausentismos del evaluado (solo lectura)
+        $ausentismosStats = [
+            'total' => 0,
+            'vigentes' => 0,
+            'dias_totales' => 0,
+            'afectan_evaluacion' => 0,
+        ];
+
+        $stmt = $db->prepare("
+            SELECT * FROM ausentismos WHERE funcionario_id = ? AND eliminado_en IS NULL
+        ");
+        $stmt->execute([$userId]);
+        $ausentismos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $ausentismosStats['total'] = count($ausentismos);
+        foreach ($ausentismos as $a) {
+            if (($a['estado'] ?? '') === 'vigente') $ausentismosStats['vigentes']++;
+            $ausentismosStats['dias_totales'] += (int) ($a['dias'] ?? 0);
+            if ((int) ($a['dias'] ?? 0) > 30) $ausentismosStats['afectan_evaluacion']++;
+        }
+
+        // Movilidades del evaluado (solo lectura)
+        $movilidadesStats = [
+            'total' => 0,
+            'en_tramite' => 0,
+            'aprobadas' => 0,
+            'ejecutadas' => 0,
+        ];
+
+        $stmt = $db->prepare("
+            SELECT * FROM movilidades WHERE funcionario_id = ? AND eliminado_en IS NULL
+        ");
+        $stmt->execute([$userId]);
+        $movilidades = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $movilidadesStats['total'] = count($movilidades);
+        foreach ($movilidades as $m) {
+            $estado = $m['estado'] ?? 'tramite';
+            if ($estado === 'tramite') $movilidadesStats['en_tramite']++;
+            elseif ($estado === 'aprobado') $movilidadesStats['aprobadas']++;
+            elseif ($estado === 'ejecutado') $movilidadesStats['ejecutadas']++;
+        }
+
+        // Progreso del período actual
+        $progresoPeriodo = 0;
+        $etapaActual = null;
+        if ($periodoActivo) {
+            $inicio = new \DateTime($periodoActivo['fecha_inicio']);
+            $fin = new \DateTime($periodoActivo['fecha_fin']);
+            $hoy = new \DateTime(date('Y-m-d'));
+
+            $duracion = max(1, (int) $inicio->diff($fin)->days);
+            $transcurridos = max(0, (int) $inicio->diff($hoy)->days);
+            if ($hoy < $inicio) $transcurridos = 0;
+            $progresoPeriodo = min(100, round(($transcurridos / $duracion) * 100));
+
+            $ordenEtapas = ['configuracion', 'concertacion', 'seguimiento', 'evaluacion', 'calificacion'];
+            $labelsEtapas = [
+                'configuracion' => 'Configuración',
+                'concertacion' => 'Concertación',
+                'seguimiento' => 'Seguimiento',
+                'evaluacion' => 'Evaluación Parcial',
+                'calificacion' => 'Calificación Definitiva',
+            ];
+            $idxActual = array_search($periodoActivo['estado'], $ordenEtapas);
+            $etapaActual = $idxActual !== false ? $labelsEtapas[$ordenEtapas[$idxActual]] : $periodoActivo['estado'];
+        }
+
+        ResponseHelper::success([
+            'periodo_activo' => $periodoActivo ? [
+                'id' => (int) $periodoActivo['id'],
+                'nombre' => $periodoActivo['nombre'],
+                'fecha_inicio' => $periodoActivo['fecha_inicio'],
+                'fecha_fin' => $periodoActivo['fecha_fin'],
+                'estado' => $periodoActivo['estado'],
+                'progreso' => $progresoPeriodo,
+                'etapa_actual' => $etapaActual,
+            ] : null,
+            'evaluacion_actual' => $evaluacionActual ? [
+                'id' => (int) $evaluacionActual['id'],
+                'tipo' => $evaluacionActual['tipo'],
+                'estado' => $evaluacionActual['estado'],
+                'calificacion_definitiva' => $evaluacionActual['calificacion_definitiva'],
+                'nivel_resultado' => $evaluacionActual['nivel_resultado'],
+            ] : null,
+            'evaluaciones_historico' => array_map(function($e) {
+                return [
+                    'id' => (int) $e['id'],
+                    'periodo' => $e['periodo_nombre'],
+                    'tipo' => $e['tipo'],
+                    'estado' => $e['estado'],
+                    'calificacion' => $e['calificacion_definitiva'],
+                    'nivel' => $e['nivel_resultado'],
+                ];
+            }, $evaluaciones),
+            'compromisos' => $compromisosStats,
+            'evidencias' => $evidenciasStats,
+            'concertaciones_pendientes' => $concertacionesPendientes,
+            'proximos_vencimientos' => $proximosVencimientos,
+            'notificaciones_no_leidas' => $notificacionesNoLeidas,
+            'mejoramientos' => $mejoramientosStats,
+            'ausentismos' => $ausentismosStats,
+            'movilidades' => $movilidadesStats,
         ]);
     }
 }

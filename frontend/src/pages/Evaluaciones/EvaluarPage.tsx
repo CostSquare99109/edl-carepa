@@ -102,8 +102,10 @@ const MAX_DIAS_EVALUADOS = 180;
 
 function diasEntre(fechaInicio: string, fechaFin: string): number {
   if (!fechaInicio || !fechaFin) return 0;
-  const a = new Date(fechaInicio + 'T00:00:00');
-  const b = new Date(fechaFin + 'T00:00:00');
+  const [y1, m1, d1] = fechaInicio.split('-').map(Number);
+  const [y2, m2, d2] = fechaFin.split('-').map(Number);
+  const a = new Date(y1, m1 - 1, d1);
+  const b = new Date(y2, m2 - 1, d2);
   const diff = Math.round((b.getTime() - a.getTime()) / 86400000);
   return diff >= 0 ? diff + 1 : 0;
 }
@@ -182,6 +184,20 @@ export default function EvaluarPage() {
   const [justificacionSeparacion, setJustificacionSeparacion] = useState('');
   const [parcialEventualComenzada, setParcialEventualComenzada] = useState(false);
 
+  useEffect(() => {
+    if (fechaInicio && tipoEvaluacion === 'parcial_eventual') {
+      const [y, m, d] = fechaInicio.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      date.setDate(date.getDate() + 179);
+      const y2 = date.getFullYear();
+      const m2 = String(date.getMonth() + 1).padStart(2, '0');
+      const d2 = String(date.getDate()).padStart(2, '0');
+      setFechaFin(`${y2}-${m2}-${d2}`);
+    } else if (!fechaInicio && tipoEvaluacion === 'parcial_eventual') {
+      setFechaFin('');
+    }
+  }, [fechaInicio, tipoEvaluacion]);
+
   const [calificacionesFunc, setCalificacionesFunc] = useState<Record<number, number>>({});
 
   const [conductasForm, setConductasForm] = useState<Record<number, ValoracionFrecuencia>>({});
@@ -235,7 +251,9 @@ export default function EvaluarPage() {
       const data = Array.isArray(res) ? res : (res.data || []);
       setPeriodos(data);
       if (data.length > 0) setPeriodoId(data[0].id);
-    } catch { }
+    } catch (e) {
+      console.error('Error cargando periodos:', e);
+    }
   }
 
   function getPeriodoSeleccionado(): Periodo | undefined {
@@ -292,7 +310,7 @@ export default function EvaluarPage() {
 
         const initCalif: Record<number, number> = {};
         funcionales.forEach(c => {
-          if (c.puntaje !== null) initCalif[c.id] = c.puntaje;
+          if (c.puntaje !== null) initCalif[c.id] = Number(c.puntaje);
         });
         setCalificacionesFunc(initCalif);
 
@@ -328,23 +346,26 @@ export default function EvaluarPage() {
     funcionales.forEach(c => {
       const calif = calificacionesFunc[c.id];
       if (calif !== undefined && calif !== null) {
-        sumaPonderada += calif * c.peso;
-        sumaPesos += c.peso;
+        const peso = Number(c.peso);
+        sumaPonderada += Number(calif) * peso;
+        sumaPesos += peso;
       }
     });
-    return sumaPesos > 0 ? Math.round((sumaPonderada / sumaPesos) * 100) / 100 : 0;
+    const D = sumaPesos > 0 ? sumaPonderada / sumaPesos : 0;
+    return Math.round(D * (PESO_FUNCIONALES / 100) * 100) / 100;
   }
 
   function calcularNotaComportamental(): number {
     const puntaje = calcularPuntajeComportamental();
     if (puntaje <= 0) return 0;
-    return Math.round(((puntaje - 4) / 11) * 100 * 100) / 100;
+    const pct = ((puntaje - 4) / 11) * 100;
+    return Math.round(pct * (PESO_COMPORTAMENTALES / 100) * 100) / 100;
   }
 
   function calcularNotaDefinitiva(): number {
     const notaFunc = calcularNotaFuncional();
     const notaComp = calcularNotaComportamental();
-    return Math.round((notaFunc * 0.85 + notaComp * 0.15) * 100) / 100;
+    return Math.round((notaFunc + notaComp) * 100) / 100;
   }
 
   function getEscalaResultado(nota: number): string {
@@ -469,6 +490,11 @@ export default function EvaluarPage() {
         return;
       }
     }
+    const puntaje = calcularPuntajeComportamental();
+    if (puntaje <= 0) {
+      toast.error('Debe valorar las conductas antes de calificar.');
+      return;
+    }
     setSaving(true);
     try {
       const conductasArray = (comp.conductas || []).map(c => ({
@@ -479,7 +505,7 @@ export default function EvaluarPage() {
         justificacion_excede: justificacionExcede[comp.id] || null,
       }));
       await api.put(`/compromisos/${compId}/calificar`, {
-        puntaje: 0,
+        puntaje,
         observaciones: '',
         conductas: conductasArray,
         impacto_aporta_compromisos: impactoAporta[comp.id] || null,
@@ -487,10 +513,10 @@ export default function EvaluarPage() {
         justificacion_excede: justificacionExcede[comp.id] || null,
       });
       setCompromisos(prev => prev.map(c =>
-        c.id === compId ? { ...c, puntaje: 0, estado: 'cumplido' } : c
+        c.id === compId ? { ...c, puntaje, estado: 'cumplido' } : c
       ));
       setEvaluandoComp(null);
-      toast.success(`Compromiso "${comp.compromiso_competencia || comp.descripcion}" calificado.`);
+      toast.success(`Compromiso "${comp.compromiso_competencia || comp.descripcion}" calificado (${puntaje} pts).`);
     } catch (err: any) {
       toast.error(err.message || 'Error al calificar compromiso comportamental');
     }
@@ -500,9 +526,26 @@ export default function EvaluarPage() {
   async function guardarEvaluacion() {
     if (!selectedEvaluado) return;
 
-    const sinCalificar = compromisos.filter(c => c.puntaje === null);
-    if (compromisos.length > 0 && sinCalificar.length > 0) {
-      toast.error(`Faltan por calificar ${sinCalificar.length} compromiso(s). Todos deben estar calificados.`);
+    // Re-fetch compromisos from server to ensure accurate state
+    let todosCompromisos = compromisos;
+    if (selectedEvaluado.evaluacion_id && selectedEvaluado.evaluacion_id > 0) {
+      try {
+        const res = await api.get<any>(`/compromisos/evaluacion/${selectedEvaluado.evaluacion_id}`);
+        const f = ((res.funcionales || []) as Compromiso[]).filter(c =>
+          ['aprobado', 'cumplido', 'incumplido', 'en_progreso'].includes(c.estado)
+        );
+        const c = ((res.comportamentales || []) as Compromiso[]).filter(c =>
+          ['aprobado', 'cumplido', 'incumplido', 'en_progreso'].includes(c.estado)
+        );
+        todosCompromisos = [...f, ...c];
+        setCompromisos(todosCompromisos);
+      } catch { }
+    }
+
+    const sinCalificar = todosCompromisos.filter(c => c.puntaje === null);
+    if (todosCompromisos.length > 0 && sinCalificar.length > 0) {
+      const nombres = sinCalificar.map(c => c.compromiso_competencia || c.descripcion || `#${c.id}`).join(', ');
+      toast.error(`Faltan por calificar ${sinCalificar.length} compromiso(s): ${nombres}. Todos deben estar calificados.`);
       return;
     }
 
@@ -543,7 +586,7 @@ export default function EvaluarPage() {
       }
     }
 
-    for (const comp of comportamentales) {
+    for (const comp of todosCompromisos.filter(c => c.tipo === 'comportamental')) {
       if (impactoExcede[comp.id] === 'si') {
         const justif = justificacionExcede[comp.id] || '';
         if (justif.trim().length < MIN_CARACTERES_EXCEDE) {
@@ -588,12 +631,11 @@ export default function EvaluarPage() {
           : null,
       });
 
-      toast.success('Evaluación guardada correctamente.');
+      await api.put(`/evaluaciones/${evalId}/definitiva`, {});
+
       closeConfirmarEvaluacion();
-      setSelectedEvaluado(null);
-      setEvaluacionIniciada(false);
-      setCompromisos([]);
-      await buscarEvaluado();
+      setShowVerEvaluaciones(selectedEvaluado);
+      toast.success('Evaluación guardada definitivamente.');
     } catch (err: any) {
       toast.error(err.message || 'Error al guardar evaluación');
     } finally {
@@ -626,6 +668,28 @@ export default function EvaluarPage() {
   }
 
   const puntajeComportamental = useMemo(() => calcularPuntajeComportamental(), [conductasForm]);
+
+  const motivoBloqueo = useMemo(() => {
+    if (!tipoEvaluacion) return 'Seleccione un tipo de evaluación';
+    if (['aprobada_comision', 'cerrada'].includes(String(selectedEvaluado?.evaluacion_estado || '').toLowerCase()))
+      return 'La evaluación está en firme y no puede modificarse';
+    if (compromisos.length > 0 && compromisos.some(c => c.puntaje === null)) {
+      const sinCalificar = compromisos.filter(c => c.puntaje === null);
+      const nombres = sinCalificar.map(c => c.compromiso_competencia || c.descripcion || `#${c.id}`).join(', ');
+      return `Faltan por calificar: ${nombres}`;
+    }
+    if (tipoEvaluacion === 'parcial_segundo_semestre' && (!fechaInicio || !fechaFin))
+      return 'Ingrese las fechas de inicio y fin para 2do semestre';
+    if (tipoEvaluacion === 'parcial_eventual' && !motivoParcialEventual)
+      return 'Seleccione el motivo de la evaluación parcial eventual';
+    if (noEsJefe && !motivoNoJefe)
+      return 'Seleccione el motivo por el cual no es el jefe inmediato';
+    if (fechaInicio && fechaFin && diasEntre(fechaInicio, fechaFin) > MAX_DIAS_EVALUADOS)
+      return `Los días evaluados superan el máximo permitido de ${MAX_DIAS_EVALUADOS}`;
+    if (comportamentales.some(c => impactoExcede[c.id] === 'si' && (justificacionExcede[c.id] || '').trim().length < MIN_CARACTERES_EXCEDE))
+      return 'Alguna justificación de "excede lo estipulado" tiene menos de 40 caracteres';
+    return null;
+  }, [tipoEvaluacion, selectedEvaluado, compromisos, fechaInicio, fechaFin, motivoParcialEventual, noEsJefe, motivoNoJefe, impactoExcede, justificacionExcede]);
 
   const columnas = ['Documento', 'Evaluado', 'Nivel', 'Denominación', 'Código', 'Grado', 'Validación', 'Opciones'];
 
@@ -879,11 +943,11 @@ export default function EvaluarPage() {
                           />
                         </div>
                         <div>
-                          <label className="edl-label">Fecha fin periodo a evaluar *</label>
+                          <label className="edl-label">Fecha fin periodo a evaluar</label>
                           <input
                             type="date"
                             value={fechaFin}
-                            onChange={e => setFechaFin(e.target.value)}
+                            disabled
                             className="edl-input"
                           />
                         </div>
@@ -991,24 +1055,27 @@ export default function EvaluarPage() {
                                 <td className="text-sm">{c.descripcion}</td>
                                 <td className="text-center text-sm">{c.peso}%</td>
                                 <td className="text-center">
-                                  <div className="flex items-center justify-center gap-2">
-                                    <input
-                                      type="number"
-                                      min={0}
-                                      max={100}
-                                      value={calificacionesFunc[c.id] ?? ''}
-                                      onChange={e => setCalificacionesFunc(prev => ({ ...prev, [c.id]: Number(e.target.value) }))}
-                                      className="edl-input w-20 text-center text-sm"
-                                      placeholder="0-100"
-                                    />
-                                    <button
-                                      onClick={() => guardarCalificacionFuncional(c.id)}
-                                      className="text-xs bg-inst-azul text-white px-2 py-1 rounded hover:bg-inst-azul-osc transition-colors"
-                                      title="Guardar calificación"
-                                    >
-                                      <span className="material-icons text-sm">check</span>
-                                    </button>
-                                  </div>
+                                  {c.puntaje !== null ? (
+                                    <span className="text-green-600 font-bold text-lg">{c.puntaje}</span>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2">
+                                      <input
+                                        type="number"
+                                        min={0}
+                                        max={100}
+                                        value={calificacionesFunc[c.id] ?? ''}
+                                        onChange={e => setCalificacionesFunc(prev => ({ ...prev, [c.id]: Number(e.target.value) }))}
+                                        className="edl-input w-20 text-center text-sm"
+                                        placeholder="0-100"
+                                      />
+                                      <Button
+                                        size="sm"
+                                        onClick={() => guardarCalificacionFuncional(c.id)}
+                                      >
+                                        Calificar
+                                      </Button>
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="text-center">
                                   <span className={`text-lg font-bold ${getCompromisoEstadoColor(c)}`}>
@@ -1111,21 +1178,9 @@ export default function EvaluarPage() {
                       variant="primary"
                       onClick={guardarEvaluacion}
                       loading={saving}
-                      disabled={
-                        !tipoEvaluacion ||
-                        ['aprobada_comision', 'cerrada'].includes(
-                          String(selectedEvaluado.evaluacion_estado || '').toLowerCase()
-                        )
-                      }
-                      title={
-                        ['aprobada_comision', 'cerrada'].includes(
-                          String(selectedEvaluado.evaluacion_estado || '').toLowerCase()
-                        )
-                          ? 'La evaluación está en firme y no puede modificarse'
-                          : undefined
-                      }
+                      title={motivoBloqueo ?? 'Ver evaluación completa'}
                     >
-                      Guardar evaluación
+                      Ver Evaluación
                     </Button>
                   </div>
                 </>
@@ -1225,13 +1280,13 @@ export default function EvaluarPage() {
                 )}
 
                 <div className="flex justify-end gap-3 pt-3 border-t border-inst-borde">
-                  <Button variant="outline" onClick={() => setEvaluandoComp(null)}>Cancelar</Button>
+                  <Button variant="outline" onClick={() => setEvaluandoComp(null)}>Cerrar</Button>
                   <Button
                     variant="primary"
                     onClick={() => calificarCompromisoComportamental(evaluandoComp.id)}
                     loading={saving}
                   >
-                    Calificar
+                    {evaluandoComp.puntaje !== null ? 'Actualizar' : 'Calificar'}
                   </Button>
                 </div>
               </div>
@@ -1287,7 +1342,7 @@ export default function EvaluarPage() {
               onClick={confirmarGuardarEvaluacion}
               loading={saving}
             >
-              Guardar evaluación
+              Guardar
             </Button>
           </div>
         </Modal>
@@ -1359,10 +1414,10 @@ export default function EvaluarPage() {
             </section>
 
             <section>
-              <h4 className="font-semibold text-inst-azul-osc mb-1">6. Guardar evaluación</h4>
+              <h4 className="font-semibold text-inst-azul-osc mb-1">6. Ver resultado</h4>
               <p>
-                Recuerde calificar cada componente antes de dar clic en{' '}
-                <strong>Guardar evaluación</strong>; el sistema mostrará un mensaje de confirmación.
+                Una vez calificados todos los compromisos, haga clic en{' '}
+                <strong>Ver Evaluación</strong>; el sistema guardará la calificación definitiva y mostrará el resultado con gráficas.
               </p>
             </section>
 

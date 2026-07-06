@@ -2,7 +2,7 @@
 
 > **Propósito:** Documentar la arquitectura técnica del aplicativo EDL Carepa: capas, flujo de datos, componentes, stack tecnológico y decisiones arquitectónicas.
 >
-> **Versión del sistema:** 1.0.0 (commit `51c0bd6`)
+>> **Versión del sistema:** 1.x (alineado con `main`).
 > **Stack:** PHP 8.2 + React 19 + MySQL 8.0 / MariaDB 10.6+
 
 ---

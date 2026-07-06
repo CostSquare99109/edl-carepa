@@ -85,10 +85,10 @@ export default function ConcertacionList() {
                   <span className={estadoBadge(c.estado)}>{c.estado}</span>
                   </td>
                   <td className="text-center">
-                  <a href={`${API_BASE}/reportes/concertacion-pdf/${c.id}`} target="_blank" rel="noopener"
-                   className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul-osc inline-block" title="Descargar PDF">
+                  <button onClick={() => api.download(`/reportes/concertacion-pdf/${c.id}`, `concertacion_${c.id}.pdf`)}
+                   className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul-osc inline-block cursor-pointer" title="Descargar PDF">
                    <span className="material-icons text-lg">picture_as_pdf</span>
-                  </a>
+                  </button>
                   </td>
                   <td className="text-center">
                     <button

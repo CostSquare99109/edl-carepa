@@ -47,8 +47,15 @@ export default function VerCompromisosPropuestos() {
   async function cargarCompromisos() {
     setLoading(true);
     try {
-      const res = await api.get<any>(`/compromisos/evaluacion/${evaluacionId}`);
-      const todos = [...(res?.funcionales || []), ...(res?.comportamentales || [])];
+      // Paquete 1 (funcionales) y Paquete 2 (comportamentales) en paralelo.
+      const [funcRes, compRes] = await Promise.all([
+        api.get<any>(`/compromisos/evaluacion/${evaluacionId}`),
+        api.get<any>(`/compromisos-comportamentales/evaluacion/${evaluacionId}`),
+      ]);
+      const funcionales = (funcRes?.funcionales || []).map((c: any) => ({ ...c, tipo: 'funcional' }));
+      const compLista = Array.isArray(compRes) ? compRes : (compRes?.data || []);
+      const comportamentales = compLista.map((c: any) => ({ ...c, tipo: 'comportamental' }));
+      const todos = [...funcionales, ...comportamentales];
       const propuestos = todos.filter((c: Compromiso) =>
         c.estado === 'propuesto' || c.estado === 'pendiente'
       );

@@ -64,13 +64,7 @@ class MovilidadService
  ResponseHelper::error('Movilidad no encontrada', 404);
  }
 
- $user = AuthMiddleware::user();
- $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles)) {
- ResponseHelper::forbidden();
- }
-
- $permitidos = ['tipo', 'entidad_origen_id', 'dependencia_origen_id', 'entidad_destino_id', 'dependencia_destino_id', 'fecha_movimiento', 'acto_administrativo', 'observaciones', 'estado'];
+$permitidos = ['tipo', 'entidad_origen_id', 'dependencia_origen_id', 'entidad_destino_id', 'dependencia_destino_id', 'fecha_movimiento', 'acto_administrativo', 'observaciones', 'estado'];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
  $this->repo->actualizar($id, $datosFiltrados);
  AuditoriaService::registrar('actualizar', 'movilidades', $id, $mov, $datosFiltrados);
@@ -83,13 +77,7 @@ class MovilidadService
  ResponseHelper::error('Movilidad no encontrada', 404);
  }
 
- $user = AuthMiddleware::user();
- $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles)) {
- ResponseHelper::forbidden();
- }
-
- $this->repo->eliminar($id);
+$this->repo->eliminar($id);
  AuditoriaService::registrar('eliminar', 'movilidades', $id, $mov, null);
  }
 }

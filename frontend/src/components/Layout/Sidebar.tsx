@@ -21,8 +21,6 @@ const ICON_MAP: Record<string, string> = {
   movilidad: 'swap_horiz',
   reportes: 'summarize',
   admin_reportes: 'summarize',
-  cargas: 'upload_file',
-  carga_usuarios: 'upload_file',
   auditoria: 'history',
   parametros: 'tune',
   configuracion: 'settings',
@@ -48,6 +46,7 @@ const ICON_MAP: Record<string, string> = {
   admin_dependencias: 'account_tree',
   admin_compromisos: 'task_alt',
   admin_evaluaciones: 'assessment',
+  solicitudes: 'sync_alt',
 };
 
 const LABEL_MAP: Record<string, string> = {
@@ -123,7 +122,6 @@ function groupMenu(menu: MenuItem[]): Section[] {
       ruta.includes('periodo') ||
       ruta.includes('dependencia') ||
       ruta.includes('meta') ||
-      ruta.includes('carga') ||
       ruta.includes('config') ||
       ruta.includes('parametro')
     ) {

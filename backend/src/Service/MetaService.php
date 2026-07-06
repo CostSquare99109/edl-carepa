@@ -24,7 +24,7 @@ class MetaService
         $user = AuthMiddleware::user();
         $roles = $user['roles'] ?? [];
 
-        if (in_array('funcionario', $roles) && !in_array('evaluador', $roles) && !in_array('admin', $roles)) {
+        if (in_array('funcionario', $roles) && !in_array('evaluador', $roles)) {
             $filtros['funcionario_id'] = $user['id'];
         }
 

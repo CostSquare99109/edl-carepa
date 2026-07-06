@@ -97,13 +97,7 @@ class MovilidadController
  ResponseHelper::error('Movilidad no encontrada', 404);
  }
 
- $user = AuthMiddleware::user();
- $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles)) {
- ResponseHelper::forbidden();
- }
-
- $this->repo->eliminar($id);
+$this->repo->eliminar($id);
  ResponseHelper::success(null, 'Movilidad eliminada');
  }
 

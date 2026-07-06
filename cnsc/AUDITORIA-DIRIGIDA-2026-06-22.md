@@ -4,7 +4,7 @@
 > **Re-auditoría:** 2026-06-22 (v1.1) — verificación manual de hallazgos pendientes.
 > **Auditor:** Sesión de análisis sobre `edl-carepa/`
 > **Fuente de evidencia:** inspección directa de los 22 archivos prioritarios identificados en [`13-trazabilidad-con-proyecto.md`](./13-trazabilidad-con-proyecto.md) §5.
-> **Estado del proyecto al momento de la auditoría:** `main` branch, commit `51c0bd6 feat: cambios integrales backend y frontend - FASE 4`. Rama sincronizada con `origin/main`.
+> **Estado del proyecto al momento de la auditoría:** rama `main`/`feature/cerrar-gaps-evaluador`. Snapshot consolidado.
 
 ---
 

@@ -102,7 +102,58 @@ class UsuarioController
  ResponseHelper::success(['password_temporal' => $tempPassword], 'Contrasena restablecida');
  }
 
- public function asignarRoles(int $id): void
+   public function evaluadoresPorDependencia(): void
+   {
+    $dependenciaId = \App\Middleware\AuthMiddleware::user()['dependencia_id'] ?? null;
+    if (!$dependenciaId) {
+     ResponseHelper::success([]);
+     return;
+    }
+    $usuarios = $this->service->listarPorDependenciaYRol((int) $dependenciaId, 'evaluador');
+    ResponseHelper::success($usuarios);
+   }
+
+   public function evaluadoresBuscar(): void
+   {
+    $user = \App\Middleware\AuthMiddleware::user();
+    $dependenciaId = $user['dependencia_id'] ?? null;
+    if (!$dependenciaId) {
+     ResponseHelper::success(['data' => []]);
+     return;
+    }
+    $q = trim((string) ($_GET['q'] ?? ''));
+    $porPagina = min(50, max(1, (int) ($_GET['por_pagina'] ?? 20)));
+    $pdo = \App\Config\Database::getInstance();
+    $params = [$dependenciaId];
+    $like = '%' . $q . '%';
+    $sql = "SELECT u.id, u.documento, u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido
+            FROM usuarios u
+            WHERE u.dependencia_id = ?
+            AND u.estado = 'activo'
+            AND EXISTS (SELECT 1 FROM usuario_rol ur INNER JOIN roles r ON r.id = ur.rol_id WHERE ur.usuario_id = u.id AND r.codigo = 'evaluador')";
+    if (mb_strlen($q) >= 2) {
+     $sql .= " AND (u.documento LIKE ? OR CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido) LIKE ?)";
+     $params[] = $like;
+     $params[] = $like;
+    }
+    $sql .= " ORDER BY u.primer_nombre ASC LIMIT {$porPagina}";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    $data = array_map(function ($r) {
+     $nombre = trim(implode(' ', array_filter([$r['primer_nombre'] ?? '', $r['segundo_nombre'] ?? '', $r['primer_apellido'] ?? '', $r['segundo_apellido'] ?? ''])));
+     return [
+      'id' => (int) $r['id'],
+      'documento' => $r['documento'],
+      'primer_nombre' => $r['primer_nombre'],
+      'primer_apellido' => $r['primer_apellido'],
+      'label' => $nombre . ' — ' . $r['documento'],
+     ];
+    }, $rows);
+    ResponseHelper::success(['data' => $data]);
+   }
+
+  public function asignarRoles(int $id): void
  {
  $input = json_decode(file_get_contents('php://input'), true) ?: [];
  $input = SanitizerHelper::sanitizeArray($input);

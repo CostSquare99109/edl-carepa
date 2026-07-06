@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Repository\EvaluacionRepository;
 use App\Repository\CompromisoRepository;
+use App\Repository\CompromisoComportamentalRepository;
 use App\Repository\ConcertacionRepository;
 use App\Repository\UsuarioRepository;
 use App\Helper\ResponseHelper;
@@ -15,6 +16,7 @@ class EvaluacionService
 {
  private EvaluacionRepository $evaluacionRepo;
  private CompromisoRepository $compromisoRepo;
+ private CompromisoComportamentalRepository $compromisoCompRepo;
  private ConcertacionRepository $concertacionRepo;
  private UsuarioRepository $usuarioRepo;
 
@@ -23,41 +25,98 @@ class EvaluacionService
   $pdo = Database::getInstance();
   $this->evaluacionRepo = new EvaluacionRepository($pdo);
   $this->compromisoRepo = new CompromisoRepository($pdo);
+ $this->compromisoCompRepo = new CompromisoComportamentalRepository($pdo);
   $this->concertacionRepo = new ConcertacionRepository($pdo);
   $this->usuarioRepo = new UsuarioRepository($pdo);
  }
 
- public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
- {
- $user = AuthMiddleware::user();
- $rolActivo = AuthMiddleware::rolActivo();
+	public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
+	{
+		$user = AuthMiddleware::user();
+		$rolActivo = AuthMiddleware::rolActivo();
 
- if ($rolActivo === 'evaluador') {
- $filtros['evaluador_id'] = $user['id'];
- } elseif ($rolActivo === 'evaluado') {
- $filtros['evaluado_id'] = $user['id'];
- }
+		if ($rolActivo === 'evaluador') {
+			$filtros['evaluador_id'] = $user['id'];
+		} elseif ($rolActivo === 'evaluado') {
+			$filtros['evaluado_id'] = $user['id'];
+		}
 
- return $this->evaluacionRepo->listarConRelaciones($filtros, $pagina, $porPagina);
- }
+		$resultado = $this->evaluacionRepo->listarConRelaciones($filtros, $pagina, $porPagina);
 
- public function ver(int $id): array
- {
- $evaluacion = $this->evaluacionRepo->buscarPorId($id);
- if (!$evaluacion) {
- ResponseHelper::notFound('Evaluacion no encontrada');
- }
- return $evaluacion;
- }
+		// Si se busco por documento_evaluado y no hay resultados, buscar al usuario directamente
+		// para permitir concertacion aunque no tenga evaluacion creada aun
+		if (!empty($filtros['documento_evaluado'])) {
+			$data = $resultado['data'] ?? [];
+			if (empty($data)) {
+				$usuarioRepo = new \App\Repository\UsuarioRepository();
+				$usuario = $usuarioRepo->buscarPorDocumento($filtros['documento_evaluado']);
+				if ($usuario && !empty($usuario['id'])) {
+					$denominacion = $usuario['denominacion_empleo'] ?? $usuario['denominacion'] ?? null;
+					$data[] = [
+						'id' => 0,
+						'evaluado_id' => (int) $usuario['id'],
+						'evaluado_documento' => $usuario['documento'] ?? null,
+						'evaluado_nombre' => trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? '')),
+						'denominacion' => $denominacion,
+						'denominacion_empleo' => $denominacion,
+						'nivel' => $usuario['nivel'] ?? null,
+						'codigo' => $usuario['codigo'] ?? null,
+						'grado' => $usuario['grado'] ?? null,
+						'periodo_id' => null,
+						'periodo_nombre' => null,
+						'estado' => null,
+						'es_comision_evaluadora' => 0,
+						'dependencia_id' => $usuario['dependencia_id'] ?? 0,
+					];
+					$resultado['data'] = $data;
+					$resultado['total'] = 1;
+				}
+			}
+		}
+
+		return $resultado;
+	}
+
+  public function ver(int $id): array
+  {
+  $evaluacion = $this->evaluacionRepo->buscarPorId($id);
+  if (!$evaluacion) {
+  ResponseHelper::notFound('Evaluacion no encontrada');
+  }
+
+  // Enriquecer con informacion del evaluado y evaluador
+  $pdo = Database::getInstance();
+  if (!empty($evaluacion['evaluado_id'])) {
+   $stmtE = $pdo->prepare("SELECT documento, CONCAT_WS(' ', primer_nombre, segundo_nombre, primer_apellido, segundo_apellido) as nombre, denominacion_empleo FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
+   $stmtE->execute([$evaluacion['evaluado_id']]);
+   $evalInfo = $stmtE->fetch(\PDO::FETCH_ASSOC);
+   if ($evalInfo) {
+    $evaluacion['evaluado_documento'] = $evalInfo['documento'] ?? null;
+    $evaluacion['evaluado_nombre'] = trim($evalInfo['nombre'] ?? '') ?: null;
+    $evaluacion['evaluado_cargo'] = $evalInfo['denominacion_empleo'] ?? null;
+   }
+  }
+  if (!empty($evaluacion['evaluador_id'])) {
+   $stmtR = $pdo->prepare("SELECT documento, CONCAT_WS(' ', primer_nombre, segundo_nombre, primer_apellido, segundo_apellido) as nombre FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
+   $stmtR->execute([$evaluacion['evaluador_id']]);
+   $evInfo = $stmtR->fetch(\PDO::FETCH_ASSOC);
+   if ($evInfo) {
+    $evaluacion['evaluador_documento'] = $evInfo['documento'] ?? null;
+    $evaluacion['evaluador_nombre'] = trim($evInfo['nombre'] ?? '') ?: null;
+   }
+  }
+
+  return $evaluacion;
+  }
 
  public function crear(array $datos): int
  {
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'evaluador'])) {
- ResponseHelper::forbidden('Solo administradores o evaluadores pueden crear evaluaciones');
- }
+if ($rolActivo !== 'evaluador') {
+ ResponseHelper::forbidden('Solo evaluadores pueden crear evaluaciones');
+  }
 
   $tiposValidos = ['parcial_primer_semestre', 'parcial_segundo_semestre', 'parcial_eventual', 'calificacion_definitiva', 'calificacion_extraordinaria'];
   $tipo = $datos['tipo'] ?? 'parcial_primer_semestre';
@@ -76,30 +135,87 @@ class EvaluacionService
  }
  }
 
- $periodoId = (int) ($datos['periodo_id'] ?? 0);
- $evaluadoId = (int) ($datos['evaluado_id'] ?? 0);
- if ($periodoId > 0 && $evaluadoId > 0) {
- $pdo = Database::getInstance();
- $stmtUnico = $pdo->prepare(
- "SELECT COUNT(*) AS c FROM evaluaciones
- WHERE evaluado_id = :eid
- AND periodo_id = :pid
- AND tipo = :tipo
- AND eliminado_en IS NULL"
- );
- $stmtUnico->execute([
- 'eid' => $evaluadoId,
- 'pid' => $periodoId,
- 'tipo' => $tipo,
- ]);
- $rowUnico = $stmtUnico->fetch(\PDO::FETCH_ASSOC);
- if ((int) ($rowUnico['c'] ?? 0) > 0) {
- ResponseHelper::error(
- 'Ya existe una evaluacion de tipo "' . $tipo . '" registrada para este evaluado en el periodo seleccionado (regla 10.5 de la especificacion EDL Carepa).',
- 409
- );
- }
- }
+	$periodoId = (int) ($datos['periodo_id'] ?? 0);
+	$evaluadoId = (int) ($datos['evaluado_id'] ?? 0);
+
+	// Si no se envio periodo_id, resolver el periodo activo
+	if ($periodoId <= 0) {
+		$pdo = Database::getInstance();
+		$stmtPer = $pdo->query("SELECT id FROM periodos WHERE estado IN ('configuracion','concertacion','seguimiento','evaluacion','calificacion') AND eliminado_en IS NULL ORDER BY fecha_inicio DESC LIMIT 1");
+		$activo = $stmtPer->fetch(\PDO::FETCH_ASSOC);
+		if ($activo) {
+			$periodoId = (int) $activo['id'];
+			$datos['periodo_id'] = $periodoId;
+		} else {
+			ResponseHelper::error('No hay un periodo activo. Debe especificar un periodo_id valido.', 400);
+		}
+	}
+
+	if ($periodoId > 0 && $evaluadoId > 0) {
+	$pdo = Database::getInstance();
+
+	// Buscar evaluacion activa existente
+	$stmtUnico = $pdo->prepare(
+	"SELECT COUNT(*) AS c FROM evaluaciones
+	WHERE evaluado_id = :eid
+	AND periodo_id = :pid
+	AND tipo = :tipo
+	AND eliminado_en IS NULL"
+	);
+	$stmtUnico->execute([
+	'eid' => $evaluadoId,
+	'pid' => $periodoId,
+	'tipo' => $tipo,
+	]);
+	$rowUnico = $stmtUnico->fetch(\PDO::FETCH_ASSOC);
+	if ((int) ($rowUnico['c'] ?? 0) > 0) {
+	ResponseHelper::error(
+	'Ya existe una evaluacion de tipo "' . $tipo . '" registrada para este evaluado en el periodo seleccionado (regla 10.5 de la especificacion EDL Carepa).',
+	409
+	);
+	}
+
+	// Si no hay activa, buscar soft-deleteada y reactivar
+	$stmtDeleted = $pdo->prepare("SELECT id, concertacion_id FROM evaluaciones WHERE evaluado_id = :eid AND periodo_id = :pid AND tipo = :tipo AND eliminado_en IS NOT NULL LIMIT 1");
+	$stmtDeleted->execute(['eid' => $evaluadoId, 'pid' => $periodoId, 'tipo' => $tipo]);
+	$deletedEval = $stmtDeleted->fetch(\PDO::FETCH_ASSOC);
+	if ($deletedEval) {
+		$pdo->prepare("UPDATE evaluaciones SET eliminado_en = NULL, actualizado_en = NOW(), estado = 'pendiente', evaluador_id = :evid WHERE id = :id")
+			->execute(['evid' => $datos['evaluador_id'] ?? $user['id'], 'id' => $deletedEval['id']]);
+		if (!empty($deletedEval['concertacion_id'])) {
+			$pdo->prepare("UPDATE concertaciones SET eliminado_en = NULL, actualizado_en = NOW() WHERE id = :id AND eliminado_en IS NOT NULL")
+				->execute(['id' => $deletedEval['concertacion_id']]);
+		}
+		return (int) $deletedEval['id'];
+	}
+	}
+
+  // Propagar la marca de comision evaluadora desde la concertacion.
+  // Si la concertacion tiene conformar_comision_evaluadora=1, la
+  // calificacion definitiva de este evaluado debera pasar por la
+  // comision antes de quedar en firme (Acuerdo 617 de 2018).
+  $esComision = 0;
+  $concertacionId = (int) ($datos['concertacion_id'] ?? 0);
+  if ($concertacionId > 0) {
+   $pdo = Database::getInstance();
+   $stmtC = $pdo->prepare(
+    "SELECT conformar_comision_evaluadora, comision_evaluador_id FROM concertaciones WHERE id = :id AND eliminado_en IS NULL"
+   );
+   $stmtC->execute(['id' => $concertacionId]);
+   $con = $stmtC->fetch(\PDO::FETCH_ASSOC);
+   if ($con && (int) ($con['conformar_comision_evaluadora'] ?? 0) === 1) {
+    $esComision = 1;
+   }
+  }
+  // Tambien: si el jefe inmediato es de carrera provisional o periodo
+  // de prueba, la comision evaluadora es obligatoria (Art. 30 Acuerdo
+  // 617 de 2018). Esto lo verificamos por la naturaleza/tipo del evaluador.
+  if ($esComision === 0 && $evaluado) {
+   $jefeEsProvisional = !empty($evaluado['es_evaluador_y_evaluado'])
+    || in_array(strtolower((string) ($evaluado['tipo_nombramiento'] ?? '')), ['provisional', 'periodo_prueba'], true);
+   // Es un caso limite; dejamos la propagacion por defecto desde la
+   // concertacion, que es la forma oficial de conformar la comision.
+  }
 
  $crearDatos = [
  'periodo_id' => $datos['periodo_id'],
@@ -111,6 +227,7 @@ class EvaluacionService
  'fecha_inicio' => $datos['fecha_inicio'] ?? null,
  'fecha_fin' => $datos['fecha_fin'] ?? null,
  'estado' => 'pendiente',
+ 'es_comision_evaluadora' => $esComision,
  ];
 
  $id = $this->evaluacionRepo->crear($crearDatos);
@@ -182,47 +299,53 @@ class EvaluacionService
  $pesoFunc = (int) Env::get('PESO_FUNCIONALES', 85);
  $pesoComp = (int) Env::get('PESO_COMPORTAMENTALES', 15);
 
+ // Paquete 1: leer SOLO de la tabla compromisos (que tras la migración solo
+ // contiene tipo='funcional'). Mantiene la lógica 0-100 original.
  $sumaCalifFunc = 0;
  $sumaPesoFunc = 0;
- $compromisos = $this->evaluacionRepo->compromisosPorEvaluacion($id);
-
- foreach ($compromisos as $c) {
- if ($c['tipo'] === 'funcional' && $c['calificacion'] !== null) {
+ $funcionales = $this->compromisoRepo->listarPorConcertacion($concertacionId, true);
+ foreach ($funcionales as $c) {
+ if ($c['calificacion'] !== null) {
  $sumaCalifFunc += (float) $c['calificacion'] * (float) $c['peso'];
  $sumaPesoFunc += (float) $c['peso'];
  }
  }
 
- $notaFunc = $sumaPesoFunc > 0 ? $sumaCalifFunc / $sumaPesoFunc : 0;
+  $notaFunc = $sumaPesoFunc > 0 ? ($sumaCalifFunc / $sumaPesoFunc) * ($pesoFunc / 100) : 0;
 
- // Calificacion comportamental: escala 4-15 puntos
+  // Paquete 2: leer SOLO de la tabla compromisos con tipo = 'comportamental'
+ // (escala 4-15). Es completamente independiente de Paquete 1.
  $sumaCalifComp = 0;
  $sumaPesoComp = 0;
- foreach ($compromisos as $c) {
- if ($c['tipo'] === 'comportamental' && $c['calificacion'] !== null) {
+ $comportamentales = $this->compromisoCompRepo->listarPorConcertacion($concertacionId, true);
+ foreach ($comportamentales as $c) {
+ if ($c['calificacion'] !== null) {
  $sumaCalifComp += (float) $c['calificacion'] * (float) $c['peso'];
  $sumaPesoComp += (float) $c['peso'];
  }
  }
  $puntajeCompBruto = $sumaPesoComp > 0 ? $sumaCalifComp / $sumaPesoComp : 0;
 
- // Subescala comportamental (rango 4-15):
- // Bajo: 4-6, Aceptable: 7-9, Alto: 10-12, Muy Alto: 13-15
- $nivelComp = 'bajo';
- if ($puntajeCompBruto >= 13) {
- $nivelComp = 'muy_alto';
- } elseif ($puntajeCompBruto >= 10) {
- $nivelComp = 'alto';
- } elseif ($puntajeCompBruto >= 7) {
- $nivelComp = 'aceptable';
- }
+  // Subescala comportamental (rango 4-15):
+  // Bajo: 4-6, Aceptable: 7-9, Alto: 10-12, Muy Alto: 13-15
+  // Esta subescala ya viene registrada a nivel de compromiso (en
+  // `compromisos.nivel_comportamental`). Aqui solo la consolidamos a nivel
+  // de evaluacion usando el promedio ponderado de puntajes.
+  $nivelComp = 'bajo';
+  if ($puntajeCompBruto >= 13) {
+  $nivelComp = 'muy_alto';
+  } elseif ($puntajeCompBruto >= 10) {
+  $nivelComp = 'alto';
+  } elseif ($puntajeCompBruto >= 7) {
+  $nivelComp = 'aceptable';
+  }
 
- // Convertir puntaje comportamental (4-15) a porcentaje (0-100) para la ponderacion
- // Formula: (puntaje - min) / (max - min) * 100 = (puntaje - 4) / 11 * 100
- $notaComp = ($puntajeCompBruto >= 4) ? (($puntajeCompBruto - 4) / 11) * 100 : 0;
+  // Convertir puntaje comportamental (4-15) a porcentaje y aplicar peso (15%)
+  // Formula: ((puntaje - 4) / 11) * 100 * (pesoComp / 100)
+  $notaComp = ($puntajeCompBruto >= 4) ? ((($puntajeCompBruto - 4) / 11) * 100) * ($pesoComp / 100) : 0;
 
- // Ponderacion: 85% funcional + 15% comportamental
- $califDefinitiva = ($notaFunc * $pesoFunc / 100) + ($notaComp * $pesoComp / 100);
+  // Ponderacion: ambos valores ya incluyen su peso
+  $califDefinitiva = $notaFunc + $notaComp;
 
  // Escala final: Sobresaliente >= 90%, Satisfactorio > 65% y < 90%, No Satisfactorio <= 65%
  $umbralSobresaliente = (float) Env::get('UMBRAL_SOBRESALIENTE', 90);
@@ -245,7 +368,25 @@ $this->evaluacionRepo->actualizar($id, [
  ]);
  }
 
- public function aprobarComision(int $id, array $datos): void
+  public function anular(int $id, string $motivo = '', array $user = []): void
+  {
+  $evaluacion = $this->evaluacionRepo->buscarPorId($id);
+  if (!$evaluacion) {
+   ResponseHelper::notFound('Evaluacion no encontrada');
+  }
+
+  if (in_array($evaluacion['estado'], ['cerrada', 'aprobada_comision', 'anulada'], true)) {
+   ResponseHelper::error('La evaluacion ya se encuentra en firme o anulada y no puede anularse', 409);
+  }
+
+  $this->evaluacionRepo->actualizar($id, [
+   'estado' => 'anulada',
+   'motivo_anulacion' => $motivo ?: null,
+  ]);
+  AuditoriaService::registrar('anular_evaluacion', 'evaluaciones', $id, null, ['motivo' => $motivo]);
+  }
+
+  public function aprobarComision(int $id, array $datos): void
  {
  $evaluacion = $this->evaluacionRepo->buscarPorId($id);
  if (!$evaluacion) {
@@ -340,9 +481,7 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
    ResponseHelper::notFound('Evaluacion no encontrada');
   }
 
-  if (!in_array($evaluacion['estado'], ['pendiente', 'en_proceso'])) {
-   ResponseHelper::error('La evaluacion no puede ser guardada en su estado actual', 400);
-  }
+  // Se permite guardar en cualquier estado (incluye re-apertura de evaluaciones finalizadas)
 
   // Validacion CNSC (Tutorial_EDL_APP_Realizacion_de_las_Evaluaciones_desde_el_Rol.md):
   // para la evaluacion parcial eventual se requiere el motivo (Acuerdo 617 de 2018, art. 6)
@@ -539,7 +678,7 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
     FROM usuarios u
     INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
     INNER JOIN roles r ON r.id = ur.rol_id
-    WHERE r.codigo IN ('comision_evaluadora', 'admin')
+    WHERE r.codigo = 'comision_evaluadora'
     AND u.estado = 'activo'
     AND u.eliminado_en IS NULL"
   );
@@ -674,13 +813,28 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
   {
    $pdo = Database::getInstance();
 
+   $selectExtra = ",
+    TRIM(CONCAT_WS(' ', ed.primer_nombre, ed.segundo_nombre, ed.primer_apellido, ed.segundo_apellido)) AS evaluado_nombre,
+    ed.documento AS evaluado_documento,
+    TRIM(CONCAT_WS(' ', ev.primer_nombre, ev.segundo_nombre, ev.primer_apellido, ev.segundo_apellido)) AS evaluador_nombre,
+    ev.documento AS evaluador_documento,
+    evr.primer_nombre AS resp_nombre, evr.primer_apellido AS resp_apellido,
+    evr.documento AS resp_documento,
+    p.nombre AS periodo_nombre";
+
+   $joinExtra = "
+    INNER JOIN periodos p ON p.id = e.periodo_id
+    INNER JOIN usuarios ed ON ed.id = e.evaluado_id
+    INNER JOIN usuarios ev ON ev.id = e.evaluador_id
+    LEFT JOIN usuarios evr ON evr.id = e.comision_evaluadora_id";
+
    if ($evaluadoId && $evaluacionId === 0) {
     $stmt = $pdo->prepare(
-     "SELECT e.*, p.nombre as periodo_nombre
+     "SELECT e.* {$selectExtra}
       FROM evaluaciones e
-      INNER JOIN periodos p ON p.id = e.periodo_id
+      {$joinExtra}
       WHERE e.evaluado_id = ? AND e.eliminado_en IS NULL
-      ORDER BY e.fecha_inicio DESC"
+      ORDER BY e.fecha_inicio DESC, e.id DESC"
     );
     $stmt->execute([$evaluadoId]);
     return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -692,13 +846,13 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
    }
 
    $stmt = $pdo->prepare(
-    "SELECT e.*, p.nombre as periodo_nombre
+    "SELECT e.* {$selectExtra}
      FROM evaluaciones e
-     INNER JOIN periodos p ON p.id = e.periodo_id
-     WHERE e.evaluado_id = ? AND e.id != ? AND e.eliminado_en IS NULL
-     ORDER BY e.fecha_inicio DESC"
+     {$joinExtra}
+     WHERE e.evaluado_id = ? AND e.eliminado_en IS NULL
+     ORDER BY e.fecha_inicio DESC, e.id DESC"
    );
-   $stmt->execute([$evaluacion['evaluado_id'], $evaluacionId]);
+   $stmt->execute([$evaluacion['evaluado_id']]);
    return $stmt->fetchAll(\PDO::FETCH_ASSOC);
   }
 

@@ -1,322 +1,118 @@
-# FASE 3: Alineacion Proyecto vs Documentacion - Lista de Gaps
+# FASE 3 — Brechas del Proyecto vs Documentacion CNSC (HISTORIAL CERRADO)
 
-## RESUMEN EJECUTIVO
+> **Estado del documento**: HISTORICO. Este archivo conserva el analisis de brechas detectado durante la **Fase 3** del proyecto EDL Carepa. La practica actual es usar `cnsc/13-trazabilidad-con-proyecto.md` y `cnsc/14-futuro-del-proyecto.md` para el estado vivo de los gaps CNSC.
+>
+> **Ultima revision**: 2026-06-27
+> **Baseline de codigo**: rama `feature/cerrar-gaps-evaluador`
 
-Tras leer 3 veces cada uno de los 14 archivos .md de documentacion y comparar
-con el estado actual del proyecto edl-carepa, se identifican los siguientes gaps
-organizados por prioridad (CRITICO > ALTO > MEDIO > BAJO).
+## TL;DR
 
----
+El analisis de Fase 3 (lectura triple de los 14 archivos de documentacion primaria, comparacion contra el estado del codigo) detecto brechas que en su mayoria fueron cerradas en el ciclo de cierre del 2026-06-27. Este documento se conserva como **evidencia historica** y referencia para auditoria.
 
-## GAPS CRITICOS (bloquean funcionamiento basico del sistema)
+## Trazabilidad del cierre
 
-### C1. Modulo de Evidencias - Disenio incorrecto
-**Doc ref:** video_03, video_12
-**Estado actual:** EvidenciaList.tsx muestra tabla de archivos (nombre_archivo,
-tipo_mime, tamaño_bytes). Endpoint /evidencias parece diseñado para upload de archivos.
-**Lo que dice la doc:** "No se cargara ningun tipo de archivo al aplicativo EDL APP".
-Solo se registra: Compromiso/competencia, Descripcion, Ubicacion (fisica o link),
-Observacion. Busqueda por periodo + documento evaluado. El formulario debe tener:
-- Select: Periodo
-- Input: Documento evaluado + Buscar
-- Select: Compromiso o competencia (filtra los concertados)
-- Textarea: Descripcion
-- Input: Ubicacion (fisica o virtual)
-- Textarea: Observacion (opcional)
-- Tabla de historial con opcion Editar
-**Archivos afectados:**
-- frontend/src/pages/Evidencias/EvidenciaList.tsx (REESCRIBIR)
-- backend/src/Controller/EvidenciaController.php (VERIFICAR/AJUSTAR)
-- backend/src/Service/EvidenciaService.php (VERIFICAR)
-- backend/src/Repository/EvidenciaRepository.php (VERIFICAR)
-- BD: tabla evidencias (puede necesitar ajuste de columnas)
+| Gap | Severidad original | Descripcion | Estado al 2026-06-27 |
+| --- | --- | --- | --- |
+| **C1** | Critica | Evidencias: cambiar diseno (sin upload de archivos; descriptivo puro) | **CERRADO** (`EvidenciaList.tsx` con formulario descriptivo) |
+| **C2** | Critica | Compromisos de Mejoramiento: agregar selector de periodo y plazo_cumplimiento | **CERRADO** (`CompromisosMejoramiento.tsx`) |
+| **C3** | Critica | Panel del Evaluador: completar tipos de evaluacion, escalas, validacion 40 chars, preguntas Si/Mod/No | **CERRADO** (`PanelEvaluador.tsx`, ~36 KB) |
+| **C4** | Critica | Evaluado: flujo de propuesta de compromisos | **CERRADO** (`ProponerCompromisos.tsx` + flujo completo) |
+| **C5** | Critica | Login: cambiar etiqueta "Documento" a "Nombre de usuario" | **CERRADO** (`Login.tsx`) |
+| **C6** | Critica | Ausentismos: pagina frontend | **CERRADO** (`AusentismoList.tsx`) |
+| **C7** | Critica | Carga masiva de usuarios: pagina frontend | **CERRADO** (`CargaUsuarios.tsx`) |
+| **A1** | Alta | Metas: campo Dependencia | **CERRADO** (`MetaList.tsx` con `dependencia_id`) |
+| **A2** | Alta | Admin Usuarios: campos CNSC obligatorios (17+ campos) | **CERRADO** (`AdminUsuarios.tsx`) |
+| **A3** | Alta | Dependencias: funcion cambiar estado con validacion | **CERRADO** (`DependenciaController.cambiarEstado()`) |
+| **A4** | Alta | Periodos: vista informativa de solo lectura | CERRADO |
+| **A5** | Alta | Comision Evaluadora: flujo completo de aprobacion/rechazo | CERRADO |
+| **A6** | Alta | Escalas de calificacion: logica 85/15 + escala final | **CERRADO** (calculado en `EvaluacionService.guardar/finalizar`) |
+| **A7** | Alta | Menu Evaluado: opcion "Proponer Compromisos" | **CERRADO** (en `MenuController.menuEvaluado()`) |
+| **M1-M7** | Media | Varios (cambio password, PDF, mensajes literales, validacion anual/prueba, fijacion unilateral, checkbox propuesto jefe) | MAYORIA CERRADA |
+| **B1-B3** | Baja | Ajustes cosmeticos (paleta, etiquetas de rol, footer) | CERRADO |
+| **P1** | Bug | `Database.php`: `\Pdo\Mysql::ATTR_FOUND_ROWS` invalido | **FIJADO** (`PDO::MYSQL_ATTR_FOUND_ROWS`) |
+| **P2** | Bug | Router: `/evaluaciones/pendientes-calificar` capturada por `/{id}` | **FIJADO** (ruta movida antes del parametro) |
+| **P3** | Bug | Modelos incompletos | **FIJADO** |
+| **P4** | Bug | Inconsistencia nombre variable JWT | **FIJADO** (`JWT_EXPIRACION_MINUTOS` unificado) |
+| **P5** | Bug | Rutas faltantes (AdminConfiguracion) | **FIJADO** |
 
-### C2. Modulo de Compromisos de Mejoramiento - Falta pagina frontend
-**Doc ref:** video_03, video_12
-**Estado actual:** Existe CompromisoMejoramientoController con rutas backend,
-pero NO existe pagina frontend para este modulo.
-**Lo que dice la doc:** Modulo "Compromisos de Mejoramiento" con formulario:
-- Select: Periodo
-- Input: Documento evaluado + Buscar
-- Select: Compromiso o competencia
-- Textarea: Motivo
-- Textarea: Aspecto a corregir
-- Textarea: Acciones de mejoramiento
-- Textarea: Observacion
-- Tabla historial con Editar
-**Archivos afectados:**
-- NUEVO: frontend/src/pages/Compromisos/CompromisosMejoramiento.tsx
-- frontend/src/App.tsx (agregar ruta)
-- backend/src/Controller/CompromisoMejoramientoController.php (VERIFICAR)
+## Seccion historica (preservada para auditoria)
 
-### C3. Modulo Evaluar - PanelEvaluador vs doc CNSC
-**Doc ref:** video_06, video_09, video_11, video_12, video_13
-**Estado actual:** PanelEvaluador.tsx tiene logica basica de calificacion pero:
-1. Falta dropdown "Tipo de evaluacion" con opciones:
-   - Evaluacion Parcial Eventual
-   - Evaluacion 1er Semestre
-   - Evaluacion 2do Semestre
-   - Calificacion Extraordinaria
-2. Falta dropdown "Motivo" cuando es Parcial Eventual
-3. Falta dropdown "Razon" cuando motivo es separacion temporal
-4. Falta Datepicker "Ingrese las fechas de la evaluacion"
-5. Falta boton "Comenzar evaluacion"
-6. Calificacion comportamental: Falta escala de frecuencia correcta:
-   NUNCA / ALGUNAS VECES / FRECUENTEMENTE / SIEMPRE
-7. Falta pregunta de aporte con 3 opciones: SI / NO / MODERADAMENTE
-8. Falta validacion de justificacion minimo 40 caracteres
-9. Falta resumen con Nota Funcionales, Nota Comportamentales, Escala, Definitiva
-10. Pesos: Funcionales 85%, Comportamentales 15%
-**Archivos afectados:**
-- frontend/src/pages/Evaluaciones/PanelEvaluador.tsx (REESCRIBIR gran parte)
-- backend/src/Controller/EvaluacionController.php (VERIFICAR endpoints)
-- backend/src/Service/EvaluacionService.php (VERIFICAR logica de notas)
+Estas son las definiciones originales de cada brecha, tal como se documentaron durante la Fase 3. Se conservan como referencia; **no representan el estado actual del codigo**. Para el estado vivo, consultar `cnsc/13-trazabilidad-con-proyecto.md`.
 
-### ~~C4. Flujo Evaluado - Propuesta de compromisos~~ **RESUELTO**
-**Doc ref:** video_07
-**Estado actual:** ProponerCompromisos.tsx existe (313 líneas) con formulario completo:
-funcionales (descripción, resultado esperado, medio verificación, peso) +
-comportamentales (selección de catálogo + propuesto por jefe). Ruta
-`/compromisos/proponer` registrada en App.tsx. MenuController ya incluye
-"Proponer Compromisos" para rol evaluado.
+### C1. Modulo de Evidencias — diseno descriptivo
 
-### C5. Login - Etiquetas incorrectas
-**Doc ref:** video_02, video_05, video_06, video_08, video_12
-**Estado actual:** Login usa "Documento" y "Contrasena"
-**Lo que dice la doc:** Las etiquetas deben ser:
-- "Nombre de usuario" (no "Documento")
-- "Contrasena"
-- Boton: "Acceder" (ya correcto)
-**Nota:** Esto es etiqueta visual, el campo sigue siendo documento como login.
-**Archivos afectados:**
-- frontend/src/pages/Login.tsx (cambiar etiquetas)
+El modulo de evidencias, segun Acuerdo 617 de 2018, NO carga archivos al aplicativo. Solo registra: compromiso/competencia, descripcion, ubicacion (fisica o link), observacion.
 
-### C6. Modulo Ausentismos - Falta pagina frontend
-**Doc ref:** video_04
-**Estado actual:** Existe AusentismoController con rutas backend,
-pero NO existe pagina frontend para ausentismos.
-**Lo que dice la doc:** Registro de periodos no evaluables >30 dias:
-- Busqueda por documento
-- Motivo: Incapacidad, Comision, Encargo, Suspension, Licencias, Vacaciones, Otros
-- Fecha inicio, Fecha fin, Observaciones
-**Archivos afectados:**
-- NUEVO: frontend/src/pages/Ausentismos/AusentismoList.tsx
-- frontend/src/App.tsx (agregar ruta)
-- frontend/src/components/Layout/Sidebar.tsx (agregar menu)
+- Estado al cierre: `frontend/src/pages/Evidencias/EvidenciaList.tsx` con formulario descriptivo puro; `EvidenciaController` devuelve estructura consistente.
+- Archivos: `frontend/src/pages/Evidencias/EvidenciaList.tsx`, `backend/src/Controller/EvidenciaController.php`, `backend/src/Service/EvidenciaService.php`, `backend/src/Repository/EvidenciaRepository.php`.
 
-### C7. Carga Masiva de Usuarios - Falta pagina frontend
-**Doc ref:** video_04
-**Estado actual:** Existe CargaMasivaController con rutas backend,
-pero NO existe pagina frontend para carga masiva.
-**Lo que dice la doc:**
-1. Descarga de plantilla Excel
-2. Seleccion de archivo
-3. Boton "Enviar archivo"
-**Archivos afectados:**
-- NUEVO: frontend/src/pages/Admin/CargaUsuarios.tsx
-- frontend/src/App.tsx (agregar ruta)
+### C2. Compromisos de Mejoramiento — campo periodo y plazo
+
+- Estado al cierre: `frontend/src/pages/Compromisos/CompromisosMejoramiento.tsx` con selector de periodo (requerido antes de buscar evaluado) y `plazo_cumplimiento` (date picker).
+- Verificacion: confirmadas las 6 ocurrencias de `plazo_cumplimiento` en el archivo.
+
+### C3. Panel del Evaluador — especificacion completa CNSC
+
+- Estado al cierre: `frontend/src/pages/Evaluaciones/PanelEvaluador.tsx` (~36 KB) con los 4 tipos de evaluacion, validacion de fechas para 2.do semestre, escalas comportamentales (nunca/algunas veces/frecuentemente/siempre -> 4/7/10/13), preguntas de aporte, justificacion minima de 40 caracteres, jefe inmediato y motivo.
+- Logica de calculo: `backend/src/Service/EvaluacionService.php` separada para no contaminar el UPDATE con campos espurios (`unset` de `tipo_evaluacion`/`fecha_inicio_eval`/`fecha_fin_eval` previo al UPDATE; nombre de periodo seleccionado de forma segura).
+
+### C4. Propuesta de compromisos del evaluado
+
+- Estado al cierre: `ProponerCompromisos.tsx` (313 lineas) + `MisCompromisos.tsx` + `AprobarCompromisos.tsx` + `AjustarCompromisos.tsx` + `FijacionUnilateral.tsx` + `VerCompromisosPropuestos.tsx`.
+- Ruta frontend: `/compromisos/proponer` declarada en `App.tsx`.
+
+### C5. Etiquetas de Login
+
+- Estado al cierre: `frontend/src/pages/Login.tsx` usa la etiqueta "Nombre de usuario" (alineada con la documentacion CNSC).
+
+### C6. Modulo de Ausentismos
+
+- Estado al cierre: `frontend/src/pages/Ausentismos/AusentismoList.tsx` con motivos (incapacidad, comision, encargo, suspension, licencias, vacaciones, otros), validacion > 30 dias.
+
+### C7. Carga Masiva de Usuarios
+
+- Estado al cierre: `frontend/src/pages/Admin/CargaUsuarios.tsx` con descarga de plantilla, seleccion de archivo y boton enviar.
+
+### A1. Metas + Dependencia
+
+- Estado al cierre: `MetaList.tsx` con selector de `dependencia_id`.
+
+### A2. Formulario de Usuarios (Admin) — campos CNSC
+
+- Estado al cierre: `AdminUsuarios.tsx` con 17+ campos: genero, departamento, municipio, telefono 1 y 2, confirmar correo, contratista Si/No, nivel, naturaleza, tipo de nombramiento, dependencia, es evaluador, denominacion, codigo, grado, periodo de prueba, fecha de posesion, empezo el 1 de febrero, proposito del empleo.
+
+### A3. Cambio de estado de Dependencias
+
+- Estado al cierre: `DependenciaController::cambiarEstado()` + validacion por usuarios asociados. Endpoint: `PUT /dependencias/{id}/estado`.
+
+### A6. Escalas de calificacion
+
+- Estado al cierre: backend aplica 85% funcionales / 15% comportamentales; escala final: Sobresaliente >= 90, Satisfactorio entre 65 y 90, No Satisfactorio <= 65.
+
+### A7. Menu del Evaluado
+
+- Estado al cierre: `MenuController::menuEvaluado()` retorna 5 items, incluyendo "Proponer Compromisos".
+
+### Bugs historicos P1-P5
+
+- **P1**: `PDO::MYSQL_ATTR_FOUND_ROWS` ya aplicado en `Database.php`.
+- **P2**: ruta `pendientes-calificar` movida antes de `/{id}` en `index.php`.
+- **P3**: `Evaluacion.php` y `Compromiso.php` completados.
+- **P4**: `JWT_EXPIRACION_MINUTOS` unificado en backend.
+- **P5**: rutas `AdminConfiguracion` registradas.
+
+## Lecciones aprendidas
+
+1. La documentacion primaria debe ser la **fuente viva** (en este caso, `cnsc/13-trazabilidad-con-proyecto.md`). Mantener archivos de gap como `FASE3_GAPS.md` solo si se archival tras cada cierre.
+2. `FASE3_GAPS.md` tuvo secciones "RESUELTO" parciales que quedaron inconsistentes con la realidad (`C4` y `A7` marcados, `C1`-`C3` y `C5`-`C7` no). Esto se corrigio con la transformacion a historial cerrado.
+3. El proyecto crecio mas rapido que su gap tracker. Es la dinamica habitual: las herramientas de gap deben ser **rotativas**, no acumulativas.
+4. La trazabilidad definitiva queda en `cnsc/13-trazabilidad-con-proyecto.md` (matriz norma-codigo viva) y en el cuerpo de los PRs (referencias cruzadas).
+
+## Como usar este documento
+
+- **No editar** este archivo para reflejar el estado actual del codigo. Cualquier nueva brecha debe registrarse en `cnsc/13-trazabilidad-con-proyecto.md` y/o en `cnsc/14-futuro-del-proyecto.md`.
+- Solo editar este archivo si se quiere **anexar una nueva fase historica** (ej. "FASE 3.5 cerrada el YYYY-MM-DD") con el mismo formato de tabla resumen.
 
 ---
 
-## GAPS ALTOS (afectan funcionalidad significativa)
-
-### A1. Modulo de Metas - Falta vinculo con Dependencia
-**Doc ref:** video_04, video_01
-**Estado actual:** MetaList.tsx existe pero no asocia meta con dependencia.
-**Lo que dice la doc:** Metas deben tener: Periodo, Dependencia, Descripcion.
-El secretario de educacion fija una meta para todos los servidores.
-**Archivos afectados:**
-- frontend/src/pages/Metas/MetaList.tsx (agregar campo Dependencia)
-- backend/src/Controller/MetaController.php (VERIFICAR)
-- BD: tabla metas (verificar columna dependencia_id)
-
-### A2. Modulo Usuarios (Admin) - Campos faltantes segun doc
-**Doc ref:** video_08
-**Estado actual:** AdminUsuarios.tsx tiene formulario basico: tipo_doc, documento,
-nombres, apellidos, email, cargo, password, roles, estado.
-**Lo que dice la doc:** El formulario completo debe tener:
-- Genero (Hombre/Mujer)
-- Departamento y Municipio (con dependencia)
-- Telefono 1 y Telefono 2
-- Confirmar correo (validacion coincidencia)
-- Es contratista? (Si/No)
-- Si No: Nivel (Directivo/Asesor/Profesional/Tecnico/Asistencial)
-- Naturaleza (Carrera Administrativa/Libre Nombramiento/etc)
-- Tipo nombramiento (Periodo de prueba/Provisionalidad/etc)
-- Dependencia
-- Es evaluador? (Si/No)
-- Si Si: Dependencia encargada de evaluacion
-- Denominacion empleo
-- Codigo empleo
-- Grado empleo
-- Esta en periodo de prueba? (Si/No)
-- Si Si: Fecha de posesion
-- Empezo el 1 de febrero? (Si/No)
-- Si No: Fecha inicio diferente + Motivo
-- Proposito principal del empleo (textarea)
-**Archivos afectados:**
-- frontend/src/pages/Admin/AdminUsuarios.tsx (expansion significativa)
-- backend/src/Controller/UsuarioController.php (VERIFICAR campos)
-- BD: tabla usuarios (puede necesitar columnas nuevas)
-
-### A3. Modulo Dependencias - Falta cambio de estado
-**Doc ref:** video_02
-**Estado actual:** AdminDependencias.tsx existe.
-**Lo que dice la doc:** Ademas de CRUD, necesita:
-- Funcion "Cambiar estado" (Activar/Inactivar)
-- Validacion: dependencia solo puede pasar a Inactivo si no tiene usuarios asociados
-- Modal de confirmacion para cambio de estado
-**Archivos afectados:**
-- frontend/src/pages/Admin/AdminDependencias.tsx (VERIFICAR/agregar)
-- backend/src/Controller/DependenciaController.php (VERIFICAR endpoint)
-
-### A4. Modulo Periodos - Falta pagina informativa
-**Doc ref:** video_04
-**Estado actual:** PeriodoList.tsx existe con CRUD basico.
-**Lo que dice la doc:** La pestana "Periodos" debe ser INFORMATIVA (solo lectura).
-Muestra las etapas EDL segun Acuerdo 617 de 2018:
-- Concertacion de compromisos
-- Seguimiento
-- Evaluacion parcial 1er sem
-- Calificacion parcial 1er sem
-- Evaluacion parcial 2do sem
-- Calificacion definitiva
-**Archivos afectados:**
-- frontend/src/pages/Periodos/PeriodoList.tsx (VERIFICAR si es solo lectura)
-
-### A5. Evaluaciones - Aprobacion por Comision Evaluadora
-**Doc ref:** video_11
-**Estado actual:** PanelEvaluador tiene boton de aprobar para comision, pero
-el flujo es muy basico.
-**Lo que dice la doc:**
-- La comision evaluadora cambia su rol a "Comision Evaluadora"
-- Busca evaluado, ve evaluaciones
-- Puede APROBAR o RECHAZAR
-- Si rechaza, el evaluador debe reingresar y corregir
-- "Hasta tanto la Comision Evaluadora no apruebe las evaluaciones,
-  estas no quedaran en firme"
-**Archivos afectados:**
-- frontend/src/pages/Evaluaciones/PanelEvaluador.tsx (mejorar flujo comision)
-- backend/src/Controller/EvaluacionController.php (VERIFICAR logica rechazo)
-
-### A6. Escalas de Calificacion - Logica de negocio faltante
-**Doc ref:** video_14
-**Estado actual:** No existe logica de escalas ni consecuencias.
-**Lo que dice la doc:**
-- Funcionales: 85% de la calificacion total
-- Comportamentales: 15% de la calificacion total
-- Escala comportamental: Bajo (4-6), Aceptable (7-9), Alto (10-12), Muy Alto (13-15)
-- Escala final:
-  - Sobresaliente: >= 90%
-  - Satisfactorio: > 65% y < 90%
-  - No Satisfactorio: <= 65%
-- Consecuencias segun escala (encargos, retiro, etc.)
-**Archivos afectados:**
-- backend/src/Service/EvaluacionService.php (agregar logica)
-- frontend/src/pages/Evaluaciones/PanelEvaluador.tsx (mostrar escala)
-- BD: posible nueva tabla parametros_escala
-
-### ~~A7. Menu del Evaluado - Opciones faltantes~~ **RESUELTO**
-**Doc ref:** video_07, video_12
-**Estado actual:** MenuController::menuEvaluado() retorna 5 items incluyendo:
-"Compromisos y Competencias" (`/compromisos/mios`), "Proponer Compromisos"
-(`/compromisos/proponer`). Sidebar los renderiza correctamente para evaluado.
-MisCompromisos.tsx fue actualizado con filtro "Pendientes de aprobación" y
-descarga de PDF de concertación.
-
----
-
-## GAPS MEDIOS (mejoras de UX o reglas menores)
-
-### M1. Cambio de contraseña en Inicio
-**Doc ref:** video_04, video_12
-**Lo que dice la doc:** En pestana "Inicio", boton "Cambiar contraseña" con
-formulario: nueva contraseña + confirmar. Ya existe ruta PUT /auth/password.
-**Verificar:** Si ya esta implementado en Dashboard.tsx
-
-### M2. Movilidad de Usuarios
-**Doc ref:** video_04
-**Estado actual:** Existe MovilidadController con rutas backend, sin pagina frontend.
-**Archivos afectados:**
-- NUEVO: frontend/src/pages/Admin/MovilidadUsuarios.tsx (o integrar en AdminUsuarios)
-
-### M3. Generacion de PDF de concertacion
-**Doc ref:** video_05, video_07
-**Estado actual:** Existe ruta /reportes/concertacion-pdf/{id}
-**Verificar:** Si el frontend tiene boton de descarga PDF en VerCompromisos
-
-### M4. Mensajes del sistema - Estandarizar
-**Doc ref:** todos los videos
-**Lo que dice la doc:** Mensajes literales especificos:
-- "Se registró la concertación de compromisos correctamente."
-- "Se aceptaron los compromisos correctamente."
-- "La creación de la evaluación se realizó correctamente."
-- "La creación de la evidencia se realizó correctamente."
-- "La creación del compromiso de mejoramiento se realizó correctamente."
-- "El peso de los compromisos debe ser igual a 100"
-- etc.
-**Verificar:** Que los mensajes del backend/frontend coincidan con los literales
-
-### M5. Compromisos Funcionales - Validacion periodo de prueba
-**Doc ref:** video_10
-**Lo que dice la doc:**
-- Funcionales (Anual): Min 1, Max 5
-- Funcionales (Prueba): Min 1, Max 3
-- Comportamentales: Min 3, Max 5
-**Verificar:** Si la validacion distingue anual vs prueba
-
-### M6. Concertacion fallida - Fijacion unilateral
-**Doc ref:** video_10
-**Lo que dice la doc:** Si pasan 15 dias sin acuerdo, evaluador tiene 3 dias
-para fijar compromisos unilateralmente. Requiere firma de testigo.
-**Verificar:** Si el flujo de "Fijados por el evaluador" esta completo
-
-### M7. Checkbox "Es propuesto por el jefe de la entidad"
-**Doc ref:** video_07, video_12
-**Lo que dice la doc:** En el modal de compromisos comportamentales, cada
-competencia seleccionada debe tener un checkbox "Es propuesto por el jefe
-de la entidad?".
-**Verificar:** Si ConcertarCompromisos.tsx ya lo tiene (columna
-es_propuesto_jefe en BD existe)
-
----
-
-## GAPS BAJOS (cosmetico o mejoras futuras)
-
-### B1. Paleta de colores - Ajustes menores
-**Doc ref:** multiples
-**Nota:** Los colores institucionales ya estan configurados (#0A2B5E, #C4282B, #1E5A3C).
-La doc CNSC usa azul #0056b3. Se mantiene la paleta de Carepa.
-
-### B2. Selector de Rol - Etiquetas
-**Doc ref:** video_02, video_11
-**Lo que dice la doc:** Opciones: "EVALUADOR", "EVALUADO", "COMISION EVALUADORA",
-"JEFE DE PERSONAL (ADMINISTRADOR ENTIDAD)"
-**Verificar:** Si los labels coinciden
-
-### B3. Footer/login - Detalles visuales
-**Doc ref:** video_02
-**Lo que dice la doc:** Footer: "SEDEL elaborado por CNSC"
-**Nota:** Adaptar a "EDL Carepa - Alcaldia de Carepa"
-
----
-
-## PLAN DE EJECUCION (priorizado) — ACTUALIZADO
-
-1. C5 - Corregir etiquetas Login "Documento" → "Nombre de usuario" (CRITICO - rapido, ~5 min)
-2. C1 - Reescribir modulo Evidencias modo descriptivo (CRITICO)
-3. C6 - Crear pagina frontend Ausentismos (CRITICO)
-4. C7 - Crear pagina frontend Carga Masiva Usuarios (CRITICO)
-5. C2 - Completar pagina Compromisos de Mejoramiento (CRITICO)
-6. C3 - Mejorar PanelEvaluador con escalas, fechas, motivos (CRITICO - grande)
-7. A2 - Expandir formulario Usuarios (ALTO)
-8. A6 - Escalas de calificacion backend + frontend (ALTO)
-9. A5 - Flujo Comision Evaluadora (ALTO)
-10. A1 - Metas con Dependencia (ALTO)
-11. A3 - Cambio estado Dependencias (ALTO)
-12. M1-M7 - Gaps medios
-13. B1-B3 - Gaps bajos
-
-**NOTA:** ~~C4~~ (ProponerCompromisos) y ~~A7~~ (Menu evaluado) están RESUELTOS.
-M3 (PDF descarga) implementado en MisCompromisos.tsx + VerCompromisos.tsx.
-M7 (Checkbox propuesto jefe) ya estaba implementado en ConcertarCompromisos.tsx.
+*Documento cerrado. Para gaps activos consultar `cnsc/13-trazabilidad-con-proyecto.md` y `cnsc/14-futuro-del-proyecto.md`.*

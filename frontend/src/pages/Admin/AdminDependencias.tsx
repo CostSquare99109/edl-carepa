@@ -86,7 +86,18 @@ export default function AdminDependencias() {
  setGuardando(false);
  };
 
- const toggleEstado = async (d: Dependencia) => {
+  const eliminar = async (d: Dependencia) => {
+    if (!confirm(`¿Eliminar permanentemente la dependencia "${d.nombre}"?\n\nEsta acción no se puede deshacer. Se eliminarán también las metas asociadas.`)) return;
+    try {
+      await api.delete(`/dependencias/${d.id}`);
+      toast.success('Dependencia eliminada correctamente');
+      cargar();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al eliminar');
+    }
+  };
+
+  const toggleEstado = async (d: Dependencia) => {
     const nuevo = d.estado === 'activa' ? 'inactiva' : 'activa';
 
     // Modal de confirmación CNSC: si va a inactivar, advertir sobre restricción
@@ -141,17 +152,24 @@ export default function AdminDependencias() {
  ),
  },
  {
- key: 'acciones',
- header: 'Acciones',
- align: 'center',
- render: (d) => (
- <Tooltip content="Editar dependencia">
- <Button variant="outline" size="sm" iconLeft={<span className="material-icons text-sm">edit</span>} onClick={() => abrirEditar(d)}>
- Editar
- </Button>
- </Tooltip>
- ),
- },
+  key: 'acciones',
+  header: 'Acciones',
+  align: 'center',
+  render: (d) => (
+  <div className="flex items-center justify-center gap-2">
+  <Tooltip content="Editar dependencia">
+  <Button variant="outline" size="sm" iconLeft={<span className="material-icons text-sm">edit</span>} onClick={() => abrirEditar(d)}>
+  Editar
+  </Button>
+  </Tooltip>
+  <Tooltip content="Eliminar dependencia">
+  <Button variant="danger" size="sm" iconLeft={<span className="material-icons text-sm">delete</span>} onClick={() => eliminar(d)}>
+  Eliminar
+  </Button>
+  </Tooltip>
+  </div>
+  ),
+  },
  ];
 
  return (

@@ -29,12 +29,15 @@ class AuthService
    ResponseHelper::error('Credenciales invalidas', 401);
   }
 
-  if ($usuario['estado'] === 'bloqueado') {
-   ResponseHelper::error('Cuenta bloqueada. Contacte al administrador.', 403);
-  }
-
   if ($usuario['estado'] !== 'activo') {
    ResponseHelper::error('Cuenta inactiva', 403);
+  }
+
+  $bloqueadoHasta = $this->usuarioRepo->verificarBloqueoTemporal($usuario['id']);
+  if ($bloqueadoHasta) {
+   $restante = strtotime($bloqueadoHasta) - time();
+   $minutos = ceil($restante / 60);
+   ResponseHelper::error("Por favor espere {$minutos} minutos para volver a intentar", 403);
   }
 
   if (!password_verify($password, $usuario['password_hash'])) {
@@ -42,7 +45,7 @@ class AuthService
    $maxIntentos = (int) Env::get('INTENTOS_LOGIN_MAXIMOS', 5);
    $bloqueado = $this->usuarioRepo->bloquearSiExcedeIntentos($usuario['id'], $maxIntentos);
    if ($bloqueado) {
-    ResponseHelper::error('Cuenta bloqueada por intentos fallidos', 403);
+    ResponseHelper::error('Por favor espere 10 minutos para volver a intentar', 429);
    }
    ResponseHelper::error('Credenciales invalidas', 401);
   }
@@ -52,7 +55,11 @@ class AuthService
   $entidadId = $usuario['entidad_id'];
   $dependenciaId = $usuario['dependencia_id'];
 
-  $prioridad = ['admin_carepa', 'jefe_dependencia', 'evaluador', 'evaluado'];
+  // Prioridad del rol por defecto al iniciar sesion.
+   // El sistema CNSC opera con jefe_personal (superadmin), admin, comision_evaluadora,
+  // jefe_dependencia, evaluador y evaluado. Si el usuario tiene varios roles se
+  // elige el de mayor privilegio siguiendo esta lista.
+  $prioridad = ['jefe_personal', 'admin_carepa', 'comision_evaluadora', 'jefe_dependencia', 'evaluador', 'evaluado'];
   $rolActivo = null;
   foreach ($prioridad as $p) {
    if (in_array($p, $rolCodigos)) {
@@ -185,7 +192,7 @@ class AuthService
   $stmt->execute([$usuario['id'], $codigo, $expiracion]);
 
   $nombre = trim(($usuario['primer_nombre'] ?? '') . ' ' . ($usuario['segundo_nombre'] ?? '') . ' ' . ($usuario['primer_apellido'] ?? '') . ' ' . ($usuario['segundo_apellido'] ?? ''));
-  $enviado = \App\Helper\MailHelper::enviarRecuperacion($email, $nombre, $codigo);
+  $enviado = \App\Helper\MailHelper::enviarCodigoVerificacion($email, $nombre, $codigo);
 
   if (!$enviado) {
    ResponseHelper::error('No se pudo enviar el correo de recuperacion. Intente mas tarde.', 500);
@@ -220,7 +227,7 @@ class AuthService
   }
 
   $hash = password_hash($nuevaPassword, PASSWORD_BCRYPT);
-  $stmt = $pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0 WHERE id = ?");
+  $stmt = $pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id = ?");
   $stmt->execute([$hash, $rec['usuario_id']]);
 
   $stmt = $pdo->prepare("UPDATE recuperaciones SET utilizado = 1 WHERE id = ?");

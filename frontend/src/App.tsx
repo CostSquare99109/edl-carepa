@@ -22,16 +22,17 @@ import ConcertarCompromisos from './pages/Compromisos/ConcertarCompromisos'
 import VerCompromisos from './pages/Compromisos/VerCompromisos'
 import VerCompromisosPropuestos from './pages/Compromisos/VerCompromisosPropuestos'
 import AjustarCompromisos from './pages/Compromisos/AjustarCompromisos'
+import SolicitudesCambioPage from './pages/Compromisos/SolicitudesCambioPage'
 import CompromisosMejoramiento from './pages/Compromisos/CompromisosMejoramiento'
 import ProponerCompromisos from './pages/Compromisos/ProponerCompromisos'
 import FijacionUnilateral from './pages/Compromisos/FijacionUnilateral'
 import AusentismoList from './pages/Ausentismos/AusentismoList'
-import CargaUsuarios from './pages/Admin/CargaUsuarios'
 import ConsultaFuncionario from './pages/ConsultaFuncionario'
 import DependenciaList from './pages/Admin/DependenciaList'
 import MovilidadList from './pages/Admin/MovilidadList'
 import ComisionEvaluadora from './pages/Evaluaciones/ComisionEvaluadora'
 import EvaluarPage from './pages/Evaluaciones/EvaluarPage'
+import VerEvaluaciones from './pages/Evaluaciones/VerEvaluaciones'
 import AdminHome from './pages/Admin/AdminHome'
 import AdminUsuarios from './pages/Admin/AdminUsuarios'
 import AdminCompromisos from './pages/Admin/AdminCompromisos'
@@ -47,6 +48,15 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode;
  if (!token) return <Navigate to="/login" replace />
  if (allowedRoles && allowedRoles.length > 0 && rolActivo && !allowedRoles.includes(rolActivo)) {
   return <Navigate to="/" replace />
+ }
+ return <>{children}</>
+}
+
+/** Bloquea rutas para roles especificos (ej. admin_carepa no accede a modulos excluidos) */
+function RoleExcludedRoute({ children, excludedRoles }: { children: React.ReactNode; excludedRoles: string[] }) {
+ const { rolActivo } = useAuth()
+ if (rolActivo && excludedRoles.includes(rolActivo)) {
+  return <Navigate to="/dashboard" replace />
  }
  return <>{children}</>
 }
@@ -67,38 +77,40 @@ export default function App() {
     <Route path="admin" element={<AdminHome />} />
     <Route path="usuarios" element={<UsuarioList />} />
     <Route path="admin-usuarios" element={<AdminUsuarios />} />
-    <Route path="periodos" element={<PeriodoList />} />
+    <Route path="periodos" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><PeriodoList /></RoleExcludedRoute>} />
     <Route path="dependencias" element={<DependenciaList />} />
     <Route path="admin-dependencias" element={<AdminDependencias />} />
-    <Route path="metas" element={<MetaList />} />
-    <Route path="concertaciones" element={<ConcertacionList />} />
-    <Route path="evaluaciones" element={<EvaluacionList />} />
-    <Route path="admin-evaluaciones" element={<AdminEvaluaciones />} />
-    <Route path="evidencias" element={<EvidenciaList />} />
-    <Route path="mis-evidencias" element={<EvidenciasEvaluado />} />
+    <Route path="metas" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><MetaList /></RoleExcludedRoute>} />
+    <Route path="concertaciones" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><ConcertacionList /></RoleExcludedRoute>} />
+    <Route path="evaluaciones" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><EvaluacionList /></RoleExcludedRoute>} />
+    <Route path="admin-evaluaciones" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><AdminEvaluaciones /></RoleExcludedRoute>} />
+    <Route path="evidencias" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><EvidenciaList /></RoleExcludedRoute>} />
+    <Route path="mis-evidencias" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><EvidenciasEvaluado /></RoleExcludedRoute>} />
     <Route path="reportes" element={<ReportesPage />} />
     <Route path="admin-reportes" element={<AdminReportes />} />
     <Route path="notificaciones" element={<AdminNotificaciones />} />
-    <Route path="configuracion" element={<AdminConfiguracion />} />
+     <Route path="configuracion" element={<AdminConfiguracion />} />
+     <Route path="parametros" element={<AdminConfiguracion />} />
     <Route path="consulta-funcionario" element={<ConsultaFuncionario />} />
-    <Route path="compromisos-y-competencias" element={<CompromisosYCompetencias />} />
-    <Route path="compromisos/mios" element={<MisCompromisos />} />
-    <Route path="compromisos/concertar" element={<ConcertarCompromisos />} />
-    <Route path="compromisos/concertar/:evaluacionId" element={<ConcertarCompromisos />} />
-    <Route path="compromisos/ver/:evaluacionId" element={<VerCompromisos />} />
-    <Route path="compromisos/propuestos" element={<VerCompromisosPropuestos />} />
-    <Route path="compromisos/ajustar/:evaluacionId" element={<AjustarCompromisos />} />
-    <Route path="compromisos/aprobar" element={<AprobarCompromisos />} />
-    <Route path="compromisos/mejoramiento" element={<CompromisosMejoramiento />} />
-    <Route path="compromisos/proponer" element={<ProponerCompromisos />} />
-    <Route path="compromisos/fijacion-unilateral" element={<FijacionUnilateral />} />
-    <Route path="admin-compromisos" element={<AdminCompromisos />} />
-    <Route path="ausentismos" element={<AusentismoList />} />
-    <Route path="movilidad" element={<MovilidadList />} />
-    <Route path="evaluar" element={<EvaluarPage />} />
-    <Route path="comision-evaluadora" element={<ComisionEvaluadora />} />
-    <Route path="carga-usuarios" element={<CargaUsuarios />} />
-    <Route path="admin/carga-usuarios" element={<CargaUsuarios />} />
+    <Route path="compromisos-y-competencias" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><CompromisosYCompetencias /></RoleExcludedRoute>} />
+    <Route path="compromisos/mios" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><MisCompromisos /></RoleExcludedRoute>} />
+    <Route path="compromisos/concertar" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><ConcertarCompromisos /></RoleExcludedRoute>} />
+    <Route path="compromisos/concertar/:evaluacionId" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><ConcertarCompromisos /></RoleExcludedRoute>} />
+    <Route path="compromisos/ver/:evaluacionId" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><VerCompromisos /></RoleExcludedRoute>} />
+    <Route path="compromisos/propuestos" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><VerCompromisosPropuestos /></RoleExcludedRoute>} />
+    <Route path="compromisos/ajustar/:evaluacionId" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><AjustarCompromisos /></RoleExcludedRoute>} />
+    <Route path="compromisos/aprobar" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><AprobarCompromisos /></RoleExcludedRoute>} />
+    <Route path="compromisos/mejoramiento" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><CompromisosMejoramiento /></RoleExcludedRoute>} />
+    <Route path="compromisos/proponer" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><ProponerCompromisos /></RoleExcludedRoute>} />
+     <Route path="compromisos/fijacion-unilateral" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><FijacionUnilateral /></RoleExcludedRoute>} />
+     <Route path="compromisos/solicitudes-cambio" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><SolicitudesCambioPage /></RoleExcludedRoute>} />
+    <Route path="admin-compromisos" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><AdminCompromisos /></RoleExcludedRoute>} />
+    <Route path="ausentismos" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><AusentismoList /></RoleExcludedRoute>} />
+    <Route path="movilidad" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><MovilidadList /></RoleExcludedRoute>} />
+    <Route path="evaluar" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><EvaluarPage /></RoleExcludedRoute>} />
+    <Route path="comision-evaluadora" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><ComisionEvaluadora /></RoleExcludedRoute>} />
+    <Route path="evaluaciones/ver" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><VerEvaluaciones /></RoleExcludedRoute>} />
+    <Route path="evaluaciones/ver/:evaluacionId" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><VerEvaluaciones /></RoleExcludedRoute>} />
     <Route path="perfil" element={<Perfil />} />
    </Route>
    <Route path="*" element={<Navigate to="/" replace />} />

@@ -94,7 +94,7 @@ class EntidadService
     /**
      * Crea una entidad y su primer Jefe de Personal (jefe_dependencia) en una transaccion.
      * Segun CNSC: la CNSC habilita al jefe de personal con usuario/contraseña.
-     * Aqui el superadmin (admin_carepa) crea la entidad y el usuario jefe de personal.
+     * Aqui el superadmin (jefe_personal) crea la entidad y el usuario jefe de personal.
      */
     public function crearConJefePersonal(array $datos): array
     {

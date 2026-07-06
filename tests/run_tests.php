@@ -1,5 +1,5 @@
 <?php
-$base = 'http://localhost:8001';
+$base = 'http://localhost:8000';
 $pass = 0;
 $fail = 0;
 
@@ -44,7 +44,7 @@ echo "=== EDL-CAREPA API Tests ===\n\n";
 
 // 1. Login
 echo "--- Auth ---\n";
-$resp = api('POST', '/api/v1/auth/login', ['documento' => 'admin', 'password' => 'Admin2026!']);
+$resp = api('POST', '/api/v1/auth/login', ['documento' => 'admin', 'password' => '12345678']);
 $token = $resp['data']['token'] ?? '';
 if ($resp['code'] === '01' && $token) {
     echo "  [OK] Login\n";

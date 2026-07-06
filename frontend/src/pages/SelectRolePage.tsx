@@ -12,7 +12,7 @@ interface RolConfig {
  colorTexto: string;
  badge: 'danger' | 'success' | 'info';
 }const ROLES_CONFIG: Record<string, RolConfig> = {
- admin_carepa: {
+ jefe_personal: {
   icon: 'shield',
   descripcion: 'Superadministrador global del sistema. Gestión de usuarios, dependencias, periodos, evaluaciones, reportes y configuración general.',
   colorBarra: 'border-l-red-600',

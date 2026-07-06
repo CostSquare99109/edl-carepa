@@ -51,75 +51,80 @@ class ConcertacionService
 
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
- if (!in_array($rolActivo, ['admin']) &&
- (int) $concertacion['evaluador_id'] !== $user['id'] &&
+if ((int) $concertacion['evaluador_id'] !== $user['id'] &&
  (int) $concertacion['evaluado_id'] !== $user['id']
- ) {
+) {
  ResponseHelper::forbidden();
+}
+
+return $concertacion;
  }
 
- return $concertacion;
- }
+  public function crear(array $datos): int
+  {
+  $user = AuthMiddleware::user();
+  $rolActivo = AuthMiddleware::rolActivo();
 
- public function crear(array $datos): int
- {
- $user = AuthMiddleware::user();
- $rolActivo = AuthMiddleware::rolActivo();
+if ($rolActivo !== 'evaluador') {
+ ResponseHelper::forbidden('Solo evaluadores pueden crear concertaciones');
+   }
 
- if (!in_array($rolActivo, ['admin', 'evaluador'])) {
- ResponseHelper::forbidden('Solo administradores o evaluadores pueden crear concertaciones');
- }
+   $periodoId = $datos['periodo_id'] ?? null;
+   $evaluadoId = $datos['evaluado_id'] ?? null;
+   $evaluadorId = $datos['evaluador_id'] ?? $user['id'];
+   $tipoConcertacion = $datos['tipo_concertacion'] ?? 'concertacion_bilateral';
+   $evaluacionId = $datos['evaluacion_id'] ?? null;
 
-  $periodoId = $datos['periodo_id'] ?? null;
-  $evaluadoId = $datos['evaluado_id'] ?? null;
-  $evaluadorId = $datos['evaluador_id'] ?? $user['id'];
-  $tipoConcertacion = $datos['tipo_concertacion'] ?? 'concertacion_bilateral';
+   if (!$periodoId || !$evaluadoId) {
+    ResponseHelper::error('periodo_id y evaluado_id son requeridos', 422);
+   }
 
-  if (!$periodoId || !$evaluadoId) {
-   ResponseHelper::error('periodo_id y evaluado_id son requeridos', 422);
-  }
-
-  $evaluado = $this->usuarioRepo->buscarPorId((int) $evaluadoId);
-  if ($evaluado && !empty($evaluado['en_periodo_prueba']) && (bool) $evaluado['en_periodo_prueba']) {
-   $fechaInicio = $evaluado['fecha_posesion'] ?? $evaluado['creado_en'] ?? null;
-   if ($fechaInicio) {
-    $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
-    if ($dias <= 120) {
-     ResponseHelper::error('El funcionario se encuentra en periodo de prueba (menos de 4 meses). No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
+   $evaluado = $this->usuarioRepo->buscarPorId((int) $evaluadoId);
+   if ($evaluado && !empty($evaluado['en_periodo_prueba']) && (bool) $evaluado['en_periodo_prueba']) {
+    $fechaInicio = $evaluado['fecha_posesion'] ?? $evaluado['creado_en'] ?? null;
+    if ($fechaInicio) {
+     $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
+     if ($dias <= 120) {
+      ResponseHelper::error('El funcionario se encuentra en periodo de prueba (menos de 4 meses). No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
+     }
     }
    }
+
+   $estado = $datos['estado'] ?? 'pendiente';
+   $estadosValidos = ['pendiente', 'concertada', 'propuesta_evaluado', 'aprobada_evaluado', 'rechazada_evaluado', 'fijada'];
+   if (!in_array($estado, $estadosValidos)) {
+    $estado = 'pendiente';
+   }
+
+   $tiposConcertacionValidos = ['concertacion_bilateral', 'fijados_evaluador'];
+   if (!in_array($tipoConcertacion, $tiposConcertacionValidos)) {
+    $tipoConcertacion = 'concertacion_bilateral';
+   }
+
+   $crearDatos = [
+    'periodo_id' => $periodoId,
+    'evaluador_id' => $evaluadorId,
+    'evaluado_id' => $evaluadoId,
+    'tipo_concertacion' => $tipoConcertacion,
+    'estado' => $estado,
+    'observaciones' => $datos['observaciones'] ?? null,
+  ];
+
+   $id = $this->concertacionRepo->crear($crearDatos);
+
+   $pdo = Database::getInstance();
+   if ($evaluacionId) {
+    $stmt = $pdo->prepare("UPDATE evaluaciones SET concertacion_id = ? WHERE id = ? AND eliminado_en IS NULL");
+    $stmt->execute([$id, $evaluacionId]);
+   } else {
+    $stmt = $pdo->prepare("UPDATE evaluaciones SET concertacion_id = ? WHERE evaluado_id = ? AND periodo_id = ? AND concertacion_id IS NULL AND eliminado_en IS NULL LIMIT 1");
+    $stmt->execute([$id, $evaluadoId, $periodoId]);
+   }
+
+  AuditoriaService::registrar('crear_concertacion', 'concertaciones', $id);
+
+  return $id;
   }
-
-  $estado = $datos['estado'] ?? 'pendiente';
-  $estadosValidos = ['pendiente', 'concertada', 'propuesta_evaluado', 'aprobada_evaluado', 'rechazada_evaluado', 'fijada'];
-  if (!in_array($estado, $estadosValidos)) {
-   $estado = 'pendiente';
-  }
-
-  $tiposConcertacionValidos = ['concertacion_bilateral', 'fijados_evaluador'];
-  if (!in_array($tipoConcertacion, $tiposConcertacionValidos)) {
-   $tipoConcertacion = 'concertacion_bilateral';
-  }
-
-  $crearDatos = [
-   'periodo_id' => $periodoId,
-   'evaluador_id' => $evaluadorId,
-   'evaluado_id' => $evaluadoId,
-   'tipo_concertacion' => $tipoConcertacion,
-   'estado' => $estado,
-   'observaciones' => $datos['observaciones'] ?? null,
- ];
-
-  $id = $this->concertacionRepo->crear($crearDatos);
-
-  $pdo = Database::getInstance();
-  $stmt = $pdo->prepare("UPDATE evaluaciones SET concertacion_id = ? WHERE evaluado_id = ? AND periodo_id = ? AND concertacion_id IS NULL AND eliminado_en IS NULL LIMIT 1");
-  $stmt->execute([$id, $evaluadoId, $periodoId]);
-
- AuditoriaService::registrar('crear_concertacion', 'concertaciones', $id);
-
- return $id;
- }
 
  public function actualizar(int $id, array $datos): void
  {
@@ -131,8 +136,7 @@ class ConcertacionService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin']) &&
- (int) $concertacion['evaluador_id'] !== $user['id']) {
+ if ((int) $concertacion['evaluador_id'] !== $user['id']) {
  ResponseHelper::forbidden();
  }
 
@@ -155,33 +159,51 @@ class ConcertacionService
  $user = AuthMiddleware::user();
  $rolActivo = AuthMiddleware::rolActivo();
 
- if (!in_array($rolActivo, ['admin', 'evaluador'])) {
- ResponseHelper::forbidden('Solo administradores o evaluadores pueden fijar compromisos');
+ if ($rolActivo !== 'evaluador') {
+ ResponseHelper::forbidden('Solo evaluadores pueden fijar compromisos');
  }
 
- if ($concertacion['estado'] === 'concertada') {
- ResponseHelper::error('Los compromisos ya estan concertados', 400);
- }
+if ($concertacion['estado'] === 'concertada') {
+  ResponseHelper::error('Los compromisos ya estan concertados', 400);
+  }
 
- $compromisos = $this->concertacionRepo->compromisosPorConcertacion($id);
+  // Verificar Paquete 1 (funcionales)
+  $compromisos = $this->concertacionRepo->compromisosPorConcertacion($id);
 
- $compromisosNoAprobados = array_filter($compromisos, function ($c) {
- return $c['estado'] !== 'aprobado' && $c['estado'] !== 'cumplido' && $c['estado'] !== 'incumplido';
- });
+  $compromisosNoAprobados = array_filter($compromisos, function ($c) {
+  return $c['estado'] !== 'aprobado' && $c['estado'] !== 'cumplido' && $c['estado'] !== 'incumplido';
+  });
 
- if (count($compromisosNoAprobados) > 0) {
- ResponseHelper::error('No se pueden fijar los compromisos. Todos deben estar aprobados bilateralmente antes de fijar la concertacion.', 422);
- }
+  if (count($compromisosNoAprobados) > 0) {
+  ResponseHelper::error('No se pueden fijar los compromisos funcionales. Todos deben estar aprobados bilateralmente antes de fijar la concertacion.', 422);
+  }
 
- if (empty($compromisos)) {
+  // Verificar Paquete 2 (comportamentales)
+  $compromisosComp = $this->concertacionRepo->compromisosComportamentalesPorConcertacion($id);
+  $compromisosCompNoAprobados = array_filter($compromisosComp, function ($c) {
+  return $c['estado'] !== 'aprobado' && $c['estado'] !== 'cumplido' && $c['estado'] !== 'incumplido';
+  });
+
+  if (count($compromisosCompNoAprobados) > 0) {
+  ResponseHelper::error('No se pueden fijar los compromisos comportamentales. Todos deben estar aprobados bilateralmente antes de fijar la concertacion.', 422);
+  }
+
+if (empty($compromisos)) {
   ResponseHelper::error('No hay compromisos registrados para fijar', 422);
- }
+  }
 
- $compromisoService = new CompromisoService();
- $validacion = $compromisoService->validarCompromisosAntesDeFirmar($id, (int) $concertacion['evaluado_id']);
- if (!$validacion['valido']) {
-  ResponseHelper::error('No se pueden fijar los compromisos. ' . implode(' | ', $validacion['errores']), 422);
- }
+  // Validar Paquete 1 (funcionales) y Paquete 2 (comportamentales) por separado.
+  $compromisoService = new CompromisoService();
+  $validacionFunc = $compromisoService->validarCompromisosAntesDeFirmar($id, (int) $concertacion['evaluado_id']);
+  if (!$validacionFunc['valido']) {
+  ResponseHelper::error('No se pueden fijar los compromisos funcionales. ' . implode(' | ', $validacionFunc['errores']), 422);
+  }
+
+  $compromisoCompService = new CompromisoComportamentalService();
+  $validacionComp = $compromisoCompService->validarCompromisosAntesDeFirmar($id, (int) $concertacion['evaluado_id']);
+  if (!$validacionComp['valido']) {
+  ResponseHelper::error('No se pueden fijar los compromisos comportamentales. ' . implode(' | ', $validacionComp['errores']), 422);
+  }
 
  $this->concertacionRepo->actualizar($id, [
  'estado' => 'concertada',
@@ -260,7 +282,7 @@ class ConcertacionService
 
  $concertacion = $this->concertacionRepo->buscarPorId($concertacionId);
  $user = AuthMiddleware::user();
- if ((int) $concertacion['evaluador_id'] !== (int) $user['id'] && AuthMiddleware::rolActivo() !== 'admin') {
+ if ((int) $concertacion['evaluador_id'] !== (int) $user['id']) {
  ResponseHelper::forbidden('Solo el evaluador asignado puede fijar unilateralmente los compromisos');
  }
 
@@ -292,7 +314,7 @@ class ConcertacionService
 
  $this->concertacionRepo->actualizar($concertacionId, $actualizar);
 
- // Aprueba los compromisos que aun no estaban finalizados.
+ // Paquete 1: aprobar los compromisos funcionales que aun no estaban finalizados.
  $compromisos = $this->concertacionRepo->compromisosPorConcertacion($concertacionId);
  foreach ($compromisos as $c) {
  if ($c['estado'] !== 'aprobado' && $c['estado'] !== 'cumplido' && $c['estado'] !== 'incumplido') {
@@ -302,6 +324,17 @@ class ConcertacionService
  ]);
  }
  }
+
+ // Paquete 2: aprobar los compromisos comportamentales que aun no estaban finalizados.
+ $pdo = Database::getInstance();
+  $stmtCompP2 = $pdo->prepare("
+  UPDATE compromisos
+  SET estado = 'aprobado', propuesto_por_jefe_entidad = 1, actualizado_en = NOW()
+  WHERE concertacion_id = :cid AND eliminado_en IS NULL
+  AND tipo = 'comportamental'
+  AND estado NOT IN ('aprobado', 'cumplido', 'incumplido', 'rechazado')
+  ");
+ $stmtCompP2->execute(['cid' => $concertacionId]);
 
  // Notificar al evaluado y al jefe de personal (Art. 33 Res. 1760/2010).
  $pdo = Database::getInstance();
@@ -315,25 +348,7 @@ class ConcertacionService
  'msg' => $mensaje,
  ]);
 
- $stmtJefe = $pdo->prepare(
- "SELECT u.id FROM usuarios u
- INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
- INNER JOIN roles r ON r.id = ur.rol_id
- WHERE r.codigo = 'admin' AND u.estado = 'activo' AND u.eliminado_en IS NULL
- LIMIT 1"
- );
- $stmtJefe->execute();
- $jefe = $stmtJefe->fetch();
- if (!empty($jefe['id'])) {
- $stmtNotif2 = $pdo->prepare(
- "INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
- VALUES (:uid, 'info', 'Fijacion unilateral registrada', :msg, NOW())"
- );
- $stmtNotif2->execute([
- 'uid' => $jefe['id'],
- 'msg' => 'El evaluador ID ' . $concertacion['evaluador_id'] . ' registro fijacion unilateral de compromisos para el evaluado ID ' . $concertacion['evaluado_id'] . '. Motivo: ' . $motivo,
- ]);
- }
+ 
 
  AuditoriaService::registrar('fijar_unilateral', 'concertaciones', $concertacionId, null, [
  'motivo' => $motivo,

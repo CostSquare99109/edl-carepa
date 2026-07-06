@@ -69,12 +69,16 @@ export default function AjustarCompromisos() {
   async function cargarCompromisos() {
     setLoading(true);
     try {
-      const res = await api.get<any>(`/compromisos/evaluacion/${evaluacionId}`);
-      // Solo compromisos concertados (aprobados o en progreso) se pueden ajustar
-      const funcs = (res?.funcionales || []).filter((c: CompromisoFuncional) =>
+      // Paquete 1 (funcionales) y Paquete 2 (comportamentales) independientes.
+      const [funcRes, compRes] = await Promise.all([
+        api.get<any>(`/compromisos/evaluacion/${evaluacionId}`),
+        api.get<any>(`/compromisos-comportamentales/evaluacion/${evaluacionId}`),
+      ]);
+      const funcs = (funcRes?.funcionales || []).filter((c: CompromisoFuncional) =>
         ['aprobado', 'en_progreso', 'enviado', 'en_revision', 'devuelto'].includes(c.estado)
       );
-      const comps = (res?.comportamentales || []).filter((c: CompromisoComportamental) =>
+      const compLista = Array.isArray(compRes) ? compRes : (compRes?.data || []);
+      const comps = compLista.filter((c: CompromisoComportamental) =>
         ['aprobado', 'en_progreso', 'enviado', 'en_revision', 'devuelto'].includes(c.estado)
       );
       setFuncionales(funcs);

@@ -21,7 +21,7 @@ class AusentismoRepository extends BaseRepository
         $total = (int) $countStmt->fetchColumn();
 
         $offset = ($pagina - 1) * $porPagina;
-        $stmt = $this->pdo->prepare("SELECT a.*, TRIM(CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido)) as funcionario_nombre FROM ausentismos a INNER JOIN usuarios u ON u.id = a.funcionario_id WHERE {$where} ORDER BY a.id DESC LIMIT ? OFFSET ?");
+        $stmt = $this->pdo->prepare("SELECT a.*, u.documento as funcionario_documento, TRIM(CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido)) as funcionario_nombre FROM ausentismos a INNER JOIN usuarios u ON u.id = a.funcionario_id WHERE {$where} ORDER BY a.id DESC LIMIT ? OFFSET ?");
         $params[] = $porPagina;
         $params[] = $offset;
         $stmt->execute($params);

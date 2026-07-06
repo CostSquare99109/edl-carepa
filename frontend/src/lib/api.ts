@@ -1,4 +1,4 @@
-export const API_BASE = '/api/v1';
+export const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 
 const DEBUG = import.meta.env.DEV;
 
@@ -159,68 +159,107 @@ class ApiClient {
  return this.request<T>('DELETE', path);
  }
 
- async postFormData<T>(path: string, formData: FormData): Promise<T> {
- const opts: RequestInit = {
- method: 'POST',
- headers: {} as HeadersInit,
- };
- const token = this.getToken();
- if (token) (opts.headers as Record<string,string>)['Authorization'] = `Bearer ${token}`;
- const csrf = this.getCsrfToken();
- if (csrf) (opts.headers as Record<string,string>)['X-CSRF-Token'] = csrf;
- opts.body = formData;
+  async postFormData<T>(path: string, formData: FormData): Promise<T> {
+  const opts: RequestInit = {
+  method: 'POST',
+  headers: {} as HeadersInit,
+  };
+  const token = this.getToken();
+  if (token) (opts.headers as Record<string,string>)['Authorization'] = `Bearer ${token}`;
+  const csrf = this.getCsrfToken();
+  if (csrf) (opts.headers as Record<string,string>)['X-CSRF-Token'] = csrf;
+  opts.body = formData;
 
- let res: Response;
- try {
- res = await fetch(`${API_BASE}${path}`, opts);
- } catch {
- throw new Error('No se puede conectar con el servidor.');
- }
+  let res: Response;
+  try {
+  res = await fetch(`${API_BASE}${path}`, opts);
+  } catch {
+  throw new Error('No se puede conectar con el servidor.');
+  }
 
- const text = await res.text();
- if (!text) throw new Error('El servidor no respondio.');
+  const text = await res.text();
+  if (!text) throw new Error('El servidor no respondio.');
 
- let json: ApiResponse<T>;
- try {
- json = JSON.parse(text);
- } catch {
- throw new Error('Respuesta invalida del servidor.');
- }
+  let json: ApiResponse<T>;
+  try {
+  json = JSON.parse(text);
+  } catch {
+  throw new Error('Respuesta invalida del servidor.');
+  }
 
- if (res.status === 401) {
- localStorage.removeItem('edl_token');
- localStorage.removeItem('edl_user');
- window.location.href = '/login';
- throw new Error('Sesion expirada');
- }
+  if (res.status === 401) {
+  localStorage.removeItem('edl_token');
+  localStorage.removeItem('edl_user');
+  window.location.href = '/login';
+  throw new Error('Sesion expirada');
+  }
 
- if (json.code !== '01') {
- throw new Error(json.message || 'Error del servidor');
- }
+  if (json.code !== '01') {
+  throw new Error(json.message || 'Error del servidor');
+  }
 
- return json.data;
- }
+  return json.data;
+  }
 
- download(path: string, filename?: string): void {
- const token = this.getToken();
- const url = `${API_BASE}${path}`;
- const link = document.createElement('a');
- link.href = url;
- if (token) {
- fetch(url, { headers: { 'Authorization': `Bearer ${token}` } })
- .then(r => r.blob())
- .then(blob => {
- const blobUrl = URL.createObjectURL(blob);
- link.href = blobUrl;
- link.download = filename || 'reporte.csv';
- link.click();
- URL.revokeObjectURL(blobUrl);
- })
- .catch(() => { window.open(url, '_blank'); });
- } else {
- link.click();
- }
- }
+  async putFormData<T>(path: string, formData: FormData): Promise<T> {
+  const opts: RequestInit = {
+  method: 'PUT',
+  headers: {} as HeadersInit,
+  };
+  const token = this.getToken();
+  if (token) (opts.headers as Record<string,string>)['Authorization'] = `Bearer ${token}`;
+  const csrf = this.getCsrfToken();
+  if (csrf) (opts.headers as Record<string,string>)['X-CSRF-Token'] = csrf;
+  opts.body = formData;
+
+  let res: Response;
+  try {
+  res = await fetch(`${API_BASE}${path}`, opts);
+  } catch {
+  throw new Error('No se puede conectar con el servidor.');
+  }
+
+  const text = await res.text();
+  if (!text) throw new Error('El servidor no respondio.');
+
+  let json: ApiResponse<T>;
+  try {
+  json = JSON.parse(text);
+  } catch {
+  throw new Error('Respuesta invalida del servidor.');
+  }
+
+  if (json.code !== '01') {
+  throw new Error(json.message || 'Error del servidor');
+  }
+
+  return json.data;
+  }
+
+  /**
+   * Devuelve la URL firmada para descargar el archivo adjunto de una evidencia.
+   * El navegador anade automaticamente el header Authorization porque va por
+   * api.getBlob -> que adjunta Bearer.
+   */
+  archivoUrl(id: number): string {
+  return `${API_BASE}/evidencias/archivo/${id}`;
+  }
+
+  download(path: string, filename?: string): void {
+    const url = this.downloadUrl(path);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'reporte.pdf';
+    link.click();
+  }
+
+  downloadUrl(path: string): string {
+    const token = this.getToken();
+    const url = `${API_BASE}${path}`;
+    if (!token) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}token=${encodeURIComponent(token)}`;
+  }
 
  async getBlob(path: string): Promise<Blob> {
  const token = this.getToken();

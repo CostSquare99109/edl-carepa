@@ -49,11 +49,12 @@ interface Dependencia {
 }
 
 const ROLES_SISTEMA = [
-  { codigo: 'jefe_dependencia', nombre: 'Jefe de Dependencia' },
   { codigo: 'admin_carepa', nombre: 'Administrador CAREPA' },
+  { codigo: 'jefe_dependencia', nombre: 'Jefe de Dependencia' },
+  { codigo: 'comision_evaluadora', nombre: 'Comisión Evaluadora' },
   { codigo: 'evaluador', nombre: 'Evaluador' },
   { codigo: 'evaluado', nombre: 'Evaluado' },
-  { codigo: 'comision_evaluadora', nombre: 'Comisión Evaluadora' },
+  { codigo: 'cargador', nombre: 'Cargador' },
 ];
 
 // Constantes alineadas con el enum del schema SQL
@@ -106,11 +107,11 @@ const TIPOS_NOMBRAMIENTO = [
 ];
 
 const MOTIVOS_FECHA_INICIO = [
-  { value: 'terminacion_periodo_prueba', label: 'Terminación período de prueba' },
+  { value: 'terminacion_periodo_prueba', label: 'Terminación Periodo de prueba' },
   { value: 'terminacion_vacancia_temporal', label: 'Terminación de la vacancia temporal' },
   { value: 'regreso_vacaciones', label: 'Regreso de vacaciones' },
   { value: 'regreso_incapacidad', label: 'Regreso de incapacidad' },
-  { value: 'regreso_encargo', label: 'Regreso de encargo' },
+  { value: 'regreso_encargo', label: 'Regreso de un encargo' },
   { value: 'regreso_comision_servicios', label: 'Regreso de comisión de servicios' },
   { value: 'regreso_licencia', label: 'Regreso de licencia' },
   { value: 'suspension_ejercicio_cargo', label: 'Suspensión del ejercicio del cargo' },
@@ -169,7 +170,7 @@ export default function AdminUsuarios() {
     roles: ['evaluado'] as string[],
   });
 
-  const ROLES_VALIDOS = ['jefe_dependencia', 'admin_carepa', 'evaluador', 'evaluado', 'comision_evaluadora'];
+  const ROLES_VALIDOS = ['jefe_dependencia', 'admin_carepa', 'evaluador', 'evaluado', 'comision_evaluadora', 'cargador'];
 
   const cargar = useCallback(async () => {
     setCargando(true); setError('');
@@ -196,7 +197,9 @@ export default function AdminUsuarios() {
     try {
       const res = await api.get<PaginatedData<Dependencia>>('/dependencias?por_pagina=100');
       setDependencias(res.data || []);
-    } catch {}
+    } catch (e) {
+      console.error('Error cargando dependencias:', e);
+    }
   }, []);
 
   useEffect(() => { cargar(); }, [cargar]);
@@ -224,7 +227,7 @@ export default function AdminUsuarios() {
     nivel: '',
     naturaleza: '',
     tipo_nombramiento: '',
-    dependencia_id: '',
+    dependencia_id: rolActivo === 'jefe_dependencia' && usuario?.dependencia_id ? String(usuario.dependencia_id) : '',
     denominacion_empleo: '',
     codigo_empleo: '',
     grado_empleo: '',
@@ -241,7 +244,11 @@ export default function AdminUsuarios() {
 
   const abrirCrear = () => {
     setEditando(null);
-    setForm(resetForm());
+    setForm({
+      ...resetForm(),
+      en_periodo_prueba: rolActivo === 'jefe_dependencia' ? -1 : 0,
+      evaluacion_inicio_febrero: rolActivo === 'jefe_dependencia' ? -1 : 1,
+    });
     setModalAbierto(true);
   };
 
@@ -267,16 +274,16 @@ export default function AdminUsuarios() {
       nivel: u.nivel || '',
       naturaleza: u.naturaleza || '',
       tipo_nombramiento: u.tipo_nombramiento || '',
-      dependencia_id: u.dependencia_id ? String(u.dependencia_id) : '',
+      dependencia_id: rolActivo === 'jefe_dependencia' && usuario?.dependencia_id ? String(usuario.dependencia_id) : (u.dependencia_id ? String(u.dependencia_id) : ''),
       denominacion_empleo: u.denominacion_empleo || '',
       codigo_empleo: u.codigo_empleo || '',
       grado_empleo: u.grado_empleo || '',
       es_evaluador_y_evaluado: u.es_evaluador_y_evaluado || 0,
       dependencia_evaluacion_id: u.dependencia_evaluacion_id ? String(u.dependencia_evaluacion_id) : '',
-      en_periodo_prueba: u.en_periodo_prueba || 0,
+      en_periodo_prueba: u.en_periodo_prueba,
       fecha_posesion: u.fecha_posesion || '',
       proposito_principal_empleo: u.proposito_principal_empleo || '',
-      evaluacion_inicio_febrero: u.evaluacion_inicio_febrero ?? 1,
+      evaluacion_inicio_febrero: u.evaluacion_inicio_febrero,
       fecha_inicio_evaluacion: u.fecha_inicio_evaluacion || '',
       motivo_fecha_inicio_diferente: u.motivo_fecha_inicio_diferente || '',
       roles: u.roles?.map(r => r.codigo) || ['evaluado'],
@@ -290,8 +297,10 @@ export default function AdminUsuarios() {
     if (!form.primer_apellido.trim()) return 'El primer apellido es requerido';
     if (!form.email.trim()) return 'El correo electrónico es requerido';
     if (form.email !== form.email_confirmar) return 'El correo y la confirmación del correo no coinciden';
-    if (!editando && !form.password) return 'La contraseña es requerida para usuarios nuevos';
-    if (!editando && form.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    if (rolActivo !== 'jefe_dependencia') {
+      if (!editando && !form.password) return 'La contraseña es requerida para usuarios nuevos';
+      if (!editando && form.password.length < 8) return 'La contraseña debe tener al menos 8 caracteres';
+    }
     if (form.es_contratista === 0) {
       if (!form.nivel && !editando) return 'El nivel es requerido para servidores (no contratistas)';
       if (!form.naturaleza && !editando) return 'La naturaleza es requerida para servidores (no contratistas)';
@@ -305,9 +314,16 @@ export default function AdminUsuarios() {
     if (form.en_periodo_prueba === 1 && !form.fecha_posesion) {
       return 'Si el usuario está en periodo de prueba, debe indicar la fecha de posesión';
     }
-    if (form.evaluacion_inicio_febrero === 0) {
-      if (!form.fecha_inicio_evaluacion) return 'Debe indicar la fecha de inicio del período de evaluación';
-      if (!form.motivo_fecha_inicio_diferente) return 'Debe indicar el motivo de fecha de inicio diferente';
+    if (rolActivo === 'jefe_dependencia') {
+      if (form.evaluacion_inicio_febrero === 0) {
+        if (!form.fecha_inicio_evaluacion) return 'Debe indicar la fecha de inicio del período de evaluación';
+        if (!form.motivo_fecha_inicio_diferente) return 'Debe indicar el motivo de fecha de inicio diferente';
+      }
+    } else {
+      if (form.evaluacion_inicio_febrero === 0) {
+        if (!form.fecha_inicio_evaluacion) return 'Debe indicar la fecha de inicio del período de evaluación';
+        if (!form.motivo_fecha_inicio_diferente) return 'Debe indicar el motivo de fecha de inicio diferente';
+      }
     }
     return null;
   }
@@ -328,11 +344,8 @@ export default function AdminUsuarios() {
         segundo_apellido: form.segundo_apellido.trim() || null,
         email: form.email.trim(),
         genero: form.genero || null,
-        departamento: form.departamento || null,
-        municipio: form.municipio.trim() || null,
         telefono1: form.telefono1.trim() || null,
         telefono2: form.telefono2.trim() || null,
-        estado: form.estado,
         es_contratista: form.es_contratista,
         nivel: form.es_contratista ? null : (form.nivel || null),
         naturaleza: form.es_contratista ? null : (form.naturaleza || null),
@@ -343,16 +356,24 @@ export default function AdminUsuarios() {
         grado_empleo: form.grado_empleo.trim() || null,
         es_evaluador_y_evaluado: form.es_evaluador_y_evaluado,
         dependencia_evaluacion_id: form.dependencia_evaluacion_id ? Number(form.dependencia_evaluacion_id) : null,
-        en_periodo_prueba: form.en_periodo_prueba,
+        en_periodo_prueba: form.en_periodo_prueba === -1 ? 0 : form.en_periodo_prueba,
         fecha_posesion: form.fecha_posesion || null,
         proposito_principal_empleo: form.proposito_principal_empleo.trim() || null,
-        evaluacion_inicio_febrero: form.evaluacion_inicio_febrero,
-        fecha_inicio_evaluacion: form.fecha_inicio_evaluacion || null,
-        motivo_fecha_inicio_diferente: form.motivo_fecha_inicio_diferente || null,
-        roles: form.roles,
+        evaluacion_inicio_febrero: form.evaluacion_inicio_febrero === -1 ? 1 : form.evaluacion_inicio_febrero,
       };
 
-      if (form.password) {
+      if (rolActivo !== 'jefe_dependencia') {
+        payload.departamento = form.departamento || null;
+        payload.municipio = form.municipio.trim() || null;
+        payload.estado = form.estado;
+      }
+
+      payload.fecha_inicio_evaluacion = form.fecha_inicio_evaluacion || null;
+      payload.motivo_fecha_inicio_diferente = form.motivo_fecha_inicio_diferente || null;
+
+      if (rolActivo === 'jefe_dependencia' && !editando) {
+        payload.password = form.documento.trim();
+      } else if (form.password) {
         payload.password = form.password;
       }
 
@@ -368,13 +389,6 @@ export default function AdminUsuarios() {
       toast.error(e instanceof Error ? e.message : 'Error al guardar usuario');
     }
     setGuardando(false);
-  };
-
-  const toggleRol = (codigo: string) => {
-    setForm(prev => ({
-      ...prev,
-      roles: prev.roles.includes(codigo) ? prev.roles.filter(r => r !== codigo) : [...prev.roles, codigo],
-    }));
   };
 
   const toggleEstado = async (u: Usuario) => {
@@ -393,9 +407,20 @@ export default function AdminUsuarios() {
     }
   };
 
+  const eliminarUsuario = async (u: Usuario) => {
+    if (!confirm(`¿Eliminar usuario "${u.primer_nombre} ${u.primer_apellido}" (${u.documento})? Esta acción no se puede deshacer.`)) return;
+    try {
+      await api.delete(`/usuarios/${u.id}`);
+      toast.success(`Usuario ${u.primer_nombre} ${u.primer_apellido} eliminado correctamente`);
+      cargar();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Error al eliminar usuario');
+    }
+  };
+
   const totalPages = Math.ceil(total / 20);
 
-  const columns: DataTableColumn<Usuario>[] = [
+  const columnsBase: DataTableColumn<Usuario>[] = [
     { key: 'documento', header: 'Documento', render: (u) => <span className="font-mono text-xs">{u.documento}</span> },
     {
       key: 'nombre',
@@ -405,20 +430,25 @@ export default function AdminUsuarios() {
     { key: 'email', header: 'Email', render: (u) => u.email || <span className="text-inst-texto-claro">—</span> },
     { key: 'cargo', header: 'Cargo', render: (u) => u.denominacion_empleo || <span className="text-inst-texto-claro">—</span> },
     { key: 'grado', header: 'Grado', render: (u) => u.grado_empleo || <span className="text-inst-texto-claro">—</span> },
-    { key: 'dependencia', header: 'Dependencia', render: (u) => u.dependencia_nombre || <span className="text-inst-texto-claro">—</span> },
+    { key: 'dependencia', header: 'Dependencia', render: (u) => u.dependencia_nombre || <span className="text-inst-texto-claro">Sin dependencia</span> },
     {
       key: 'roles',
       header: 'Roles',
-      render: (u) => (
-        <div className="flex gap-1 flex-wrap">
-          {(u.roles || []).map((r) => (
-            <Badge key={r.codigo} tone={r.codigo.startsWith('admin') ? 'danger' : r.codigo === 'evaluador' ? 'success' : 'info'}>
-              {r.nombre || r.codigo}
-            </Badge>
-          ))}
-          {(!u.roles || u.roles.length === 0) ? <span className="text-xs text-inst-texto-claro">Sin rol</span> : null}
-        </div>
-      ),
+      render: (u) => {
+        const rolesVisibles = rolActivo === 'jefe_dependencia'
+          ? (u.roles || []).filter(r => !['jefe_dependencia', 'admin_carepa'].includes(r.codigo))
+          : (u.roles || []);
+        return (
+          <div className="flex gap-1 flex-wrap">
+            {rolesVisibles.map((r) => (
+              <Badge key={r.codigo} tone={r.codigo.startsWith('admin') ? 'danger' : r.codigo === 'evaluador' ? 'success' : 'info'}>
+                {r.nombre || r.codigo}
+              </Badge>
+            ))}
+            {rolesVisibles.length === 0 ? <span className="text-xs text-inst-texto-claro">Sin rol</span> : null}
+          </div>
+        );
+      },
     },
     {
       key: 'estado',
@@ -438,7 +468,7 @@ export default function AdminUsuarios() {
     },
     {
       key: 'acciones',
-      header: 'Acciones',
+      header: 'Opciones',
       align: 'center',
       render: (u) => (
         <div className="flex gap-1 justify-center">
@@ -457,10 +487,24 @@ export default function AdminUsuarios() {
               <span className="material-icons text-base">lock_reset</span>
             </Button>
           </Tooltip>
+          <Tooltip content="Eliminar usuario">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => eliminarUsuario(u)}
+              aria-label={`Eliminar usuario ${u.primer_nombre} ${u.primer_apellido}`}
+              className="text-inst-rojo hover:bg-red-50"
+            >
+              <span className="material-icons text-base">delete</span>
+            </Button>
+          </Tooltip>
         </div>
       ),
     },
   ];
+
+  const ocultarColumnas = rolActivo === 'jefe_dependencia' ? ['email', 'grado'] : [];
+  const columns = columnsBase.filter(c => !ocultarColumnas.includes(c.key));
 
   return (
     <div className="space-y-6 p-4 lg:p-6">
@@ -492,7 +536,9 @@ export default function AdminUsuarios() {
               value={filtroRol}
               onChange={e => { setFiltroRol(e.target.value); setPagina(1); }}
               placeholder="Todos los roles"
-              options={ROLES_SISTEMA.map(r => ({ value: r.codigo, label: r.nombre }))}
+              options={ROLES_SISTEMA
+                .filter(r => rolActivo !== 'jefe_dependencia' || !['jefe_dependencia', 'admin_carepa'].includes(r.codigo))
+                .map(r => ({ value: r.codigo, label: r.nombre }))}
             />
           </div>
         </div>
@@ -629,25 +675,27 @@ export default function AdminUsuarios() {
               </div>
             </div>
 
-            {/* SECCIÓN 2: UBICACIÓN Y CONTACTO */}
+            {/* SECCIÓN 2: CONTACTO */}
             <div className="edl-card border-l-4 border-l-inst-azul">
-              <h4 className="font-heading font-semibold text-inst-azul mb-3">2. Ubicación y contacto</h4>
+              <h4 className="font-heading font-semibold text-inst-azul mb-3">2. Contacto</h4>
+              {rolActivo !== 'jefe_dependencia' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                  <Select
+                    label="Departamento"
+                    value={form.departamento}
+                    onChange={e => setForm({ ...form, departamento: e.target.value })}
+                    options={DEPARTAMENTOS.map(d => ({ value: d, label: d }))}
+                  />
+                  <Input
+                    label="Municipio"
+                    type="text"
+                    value={form.municipio}
+                    onChange={e => setForm({ ...form, municipio: e.target.value })}
+                    placeholder="Ej: Carepa"
+                  />
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Select
-                  label="Departamento"
-                  value={form.departamento}
-                  onChange={e => setForm({ ...form, departamento: e.target.value })}
-                  options={DEPARTAMENTOS.map(d => ({ value: d, label: d }))}
-                />
-                <Input
-                  label="Municipio"
-                  type="text"
-                  value={form.municipio}
-                  onChange={e => setForm({ ...form, municipio: e.target.value })}
-                  placeholder="Ej: Carepa"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
                 <Input
                   label="Correo electrónico"
                   type="email"
@@ -680,14 +728,21 @@ export default function AdminUsuarios() {
                   placeholder="Opcional"
                 />
               </div>
-              <Input
-                className="mt-3"
-                label={`Contraseña${editando ? ' (dejar vacío para no cambiar)' : ' *'}`}
-                type="password"
-                value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                helperText={!editando ? 'Mínimo 8 caracteres' : 'Solo completar si desea cambiar la contraseña'}
-              />
+              {rolActivo !== 'jefe_dependencia' && (
+                <Input
+                  className="mt-3"
+                  label={`Contraseña${editando ? ' (dejar vacío para no cambiar)' : ' *'}`}
+                  type="password"
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  helperText={!editando ? 'Mínimo 8 caracteres' : 'Solo completar si desea cambiar la contraseña'}
+                />
+              )}
+              {rolActivo === 'jefe_dependencia' && !editando && (
+                <p className="text-xs text-inst-texto-claro mt-3">
+                  La contraseña se generará automáticamente con el número de documento.
+                </p>
+              )}
             </div>
 
             {/* SECCIÓN 3: ¿ES CONTRATISTA? */}
@@ -741,8 +796,12 @@ export default function AdminUsuarios() {
                     label="Dependencia *"
                     value={form.dependencia_id}
                     onChange={e => setForm({ ...form, dependencia_id: e.target.value })}
-                    placeholder="Seleccionar dependencia..."
-                    options={dependencias.map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))}
+                    placeholder={dependencias.length === 0 ? 'Cargando dependencias...' : 'Seleccionar dependencia...'}
+                    options={
+                      rolActivo === 'jefe_dependencia' && usuario?.dependencia_id
+                        ? dependencias.filter(d => d.id === usuario.dependencia_id).map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))
+                        : dependencias.map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))
+                    }
                   />
                   <Input
                     label="Denominación del empleo *"
@@ -769,36 +828,15 @@ export default function AdminUsuarios() {
               </div>
             )}
 
-            {/* SECCIÓN 5: ROLES (ADMIN/EVALUADOR/EVALUADO + ES EVALUADOR Y EVALUADO) */}
+            {/* SECCIÓN 5: ROLES */}
             <div className="edl-card border-l-4 border-l-inst-azul">
               <h4 className="font-heading font-semibold text-inst-azul mb-3">5. Roles y responsabilidades</h4>
               <p className="text-xs text-inst-texto-claro mb-3">
-                Asigne uno o más roles al usuario. La aplicación asignará automáticamente los roles según la naturaleza del cargo.
+                El rol se asigna automáticamente según la naturaleza del cargo:{' '}
+                <strong>Carrera Administrativa</strong> → <Badge tone="info">Evaluado</Badge>,{' '}
+                <strong>Libre Nombramiento</strong> → <Badge tone="success">Evaluador</Badge>.
+                Los roles adicionales pueden ser gestionados por el administrador desde la tabla de usuarios.
               </p>
-              <div className="flex gap-2 flex-wrap mb-4">
-                {ROLES_SISTEMA.map(r => {
-                  const active = form.roles.includes(r.codigo);
-                  return (
-                    <button
-                      key={r.codigo}
-                      type="button"
-                      onClick={() => toggleRol(r.codigo)}
-                      aria-pressed={active}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition ${
-                        active
-                          ? r.codigo.startsWith('admin')
-                            ? 'bg-red-50 text-red-800 border-red-300'
-                            : r.codigo === 'evaluador'
-                              ? 'bg-green-50 text-green-800 border-green-300'
-                              : 'bg-blue-50 text-blue-800 border-blue-300'
-                          : 'bg-inst-gris text-inst-texto-claro border-inst-borde hover:border-inst-azul-osc'
-                      }`}
-                    >
-                      {r.nombre}
-                    </button>
-                  );
-                })}
-              </div>
 
               {/* Es evaluador y evaluado (CNSC video 8) */}
               <div className="bg-inst-gris p-3 rounded">
@@ -833,75 +871,132 @@ export default function AdminUsuarios() {
             {/* SECCIÓN 6: PERÍODO DE PRUEBA */}
             <div className="edl-card border-l-4 border-l-inst-azul">
               <h4 className="font-heading font-semibold text-inst-azul mb-3">6. Período de prueba y evaluación inicial</h4>
-              <div className="space-y-3">
-                <label className="flex items-start gap-3 cursor-pointer p-3 bg-inst-gris rounded">
-                  <input
-                    type="checkbox"
-                    checked={!!form.en_periodo_prueba}
-                    onChange={e => setForm({
-                      ...form,
-                      en_periodo_prueba: e.target.checked ? 1 : 0,
-                      fecha_posesion: e.target.checked ? form.fecha_posesion : ''
-                    })}
-                    className="mt-1 w-4 h-4 accent-inst-azul"
+              {rolActivo === 'jefe_dependencia' ? (
+                <div className="space-y-3">
+                  <Select
+                    label="¿Está en periodo de prueba?"
+                    value={form.en_periodo_prueba === -1 || form.en_periodo_prueba == null ? '' : String(form.en_periodo_prueba)}
+                    onChange={e => {
+                      const val = e.target.value === '' ? -1 : Number(e.target.value);
+                      setForm({
+                        ...form,
+                        en_periodo_prueba: val,
+                        fecha_posesion: val === 1 ? form.fecha_posesion : ''
+                      });
+                    }}
+                    placeholder="Seleccione"
+                    options={[
+                      { value: '1', label: 'Sí' },
+                      { value: '0', label: 'No' },
+                    ]}
                   />
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-inst-texto">¿Está en periodo de prueba?</span>
-                  </div>
-                </label>
-                {form.en_periodo_prueba === 1 && (
-                  <div className="pl-7">
-                    <Input
-                      label="Fecha de posesión *"
-                      type="date"
-                      value={form.fecha_posesion}
-                      onChange={e => setForm({ ...form, fecha_posesion: e.target.value })}
+                  <Select
+                    label="¿El período de evaluación inició el primero de febrero?"
+                    value={form.evaluacion_inicio_febrero === -1 || form.evaluacion_inicio_febrero == null ? '' : String(form.evaluacion_inicio_febrero)}
+                    onChange={e => {
+                      const val = e.target.value === '' ? -1 : Number(e.target.value);
+                      setForm({
+                        ...form,
+                        evaluacion_inicio_febrero: val,
+                        fecha_inicio_evaluacion: val === 0 ? form.fecha_inicio_evaluacion : '',
+                        motivo_fecha_inicio_diferente: val === 0 ? form.motivo_fecha_inicio_diferente : '',
+                      });
+                    }}
+                    placeholder="Seleccione"
+                    options={[
+                      { value: '1', label: 'Sí' },
+                      { value: '0', label: 'No' },
+                    ]}
+                  />
+                  {form.evaluacion_inicio_febrero === 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-4 border-l-2 border-inst-azul">
+                      <Input
+                        label="Fecha de inicio del período de evaluación *"
+                        type="date"
+                        value={form.fecha_inicio_evaluacion}
+                        onChange={e => setForm({ ...form, fecha_inicio_evaluacion: e.target.value })}
+                      />
+                      <Select
+                        label="Motivo *"
+                        value={form.motivo_fecha_inicio_diferente}
+                        onChange={e => setForm({ ...form, motivo_fecha_inicio_diferente: e.target.value })}
+                        placeholder="Seleccionar motivo..."
+                        options={MOTIVOS_FECHA_INICIO}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 cursor-pointer p-3 bg-inst-gris rounded">
+                    <input
+                      type="checkbox"
+                      checked={!!form.en_periodo_prueba}
+                      onChange={e => setForm({
+                        ...form,
+                        en_periodo_prueba: e.target.checked ? 1 : 0,
+                        fecha_posesion: e.target.checked ? form.fecha_posesion : ''
+                      })}
+                      className="mt-1 w-4 h-4 accent-inst-azul"
                     />
-                  </div>
-                )}
-              </div>
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-inst-texto">¿Está en periodo de prueba?</span>
+                    </div>
+                  </label>
+                  {form.en_periodo_prueba === 1 && (
+                    <div className="pl-7">
+                      <Input
+                        label="Fecha de posesión *"
+                        type="date"
+                        value={form.fecha_posesion}
+                        onChange={e => setForm({ ...form, fecha_posesion: e.target.value })}
+                      />
+                    </div>
+                  )}
 
-              {/* Inicio de evaluación (CNSC video 8) */}
-              <div className="mt-4 space-y-3">
-                <label className="flex items-start gap-3 cursor-pointer p-3 bg-inst-gris rounded">
-                  <input
-                    type="checkbox"
-                    checked={form.evaluacion_inicio_febrero === 1}
-                    onChange={e => setForm({
-                      ...form,
-                      evaluacion_inicio_febrero: e.target.checked ? 1 : 0,
-                      fecha_inicio_evaluacion: e.target.checked ? '' : form.fecha_inicio_evaluacion,
-                      motivo_fecha_inicio_diferente: e.target.checked ? '' : form.motivo_fecha_inicio_diferente
-                    })}
-                    className="mt-1 w-4 h-4 accent-inst-azul"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-inst-texto">
-                      ¿El período de evaluación inició el primero de febrero?
-                    </span>
-                    <p className="text-xs text-inst-texto-claro mt-1">
-                      Para servidores que inician el período de evaluación el primero de febrero, debe elegir "Sí".
-                    </p>
+                  {/* Inicio de evaluación (CNSC video 8) */}
+                  <div className="mt-4 space-y-3">
+                    <label className="flex items-start gap-3 cursor-pointer p-3 bg-inst-gris rounded">
+                      <input
+                        type="checkbox"
+                        checked={form.evaluacion_inicio_febrero === 1}
+                        onChange={e => setForm({
+                          ...form,
+                          evaluacion_inicio_febrero: e.target.checked ? 1 : 0,
+                          fecha_inicio_evaluacion: e.target.checked ? '' : form.fecha_inicio_evaluacion,
+                          motivo_fecha_inicio_diferente: e.target.checked ? '' : form.motivo_fecha_inicio_diferente
+                        })}
+                        className="mt-1 w-4 h-4 accent-inst-azul"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-inst-texto">
+                          ¿El período de evaluación inició el primero de febrero?
+                        </span>
+                        <p className="text-xs text-inst-texto-claro mt-1">
+                          Para servidores que inician el período de evaluación el primero de febrero, debe elegir "Sí".
+                        </p>
+                      </div>
+                    </label>
+                    {form.evaluacion_inicio_febrero === 0 && (
+                      <div className="pl-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Input
+                          label="Fecha de inicio del período *"
+                          type="date"
+                          value={form.fecha_inicio_evaluacion}
+                          onChange={e => setForm({ ...form, fecha_inicio_evaluacion: e.target.value })}
+                        />
+                        <Select
+                          label="Motivo de fecha diferente *"
+                          value={form.motivo_fecha_inicio_diferente}
+                          onChange={e => setForm({ ...form, motivo_fecha_inicio_diferente: e.target.value })}
+                          placeholder="Seleccionar motivo..."
+                          options={MOTIVOS_FECHA_INICIO}
+                        />
+                      </div>
+                    )}
                   </div>
-                </label>
-                {form.evaluacion_inicio_febrero === 0 && (
-                  <div className="pl-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Input
-                      label="Fecha de inicio del período *"
-                      type="date"
-                      value={form.fecha_inicio_evaluacion}
-                      onChange={e => setForm({ ...form, fecha_inicio_evaluacion: e.target.value })}
-                    />
-                    <Select
-                      label="Motivo de fecha diferente *"
-                      value={form.motivo_fecha_inicio_diferente}
-                      onChange={e => setForm({ ...form, motivo_fecha_inicio_diferente: e.target.value })}
-                      placeholder="Seleccionar motivo..."
-                      options={MOTIVOS_FECHA_INICIO}
-                    />
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* SECCIÓN 7: PROPÓSITO DEL EMPLEO */}
@@ -918,20 +1013,21 @@ export default function AdminUsuarios() {
               </div>
             </div>
 
-            {/* SECCIÓN 8: ESTADO */}
-            <div className="edl-card">
-              <h4 className="font-heading font-semibold text-inst-azul mb-3">8. Estado</h4>
-              <Select
-                label="Estado"
-                value={form.estado}
-                onChange={e => setForm({ ...form, estado: e.target.value })}
-                options={[
-                  { value: 'activo', label: 'Activo' },
-                  { value: 'inactivo', label: 'Inactivo' },
-                  { value: 'bloqueado', label: 'Bloqueado' },
-                ]}
-              />
-            </div>
+            {rolActivo !== 'jefe_dependencia' && (
+              <div className="edl-card">
+                <h4 className="font-heading font-semibold text-inst-azul mb-3">8. Estado</h4>
+                <Select
+                  label="Estado"
+                  value={form.estado}
+                  onChange={e => setForm({ ...form, estado: e.target.value })}
+                  options={[
+                    { value: 'activo', label: 'Activo' },
+                    { value: 'inactivo', label: 'Inactivo' },
+                    { value: 'bloqueado', label: 'Bloqueado' },
+                  ]}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 mt-4 border-t border-inst-borde">

@@ -18,7 +18,7 @@ class MenuController
   }
 
   $menu = match ($rolActivo) {
-    'admin_carepa' => $this->menuAdmin(),
+    'jefe_personal' => $this->menuAdmin(),
     'jefe_dependencia' => $this->menuJefeDependencia($user),
     'evaluador' => $this->menuEvaluador(),
     'comision_evaluadora' => $this->menuComisionEvaluadora(),
@@ -80,71 +80,71 @@ class MenuController
     'ruta' => '/parametros',
     'permisos' => ['parametros.listar', 'parametros.editar'],
    ],
-   [
-    'label' => 'Reportes',
-    'icon' => 'summarize',
-    'ruta' => '/reportes',
-    'permisos' => ['reportes.generar'],
-   ],
-   [
-    'label' => 'Auditoria',
+    [
+     'label' => 'Reportes',
+     'icon' => 'summarize',
+     'ruta' => '/reportes',
+     'permisos' => ['reportes.generar'],
+    ],
+    [
+     'label' => 'Auditoria',
     'icon' => 'history',
     'ruta' => '/auditoria',
     'permisos' => ['auditoria.ver'],
    ],
    [
-    'label' => 'Carga Masiva',
-    'icon' => 'upload_file',
-    'ruta' => '/admin/carga-usuarios',
-    'permisos' => ['cargas.ejecutar'],
+    'label' => 'Solicitudes Cambio Evaluador',
+    'icon' => 'sync_alt',
+    'ruta' => '/compromisos/solicitudes-cambio',
+    'permisos' => ['jefe_personal.solicitudes'],
    ],
   ];
  }
 
  private function menuJefeDependencia(array $user): array
  {
-  return [
-   [
-    'label' => 'Inicio',
-    'icon' => 'dashboard',
-    'ruta' => '/',
-    'permisos' => ['dashboard.ver'],
-   ],
-   [
-    'label' => 'Períodos',
-    'icon' => 'calendar_today',
-    'ruta' => '/periodos',
-    'permisos' => ['periodos.listar'],
-   ],
-   [
-    'label' => 'Metas',
-    'icon' => 'flag',
-    'ruta' => '/metas',
-    'permisos' => ['metas.listar', 'metas.crear', 'metas.editar'],
-   ],
-   [
-    'label' => 'Usuarios',
-    'icon' => 'people',
-    'ruta' => '/admin-usuarios',
-    'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],
-   ],
-   [
-    'label' => 'Ausentismos',
-    'icon' => 'event_busy',
-    'ruta' => '/ausentismos',
-    'permisos' => ['ausentismos.listar', 'ausentismos.crear'],
-   ],
-   [
-    'label' => 'Evaluaciones y Calificación',
-    'icon' => 'assessment',
-    'ruta' => '/evaluaciones',
-    'permisos' => ['evaluaciones.listar', 'evaluaciones.crear'],
-   ],
-   [
-    'label' => 'Carga Masiva',
-    'icon' => 'upload_file',
-    'ruta' => '/admin/carga-usuarios',
-    'permisos' => ['cargas.ejecutar'],
+   return [
+    [
+     'label' => 'Inicio',
+     'icon' => 'dashboard',
+     'ruta' => '/',
+     'permisos' => ['dashboard.ver'],
+    ],
+    [
+     'label' => 'Períodos',
+     'icon' => 'calendar_today',
+     'ruta' => '/periodos',
+     'permisos' => ['periodos.listar'],
+    ],
+     [
+      'label' => 'Metas',
+      'icon' => 'flag',
+      'ruta' => '/metas',
+      'permisos' => ['metas.listar', 'metas.crear', 'metas.editar'],
+     ],
+     [
+      'label' => 'Usuarios',
+     'icon' => 'people',
+     'ruta' => '/admin-usuarios',
+     'permisos' => ['usuarios.listar', 'usuarios.crear', 'usuarios.editar'],
+    ],
+    [
+     'label' => 'Ausentismos',
+     'icon' => 'event_busy',
+     'ruta' => '/ausentismos',
+     'permisos' => ['ausentismos.listar', 'ausentismos.crear'],
+    ],
+    [
+     'label' => 'Evaluaciones y Calificación',
+     'icon' => 'assessment',
+     'ruta' => '/evaluaciones',
+     'permisos' => ['evaluaciones.listar', 'evaluaciones.crear'],
+    ],
+     [
+      'label' => 'Solicitudes Cambio Evaluador',
+     'icon' => 'sync_alt',
+    'ruta' => '/compromisos/solicitudes-cambio',
+    'permisos' => ['jefe_personal.solicitudes'],
    ],
   ];
  }
@@ -176,11 +176,17 @@ class MenuController
      'ruta' => '/compromisos/mejoramiento',
      'permisos' => ['mejoramiento.listar', 'mejoramiento.crear'],
     ],
-    [
-    'label' => 'Evaluar',
+[
+     'label' => 'Evaluar',
     'icon' => 'rate_review',
     'ruta' => '/evaluar',
     'permisos' => ['evaluaciones.evaluar'],
+    ],
+    [
+     'label' => 'Ver Evaluaciones',
+    'icon' => 'visibility',
+    'ruta' => '/evaluaciones',
+    'permisos' => ['evaluaciones.listar'],
     ],
    ];
   }
@@ -212,11 +218,17 @@ class MenuController
      'ruta' => '/compromisos/mejoramiento',
      'permisos' => ['mejoramiento.listar'],
     ],
-    [
+[
      'label' => 'Evaluar',
-     'icon' => 'rate_review',
-     'ruta' => '/comision-evaluadora',
-     'permisos' => ['evaluaciones.comision'],
+    'icon' => 'rate_review',
+    'ruta' => '/comision-evaluadora',
+    'permisos' => ['evaluaciones.comision'],
+    ],
+    [
+     'label' => 'Ver Evaluaciones',
+    'icon' => 'visibility',
+    'ruta' => '/evaluaciones',
+    'permisos' => ['evaluaciones.listar'],
     ],
    ];
   }
@@ -248,36 +260,27 @@ class MenuController
    'ruta' => '/mis-evidencias',
    'permisos' => ['evidencias.listar', 'evidencias.crear'],
    ],
-   [
-    'label' => 'Ver Evaluaciones',
+[
+     'label' => 'Ver Evaluaciones',
     'icon' => 'assessment',
-    'ruta' => '/evaluaciones',
+    'ruta' => '/evaluaciones/ver',
     'permisos' => ['evaluaciones.listar'],
    ],
   ];
  }
 
- private function menuPorPermisos(array $user): array
- {
-  $roles = $user['roles'] ?? [];
-  $rolCodigos = [];
-  foreach ($roles as $r) {
-   if (is_array($r) && isset($r['codigo'])) {
-    $rolCodigos[] = $r['codigo'];
-   } elseif (is_string($r)) {
-    $rolCodigos[] = $r;
+  private function menuPorPermisos(array $user): array
+  {
+   $rolActivo = $user['rol_activo'] ?? '';
+
+   if (empty($rolActivo)) {
+    return [];
    }
-  }
 
-  if (empty($rolCodigos)) {
-   return [];
-  }
-
-  $pdo = \App\Config\Database::getInstance();
-  $placeholders = implode(',', array_fill(0, count($rolCodigos), '?'));
-  $stmt = $pdo->prepare("SELECT DISTINCT p.modulo, p.codigo, p.nombre FROM rol_permiso rp INNER JOIN permisos p ON p.id = rp.permiso_id INNER JOIN roles r ON r.id = rp.rol_id WHERE r.codigo IN ({$placeholders}) ORDER BY p.modulo, p.nombre");
-  $stmt->execute($rolCodigos);
-  $permisos = $stmt->fetchAll();
+   $pdo = \App\Config\Database::getInstance();
+   $stmt = $pdo->prepare("SELECT DISTINCT p.modulo, p.codigo, p.nombre FROM rol_permiso rp INNER JOIN permisos p ON p.id = rp.permiso_id INNER JOIN roles r ON r.id = rp.rol_id WHERE r.codigo = ? ORDER BY p.modulo, p.nombre");
+   $stmt->execute([$rolActivo]);
+   $permisos = $stmt->fetchAll();
 
   $modulos = [];
   foreach ($permisos as $p) {
@@ -299,10 +302,10 @@ class MenuController
    'ausentismos' => ['label' => 'Ausentismos', 'icon' => 'event_busy', 'ruta' => '/ausentismos'],
    'movilidades' => ['label' => 'Movilidad', 'icon' => 'swap_horiz', 'ruta' => '/movilidad'],
  'consulta' => ['label' => 'Consulta Funcionario', 'icon' => 'search', 'ruta' => '/consulta-funcionario'],
-   'reportes' => ['label' => 'Reportes', 'icon' => 'summarize', 'ruta' => '/reportes'],
-   'cargas' => ['label' => 'Cargas Masivas', 'icon' => 'upload_file', 'ruta' => '/cargas'],
-   'parametros' => ['label' => 'Parametros', 'icon' => 'settings', 'ruta' => '/parametros'],
-  ];
+    'reportes' => ['label' => 'Reportes', 'icon' => 'summarize', 'ruta' => '/reportes'],
+    'parametros' => ['label' => 'Parametros', 'icon' => 'settings', 'ruta' => '/parametros'],
+    'solicitudes' => ['label' => 'Solicitudes Cambio Evaluador', 'icon' => 'sync_alt', 'ruta' => '/compromisos/solicitudes-cambio'],
+   ];
 
   foreach ($modulos as $modulo => $permisosModulo) {
    if (isset($menuMap[$modulo])) {

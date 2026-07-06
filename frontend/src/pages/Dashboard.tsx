@@ -42,7 +42,7 @@ interface Notificacion {
  creado_en: string;
 }
 
-const ADMIN_ONLY_CARDS = ['entidades', 'usuarios', 'evaluaciones', 'periodos'];
+const EXCLUDED_FOR_ADMIN_CAREPA = ['evaluaciones', 'periodos'];
 
 const CARD_ITEMS = [
  { key: 'entidades', label: 'Entidades', icon: 'domain', color: 'text-purple-700', bg: 'bg-purple-100' },
@@ -119,11 +119,11 @@ function DashboardContent() {
  const [passwordMsg, setPasswordMsg] = useState('');
  const [passwordMsgTone, setPasswordMsgTone] = useState<'success' | 'danger'>('success');
 
- const isAdmin = roles?.some(r => r.codigo === 'admin');
+ const isAdmin = roles?.some(r => r.codigo === 'admin_carepa');
  const visibleCards = CARD_ITEMS.filter(item =>
-  isAdmin || !ADMIN_ONLY_CARDS.includes(item.key)
+  isAdmin ? !EXCLUDED_FOR_ADMIN_CAREPA.includes(item.key) : true
  );
- const puedeAprobar = roles?.some(r => r.codigo === 'evaluador' || r.codigo === 'admin');
+ const puedeAprobar = rolActivo === 'evaluador';
 
  useEffect(() => {
   let cancel = false;
@@ -187,8 +187,8 @@ function DashboardContent() {
  const safeActividad = Array.isArray(actividad) ? actividad : [];
  const safeNotificaciones = Array.isArray(notificaciones) ? notificaciones : [];
 
- const rolLabel = rolActivo === 'admin'
-  ? 'Administrador'
+ const rolLabel = rolActivo === 'admin_carepa'
+  ? 'Administrador CAREPA'
   : rolActivo === 'evaluador'
   ? 'Evaluador'
   : rolActivo === 'evaluado'

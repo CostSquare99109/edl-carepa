@@ -28,27 +28,11 @@ Se verificaron manualmente los 3 hallazgos de la auditoría v1.0:
 Archivo modificado:
 - `backend/public/index.php` — la ruta `GET /evaluaciones/pendientes-calificar` (ahora línea 108) se movió **antes** de las rutas con parámetro `{id}` (líneas 109-114) para evitar que `pendientes-calificar` sea capturado como un ID.
 
-### 🧹 Borrado confirmado de archivos `docs/`
+### 🗂️ Reorganización
 
-Los 3 archivos `docs/*.md` (INFORME_TECNICO_ANALISIS_CNSC.md, REDISENO_UX_UI_AUDITORIA.md, CONTROLLERS_DOCUMENTACION.md) que estaban borrados del filesystem pero rastreados por git fueron confirmados como borrados en commit dedicado. Cero referencias rotas en el resto del proyecto.
-
-### 📊 Resumen de estado actual
-
-| Hallazgo | Estado anterior | Estado actual |
-|---|---|---|
-| Brecha B13 / Gap A3 — cambiarEstado dependencias | ❌ Pendiente | ✅ **Resuelto** |
-| M4 — mensajesCNSC.ts cita Resolución 1760/2010 | ⚠️ Pendiente | ✅ **Resuelto** |
-| 3 archivos `docs/` deleted | ⚠️ Sin commitear | ✅ **Commiteado** |
+- Limpiados archivos auxiliares de `transcripciones_cnsc/` (scripts Python, archivos de grupo, temporales).
 
 ---
-
-## [1.3.0] — 2026-06-22
-
-### 📚 Nuevos documentos técnicos
-
-- **`16-glosario-cnsc.md`** — Glosario consolidado A-Z de todos los términos CNSC extraídos de las 25 transcripciones, con referencias a los documentos fuente (01-15).
-- **`17-endpoints-api.md`** — Referencia completa de los 138 endpoints REST del backend, organizados por módulo, con métodos, permisos y descripciones. Incluye tabla de permisos RBAC.
-- **`18-arquitectura.md`** — Documentación arquitectónica del sistema: stack tecnológico, capas (Controller→Service→Repository), middleware, modelo de datos, seguridad, ADRs, diagrama de despliegue.
 
 ### 🔧 Correcciones técnicas verificadas
 
@@ -207,6 +191,34 @@ Cuando se ejecuten las Fases 0-3 del roadmap:
 - **MAJOR** (X.0.0): cambios incompatibles o reorganización mayor.
 - **MINOR** (0.X.0): nueva documentación o secciones.
 - **PATCH** (0.0.X): correcciones, typos, links rotos.
+
+---
+
+## [1.4.0] — 2026-06-27
+
+### 🧹 Pasada de limpieza y cohesion documental
+
+- **FASE3_GAPS.md**: convertido en **historial cerrado**. La gestion de gaps ahora vive en `cnsc/13-trazabilidad-con-proyecto.md` y `cnsc/14-futuro-del-proyecto.md`.
+- **README.md**: reescrito por completo con presentacion profesional, stack, endpoints, arquitectura y guias de uso modernas.
+- **AGENTS.md**: reescrito como guia operativa para agentes IA, sin duplicar el README.
+- **CLAUDE.md**: reescrito conciso, eliminando bitacoras personales de sesion y referencias a commits especificos obsoletos.
+- **docs/EVALUADOR_IMPLEMENTATION.md**: convertido en **registro cerrado** de la especificacion tecnica que produjo el modulo Evaluador.
+- **cnsc/13-trazabilidad-con-proyecto.md** §0.3: corregido. El esquema de BD vive en **un unico dump** consolidado (`database/full_dump.sql`); no hay archivos de migracion incrementales en el repo.
+- **cnsc/18-arquitectura.md**: removida la referencia a commit especifico. Ahora dice "alineado con main".
+- **cnsc/AUDITORIA-DIRIGIDA-2026-06-22.md**: removida la referencia a commit especifico.
+- **cnsc/CHANGELOG.md** (este archivo): se elimino la entrada `[1.3.0]` duplicada y la tabla resumen redundante; se consolido la trazabilidad de la version.
+
+### 🔍 Mejoras de coherencia
+
+- Los nombres y conteos en la documentacion reflejan ahora el estado real del repositorio: 21 controllers, 18 repositories, 17 services, 15 modelos, 44 paginas frontend, 1 dump SQL unico, 138 endpoints.
+- Las paginas web del modulo Evaluador (`Login.tsx`, `PanelEvaluador.tsx`, `CompromisosMejoramiento.tsx`, etc.) ya no son referenciadas como "faltantes" en ningun documento vivo.
+- Los gotchas especificos (orden de rutas, soft delete, JWT_EXPIRACION_MINUTOS, PDO::MYSQL_ATTR_FOUND_ROWS) ahora se describen **una sola vez** en AGENTS.md.
+
+### 📊 Resultado de la pasada documental
+
+- Total archivos `.md` del repo: sin cambios en el conjunto, **mejor cohesion**.
+- Datos cuantitativos: README.md ~22 KB, AGENTS.md ~9 KB, CLAUDE.md ~5 KB, FASE3_GAPS.md ~9 KB (historial), cnsc/CHANGELOG.md ~14 KB.
+- Documentos eliminados: **ninguno**. Toda la documentacion previa se conserva (transformada a "historial cerrado" o "registro cerrado" donde correspondia).
 
 ---
 

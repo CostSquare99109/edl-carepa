@@ -2,6 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 
+interface EvaluacionInfo {
+ id: number;
+ tipo: string;
+ estado: string;
+ periodo_id: number;
+ concertacion_id: number | null;
+}
+
 interface Evaluado {
  id: number;
  documento: string;
@@ -17,6 +25,7 @@ interface Evaluado {
  periodo_nombre: string;
  es_comision_evaluadora: number;
  dependencia_id: number;
+ evaluaciones: EvaluacionInfo[];
 }
 
 export default function CompromisosYCompetencias() {
@@ -25,16 +34,27 @@ export default function CompromisosYCompetencias() {
  const [loading, setLoading] = useState(false);
  const [evaluado, setEvaluado] = useState<Evaluado | null>(null);
  const [error, setError] = useState('');
+ const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState<number>(0);
 
  async function buscarEvaluado() {
   if (!documento.trim()) return;
   setLoading(true);
   setError('');
   setEvaluado(null);
+  setEvaluacionSeleccionada(0);
 
   try {
    const data: any = await api.get(`/compromisos/buscar-evaluado?documento=${documento.trim()}`);
-   setEvaluado(data);
+   const ev = {
+    ...data,
+    evaluaciones: data.evaluaciones || [],
+   } as Evaluado;
+   setEvaluado(ev);
+   if (ev.evaluacion_id > 0) {
+    setEvaluacionSeleccionada(ev.evaluacion_id);
+   } else if (ev.evaluaciones.length > 0) {
+    setEvaluacionSeleccionada(ev.evaluaciones[0].id);
+   }
   } catch (err: any) {
    setError(err.message || 'Error al buscar evaluado');
   } finally {
@@ -42,17 +62,21 @@ export default function CompromisosYCompetencias() {
   }
  }
 
- function handleConcertar() {
+ function handleConcertar(evalId?: number) {
   if (!evaluado) return;
-  navigate(`/dashboard/compromisos/concertar/${evaluado.evaluacion_id}`, {
-   state: { evaluado },
+  const eid = evalId || evaluacionSeleccionada || evaluado.evaluacion_id;
+  if (!eid) return;
+  navigate(`/dashboard/compromisos/concertar/${eid}`, {
+   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
   });
  }
 
- function handleVerCompromisos() {
+ function handleVerCompromisos(evalId?: number) {
   if (!evaluado) return;
-  navigate(`/dashboard/compromisos/ver/${evaluado.evaluacion_id}`, {
-   state: { evaluado },
+  const eid = evalId || evaluacionSeleccionada || evaluado.evaluacion_id;
+  if (!eid) return;
+  navigate(`/dashboard/compromisos/ver/${eid}`, {
+   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
   });
  }
 
@@ -63,12 +87,16 @@ export default function CompromisosYCompetencias() {
   });
  }
 
- function handleAjustar() {
+ function handleAjustar(evalId?: number) {
   if (!evaluado) return;
-  navigate(`/dashboard/compromisos/ajustar/${evaluado.evaluacion_id}`, {
-   state: { evaluado },
+  const eid = evalId || evaluacionSeleccionada || evaluado.evaluacion_id;
+  if (!eid) return;
+  navigate(`/dashboard/compromisos/ajustar/${eid}`, {
+   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
   });
  }
+
+ const evaluacionesDisponibles = evaluado?.evaluaciones?.filter(e => e.id > 0) || [];
 
  return (
   <div>
@@ -151,18 +179,35 @@ export default function CompromisosYCompetencias() {
       </div>
      </div>
 
+     {evaluacionesDisponibles.length > 1 && (
+      <div className="border-t border-inst-borde pt-4 mb-4">
+       <h4 className="text-xs text-inst-texto-claro uppercase font-medium mb-2">Seleccionar evaluacion</h4>
+       <select
+        value={evaluacionSeleccionada}
+        onChange={e => setEvaluacionSeleccionada(Number(e.target.value))}
+        className="edl-input max-w-md"
+       >
+        {evaluacionesDisponibles.map(ev => (
+         <option key={ev.id} value={ev.id}>
+          {ev.tipo.replace(/_/g, ' ')} - {ev.estado} {ev.concertacion_id ? '(con compromisos)' : '(sin compromisos)'}
+         </option>
+        ))}
+       </select>
+      </div>
+     )}
+
      <div className="border-t border-inst-borde pt-4">
       <h4 className="text-xs text-inst-texto-claro uppercase font-medium mb-3">Opciones</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
        <button
-        onClick={handleConcertar}
+        onClick={() => handleConcertar()}
         className="edl-btn-primary flex items-center gap-2 justify-center"
        >
         <span className="material-icons text-lg">handshake</span>
         Concertar compromisos
        </button>
        <button
-        onClick={handleVerCompromisos}
+        onClick={() => handleVerCompromisos()}
         className="edl-btn-secondary flex items-center gap-2 justify-center"
        >
         <span className="material-icons text-lg">visibility</span>
@@ -176,7 +221,7 @@ export default function CompromisosYCompetencias() {
         Ver compromisos propuestos por el evaluado
        </button>
        <button
-        onClick={handleAjustar}
+        onClick={() => handleAjustar()}
         className="edl-btn-secondary flex items-center gap-2 justify-center"
        >
         <span className="material-icons text-lg">tune</span>

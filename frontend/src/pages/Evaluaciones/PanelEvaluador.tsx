@@ -28,7 +28,7 @@ interface Compromiso {
 
 interface Conducta {
   id: number;
-  descripcion: string;
+  texto: string;
   valoracion: string | null;
 }
 
@@ -295,7 +295,9 @@ export default function PanelEvaluador() {
       setPeriodos(res.data || []);
       if (activos.length > 0) setPeriodoId(activos[0].id);
       else if ((res.data || []).length > 0) setPeriodoId((res.data || [])[0].id);
-    } catch {}
+    } catch (e) {
+      console.error('Error cargando periodos:', e);
+    }
   }
 
   useEffect(() => { if (periodoId) cargarEvaluaciones(); }, [periodoId]);
@@ -491,7 +493,7 @@ export default function PanelEvaluador() {
         sumaPesoFunc += c.peso;
       }
     });
-    const notaFuncPct = sumaPesoFunc > 0 ? sumaCalifFunc / sumaPesoFunc : 0;
+    const notaFuncPct = sumaPesoFunc > 0 ? (sumaCalifFunc / sumaPesoFunc) * (PESO_FUNCIONALES / 100) : 0;
 
     // Comportamentales: cada puntaje es 4-15. Se promedia ponderado por peso y se convierte a %
     let sumaCalifComp = 0;
@@ -504,11 +506,11 @@ export default function PanelEvaluador() {
     });
     const puntajeCompBruto = sumaPesoComp > 0 ? sumaCalifComp / sumaPesoComp : 0;
 
-    // Convertir 4-15 a %: (puntaje - 4) / 11 * 100
-    const notaCompPct = puntajeCompBruto >= 4 ? ((puntajeCompBruto - 4) / 11) * 100 : 0;
+    // Convertir 4-15 a % y aplicar peso: (puntaje - 4) / 11 * 100 * 15%
+    const notaCompPct = puntajeCompBruto >= 4 ? ((puntajeCompBruto - 4) / 11) * 100 * (PESO_COMPORTAMENTALES / 100) : 0;
 
-    // Nota definitiva con pesos: 85% funcional + 15% comportamental
-    const notaDefinitiva = (notaFuncPct * PESO_FUNCIONALES / 100) + (notaCompPct * PESO_COMPORTAMENTALES / 100);
+    // Nota definitiva: notaFuncPct ya incluye 85%, notaCompPct ya incluye 15%
+    const notaDefinitiva = notaFuncPct + notaCompPct;
     const esc = escalaFinal(notaDefinitiva);
     const escComp = puntajeCompBruto > 0 ? escalaComportamental(puntajeCompBruto) : '-';
 
@@ -989,7 +991,7 @@ export default function PanelEvaluador() {
                             <p className="text-xs font-semibold text-inst-texto-claro uppercase tracking-wider">Conductas asociadas</p>
                             {c.conductas.map(cond => (
                               <div key={cond.id} className="flex items-center gap-2 text-sm pl-2 border-l-2 border-inst-azul-osc-light">
-                                <span className="flex-1">{cond.descripcion}</span>
+                                <span className="flex-1">{cond.texto}</span>
                                 <Select
                                   value={conductasForm[cond.id] || ''}
                                   onChange={e => setConductasForm(prev => ({ ...prev, [cond.id]: e.target.value as ValoracionFrecuencia }))}
@@ -1231,7 +1233,7 @@ export default function PanelEvaluador() {
                       <div className="space-y-2">
                         {modalCompromiso.conductas.map(cond => (
                           <div key={cond.id} className="border border-inst-borde rounded p-3">
-                            <p className="text-sm mb-2 font-medium">{cond.descripcion}</p>
+                            <p className="text-sm mb-2 font-medium">{cond.texto}</p>
                             <div className="flex gap-2">
                               {OPCIONES_FRECUENCIA.map(vo => (
                                 <button key={vo.value}

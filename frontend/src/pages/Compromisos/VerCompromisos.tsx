@@ -44,10 +44,16 @@ export default function VerCompromisos() {
       if (evalRes?.concertacion_id) {
         setConcertacionId(Number(evalRes.concertacion_id));
       }
-      const res = await api.get<any>(`/compromisos/evaluacion/${evaluacionId}`);
-      setFuncionales(res?.funcionales || []);
-      setComportamentales(res?.comportamentales || []);
-      setSumaPesos(res?.suma_pesos_funcionales || 0);
+      // Paquete 1: compromisos funcionales. Paquete 2: compromisos comportamentales.
+      // Se consultan ambos endpoints independientes.
+      const [funcRes, compRes] = await Promise.all([
+        api.get<any>(`/compromisos/evaluacion/${evaluacionId}`),
+        api.get<any>(`/compromisos-comportamentales/evaluacion/${evaluacionId}`),
+      ]);
+      setFuncionales(funcRes?.funcionales || []);
+      const compLista = Array.isArray(compRes) ? compRes : (compRes?.data || []);
+      setComportamentales(compLista);
+      setSumaPesos(funcRes?.suma_pesos_funcionales || 0);
     } catch (err) {
       console.error('Error cargando compromisos:', err);
     } finally {
@@ -74,16 +80,13 @@ export default function VerCompromisos() {
           <h2 className="edl-section-title">Compromisos de {evaluado.nombre_completo}</h2>
         </div>
         {concertacionId ? (
-          <a
-            href={`${API_BASE}/reportes/concertacion-pdf/${concertacionId}`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => api.download(`/reportes/concertacion-pdf/${concertacionId}`, `concertacion_${concertacionId}.pdf`)}
             className="edl-btn-secondary flex items-center gap-2 text-sm"
-            download
           >
             <span className="material-icons text-lg">download</span>
             Descargar PDF de concertación
-          </a>
+          </button>
         ) : null}
       </div>
 

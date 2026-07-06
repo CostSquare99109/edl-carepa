@@ -115,7 +115,7 @@ class Router
     return;
     }
 
-    \App\Helper\ResponseHelper::error('Ruta no encontrada', 404);
+    \App\Helper\ResponseHelper::error('Ruta no encontrada: ' . $method . ' ' . $uri . '. Verifique que el endpoint exista y el método HTTP sea correcto.', 404);
     } catch (\App\Helper\HttpException $e) {
     \App\Helper\ResponseHelper::error($e->getMessage(), $e->getCode());
     } catch (\Throwable $e) {

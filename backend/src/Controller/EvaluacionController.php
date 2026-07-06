@@ -33,11 +33,20 @@ class EvaluacionController
  ResponseHelper::success(['id' => $id], 'Evaluacion creada', 201);
  }
 
- public function ver(int $id): void
- {
- $eval = $this->service->ver($id);
- ResponseHelper::success($eval);
- }
+  public function ver(int $id): void
+  {
+  $eval = $this->service->ver($id);
+  ResponseHelper::success($eval);
+  }
+
+  public function anular(int $id): void
+  {
+  $input = json_decode(file_get_contents('php://input'), true) ?: [];
+  $input = SanitizerHelper::sanitizeArray($input);
+  $user = AuthMiddleware::user();
+  $this->service->anular($id, (string) ($input['motivo'] ?? ''), $user);
+  ResponseHelper::success(null, 'Evaluacion anulada');
+  }
 
  public function calificar(int $id): void
  {
@@ -181,6 +190,29 @@ public function pendientesCalificar(): void
    */
   public function verEvaluacionesPorEvaluado(int $evaluadoId): void
   {
+   $data = $this->service->obtenerEvaluacionesPrevias(0, $evaluadoId);
+   ResponseHelper::success($data);
+  }
+
+  /**
+   * Evaluaciones propias del usuario autenticado.
+   *
+   * Pensado para que el rol `evaluado` pueda consultar su historial de
+   * evaluaciones desde el menu "Ver Evaluaciones" sin tener que pasar el
+   * `evaluado_id` por URL (Acuerdo 617 de 2018, Acuerdo 137/2010).
+   *
+   * GET /evaluaciones/mias
+   *
+   * Si el rol activo NO es `evaluado` o `evaluador`, se devuelve el listado
+   * del usuario autenticado (util para roles con doble condicion).
+   */
+  public function misEvaluaciones(): void
+  {
+   $user = AuthMiddleware::user();
+   if (!$user || empty($user['id'])) {
+    ResponseHelper::unauthorized();
+   }
+   $evaluadoId = (int) $user['id'];
    $data = $this->service->obtenerEvaluacionesPrevias(0, $evaluadoId);
    ResponseHelper::success($data);
   }

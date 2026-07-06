@@ -11,7 +11,7 @@ class TenantMiddleware
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (in_array('admin', $roles)) {
+ if (in_array('admin_carepa', $roles)) {
  return;
  }
 
@@ -28,7 +28,7 @@ class TenantMiddleware
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (in_array('admin', $roles)) {
+ if (in_array('admin_carepa', $roles)) {
  return;
  }
 
@@ -48,7 +48,7 @@ class TenantMiddleware
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (in_array('admin', $roles)) {
+ if (in_array('admin_carepa', $roles)) {
  return null;
  }
 
@@ -60,7 +60,7 @@ class TenantMiddleware
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (in_array('admin', $roles)) {
+ if (in_array('admin_carepa', $roles)) {
  return true;
  }
 
@@ -76,7 +76,7 @@ class TenantMiddleware
  $user = AuthMiddleware::user();
  $roles = $user['roles'] ?? [];
 
- if (in_array('admin', $roles)) {
+ if (in_array('admin_carepa', $roles)) {
  return true;
  }
 

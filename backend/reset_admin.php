@@ -20,8 +20,8 @@ try {
     $stmt->execute([$documento]);
     $existe = $stmt->fetchColumn();
 
-    // Buscar rol admin_carepa dinámicamente
-    $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = 'admin_carepa' LIMIT 1");
+    // Buscar rol jefe_personal dinámicamente
+    $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = 'jefe_personal' LIMIT 1");
     $stmt->execute();
     $adminRolId = $stmt->fetchColumn();
     if (!$adminRolId) {
@@ -34,7 +34,7 @@ try {
     if ($existe) {
         $pdo->prepare("UPDATE usuarios SET password_hash = ?, estado = 'activo', intentos_fallidos = 0 WHERE documento = ?")
             ->execute([$hash, $documento]);
-        // Asegurar que tenga el rol admin_carepa
+        // Asegurar que tenga el rol jefe_personal
         $uid = $existe;
         $pdo->prepare("INSERT IGNORE INTO usuario_rol (usuario_id, rol_id) VALUES (?, ?)")
             ->execute([$uid, $adminRolId]);

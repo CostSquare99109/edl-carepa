@@ -19,14 +19,13 @@ class AusentismoService
 
  public function listar(array $filtros, int $pagina, int $porPagina): array
  {
- $user = AuthMiddleware::user();
- $roles = $user['roles'] ?? [];
+  $user = AuthMiddleware::user();
 
- if (!in_array('admin', $roles)) {
- $filtros['funcionario_id'] = $user['id'];
- }
+  if (empty($filtros['funcionario_id'])) {
+  $filtros['funcionario_id'] = $user['id'];
+  }
 
- return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
+  return $this->repo->listarConRelaciones($filtros, $pagina, $porPagina);
  }
 
  public function ver(int $id): array
@@ -36,24 +35,32 @@ class AusentismoService
  ResponseHelper::error('Ausentismo no encontrado', 404);
  }
 
- $user = AuthMiddleware::user();
- $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles) && (int) $aus['funcionario_id'] !== $user['id']) {
- ResponseHelper::forbidden();
+  $user = AuthMiddleware::user();
+  if ((int) $aus['funcionario_id'] !== $user['id']) {
+  ResponseHelper::forbidden();
+  }
+
+  return $aus;
  }
 
- return $aus;
- }
+  public function crear(array $datos): int
+  {
+  if (empty($datos['funcionario_id']) && !empty($datos['documento_evaluado'])) {
+   $stmt = Database::getInstance()->prepare("SELECT id FROM usuarios WHERE documento = ? AND eliminado_en IS NULL LIMIT 1");
+   $stmt->execute([$datos['documento_evaluado']]);
+   $row = $stmt->fetch();
+   if ($row) {
+    $datos['funcionario_id'] = (int) $row['id'];
+   }
+  }
 
- public function crear(array $datos): int
- {
- $v = new ValidatorHelper();
- $v->validate($datos, [
- 'funcionario_id' => 'required',
- 'motivo' => 'required',
- 'fecha_inicio' => 'required',
- 'fecha_fin' => 'required'
- ]);
+  $v = new ValidatorHelper();
+  $v->validate($datos, [
+  'funcionario_id' => 'required',
+  'motivo' => 'required',
+  'fecha_inicio' => 'required',
+  'fecha_fin' => 'required'
+  ]);
 
  if (!isset($datos['dias'])) {
  $fi = new \DateTime($datos['fecha_inicio']);
@@ -84,44 +91,29 @@ class AusentismoService
  if (!$funcionario) {
  ResponseHelper::error('Funcionario no encontrado', 404);
  }
- $esCarrera = ($funcionario['naturaleza'] ?? null) === 'carrera_administrativa';
- $esPeriodoPrueba = !empty($funcionario['en_periodo_prueba']) && (bool) $funcionario['en_periodo_prueba'];
- if (!$esCarrera && !$esPeriodoPrueba) {
- ResponseHelper::error(
- 'El funcionario no es de carrera administrativa ni se encuentra en periodo de prueba. El registro de ausentismo (>30 dias) no aplica conforme al Decreto 815 de 2018.',
- 422
- );
- }
+  $datos['dias'] = (int) $datos['dias'];
 
- $datos['dias'] = (int) $datos['dias'];
-
- if ($datos['dias'] > 30) {
+  if ($datos['dias'] > 30) {
+  $esCarrera = ($funcionario['naturaleza'] ?? null) === 'carrera_administrativa';
+  $esPeriodoPrueba = !empty($funcionario['en_periodo_prueba']) && (bool) $funcionario['en_periodo_prueba'];
+  if (!$esCarrera && !$esPeriodoPrueba) {
+  ResponseHelper::error(
+  'El funcionario no es de carrera administrativa ni se encuentra en periodo de prueba. El registro de ausentismo (>30 dias) no aplica conforme al Decreto 815 de 2018.',
+  422
+  );
+  }
  $datos['afecta_evaluacion_eval'] = 1;
  $pdo = Database::getInstance();
- $stmt = $pdo->prepare("
- SELECT u.id FROM usuarios u
- INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
- INNER JOIN roles r ON r.id = ur.rol_id
- WHERE r.codigo = 'admin' AND u.estado = 'activo' AND u.eliminado_en IS NULL
- LIMIT 1
- ");
- $stmt->execute();
- $jefe = $stmt->fetch();
 
-	if (!empty($jefe['id'])) {
-	$notifService = new NotificacionService();
-	$notifService->notificar(
-	$jefe['id'],
-	'Ausentismo superior a 30 dias',
-	"El funcionario ID {$datos['funcionario_id']} registro un ausentismo de {$datos['dias']} dias. Segun el Decreto 815 Art. 36, esto afecta su evaluacion de desempeno.",
-	'alerta'
-	);
-	}
  }
 
- unset($datos['afecta_evaluacion'], $datos['afecta_evaluacion_eval'], $datos['requiere_aprobacion_jefe']);
+  unset($datos['afecta_evaluacion'], $datos['afecta_evaluacion_eval'], $datos['requiere_aprobacion_jefe']);
+  if (!empty($datos['observacion'])) {
+   $datos['observaciones'] = $datos['observacion'];
+   unset($datos['observacion']);
+  }
 
- $id = $this->repo->crear($datos);
+  $id = $this->repo->crear($datos);
  AuditoriaService::registrar('crear', 'ausentismos', $id, null, $datos);
  return $id;
  }
@@ -133,11 +125,10 @@ class AusentismoService
  ResponseHelper::error('Ausentismo no encontrado', 404);
  }
 
- $user = AuthMiddleware::user();
- $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles) && (int) $aus['funcionario_id'] !== $user['id']) {
- ResponseHelper::forbidden();
- }
+  $user = AuthMiddleware::user();
+  if ((int) $aus['funcionario_id'] !== $user['id']) {
+  ResponseHelper::forbidden();
+  }
 
  $permitidos = ['motivo', 'fecha_inicio', 'fecha_fin', 'dias', 'observaciones', 'estado'];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
@@ -157,11 +148,10 @@ class AusentismoService
  ResponseHelper::error('Ausentismo no encontrado', 404);
  }
 
- $user = AuthMiddleware::user();
- $roles = $user['roles'] ?? [];
- if (!in_array('admin', $roles)) {
- ResponseHelper::forbidden();
- }
+  $user = AuthMiddleware::user();
+if ((int) $aus['funcionario_id'] !== $user['id']) {
+  ResponseHelper::forbidden();
+  }
 
  $this->repo->eliminar($id);
  AuditoriaService::registrar('eliminar', 'ausentismos', $id, $aus, null);
