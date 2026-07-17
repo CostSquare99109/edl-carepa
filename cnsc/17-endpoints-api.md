@@ -210,7 +210,7 @@
 | GET | `/evaluaciones/{id}` | `EvaluacionController::ver` | `evaluaciones.listar` | Detalle. |
 | PUT | `/evaluaciones/{id}` | `EvaluacionController::calificar` | `evaluaciones.evaluar` | Califica (parcial o semestral). |
 | GET | `/evaluaciones/{id}/compromisos` | `EvaluacionController::compromisos` | `compromisos.listar` | Compromisos de la evaluación. |
-| POST | `/evaluaciones/{id}/parcial` | `EvaluacionController::crearParcial` | `evaluaciones.crear` | Crea evaluación parcial eventual. |
+| POST | `/evaluaciones/{id}/parcial` | `EvaluacionController::crearParcial` | `evaluaciones.crear` | Crea evaluación parcial eventual o calificación extraordinaria (Art. 6 Acuerdo 617/2018). Valida motivo obligatorio + ≤180 días. |
 | PUT | `/evaluaciones/{id}/definitiva` | `EvaluacionController::calificarDefinitiva` | `evaluaciones.evaluar` | Calificación definitiva. |
 | PUT | `/evaluaciones/{id}/comision` | `EvaluacionController::aprobarComision` | `evaluaciones.comision` | Aprobación por Comisión Evaluadora. |
 
