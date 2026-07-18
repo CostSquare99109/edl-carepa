@@ -104,4 +104,32 @@ class CargoManualService
    'nbc' => $nbc,
   ];
  }
+
+ public function catalogosNiveles(): array
+ {
+  return Database::getInstance()
+   ->query("SELECT codigo, nombre, descripcion, orden FROM niveles_jerarquicos ORDER BY orden")
+   ->fetchAll(\PDO::FETCH_ASSOC);
+ }
+
+ public function catalogosNaturalezas(): array
+ {
+  return Database::getInstance()
+   ->query("SELECT codigo, nombre, descripcion, requiere_periodo, es_carrera FROM naturalezas_cargo ORDER BY nombre")
+   ->fetchAll(\PDO::FETCH_ASSOC);
+ }
+
+ public function catalogosNbc(?string $area = null): array
+ {
+  if ($area) {
+   $stmt = Database::getInstance()->prepare(
+    "SELECT id, area_conocimiento, nbc FROM nucleos_basicos_conocimiento WHERE area_conocimiento = ? ORDER BY nbc"
+   );
+   $stmt->execute([$area]);
+   return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+  }
+  return Database::getInstance()
+   ->query("SELECT id, area_conocimiento, nbc FROM nucleos_basicos_conocimiento ORDER BY area_conocimiento, nbc")
+   ->fetchAll(\PDO::FETCH_ASSOC);
+ }
 }

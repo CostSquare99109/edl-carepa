@@ -63,6 +63,22 @@ class CargoManualController
   ResponseHelper::success($this->service->catalogos());
  }
 
+ public function catalogosNiveles(): void
+ {
+  ResponseHelper::success($this->service->catalogosNiveles());
+ }
+
+ public function catalogosNaturalezas(): void
+ {
+  ResponseHelper::success($this->service->catalogosNaturalezas());
+ }
+
+ public function catalogosNbc(): void
+ {
+  $area = isset($_GET['area']) ? trim((string) $_GET['area']) : null;
+  ResponseHelper::success($this->service->catalogosNbc($area));
+ }
+
  public function cargoDeUsuario(int $id): void
  {
   $cargo = $this->service->cargoDeUsuario($id);

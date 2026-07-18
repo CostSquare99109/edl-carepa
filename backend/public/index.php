@@ -135,6 +135,10 @@ $router->group('/api/v1', function (Router $r) {
   $r->get('/cargos-manual', [\App\Controller\CargoManualController::class, 'listar'], ['permiso:cargos_manual.ver']);
   $r->get('/cargos-manual/conteos', [\App\Controller\CargoManualController::class, 'conteos'], ['permiso:cargos_manual.ver']);
   $r->get('/cargos-manual/catalogos', [\App\Controller\CargoManualController::class, 'catalogos'], []);
+  // Catalogos separados (Fase 6 - granular para F-12)
+  $r->get('/catalogos/niveles', [\App\Controller\CargoManualController::class, 'catalogosNiveles'], ['permiso:cargos_manual.ver']);
+  $r->get('/catalogos/naturalezas', [\App\Controller\CargoManualController::class, 'catalogosNaturalezas'], ['permiso:cargos_manual.ver']);
+  $r->get('/catalogos/nbc', [\App\Controller\CargoManualController::class, 'catalogosNbc'], ['permiso:catalogos.nbc.ver']);
   $r->get('/cargos-manual/{id}/pdf', [\App\Controller\CargoManualController::class, 'pdf'], ['permiso:cargos_manual.ver']);
   $r->get('/cargos-manual/{id}', [\App\Controller\CargoManualController::class, 'ver'], ['permiso:cargos_manual.ver']);
 
