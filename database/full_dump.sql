@@ -40,7 +40,7 @@ CREATE TABLE `auditoria` (
   KEY `idx_accion` (`accion`),
   KEY `idx_entidad_registro` (`entidad`,`registro_id`),
   KEY `idx_fecha` (`creado_en`)
-) ENGINE=InnoDB AUTO_INCREMENT=2761 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2775 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2809,7 +2809,21 @@ INSERT INTO `auditoria` VALUES
 (2757,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 09:14:50'),
 (2758,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 09:42:33'),
 (2759,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"admin_carepa\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 09:42:45'),
-(2760,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 09:47:27');
+(2760,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 09:47:27'),
+(2761,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:03:20'),
+(2762,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:09:47'),
+(2763,13,'cambiar_rol','usuarios',13,NULL,'{\"rol_activo\":\"evaluador\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:09:59'),
+(2764,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:11:09'),
+(2765,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"evaluado\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 10:11:28'),
+(2766,13,'cambiar_rol','usuarios',13,NULL,'{\"rol_activo\":\"jefe_dependencia\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:12:49'),
+(2767,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:14:10'),
+(2768,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:16:02'),
+(2769,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:18:09'),
+(2770,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:39:17'),
+(2771,NULL,'login','usuarios',6,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:40:49'),
+(2772,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:41:05'),
+(2773,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:41:39'),
+(2774,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:43:49');
 /*!40000 ALTER TABLE `auditoria` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -4114,7 +4128,7 @@ CREATE TABLE `csrf_tokens` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_token` (`token`),
   KEY `idx_expiracion` (`expiracion`)
-) ENGINE=InnoDB AUTO_INCREMENT=590 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=601 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4713,7 +4727,18 @@ INSERT INTO `csrf_tokens` VALUES
 (586,'faa19bff86d2d8c1c13d4d4f7b09f349b6b710c1b18c17a78da7cf7e85cbc069','2026-07-18 09:48:21',0,'2026-07-18 08:48:21',NULL),
 (587,'00cd6d56b64f136c2460ea08a1f3efdc69650677405315d9877b593ac590d6ea','2026-07-18 10:42:34',1,'2026-07-18 09:42:34','2026-07-18 09:42:45'),
 (588,'dc8437de803081f077115e0f5739e9bf73826688b6ab882e415a3645ea868c5d','2026-07-18 10:42:45',0,'2026-07-18 09:42:45',NULL),
-(589,'0cc988beeabdb61273ac48c1c08567f48e670d775fc0f4531e90e4be1bb1b2a0','2026-07-18 10:42:46',0,'2026-07-18 09:42:46',NULL);
+(589,'0cc988beeabdb61273ac48c1c08567f48e670d775fc0f4531e90e4be1bb1b2a0','2026-07-18 10:42:46',0,'2026-07-18 09:42:46',NULL),
+(590,'74ddca1953f51d07e6020180bb19fc04431861de0cf6f527986c98de1a73a495','2026-07-18 11:09:48',1,'2026-07-18 10:09:48','2026-07-18 10:09:59'),
+(591,'9214e31f141cc12c9d7cf13910fffe31950a4203c7cc1fccf7d3043d9cc81004','2026-07-18 11:09:59',0,'2026-07-18 10:09:59',NULL),
+(592,'b50ac75b969d465f3972bd0feed23b81cab9601ca4c9ba4dd6ec6209ef1a5541','2026-07-18 11:09:59',0,'2026-07-18 10:09:59',NULL),
+(593,'d6f636ad6bdc74e6bffbfdf5b9532fefb00f0b358504b7bfad6e4dd00e0ad455','2026-07-18 11:11:15',1,'2026-07-18 10:11:15','2026-07-18 10:12:49'),
+(594,'79e3fefc642b808b7e333b098d0cc7315b6cbee1a514a7ed7992343b80010617','2026-07-18 11:11:28',1,'2026-07-18 10:11:28','2026-07-18 10:11:28'),
+(595,'4c2ae108c6375679b667fb08fc6361e92f7de409f8b5de9f7cf6b05b03300ea3','2026-07-18 11:11:28',0,'2026-07-18 10:11:28',NULL),
+(596,'c1107e009648138a992c386a17179a3ea3a14d375b3aca6b9a6ff3f43c5c2f33','2026-07-18 11:12:49',0,'2026-07-18 10:12:49',NULL),
+(597,'76734e00e9f30576df8ddc8fcc30a8f9ca01e2c2f0be26b76f042cd668480caa','2026-07-18 11:12:50',0,'2026-07-18 10:12:50',NULL),
+(598,'49ba98625806d524f73de731bad59865ba635e5a4578df68574e07b2338118b6','2026-07-18 11:14:12',0,'2026-07-18 10:14:12',NULL),
+(599,'86e6ae37ca7bc877a89c1bc6451cb93e2a612edfd859b8402dcf2960936948ec','2026-07-18 11:41:39',0,'2026-07-18 10:41:39',NULL),
+(600,'904092311b3330b978ef61c6666d84c78a6a615f389f50d5a1ef06bc15894b39','2026-07-18 11:43:50',0,'2026-07-18 10:43:50',NULL);
 /*!40000 ALTER TABLE `csrf_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -6503,7 +6528,7 @@ CREATE TABLE `sesiones` (
   KEY `idx_token` (`token_hash`(64)),
   KEY `idx_expiracion` (`fecha_expiracion`),
   CONSTRAINT `fk_ses_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1870 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1884 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -8382,7 +8407,21 @@ INSERT INTO `sesiones` VALUES
 (1866,12,'97e30aa68eda8860723da3ae0168556d6fc11076d80ce04ba8c84d1ec0f284a8','127.0.0.1','curl/8.20.0','2026-07-18 11:14:50',0,'2026-07-18 09:14:50'),
 (1867,12,'b3984695f3c49473875f8a015a56ad138f0fbea1c4419413affd71d331c43a3e','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 11:42:33',0,'2026-07-18 09:42:33'),
 (1868,12,'348efbc1600d3c7242e9774f6526c8cf19ff8b1d6bc30107e9aee7f00d8a7320','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 11:42:45',0,'2026-07-18 09:42:45'),
-(1869,12,'bce76f0a7d71e2ea330bc7c5fc116608c92b4f92b7bdf31ee052d5e58436252f','127.0.0.1','curl/8.20.0','2026-07-18 11:47:27',0,'2026-07-18 09:47:27');
+(1869,12,'bce76f0a7d71e2ea330bc7c5fc116608c92b4f92b7bdf31ee052d5e58436252f','127.0.0.1','curl/8.20.0','2026-07-18 11:47:27',0,'2026-07-18 09:47:27'),
+(1870,12,'886082fcc5c5208fc0c173a6d302028a1371338efd52a128b0767e84d8922fb1','127.0.0.1','curl/8.20.0','2026-07-18 12:03:20',0,'2026-07-18 10:03:20'),
+(1871,13,'13b5f175e88f6380c8f1dd23b0e44fb3ff71fe74f5ae73ea863447b6062e924f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:09:47',0,'2026-07-18 10:09:47'),
+(1872,13,'18beafb9215d7ef0e336a77210d616f71355b96ffddf7eafcc4f15bad71e06e9','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:09:59',0,'2026-07-18 10:09:59'),
+(1873,13,'db8b1736eedb7c7628e1f2c1ad336b90f774becc32e75da1bbaf35c604092e96','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:11:09',0,'2026-07-18 10:11:09'),
+(1874,12,'d0eb9c1b75e70257a79fce0b9de5f59a51bf2153b765ce29192224cf414838f6','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 12:11:28',0,'2026-07-18 10:11:28'),
+(1875,13,'8e69b4f9691609432839b7ca7c5e05d05d79468c9759311b63113845f632dfd2','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:12:49',0,'2026-07-18 10:12:49'),
+(1876,12,'e53fccd3d562ea6f1d4a6ab9aadf334334df1badb8442207fd0e82b6f6961ef3','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:14:10',0,'2026-07-18 10:14:10'),
+(1877,12,'78e9da15fa8236b6d51727b67d90c088cf397db01dedf3803f32b834984a3c1a','127.0.0.1','curl/8.20.0','2026-07-18 12:16:02',0,'2026-07-18 10:16:02'),
+(1878,12,'1588fe85bf45483c65bdb47b3e27743b6888c873ad5ce6d93f62ddba38853c71','127.0.0.1','curl/8.20.0','2026-07-18 12:18:09',0,'2026-07-18 10:18:09'),
+(1879,13,'f1b520e9d16a44a8608a3cc6643a3e9a22fd948fa34c7089116132b60692fe3c','127.0.0.1','curl/8.20.0','2026-07-18 12:39:17',0,'2026-07-18 10:39:17'),
+(1880,6,'66845c6d7ade15077c0b0e1fd87885c3060e40b04aa3bee5ba98424a04a80d30','127.0.0.1','curl/8.20.0','2026-07-18 12:40:49',0,'2026-07-18 10:40:49'),
+(1881,13,'41bb82b1c0108bdfff181fcd71983d2e068efc196281bc6e6cb8f5984ce94c4a','127.0.0.1','curl/8.20.0','2026-07-18 12:41:05',0,'2026-07-18 10:41:05'),
+(1882,13,'4f2b767fcf08529fc20a4ee958c069134458bc24bc4cab36315a0b1993c43140','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:41:39',0,'2026-07-18 10:41:39'),
+(1883,13,'288d0972b89316c4195eb1b1f89e3de2a080dd313238529ee91533cdcc9705d0','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:43:49',0,'2026-07-18 10:43:49');
 /*!40000 ALTER TABLE `sesiones` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -9252,14 +9291,14 @@ INSERT INTO `usuarios` VALUES
 (3,'71428536','CC',NULL,'Carlos',NULL,'Martinez Lopez',NULL,'carlos.martinez@carepa.gov.co',0,'3102345678',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,NULL,NULL,'hecho_en_carrera','Evaluador Tecnico',NULL,'18',0,NULL,0,'2019-06-01',NULL,1,0,NULL,NULL,'2026-06-26 08:44:10','2026-06-26 10:09:37',NULL),
 (4,'39847261','CC',NULL,'Andrea',NULL,'Sanchez Vega',NULL,'andrea.sanchez@carepa.gov.co',0,'3103456789',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,NULL,NULL,'hecho_en_carrera','Jefe de Entidad',NULL,'24',0,NULL,0,'2015-01-10',NULL,1,0,NULL,NULL,'2026-06-26 08:44:10','2026-06-26 10:09:37',NULL),
 (5,'60182934','CC',NULL,'Luis',NULL,'Hernandez Torres',NULL,'luis.hernandez@carepa.gov.co',0,'3104567890',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,NULL,NULL,'hecho_en_carrera','Jefe de Dependencia',NULL,'22',0,NULL,0,'2016-08-20',NULL,1,0,NULL,NULL,'2026-06-26 08:44:10','2026-06-26 10:09:37',NULL),
-(6,'1045678923','CC',NULL,'Juan',NULL,'Gomez Ramirez',NULL,'juan.gomez@carepa.gov.co',0,'3115678901',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-06-26 08:58:15',1,NULL,0,'profesional','carrera_administrativa','hecho_en_carrera','Profesional Universitario','219','14',0,NULL,0,'2020-02-01','Servir de apoyo en el desarrollo de los diferentes procesos entregados a la Secretaría GENERAL en materia jurídica. De igual manera, prestar asesoría y apoyo en lo relacionado con la emisión de conceptos, proyección de actos administrativos, contestación de demandas, acciones populares o de grupos, acciones de tutelas, derechos de petición y demás situaciones en la cual se haga necesario la intervención de profesional en el área del derecho',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-17 15:16:46',NULL),
+(6,'1045678923','CC',NULL,'Juan',NULL,'Gomez Ramirez',NULL,'juan.gomez@carepa.gov.co',0,'3115678901',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-07-18 10:40:49',1,NULL,0,'profesional','carrera_administrativa','hecho_en_carrera','Profesional Universitario','219','14',0,NULL,0,'2020-02-01','Servir de apoyo en el desarrollo de los diferentes procesos entregados a la Secretaría GENERAL en materia jurídica. De igual manera, prestar asesoría y apoyo en lo relacionado con la emisión de conceptos, proyección de actos administrativos, contestación de demandas, acciones populares o de grupos, acciones de tutelas, derechos de petición y demás situaciones en la cual se haga necesario la intervención de profesional en el área del derecho',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-18 10:40:49',NULL),
 (7,'1056789034','CC',NULL,'Patricia',NULL,'Diaz Morales',NULL,'patricia.diaz@carepa.gov.co',0,'3116789012',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,NULL,NULL,'provisional','Tecnico Operativo',NULL,'11',0,NULL,0,'2022-05-15',NULL,1,0,NULL,NULL,'2026-06-26 08:44:10','2026-06-26 10:09:37',NULL),
 (8,'1067890123','CC',NULL,'Fernando',NULL,'Torres Nino',NULL,'fernando.torres@carepa.gov.co',0,'3117890123',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,NULL,NULL,'hecho_en_carrera','Profesional Especializado',NULL,'17',0,NULL,0,'2017-11-01',NULL,1,0,NULL,NULL,'2026-06-26 08:44:10','2026-06-26 10:09:37',NULL),
 (9,'1078901234','CC',NULL,'Lucia',NULL,'Castro Rojas',NULL,'lucia.castro@carepa.gov.co',0,'3118901234',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,'asistencial','carrera_administrativa','provisional','Auxiliar Administrativo','407','08',0,NULL,0,'2023-01-10','Administrar, la información de la Secretaría para personal interno y externo de conformidad con los procesos establecidos.',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-17 15:16:46',NULL),
 (10,'1089012345','CC',NULL,'Roberto',NULL,'Munoz Silva',NULL,'roberto.munoz@carepa.gov.co',0,'3119012345',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,'profesional','carrera_administrativa','hecho_en_carrera','Profesional Universitario','219','15',0,NULL,0,'2021-07-01','Servir de apoyo en el desarrollo de los diferentes procesos entregados a la Secretaría GENERAL en materia jurídica. De igual manera, prestar asesoría y apoyo en lo relacionado con la emisión de conceptos, proyección de actos administrativos, contestación de demandas, acciones populares o de grupos, acciones de tutelas, derechos de petición y demás situaciones en la cual se haga necesario la intervención de profesional en el área del derecho',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-17 15:16:46',NULL),
 (11,'admin','CC',NULL,'Admin',NULL,'Principal',NULL,'admin@carepa.gov.co',0,NULL,NULL,'$2y$12$j0e5LsIrBgyeiodR5OsqxORemB155dkOUX/7Tp22mcys12OJrCV0C','activo',0,NULL,'2026-07-17 22:59:08',1,NULL,0,NULL,NULL,'hecho_en_carrera','Administrador',NULL,'25',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 08:49:40','2026-07-17 22:59:08',NULL),
-(12,'1040353165','CC','masculino','YEISON',NULL,'ROMAÑA','CORDOBA','maiayevir@hotmail.com',0,'2147483647',NULL,'$2y$12$1vnmrEzaw2YHMsgV.fbuZeIwLONpshGe8xYCRE8Yynzqj.EZeY8Tu','activo',0,NULL,'2026-07-18 09:47:27',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,'2026-02-03',NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-18 09:47:27',NULL),
-(13,'43141896','CC','femenino','LUSELY',NULL,'OREJUELA',NULL,'user80@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-07-17 21:14:07',1,14,0,'directivo','libre_nombramiento_gerencia_publica','hecho_en_carrera','Secretario de despacho','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-17 21:14:07',NULL),
+(12,'1040353165','CC','masculino','YEISON',NULL,'ROMAÑA','CORDOBA','maiayevir@hotmail.com',0,'2147483647',NULL,'$2y$12$1vnmrEzaw2YHMsgV.fbuZeIwLONpshGe8xYCRE8Yynzqj.EZeY8Tu','activo',0,NULL,'2026-07-18 10:18:09',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,'2026-02-03',NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-18 10:18:09',NULL),
+(13,'43141896','CC','femenino','LUSELY',NULL,'OREJUELA',NULL,'user80@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-07-18 10:43:49',1,14,0,'directivo','libre_nombramiento_gerencia_publica','hecho_en_carrera','Secretario de despacho','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-18 10:43:49',NULL),
 (14,'32290307','CC',NULL,'RUBITH','ELISA','CARVAJAL','VILLADA','rubith.carvajal@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-06-30 16:16:10',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-17 15:18:03',NULL),
 (15,'39425357','CC',NULL,'ALBA','NELLY','GUERRA','MONTOYA','user1@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$bKQTlKgEnfSlrd6fV3d2Xu8QzN5nKH7mYJ0wR4ePvT1bHcDgFsW2a','activo',0,NULL,NULL,1,12,0,'profesional','carrera_administrativa',NULL,'Profesional Universitario - Médico Veterinario','219','01',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:13:26','2026-07-17 15:18:03',NULL),
 (16,'1040375031','CC',NULL,'ALDAIR','','ROMERO','LOPEZ','user2@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$bKQTlKgEnfSlrd6fV3d2Xu8QzN5nKH7mYJ0wR4ePvT1bHcDgFsW2a','activo',0,NULL,NULL,1,21,0,'directivo','libre_nombramiento_remocion',NULL,'Director Financiero y Contable','009','01',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:13:26','2026-07-17 15:18:03',NULL),
@@ -9494,4 +9533,4 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-07-18 10:03:05
+-- Dump completed on 2026-07-18 10:57:36
