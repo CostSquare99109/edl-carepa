@@ -199,7 +199,7 @@ if ($rolActivo !== 'evaluador') {
   if ($concertacionId > 0) {
    $pdo = Database::getInstance();
    $stmtC = $pdo->prepare(
-    "SELECT conformar_comision_evaluadora, comision_evaluador_id FROM concertaciones WHERE id = :id AND eliminado_en IS NULL"
+    "SELECT id FROM concertaciones WHERE id = :id AND eliminado_en IS NULL"
    );
    $stmtC->execute(['id' => $concertacionId]);
    $con = $stmtC->fetch(\PDO::FETCH_ASSOC);

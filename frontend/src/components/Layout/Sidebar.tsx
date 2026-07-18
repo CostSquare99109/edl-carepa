@@ -289,29 +289,28 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
         {/* Sidebar header / brand area */}
         <div className="flex items-center h-14 border-b border-inst-borde bg-white flex-shrink-0">
           <div
-            className={`flex items-center gap-2 min-w-0 flex-1 overflow-hidden px-3 transition-opacity duration-200 ${
+            className={`flex items-center gap-3 min-w-0 flex-1 overflow-hidden px-3 transition-opacity duration-200 ${
               isOpen ? 'opacity-100' : 'opacity-0 lg:hidden'
             }`}
           >
             <img
               src={`${import.meta.env.BASE_URL}escudo.png`}
-              alt="Carepa"
-              className="h-8 w-8 object-contain flex-shrink-0"
+              alt="Escudo de Carepa"
+              className="h-10 w-10 object-contain flex-shrink-0"
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
                 img.style.display = 'none';
                 const parent = img.parentElement;
                 if (parent && !parent.querySelector('.escudo-fb')) {
                   const fb = document.createElement('div');
-                  fb.className = 'escudo-fb h-8 w-8 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-sm flex-shrink-0';
+                  fb.className = 'escudo-fb h-10 w-10 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-base flex-shrink-0';
                   fb.textContent = 'C';
                   parent.prepend(fb);
                 }
               }}
             />
             <div className="leading-tight min-w-0">
-              <h1 className="text-sm font-heading font-bold text-inst-azul-osc truncate">EDL Digital</h1>
-              <p className="text-[10px] text-inst-texto-claro truncate">Carepa</p>
+              <h1 className="text-base font-heading font-bold text-inst-azul-osc truncate">EDL Carepa</h1>
             </div>
           </div>
 
@@ -378,9 +377,8 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
           }`}
         >
           <p className="text-[10px] text-inst-texto-claro leading-tight whitespace-nowrap">
-            EDL Digital<br />
-            <span className="text-inst-azul-osc font-semibold">Carepa</span>
-          </p>
+                    <span className="text-inst-azul-osc font-semibold">EDL Carepa</span>
+                  </p>
         </div>
       </aside>
     </>

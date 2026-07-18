@@ -17,16 +17,21 @@ class MenuController
    return;
   }
 
-  $menu = match ($rolActivo) {
+  $menu = $this->menuParaRol($rolActivo, $user);
+
+  ResponseHelper::success($menu);
+ }
+
+ private function menuParaRol(string $rol, array $user): array
+ {
+  return match ($rol) {
     'jefe_personal' => $this->menuAdmin(),
+    'admin_carepa' => $this->menuAdminCarepa(),
     'jefe_dependencia' => $this->menuJefeDependencia($user),
     'evaluador' => $this->menuEvaluador(),
-    'comision_evaluadora' => $this->menuComisionEvaluadora(),
     'evaluado' => $this->menuEvaluado(),
     default => $this->menuPorPermisos($user),
   };
-
-  ResponseHelper::success($menu);
  }
 
  private function menuAdmin(): array
@@ -97,6 +102,30 @@ class MenuController
     'icon' => 'sync_alt',
     'ruta' => '/compromisos/solicitudes-cambio',
     'permisos' => ['jefe_personal.solicitudes'],
+   ],
+  ];
+ }
+
+ private function menuAdminCarepa(): array
+ {
+  return [
+   [
+    'label' => 'Inicio',
+    'icon' => 'dashboard',
+    'ruta' => '/',
+    'permisos' => ['dashboard.ver'],
+   ],
+   [
+    'label' => 'Dependencias',
+    'icon' => 'account_tree',
+    'ruta' => '/dependencias',
+    'permisos' => ['dependencias.listar'],
+   ],
+   [
+    'label' => 'Usuarios',
+    'icon' => 'people',
+    'ruta' => '/usuarios',
+    'permisos' => ['usuarios.listar'],
    ],
   ];
  }
@@ -185,53 +214,12 @@ class MenuController
     [
      'label' => 'Ver Evaluaciones',
     'icon' => 'visibility',
-    'ruta' => '/evaluaciones',
+    'ruta' => '/evaluaciones/ver',
     'permisos' => ['evaluaciones.listar'],
     ],
    ];
   }
 
-  private function menuComisionEvaluadora(): array
-  {
-   return [
-    [
-     'label' => 'Inicio',
-     'icon' => 'dashboard',
-     'ruta' => '/',
-     'permisos' => ['dashboard.ver'],
-    ],
-    [
-     'label' => 'Compromisos y Competencias',
-     'icon' => 'task_alt',
-     'ruta' => '/compromisos-y-competencias',
-     'permisos' => ['compromisos.listar'],
-    ],
-    [
-     'label' => 'Evidencias',
-     'icon' => 'folder_open',
-     'ruta' => '/evidencias',
-     'permisos' => ['evidencias.listar', 'evidencias.verificar'],
-    ],
-    [
-     'label' => 'Compromisos de Mejoramiento',
-     'icon' => 'trending_up',
-     'ruta' => '/compromisos/mejoramiento',
-     'permisos' => ['mejoramiento.listar'],
-    ],
-[
-     'label' => 'Evaluar',
-    'icon' => 'rate_review',
-    'ruta' => '/comision-evaluadora',
-    'permisos' => ['evaluaciones.comision'],
-    ],
-    [
-     'label' => 'Ver Evaluaciones',
-    'icon' => 'visibility',
-    'ruta' => '/evaluaciones',
-    'permisos' => ['evaluaciones.listar'],
-    ],
-   ];
-  }
 
   private function menuEvaluado(): array
  {

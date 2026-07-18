@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 interface Resumen {
  entidades: number;
+ dependencias: number;
  usuarios: number;
  evaluaciones: number;
  periodos: number;
@@ -43,9 +44,11 @@ interface Notificacion {
 }
 
 const EXCLUDED_FOR_ADMIN_CAREPA = ['evaluaciones', 'periodos'];
+const EXCLUDED_FOR_EVALUADOR = ['entidades', 'dependencias', 'usuarios'];
+const EXCLUDED_FOR_EVALUADO = ['entidades', 'dependencias', 'usuarios', 'evaluaciones', 'periodos'];
 
 const CARD_ITEMS = [
- { key: 'entidades', label: 'Entidades', icon: 'domain', color: 'text-purple-700', bg: 'bg-purple-100' },
+ { key: 'dependencias', label: 'Dependencias', icon: 'account_tree', color: 'text-purple-700', bg: 'bg-purple-100' },
  { key: 'usuarios', label: 'Usuarios', icon: 'people', color: 'text-inst-azul-osc', bg: 'bg-blue-100' },
  { key: 'evaluaciones', label: 'Evaluaciones', icon: 'assessment', color: 'text-inst-azul-osc', bg: 'bg-green-100' },
  { key: 'periodos', label: 'Períodos activos', icon: 'calendar_today', color: 'text-inst-rojo', bg: 'bg-red-100' },
@@ -105,7 +108,7 @@ function DashboardContent() {
  const { usuario, rolActivo, roles } = useAuth();
  const navigate = useNavigate();
  const [resumen, setResumen] = useState<Resumen>({
-  entidades: 0, usuarios: 0, evaluaciones: 0, periodos: 0,
+  dependencias: 0, usuarios: 0, evaluaciones: 0, periodos: 0,
   notificaciones_no_leidas: 0, compromisos_pendientes_aprobacion: 0, mis_compromisos_enviados: 0,
  });
  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
@@ -119,10 +122,17 @@ function DashboardContent() {
  const [passwordMsg, setPasswordMsg] = useState('');
  const [passwordMsgTone, setPasswordMsgTone] = useState<'success' | 'danger'>('success');
 
- const isAdmin = roles?.some(r => r.codigo === 'admin_carepa');
- const visibleCards = CARD_ITEMS.filter(item =>
-  isAdmin ? !EXCLUDED_FOR_ADMIN_CAREPA.includes(item.key) : true
- );
+ const isAdmin = rolActivo === 'admin_carepa';
+ const isEvaluador = rolActivo === 'evaluador';
+ const isEvaluado = rolActivo === 'evaluado';
+ const excludedForRole = isAdmin
+  ? EXCLUDED_FOR_ADMIN_CAREPA
+  : isEvaluador
+  ? EXCLUDED_FOR_EVALUADOR
+  : isEvaluado
+  ? EXCLUDED_FOR_EVALUADO
+  : [];
+ const visibleCards = CARD_ITEMS.filter(item => !excludedForRole.includes(item.key));
  const puedeAprobar = rolActivo === 'evaluador';
 
  useEffect(() => {

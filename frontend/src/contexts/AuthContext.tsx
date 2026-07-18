@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { authApi, type Usuario, type Rol, type MenuItem } from '../lib/auth';
+import { api } from '../lib/api';
 
 interface AuthContextType {
  usuario: Usuario | null;
@@ -113,6 +114,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    console.warn('No se pudo cargar el menu despues de login');
   }
 
+  // Obtener CSRF token para futuras requests mutantes (PUT /auth/rol, etc.)
+  try {
+   await api.fetchCsrfToken();
+  } catch {
+   console.warn('No se pudo obtener CSRF tras login');
+  }
+
   sessionLoadedRef.current = true;
   return resp.roles;
  } finally {
@@ -130,12 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  localStorage.setItem('edl_rol_activo', resp.rol_activo);
 
  if (resp.token) {
- localStorage.setItem('edl_token', resp.token);
- setToken(resp.token);
- }
+   localStorage.setItem('edl_token', resp.token);
+   setToken(resp.token);
+  }
 
- const menuData = await authApi.menu();
- setMenu(menuData);
+  if (resp.csrf_token) {
+   localStorage.setItem('edl_csrf', resp.csrf_token);
+  }
+
+  const menuData = await authApi.menu();
+  setMenu(menuData);
  } catch (err) {
  console.error('Error cambiando rol:', err);
  throw err;

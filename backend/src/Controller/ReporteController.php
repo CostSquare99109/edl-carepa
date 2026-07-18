@@ -82,7 +82,11 @@ class ReporteController
  if (!$periodoId) {
  ResponseHelper::error('periodo_id es requerido', 422);
  }
- $resultado = $this->service->concertacionesAprobadas($periodoId);
+ $semestre = $filtros['semestre'] ?? '';
+ if (!in_array($semestre, ['primer_semestre', 'segundo_semestre'], true)) {
+ ResponseHelper::error('semestre debe ser primer_semestre o segundo_semestre', 422);
+ }
+ $resultado = $this->service->concertacionesAprobadas($periodoId, $semestre);
  ResponseHelper::success($resultado);
  }
 
@@ -93,11 +97,15 @@ class ReporteController
  if (!$periodoId) {
  ResponseHelper::error('periodo_id es requerido', 422);
  }
+ $semestre = $filtros['semestre'] ?? '';
+ if (!in_array($semestre, ['primer_semestre', 'segundo_semestre'], true)) {
+ ResponseHelper::error('semestre debe ser primer_semestre o segundo_semestre', 422);
+ }
 
  while (ob_get_level()) ob_end_clean();
 
- $html = $this->service->generarExcelConcertacionesAprobadas($periodoId);
- $filename = "concertaciones_aprobadas_{$periodoId}_" . date('Ymd_His') . '.xls';
+ $html = $this->service->generarExcelConcertacionesAprobadas($periodoId, $semestre);
+ $filename = "concertaciones_aprobadas_{$periodoId}_{$semestre}_" . date('Ymd_His') . '.xls';
 
  header('Content-Type: application/vnd.ms-excel; charset=utf-8');
  header('Content-Disposition: attachment; filename="' . $filename . '"');

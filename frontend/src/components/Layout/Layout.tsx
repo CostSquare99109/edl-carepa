@@ -61,8 +61,8 @@ export default function Layout() {
 
   function irAPerfil() {
     setMenuPerfilAbierto(false);
-    navigate('/perfil');
-  }
+    navigate('/dashboard/perfil');
+    }
 
   const nombreCompleto = usuario
     ? `${usuario.primer_nombre || ''} ${usuario.primer_apellido || ''}`.trim() || usuario.nombre_completo || 'Usuario'
@@ -134,7 +134,7 @@ export default function Layout() {
                   wrap.innerHTML = `
                     <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-inst-azul-osc flex items-center justify-center text-white font-heading font-bold text-sm">C</div>
                     <div class="leading-tight hidden sm:block">
-                      <h1 class="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">EDL Digital</h1>
+                      <h1 class="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">EDL Carepa</h1>
                       <p class="text-[10px] text-inst-texto-claro">Alcaldia de Carepa</p>
                     </div>
                   `;
@@ -144,7 +144,7 @@ export default function Layout() {
             />
             <div className="leading-tight hidden sm:block">
               <h1 className="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">
-                EDL Digital
+                EDL Carepa
               </h1>
               <p className="text-[10px] text-inst-texto-claro">
                 Evaluacion del Desempeno Laboral

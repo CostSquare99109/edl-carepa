@@ -6,6 +6,7 @@ use App\Repository\UsuarioRepository;
 use App\Repository\SesionRepository;
 use App\Helper\JwtHelper;
 use App\Helper\ResponseHelper;
+use App\Helper\CsrfHelper;
 use App\Config\Database;
 use App\Config\Env;
 
@@ -402,10 +403,16 @@ class AuthService
 
   AuditoriaService::registrar('cambiar_rol', 'usuarios', $usuarioId, null, ['rol_activo' => $rolCodigo]);
 
+  // Regenerar CSRF: el token es de un solo uso y se consume al validar la
+  // request actual. Devolver uno nuevo evita 419 en la siguiente operacion
+  // mutante sin obligar al cliente a hacer un GET /auth/csrf extra.
+  $csrfToken = CsrfHelper::generar();
+
   return [
    'token' => $token,
    'expiracion' => $expiracion,
-   'rol_activo' => $rolCodigo
+   'rol_activo' => $rolCodigo,
+   'csrf_token' => $csrfToken
   ];
  }
 }

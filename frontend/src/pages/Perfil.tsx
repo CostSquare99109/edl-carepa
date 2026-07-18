@@ -50,7 +50,6 @@ const ROL_TONE: Record<string, 'danger' | 'success' | 'info' | 'warning'> = {
  evaluado: 'info',
  jefe_entidad: 'warning',
  jefe_dependencia: 'warning',
- comision_evaluadora: 'warning',
 }
 
 export default function Perfil() {

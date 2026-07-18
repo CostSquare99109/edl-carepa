@@ -9,19 +9,76 @@ use App\Middleware\CorsMiddleware;
 use App\Middleware\SecurityHeadersMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\RateLimitMiddleware;
+use App\Middleware\CsrfMiddleware;
+use App\Helper\ResponseHelper;
 
 define('EDL_ROOT', dirname(__DIR__));
 
 require EDL_ROOT . '/vendor/autoload.php';
 
+/* =========================================================================
+ * HANDLERS GLOBALES DE ERROR
+ * Garantizan que NINGUN error 500 muestre trazas, SQL o rutas al usuario.
+ * En su lugar siempre se devuelve el mensaje institucional y HTTP 500.
+ * Solo se registra el detalle en el log del servidor (backend/backend.log).
+ * ========================================================================= */
+set_exception_handler(function (\Throwable $e): void {
+    error_log('[EDL FATAL] ' . get_class($e) . ': ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
+    error_log('[EDL FATAL TRACE] ' . $e->getTraceAsString());
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    echo json_encode([
+        'code' => '02',
+        'message' => ResponseHelper::SERVER_ERROR_MESSAGE,
+        'data' => null,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+
+set_error_handler(function (int $errno, string $errstr, string $errfile, int $errline): bool {
+    // Respetar el operador @ y errores suprimidos.
+    if ((error_reporting() & $errno) === 0) {
+        return false;
+    }
+    error_log("[EDL PHP ERROR] nivel={$errno} {$errstr} en {$errfile}:{$errline}");
+    // No devolver true: dejar que PHP siga su manejo normal para no enmascarar
+    // el flujo, pero el registro queda asegurado.
+    return false;
+});
+
+register_shutdown_function(function (): void {
+    $err = error_get_last();
+    if ($err !== null && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        error_log('[EDL SHUTDOWN] ' . $err['message'] . ' en ' . $err['file'] . ':' . $err['line']);
+        if (!headers_sent()) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode([
+            'code' => '02',
+            'message' => ResponseHelper::SERVER_ERROR_MESSAGE,
+            'data' => null,
+        ], JSON_UNESCAPED_UNICODE);
+    }
+});
+
 Env::load(EDL_ROOT . '/.env');
-Database::getInstance();
+date_default_timezone_set(Env::get('APP_TIMEZONE', 'UTC'));
+try {
+    Database::getInstance();
+} catch (\Throwable $e) {
+    // Falla de BD durante el bootstrap: log interno + respuesta institucional.
+    error_log('[EDL BOOTSTRAP DB] ' . $e->getMessage());
+    ResponseHelper::serverError();
+}
 
 $dirs = [EDL_ROOT . '/uploads'];
 foreach ($dirs as $dir) {
-	if (!is_dir($dir)) {
-		@mkdir($dir, 0755, true);
-	}
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
 }
 
 $router = new Router();
@@ -31,8 +88,10 @@ $router->group('/api/v1', function (Router $r) {
  $r->post('/auth/login', [\App\Controller\AuthController::class, 'login']);
  $r->post('/auth/registro', [\App\Controller\AuthController::class, 'registro']);
  $r->post('/auth/recuperar', [\App\Controller\AuthController::class, 'recuperar']);
+ $r->post('/auth/recuperar-por-documento', [\App\Controller\AuthController::class, 'recuperarPorDocumento']);
  $r->post('/auth/verificar-codigo', [\App\Controller\AuthController::class, 'verificarCodigo']);
  $r->put('/auth/recuperar/{token}', [\App\Controller\AuthController::class, 'resetPassword']);
+ $r->post('/auth/refresh', [\App\Controller\AuthController::class, 'refreshToken']);
 
  $r->get('/consulta-funcionario/{documento}', [\App\Controller\ConsultaFuncionarioController::class, 'consultar']);
 
@@ -43,7 +102,6 @@ $router->group('/api/v1', function (Router $r) {
  $r->put('/auth/password', [\App\Controller\AuthController::class, 'cambiarPassword']);
  $r->put('/auth/forzar-password', [\App\Controller\AuthController::class, 'forzarCambioPassword']);
  $r->put('/auth/rol', [\App\Controller\AuthController::class, 'cambiarRol']);
- $r->post('/auth/refresh', [\App\Controller\AuthController::class, 'refreshToken']);
  $r->get('/auth/csrf', [\App\Controller\AuthController::class, 'csrfToken']);
  $r->get('/menu', [\App\Controller\MenuController::class, 'obtener']);
  $r->get('/notificaciones', [\App\Controller\NotificacionController::class, 'listar']);
@@ -65,8 +123,9 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/usuarios', [\App\Controller\UsuarioController::class, 'listar'], ['permiso:usuarios.listar']);
  $r->post('/usuarios', [\App\Controller\UsuarioController::class, 'crear'], ['permiso:usuarios.crear']);
  $r->get('/usuarios/buscar-global', [\App\Controller\UsuarioController::class, 'buscarGlobal'], ['permiso:usuarios.listar']);
- $r->get('/usuarios/evaluadores-por-dependencia', [\App\Controller\UsuarioController::class, 'evaluadoresPorDependencia'], ['permiso:compromisos.listar']);
- $r->get('/usuarios/evaluadores-buscar', [\App\Controller\UsuarioController::class, 'evaluadoresBuscar'], ['permiso:compromisos.listar']);
+  $r->get('/usuarios/evaluadores-por-dependencia', [\App\Controller\UsuarioController::class, 'evaluadoresPorDependencia'], ['permiso:compromisos.listar']);
+  $r->get('/usuarios/evaluadores-buscar', [\App\Controller\UsuarioController::class, 'evaluadoresBuscar'], ['permiso:compromisos.listar']);
+  $r->get('/usuarios/jefe-dependencia', [\App\Controller\UsuarioController::class, 'jefeDependencia'], ['permiso:compromisos.listar']);
  $r->get('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'ver'], ['permiso:usuarios.listar']);
  $r->put('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'actualizar'], ['permiso:usuarios.editar']);
  $r->delete('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'eliminar'], ['permiso:usuarios.editar']);
@@ -106,6 +165,9 @@ $router->group('/api/v1', function (Router $r) {
 
  $r->get('/concertaciones', [\App\Controller\ConcertacionController::class, 'listar'], ['permiso:concertaciones.listar']);
  $r->post('/concertaciones', [\App\Controller\ConcertacionController::class, 'crear'], ['permiso:concertaciones.crear']);
+ $r->get('/concertaciones/pendientes-aprobacion', [\App\Controller\ConcertacionController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
+ $r->put('/concertaciones/{id}/aprobar-pendientes', [\App\Controller\ConcertacionController::class, 'aprobarPendientes'], ['permiso:compromisos.aprobar']);
+ $r->put('/concertaciones/{id}/rechazar-pendientes', [\App\Controller\ConcertacionController::class, 'rechazarPendientes'], ['permiso:compromisos.aprobar']);
  $r->get('/concertaciones/{id}', [\App\Controller\ConcertacionController::class, 'ver'], ['permiso:concertaciones.listar']);
  $r->put('/concertaciones/{id}', [\App\Controller\ConcertacionController::class, 'actualizar'], ['permiso:concertaciones.crear']);
  $r->put('/concertaciones/{id}/fijar', [\App\Controller\ConcertacionController::class, 'fijarCompromisos'], ['permiso:concertaciones.crear']);
@@ -118,17 +180,20 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/concertaciones/{id}/compromisos-mejoramiento', [\App\Controller\CompromisoMejoramientoController::class, 'listar'], ['permiso:mejoramiento.listar']);
 
  $r->get('/evaluaciones', [\App\Controller\EvaluacionController::class, 'listar'], ['permiso:evaluaciones.listar']);
- $r->post('/evaluaciones', [\App\Controller\EvaluacionController::class, 'crear'], ['permiso:evaluaciones.crear']);
+  $r->post('/evaluaciones', [\App\Controller\EvaluacionController::class, 'crear'], ['permiso:evaluaciones.crear']);
+  $r->post('/evaluaciones/iniciar', [\App\Controller\EvaluacionController::class, 'iniciarParaEvaluado'], ['permiso:compromisos.enviar']);
  $r->get('/evaluaciones/pendientes-calificar', [\App\Controller\EvaluacionController::class, 'pendientesCalificar'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/buscar-evaluado', [\App\Controller\EvaluacionController::class, 'buscarEvaluado'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/mias', [\App\Controller\EvaluacionController::class, 'misEvaluaciones'], ['permiso:evaluaciones.listar']);
+ $r->get('/evaluaciones/mias/historial', [\App\Controller\EvaluacionController::class, 'miHistorial'], ['permiso:evaluaciones.listar']);
+ $r->get('/evaluaciones/evaluador/evaluados', [\App\Controller\EvaluacionController::class, 'evaluadosPorDependencia'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/evaluado/{id}/previas', [\App\Controller\EvaluacionController::class, 'verEvaluacionesPorEvaluado'], ['permiso:evaluaciones.listar']);
  $r->get('/evaluaciones/evaluado/{id}/primer-semestre-existe', [\App\Controller\EvaluacionController::class, 'existePrimerSemestre'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'ver'], ['permiso:evaluaciones.listar']);
-  $r->get('/evaluaciones/{id}/evaluaciones-previas', [\App\Controller\EvaluacionController::class, 'verEvaluacionesPrevias'], ['permiso:evaluaciones.listar']);
- $r->put('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'calificar'], ['permiso:evaluaciones.evaluar']);
+$r->get('/evaluaciones/{id}/evaluaciones-previas', [\App\Controller\EvaluacionController::class, 'verEvaluacionesPrevias'], ['permiso:evaluaciones.listar']);
+  $r->post('/evaluaciones/{id}/parcial', [\App\Controller\EvaluacionController::class, 'crearParcial'], ['permiso:evaluaciones.crear']);
+  $r->put('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'calificar'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/{id}/compromisos', [\App\Controller\EvaluacionController::class, 'compromisos'], ['permiso:compromisos.listar']);
- $r->post('/evaluaciones/{id}/parcial', [\App\Controller\EvaluacionController::class, 'crearParcial'], ['permiso:evaluaciones.crear']);
  $r->put('/evaluaciones/{id}/definitiva', [\App\Controller\EvaluacionController::class, 'calificarDefinitiva'], ['permiso:evaluaciones.evaluar']);
  $r->put('/evaluaciones/{id}/comision', [\App\Controller\EvaluacionController::class, 'aprobarComision'], ['permiso:evaluaciones.comision']);
  $r->put('/evaluaciones/{id}/guardar', [\App\Controller\EvaluacionController::class, 'guardar'], ['permiso:evaluaciones.evaluar']);
@@ -141,8 +206,6 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/compromisos/competencias-comportamentales', [\App\Controller\CompromisoComportamentalController::class, 'competenciasComportamentales'], ['permiso:compromisos.listar']);
  $r->post('/compromisos/enviar', [\App\Controller\CompromisoController::class, 'enviar'], ['permiso:compromisos.enviar']);
  $r->post('/compromisos/funcional', [\App\Controller\CompromisoController::class, 'guardarFuncional'], ['permiso:compromisos.crear']);
- // Paquete 2: los endpoints /compromisos/comportamental* ahora viven en
- // /compromisos-comportamentales/* (ver bloque inferior de rutas).
  $r->delete('/compromisos/funcional/{id}', [\App\Controller\CompromisoController::class, 'eliminarFuncional'], ['permiso:compromisos.editar']);
  $r->put('/compromisos/{id}/aceptar-evaluado', [\App\Controller\CompromisoController::class, 'aceptarEvaluado'], ['permiso:compromisos.aceptar']);
  $r->put('/compromisos/{id}/rechazar-evaluado', [\App\Controller\CompromisoController::class, 'rechazarEvaluado'], ['permiso:compromisos.aceptar']);
@@ -162,6 +225,8 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/compromisos-mejoramiento', [\App\Controller\CompromisoMejoramientoController::class, 'listarGlobal'], ['permiso:mejoramiento.listar']);
  $r->get('/compromisos-mejoramiento/{id}', [\App\Controller\CompromisoMejoramientoController::class, 'ver'], ['permiso:mejoramiento.listar']);
  $r->put('/compromisos-mejoramiento/{id}', [\App\Controller\CompromisoMejoramientoController::class, 'actualizar'], ['permiso:mejoramiento.editar']);
+ $r->post('/compromisos-mejoramiento/{id}/seguimiento', [\App\Controller\CompromisoMejoramientoController::class, 'seguimiento'], ['permiso:mejoramiento.editar']);
+ $r->put('/compromisos-mejoramiento/{id}/completar', [\App\Controller\CompromisoMejoramientoController::class, 'completar'], ['permiso:mejoramiento.editar']);
 
  // Paquete 2: Compromisos Comportamentales (independiente del Paquete 1).
  // Las rutas fijas se registran ANTES de las paramétricas para evitar
@@ -171,7 +236,7 @@ $router->group('/api/v1', function (Router $r) {
  $r->post('/compromisos-comportamentales/enviar', [\App\Controller\CompromisoComportamentalController::class, 'enviar'], ['permiso:compromisos.enviar']);
  $r->get('/compromisos-comportamentales/competencias', [\App\Controller\CompromisoComportamentalController::class, 'competenciasComportamentales'], ['permiso:compromisos.listar']);
  $r->get('/compromisos-comportamentales/pendientes', [\App\Controller\CompromisoComportamentalController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
- $r->post('/compromisos-comportamentales/guardar', [\App\Controller\CompromisoComportamentalController::class, 'crear'], ['permiso:compromisos.crear']);
+ $r->post('/compromisos-comportamentales/guardar', [\App\Controller\CompromisoComportamentalController::class, 'guardar'], ['permiso:compromisos.crear']);
  $r->get('/compromisos-comportamentales/evaluacion/{id}', [\App\Controller\CompromisoComportamentalController::class, 'listarPorEvaluacion'], ['permiso:compromisos.listar']);
  $r->get('/compromisos-comportamentales/{id}', [\App\Controller\CompromisoComportamentalController::class, 'ver'], ['permiso:compromisos.listar']);
  $r->put('/compromisos-comportamentales/{id}', [\App\Controller\CompromisoComportamentalController::class, 'actualizar'], ['permiso:compromisos.editar']);
@@ -185,16 +250,17 @@ $router->group('/api/v1', function (Router $r) {
  $r->post('/compromisos-mejoramiento/{id}/seguimiento', [\App\Controller\CompromisoMejoramientoController::class, 'seguimiento'], ['permiso:mejoramiento.editar']);
  $r->put('/compromisos-mejoramiento/{id}/completar', [\App\Controller\CompromisoMejoramientoController::class, 'completar'], ['permiso:mejoramiento.editar']);
 
-  $r->get('/evidencias', [\App\Controller\EvidenciaController::class, 'listar'], ['permiso:evidencias.listar']);
-  $r->post('/evidencias', [\App\Controller\EvidenciaController::class, 'registrar'], ['permiso:evidencias.crear']);
-  $r->get('/evidencias/plantilla-carga', [\App\Controller\EvidenciaController::class, 'plantillaCarga'], ['permiso:evidencias.crear']);
-  $r->post('/evidencias/carga-masiva', [\App\Controller\EvidenciaController::class, 'cargaMasiva'], ['permiso:evidencias.crear']);
-  $r->get('/evidencias/archivo/{id}', [\App\Controller\EvidenciaController::class, 'descargarArchivo'], ['permiso:evidencias.listar']);
-   $r->get('/evidencias/compromisos-evaluado', [\App\Controller\EvidenciaController::class, 'compromisosEvaluado'], ['permiso:evidencias.listar']);
-   $r->get('/evaluadores/mis-evaluados', [\App\Controller\EvidenciaController::class, 'evaluadosAsignados'], ['permiso:evidencias.listar']);
-   $r->get('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'ver'], ['permiso:evidencias.listar']);
-  $r->put('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'actualizar'], ['permiso:evidencias.editar']);
-  $r->delete('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'eliminar'], ['permiso:evidencias.editar']);
+ $r->get('/evidencias', [\App\Controller\EvidenciaController::class, 'listar'], ['permiso:evidencias.listar']);
+ $r->post('/evidencias', [\App\Controller\EvidenciaController::class, 'registrar'], ['permiso:evidencias.crear']);
+ $r->get('/evidencias/plantilla-carga', [\App\Controller\EvidenciaController::class, 'plantillaCarga'], ['permiso:evidencias.crear']);
+ $r->post('/evidencias/carga-masiva', [\App\Controller\EvidenciaController::class, 'cargaMasiva'], ['permiso:evidencias.crear']);
+ $r->get('/evidencias/{id}/download-url', [\App\Controller\EvidenciaController::class, 'generarDownloadUrl'], ['permiso:evidencias.listar']);
+ $r->get('/evidencias/archivo/{id}', [\App\Controller\EvidenciaController::class, 'descargarArchivo']);
+ $r->get('/evidencias/compromisos-evaluado', [\App\Controller\EvidenciaController::class, 'compromisosEvaluado'], ['permiso:evidencias.listar']);
+ $r->get('/evaluadores/mis-evaluados', [\App\Controller\EvidenciaController::class, 'evaluadosAsignados'], ['permiso:evidencias.listar']);
+ $r->get('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'ver'], ['permiso:evidencias.listar']);
+ $r->put('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'actualizar'], ['permiso:evidencias.editar']);
+ $r->delete('/evidencias/{id}', [\App\Controller\EvidenciaController::class, 'eliminar'], ['permiso:evidencias.editar']);
 
  $r->get('/ausentismos', [\App\Controller\AusentismoController::class, 'listar'], ['permiso:ausentismos.listar']);
  $r->post('/ausentismos', [\App\Controller\AusentismoController::class, 'crear'], ['permiso:ausentismos.crear']);
@@ -222,17 +288,17 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/reportes/dependencia/{id}', [\App\Controller\ReporteController::class, 'porDependencia'], ['permiso:reportes.generar']);
  $r->get('/reportes/compromisos', [\App\Controller\ReporteController::class, 'compromisos'], ['permiso:reportes.generar']);
  $r->get('/reportes/concertaciones-aprobadas', [\App\Controller\ReporteController::class, 'concertacionesAprobadas'], ['permiso:reportes.generar']);
+ $r->get('/reportes/tipo/{tipo}', [\App\Controller\ReporteController::class, 'concertacionesPorTipo'], ['permiso:reportes.generar']);
  $r->get('/reportes/excel/concertaciones-aprobadas', [\App\Controller\ReporteController::class, 'descargarExcelConcertaciones'], ['permiso:reportes.generar']);
  $r->get('/reportes/excel/{tipo}', [\App\Controller\ReporteController::class, 'descargarExcel'], ['permiso:reportes.generar']);
- $r->get('/reportes/concertacion-pdf/{id}', [\App\Controller\ReporteController::class, 'pdfConcertacion'], ['permiso:reportes.generar']);
- $r->get('/reportes/evaluacion-pdf/{id}', [\App\Controller\ReporteController::class, 'pdfEvaluacion'], ['permiso:reportes.generar']);
-
+ $r->get('/reportes/concertacion-pdf/{id}', [\App\Controller\ReporteController::class, 'pdfConcertacion'], ['permiso:evaluaciones.listar']);
+ $r->get('/reportes/evaluacion-pdf/{id}', [\App\Controller\ReporteController::class, 'pdfEvaluacion'], ['permiso:evaluaciones.listar']);
 
 
  $r->get('/competencias', [\App\Controller\CompetenciaController::class, 'listar'], ['permiso:compromisos.listar']);
  $r->get('/competencias/decretos', [\App\Controller\CompetenciaController::class, 'decretos'], ['permiso:compromisos.listar']);
 
- }, [AuthMiddleware::class]);
+ }, [AuthMiddleware::class, CsrfMiddleware::class]);
 }, [CorsMiddleware::class, SecurityHeadersMiddleware::class, RateLimitMiddleware::class]);
 
 $method = $_SERVER['REQUEST_METHOD'];

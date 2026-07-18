@@ -78,35 +78,59 @@ class ApiClient {
  }
 
  async request<T>(method: string, path: string, body?: unknown): Promise<T> {
- const opts: RequestInit = {
- method,
- headers: this.headers(typeof body !== 'undefined'),
- };
- if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
+   const opts: RequestInit = {
+     method,
+     headers: this.headers(typeof body !== 'undefined'),
+   };
+   if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
 
- let res: Response;
- try {
- res = await fetch(`${API_BASE}${path}`, opts);
- } catch {
- throw new Error('No se puede conectar con el servidor. Verifique que el backend este corriendo.');
- }
+   let res: Response;
+   try {
+     res = await fetch(`${API_BASE}${path}`, opts);
+   } catch {
+     throw new Error('No se puede conectar con el servidor. Verifique que el backend este corriendo.');
+   }
 
- const text = await res.text();
- if (!text) {
- throw new Error('El servidor no respondio. Verifique que el backend este corriendo.');
- }
+   const text = await res.text();
+   if (!text) {
+     throw new Error('El servidor no respondio. Verifique que el backend este corriendo.');
+   }
 
- let json: ApiResponse<T>;
- try {
- json = JSON.parse(text);
- } catch {
- if (DEBUG) console.error(`[API] ${method} ${path} JSON invalido:`, text.substring(0, 200));
- throw new Error('Respuesta invalida del servidor.');
- }
+   let json: ApiResponse<T>;
+   try {
+     json = JSON.parse(text);
+   } catch {
+     if (DEBUG) console.error(`[API] ${method} ${path} JSON invalido:`, text.substring(0, 200));
+     throw new Error('Respuesta invalida del servidor.');
+   }
 
- if (DEBUG) console.log(`[API] ${method} ${path} status=${res.status} code=${json.code}`);
+   if (DEBUG) console.log(`[API] ${method} ${path} status=${res.status} code=${json.code}`);
 
- if (res.status === 401) {
+   // Handle CSRF token expiration (419) - fetch new token and retry once
+   if (res.status === 419 || (json.code === '02' && (json.message || '').toLowerCase().includes('csrf'))) {
+     if (DEBUG) console.log('[API] CSRF token expired, fetching new token and retrying...');
+     await this.fetchCsrfToken();
+
+     const retryOpts: RequestInit = {
+       method,
+       headers: this.headers(typeof body !== 'undefined'),
+     };
+     if (body !== undefined && body !== null) retryOpts.body = JSON.stringify(body);
+
+     const retryRes = await fetch(`${API_BASE}${path}`, retryOpts);
+     const retryText = await retryRes.text();
+     if (retryText) {
+       try {
+         const retryJson = JSON.parse(retryText);
+         if (retryJson.code === '01') return retryJson.data;
+         throw new Error(retryJson.message || 'Error del servidor');
+       } catch (e) {
+         if (e instanceof Error && e.message !== 'Error del servidor') throw e;
+       }
+     }
+   }
+
+   if (res.status === 401) {
  const newToken = await this.refreshToken();
  if (newToken) {
  const retryOpts: RequestInit = {
@@ -137,10 +161,16 @@ class ApiClient {
  }
 
  if (json.code !== '01') {
- throw new Error(json.message || 'Error del servidor');
- }
+     throw new Error(json.message || 'Error del servidor');
+   }
 
- return json.data;
+   // Pre-fetch a fresh CSRF token after successful mutating requests
+   // to prevent 419 errors on consecutive PUT/POST/DELETE calls.
+   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+     this.fetchCsrfToken();
+   }
+
+   return json.data;
  }
 
  get<T>(path: string): Promise<T> {

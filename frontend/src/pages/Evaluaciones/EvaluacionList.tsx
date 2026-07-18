@@ -7,18 +7,31 @@ import { toast } from 'sonner'
 interface Evaluacion {
   id: number
   periodo_id: number
+  periodo_nombre?: string
   tipo: string
-  puntaje: number | null
+  nota_funcionales?: string | null
+  nota_comportamentales?: string | null
+  calificacion_definitiva?: string | null
+  nivel_resultado?: string | null
   estado: string
-  fecha_evaluacion: string | null
-  observaciones: string | null
+  fecha_calificacion?: string | null
+  fecha_evaluacion?: string | null
+  observaciones?: string | null
+  evaluado_documento?: string
+  evaluado_nombre?: string
+  evaluador_documento?: string
+  evaluador_nombre?: string
 }
 
 interface Periodo {
  id: number
  nombre: string
  anio: string
+ fecha_inicio: string
+ fecha_fin: string
 }
+
+type Semestre = 'primer_semestre' | 'segundo_semestre'
 
 interface ConcertacionAprobada {
  periodo: string
@@ -34,8 +47,9 @@ interface ConcertacionAprobada {
  fecha_aprobacion: string
 }
 
-const ESTADOS_EVAL = ['pendiente', 'concertacion', 'en_proceso', 'calificada', 'aprobada_comision', 'cerrada'] as const
-const TIPOS_EVAL = ['parcial_semestral', 'parcial_eventual', 'definitiva'] as const
+const ESTADOS_EVAL = ['pendiente', 'concertacion', 'en_proceso', 'calificada', 'aprobada_comision', 'rechazada_comision', 'cerrada', 'anulada'] as const
+const TIPOS_EVAL = ['parcial_primer_semestre', 'parcial_segundo_semestre', 'parcial_eventual', 'calificacion_extraordinaria'] as const
+const NIVELES_RESULTADO = ['sobresaliente', 'satisfactorio', 'no_satisfactorio'] as const
 
 const TIPOS_REPORTE = [
  { value: 'concertaciones-aprobadas', label: 'Concertaciones Aprobadas' },
@@ -58,6 +72,7 @@ export default function EvaluacionList() {
 
   const [periodos, setPeriodos] = useState<Periodo[]>([])
   const [reportPeriodoId, setReportPeriodoId] = useState('')
+  const [reportSemestre, setReportSemestre] = useState<Semestre | ''>('')
   const [reportType, setReportType] = useState('')
   const [reportData, setReportData] = useState<any[]>([])
   const [reportLoading, setReportLoading] = useState(false)
@@ -74,17 +89,24 @@ export default function EvaluacionList() {
   useEffect(() => { cargar() }, [pagina])
 
   useEffect(() => {
-    api.get<{data: Periodo[]}>('/periodos?por_pagina=100')
-      .then(res => setPeriodos(res.data || []))
+    api.get<PaginatedData<Periodo> | Periodo[]>('/periodos?por_pagina=100')
+      .then(res => {
+        const items = Array.isArray(res) ? res : ((res as any)?.data ?? [])
+        setPeriodos(items)
+      })
       .catch(() => {})
   }, [])
 
   async function generarReporte() {
-    if (!reportPeriodoId || !reportType) return
+    if (!reportPeriodoId || !reportType || !reportSemestre) return
     setReportLoading(true)
     setReportGenerated(false)
     try {
-      const res = await api.get<ConcertacionAprobada[]>(`/reportes/concertaciones-aprobadas?periodo_id=${reportPeriodoId}`)
+      const params = new URLSearchParams({
+        periodo_id: reportPeriodoId,
+        semestre: reportSemestre,
+      })
+      const res = await api.get<ConcertacionAprobada[]>(`/reportes/concertaciones-aprobadas?${params.toString()}`)
       setReportData(res || [])
       setReportGenerated(true)
     } catch (e: any) {
@@ -95,9 +117,13 @@ export default function EvaluacionList() {
   }
 
   async function descargarExcel() {
-    if (!reportPeriodoId) return
+    if (!reportPeriodoId || !reportSemestre) return
     try {
-      const blob = await api.getBlob(`/reportes/excel/concertaciones-aprobadas?periodo_id=${reportPeriodoId}`)
+      const params = new URLSearchParams({
+        periodo_id: reportPeriodoId,
+        semestre: reportSemestre,
+      })
+      const blob = await api.getBlob(`/reportes/excel/concertaciones-aprobadas?${params.toString()}`)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -110,8 +136,8 @@ export default function EvaluacionList() {
   }
 
   useEffect(() => {
-    if (reportPeriodoId && reportType) generarReporte()
-  }, [reportPeriodoId, reportType])
+    if (reportPeriodoId && reportType && reportSemestre) generarReporte()
+  }, [reportPeriodoId, reportType, reportSemestre])
 
   async function guardar() {
     if (!editando) return
@@ -119,7 +145,10 @@ export default function EvaluacionList() {
     try {
       await api.put(`/evaluaciones/${editando.id}`, {
         tipo: editando.tipo,
-        puntaje: editando.puntaje,
+        nota_funcionales: editando.nota_funcionales !== undefined ? parseFloat(String(editando.nota_funcionales)) : null,
+        nota_comportamentales: editando.nota_comportamentales !== undefined ? parseFloat(String(editando.nota_comportamentales)) : null,
+        calificacion_definitiva: editando.calificacion_definitiva !== undefined ? parseFloat(String(editando.calificacion_definitiva)) : null,
+        nivel_resultado: editando.nivel_resultado || null,
         estado: editando.estado,
         observaciones: editando.observaciones,
       })
@@ -133,21 +162,61 @@ export default function EvaluacionList() {
   }
 
   const puntajeColor = (p: number | null) => {
-    if (p === null) return 'text-inst-texto-claro'
+    if (p === null || p === undefined || isNaN(p)) return 'text-inst-texto-claro'
     if (p >= 80) return 'text-inst-azul-osc font-semibold'
     if (p >= 60) return 'text-amber-600 font-semibold'
     return 'text-inst-rojo font-semibold'
   }
 
+  const parsePuntaje = (raw: string | number | null | undefined): number | null => {
+    if (raw === null || raw === undefined) return null
+    const n = typeof raw === 'number' ? raw : parseFloat(String(raw))
+    return isNaN(n) ? null : n
+  }
+
+  const formatFecha = (raw?: string | null): string => {
+    if (!raw) return 'Pendiente'
+    const d = new Date(raw)
+    return isNaN(d.getTime()) ? 'Pendiente' : d.toLocaleDateString('es-CO')
+  }
+
+  const formatTipo = (tipo: string): string => {
+    const map: Record<string, string> = {
+      'parcial_primer_semestre': 'Parcial Primer Semestre',
+      'parcial_segundo_semestre': 'Parcial Segundo Semestre',
+      'parcial_eventual': 'Parcial Eventual',
+      'calificacion_extraordinaria': 'Calificación Extraordinaria',
+    }
+    return map[tipo] || tipo
+  }
+
+  const formatEstado = (estado: string): string => {
+    const map: Record<string, string> = {
+      'pendiente': 'Pendiente',
+      'concertacion': 'En concertación',
+      'en_proceso': 'En proceso',
+      'calificada': 'Calificada',
+      'aprobada_comision': 'Aprobada por Comisión',
+      'rechazada_comision': 'Rechazada por Comisión',
+      'cerrada': 'Cerrada',
+      'anulada': 'Anulada',
+    }
+    return map[estado] || estado
+  }
+
   const estadoBadge = (e: string) => {
-    if (e === 'definitiva' || e === 'aprobada_comision' || e === 'calificada') return 'edl-badge-activo'
+    if (e === 'cerrada' || e === 'aprobada_comision' || e === 'calificada') return 'edl-badge-activo'
     if (e === 'pendiente') return 'edl-badge-pendiente'
+    if (e === 'anulada' || e === 'rechazada_comision') return 'edl-badge-rojo'
     return 'edl-badge-inactivo'
   }
 
   const reportColumns: DataTableColumn<ConcertacionAprobada>[] = [
     { key: 'periodo', header: 'Periodo', render: (r) => r.periodo },
+    { key: 'tipo_reporte', header: 'Tipo de reporte', render: () => TIPOS_REPORTE.find(t => t.value === reportType)?.label || reportType },
+    { key: 'semestre', header: 'Semestre', render: () => reportSemestre === 'primer_semestre' ? 'Primer Semestre' : reportSemestre === 'segundo_semestre' ? 'Segundo Semestre' : '—' },
     { key: 'evaluado_documento', header: 'Documento del evaluado', render: (r) => r.evaluado_documento },
+    { key: 'evaluado_nombre', header: 'Nombre del evaluado', render: (r) => (r as any).evaluado_nombre || r.evaluado_documento },
     { key: 'compromisos_funcionales', header: 'Compromisos Funcionales', align: 'center', render: (r) => r.compromisos_funcionales },
     { key: 'peso_comportamentales', header: 'Peso % Comportamentales', align: 'center', render: (r) => r.peso_comportamentales },
     { key: 'metas_institucionales', header: 'Metas institucionales', render: (r) => r.metas_institucionales || '-' },
@@ -169,31 +238,35 @@ export default function EvaluacionList() {
       <div className="edl-divider-accent" />
 
       <Card>
-        <div className="max-w-xs">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Select
             label="Seleccione un periodo para reportes"
             value={reportPeriodoId}
-            onChange={e => { setReportPeriodoId(e.target.value); setReportType(''); setReportGenerated(false); setReportData([]) }}
+            onChange={e => { setReportPeriodoId(e.target.value); setReportSemestre(''); setReportType(''); setReportGenerated(false); setReportData([]) }}
             placeholder="Seleccione un periodo..."
             options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
           />
+          <Select
+            label="Semestre"
+            value={reportSemestre}
+            onChange={e => { setReportSemestre(e.target.value as Semestre | ''); setReportType(''); setReportGenerated(false); setReportData([]) }}
+            placeholder="Seleccione un semestre..."
+            disabled={!reportPeriodoId}
+            options={[
+              { value: 'primer_semestre', label: 'Primer semestre (Feb-Jul)' },
+              { value: 'segundo_semestre', label: 'Segundo semestre (Ago-Ene)' },
+            ]}
+          />
+          <Select
+            label="Tipo de reporte"
+            value={reportType}
+            onChange={e => setReportType(e.target.value)}
+            placeholder="Seleccione un tipo..."
+            disabled={!reportPeriodoId || !reportSemestre}
+            options={TIPOS_REPORTE.map(t => ({ value: t.value, label: t.label }))}
+          />
         </div>
       </Card>
-
-      {reportPeriodoId && (
-        <Card>
-          <h3 className="font-heading font-semibold text-inst-azul-osc mb-4">Reportes de Evaluaciones</h3>
-          <div className="max-w-md">
-            <Select
-              label="Seleccione un tipo de reporte"
-              value={reportType}
-              onChange={e => setReportType(e.target.value)}
-              placeholder="Seleccione un tipo de reporte..."
-              options={TIPOS_REPORTE.map(t => ({ value: t.value, label: t.label }))}
-            />
-          </div>
-        </Card>
-      )}
 
       {reportLoading && (
         <Card>
@@ -204,7 +277,7 @@ export default function EvaluacionList() {
         </Card>
       )}
 
-      {reportGenerated && !reportLoading && (
+      {reportGenerated && reportPeriodoId && reportSemestre && reportType && !reportLoading && (
         <Card>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-heading font-semibold text-inst-azul-osc">
@@ -244,35 +317,46 @@ export default function EvaluacionList() {
                 <tr>
                   <th>Periodo</th>
                   <th>Tipo</th>
-                  <th>Puntaje</th>
-                  <th>Fecha</th>
+                  <th>Nota Definitiva</th>
+                  <th>Nivel</th>
+                  <th>Fecha calificación</th>
                   <th>Estado</th>
                   <th className="text-center w-16">Editar</th>
                 </tr>
               </thead>
               <tbody>
-                {items.map(e => (
-                  <tr key={e.id} className={e.estado === 'definitiva' ? 'opacity-60' : ''}>
-                    <td className="font-mono">#{e.periodo_id}</td>
-                    <td>{e.tipo}</td>
-                    <td className={puntajeColor(e.puntaje)}>
-                      {e.puntaje !== null ? `${e.puntaje}%` : 'N/A'}
+                {items.map(e => {
+                  const nota = parsePuntaje(e.calificacion_definitiva)
+                  return (
+                  <tr key={e.id} className={e.estado === 'anulada' ? 'opacity-60' : ''}>
+                    <td className="font-mono">{e.periodo_nombre || `#${e.periodo_id}`}</td>
+                    <td>{formatTipo(e.tipo)}</td>
+                    <td className={puntajeColor(nota)}>
+                      {nota !== null ? `${nota.toFixed(2)}%` : 'Pendiente'}
                     </td>
-                    <td>{e.fecha_evaluacion || 'Pendiente'}</td>
                     <td>
-                      <span className={estadoBadge(e.estado)}>{e.estado}</span>
+                      {e.nivel_resultado ? (
+                        <span className={`edl-badge ${e.nivel_resultado === 'sobresaliente' ? 'edl-badge-activo' : e.nivel_resultado === 'satisfactorio' ? 'edl-badge-info' : 'edl-badge-rojo'}`}>
+                          {e.nivel_resultado.charAt(0).toUpperCase() + e.nivel_resultado.slice(1)}
+                        </span>
+                      ) : <span className="text-inst-texto-claro text-xs">—</span>}
+                    </td>
+                    <td>{formatFecha(e.fecha_calificacion || e.fecha_evaluacion)}</td>
+                    <td>
+                      <span className={estadoBadge(e.estado)}>{formatEstado(e.estado)}</span>
                     </td>
                     <td className="text-center">
                       <button
                         onClick={() => setEditando({ ...e })}
                         className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul hover:text-inst-rojo"
-                        title={e.estado === 'definitiva' ? 'Editar evaluacion definitiva' : 'Editar evaluacion'}
+                        title="Editar evaluacion"
                       >
                         <span className="material-icons text-lg">edit</span>
                       </button>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -290,10 +374,10 @@ export default function EvaluacionList() {
             </div>
 
             <div className="p-4 space-y-3">
-              {editando.estado === 'definitiva' && (
+              {editando.estado === 'cerrada' && (
                 <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3 flex items-center gap-2">
                   <span className="material-icons text-yellow-600">lock</span>
-                  <p className="text-sm text-yellow-800 font-medium">Esta evaluacion es definitiva. Modifique con precaucion.</p>
+                  <p className="text-sm text-yellow-800 font-medium">Esta evaluacion esta cerrada. Modifique con precaucion.</p>
                 </div>
               )}
 
@@ -301,19 +385,38 @@ export default function EvaluacionList() {
                 <div>
                   <label className="block text-xs font-medium text-inst-texto-claro mb-1">Tipo</label>
                   <select value={editando.tipo} onChange={e => setEditando({ ...editando, tipo: e.target.value })} className="edl-input w-full">
-                    {TIPOS_EVAL.map(t => <option key={t} value={t}>{t}</option>)}
+                    {TIPOS_EVAL.map(t => <option key={t} value={t}>{formatTipo(t)}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-inst-texto-claro mb-1">Estado</label>
                   <select value={editando.estado} onChange={e => setEditando({ ...editando, estado: e.target.value })} className="edl-input w-full">
-                    {ESTADOS_EVAL.map(e => <option key={e} value={e}>{e}</option>)}
+                    {ESTADOS_EVAL.map(e => <option key={e} value={e}>{formatEstado(e)}</option>)}
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-inst-texto-claro mb-1">Puntaje (%)</label>
-                <input type="number" step="0.01" min="0" max="100" value={editando.puntaje ?? ''} onChange={e => setEditando({ ...editando, puntaje: e.target.value ? parseFloat(e.target.value) : null })} className="edl-input w-full" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nota Funcionales</label>
+                  <input type="number" step="0.01" min="0" max="100" value={editando.nota_funcionales ?? ''} onChange={e => setEditando({ ...editando, nota_funcionales: e.target.value })} className="edl-input w-full" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nota Comportamentales</label>
+                  <input type="number" step="0.01" min="0" max="100" value={editando.nota_comportamentales ?? ''} onChange={e => setEditando({ ...editando, nota_comportamentales: e.target.value })} className="edl-input w-full" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Calificacion Definitiva</label>
+                  <input type="number" step="0.01" min="0" max="100" value={editando.calificacion_definitiva ?? ''} onChange={e => setEditando({ ...editando, calificacion_definitiva: e.target.value })} className="edl-input w-full" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-inst-texto-claro mb-1">Nivel de Resultado</label>
+                  <select value={editando.nivel_resultado || ''} onChange={e => setEditando({ ...editando, nivel_resultado: e.target.value || null })} className="edl-input w-full">
+                    <option value="">— Sin definir —</option>
+                    {NIVELES_RESULTADO.map(n => <option key={n} value={n}>{n.charAt(0).toUpperCase() + n.slice(1)}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-inst-texto-claro mb-1">Observaciones</label>

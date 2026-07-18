@@ -228,35 +228,58 @@ class ReporteService
  return $stmt->fetchAll();
  }
 
-  public function concertacionesAprobadas(int $periodoId): array
-  {
-  $pdo = Database::getInstance();
-  $stmt = $pdo->prepare("
-  SELECT
-  p.nombre as periodo,
-  ev.documento as evaluado_documento,
-  (SELECT SUM(CASE WHEN co.tipo = 'funcional' THEN 1 ELSE 0 END) FROM compromisos co WHERE co.concertacion_id = c.id AND co.eliminado_en IS NULL) as compromisos_funcionales,
-  (SELECT COALESCE(SUM(CASE WHEN co2.tipo = 'comportamental' THEN co2.peso ELSE 0 END), 0) FROM compromisos co2 WHERE co2.concertacion_id = c.id AND co2.eliminado_en IS NULL) as peso_comportamentales,
-  (SELECT GROUP_CONCAT(DISTINCT m.descripcion SEPARATOR '; ') FROM compromisos co3 INNER JOIN metas m ON m.id = co3.meta_id WHERE co3.concertacion_id = c.id AND co3.meta_id IS NOT NULL AND co3.eliminado_en IS NULL) as metas_institucionales,
-  er.documento as evaluador_documento,
-  TRIM(CONCAT_WS(' ', er.primer_nombre, er.segundo_nombre, er.primer_apellido)) as evaluador_nombre,
-  CASE WHEN c.comision_evaluador_id IS NOT NULL THEN TRIM(CONCAT_WS(' ', com.primer_nombre, com.segundo_nombre, com.primer_apellido)) ELSE 'Sin comision' END as comision_evaluadora,
-  ev.denominacion_empleo as cargo,
-  c.creado_en as fecha_creacion,
-  c.actualizado_en as fecha_aprobacion
-  FROM concertaciones c
-  INNER JOIN periodos p ON p.id = c.periodo_id
-  INNER JOIN usuarios ev ON ev.id = c.evaluado_id AND ev.eliminado_en IS NULL
-  INNER JOIN usuarios er ON er.id = c.evaluador_id AND er.eliminado_en IS NULL
-  LEFT JOIN usuarios com ON com.id = c.comision_evaluador_id AND com.eliminado_en IS NULL
-  WHERE c.periodo_id = ?
-  AND c.estado = 'aprobada_evaluado'
-  AND c.eliminado_en IS NULL
-  ORDER BY c.actualizado_en DESC
-  ");
-  $stmt->execute([$periodoId]);
-  return $stmt->fetchAll();
-  }
+  public function concertacionesAprobadas(int $periodoId, string $semestre = 'primer_semestre'): array
+   {
+   $pdo = Database::getInstance();
+
+   $stmtPeriodo = $pdo->prepare("SELECT fecha_inicio, fecha_fin FROM periodos WHERE id = ?");
+   $stmtPeriodo->execute([$periodoId]);
+   $periodo = $stmtPeriodo->fetch();
+   if (!$periodo) {
+   ResponseHelper::error('Periodo no encontrado', 404);
+   }
+   $fechaInicio = $periodo['fecha_inicio'];
+   $fechaFin = $periodo['fecha_fin'];
+   $puntoMedio = date('Y-m-d', strtotime($fechaInicio . ' +6 months'));
+
+   if ($semestre === 'primer_semestre') {
+   $rangoInicio = $fechaInicio;
+   $rangoFin = $puntoMedio;
+   } else {
+   $rangoInicio = $puntoMedio;
+   $rangoFin = $fechaFin;
+   }
+
+   $stmt = $pdo->prepare("
+   SELECT
+   p.nombre as periodo,
+   ev.documento as evaluado_documento,
+   TRIM(CONCAT_WS(' ', ev.primer_nombre, ev.segundo_nombre, ev.primer_apellido, ev.segundo_apellido)) as evaluado_nombre,
+   ev.email as evaluado_email,
+   (SELECT SUM(CASE WHEN co.tipo = 'funcional' THEN 1 ELSE 0 END) FROM compromisos co WHERE co.concertacion_id IN (SELECT id FROM concertaciones WHERE evaluado_id = c.evaluado_id AND periodo_id = c.periodo_id AND estado = 'aprobada_evaluado' AND eliminado_en IS NULL AND actualizado_en >= ? AND actualizado_en <= ?) AND co.eliminado_en IS NULL) as compromisos_funcionales,
+   (SELECT COALESCE(SUM(CASE WHEN co2.tipo = 'comportamental' THEN co2.peso ELSE 0 END), 0) FROM compromisos co2 WHERE co2.concertacion_id IN (SELECT id FROM concertaciones WHERE evaluado_id = c.evaluado_id AND periodo_id = c.periodo_id AND estado = 'aprobada_evaluado' AND eliminado_en IS NULL AND actualizado_en >= ? AND actualizado_en <= ?) AND co2.eliminado_en IS NULL) as peso_comportamentales,
+   (SELECT GROUP_CONCAT(DISTINCT m.descripcion SEPARATOR '; ') FROM compromisos co3 INNER JOIN metas m ON m.id = co3.meta_id WHERE co3.concertacion_id IN (SELECT id FROM concertaciones WHERE evaluado_id = c.evaluado_id AND periodo_id = c.periodo_id AND estado = 'aprobada_evaluado' AND eliminado_en IS NULL AND actualizado_en >= ? AND actualizado_en <= ?) AND co3.meta_id IS NOT NULL AND co3.eliminado_en IS NULL) as metas_institucionales,
+   MIN(er.documento) as evaluador_documento,
+   MIN(TRIM(CONCAT_WS(' ', er.primer_nombre, er.segundo_nombre, er.primer_apellido))) as evaluador_nombre,
+   'Sin comision' as comision_evaluadora,
+   ev.denominacion_empleo as cargo,
+   MIN(c.creado_en) as fecha_creacion,
+   MAX(c.actualizado_en) as fecha_aprobacion
+   FROM concertaciones c
+   INNER JOIN periodos p ON p.id = c.periodo_id
+   INNER JOIN usuarios ev ON ev.id = c.evaluado_id AND ev.eliminado_en IS NULL
+   INNER JOIN usuarios er ON er.id = c.evaluador_id AND er.eliminado_en IS NULL
+   WHERE c.periodo_id = ?
+   AND c.estado = 'aprobada_evaluado'
+   AND c.eliminado_en IS NULL
+   AND c.actualizado_en >= ?
+   AND c.actualizado_en <= ?
+   GROUP BY c.evaluado_id, c.periodo_id, p.nombre, ev.documento, ev.primer_nombre, ev.segundo_nombre, ev.primer_apellido, ev.segundo_apellido, ev.email, ev.denominacion_empleo
+   ORDER BY MAX(c.actualizado_en) DESC
+   ");
+   $stmt->execute([$rangoInicio, $rangoFin, $rangoInicio, $rangoFin, $rangoInicio, $rangoFin, $periodoId, $rangoInicio, $rangoFin]);
+   return $stmt->fetchAll();
+   }
 
   public function generarCSV(string $tipo, array $filtros): string
  {
@@ -569,10 +592,11 @@ public function datosEvaluacionPdf(int $id): array
   return ['evaluacion' => $evaluacion, 'detalles' => $detalles];
   }
 
-  public function generarExcelConcertacionesAprobadas(int $periodoId): string
-  {
-  $data = $this->concertacionesAprobadas($periodoId);
-  $periodoNombre = !empty($data) ? $data[0]['periodo'] : 'Periodo #' . $periodoId;
+  public function generarExcelConcertacionesAprobadas(int $periodoId, string $semestre = 'primer_semestre'): string
+   {
+   $data = $this->concertacionesAprobadas($periodoId, $semestre);
+   $periodoNombre = !empty($data) ? $data[0]['periodo'] : 'Periodo #' . $periodoId;
+   $semestreLabel = $semestre === 'primer_semestre' ? 'Primer Semestre' : 'Segundo Semestre';
 
   $escudo = '';
   $paths = [
@@ -631,8 +655,8 @@ public function datosEvaluacionPdf(int $id): array
   ' . $escudo . '
   <h1>ALCALDIA DE CAREPA</h1>
   <h2>Secretaria de Educacion y Cultura</h2>
-  <div class="subtitle">REPORTE DE CONCERTACIONES APROBADAS</div>
-  <div style="font-size:10pt;color:#003366;margin-top:5px;">Periodo: ' . htmlspecialchars($periodoNombre, ENT_QUOTES, 'UTF-8') . '</div>
+  <div class="subtitle">REPORTE DE CONCERTACIONES APROBADAS - {$semestreLabel}</div>
+  <div style="font-size:10pt;color:#003366;margin-top:5px;">Periodo: {$periodoNombre}</div>
   </div>
   <table>
   <thead>

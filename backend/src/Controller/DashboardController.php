@@ -15,10 +15,11 @@ class DashboardController
         $user = AuthMiddleware::user();
 
         // Estadísticas generales
-        $entidades = (int) $db->query("SELECT COUNT(*) FROM entidades WHERE eliminado_en IS NULL")->fetchColumn();
-        $usuarios = (int) $db->query("SELECT COUNT(*) FROM usuarios WHERE eliminado_en IS NULL")->fetchColumn();
-        $evaluaciones = (int) $db->query("SELECT COUNT(*) FROM evaluaciones WHERE eliminado_en IS NULL")->fetchColumn();
-        $periodos = (int) $db->query("SELECT COUNT(*) FROM periodos WHERE estado IN ('configuracion','concertacion','seguimiento','evaluacion','calificacion') AND eliminado_en IS NULL")->fetchColumn();
+         $entidades = (int) $db->query("SELECT COUNT(*) FROM entidades WHERE eliminado_en IS NULL")->fetchColumn();
+         $dependencias = (int) $db->query("SELECT COUNT(*) FROM dependencias WHERE eliminado_en IS NULL")->fetchColumn();
+         $usuarios = (int) $db->query("SELECT COUNT(*) FROM usuarios WHERE eliminado_en IS NULL")->fetchColumn();
+         $evaluaciones = (int) $db->query("SELECT COUNT(*) FROM evaluaciones WHERE eliminado_en IS NULL")->fetchColumn();
+         $periodos = (int) $db->query("SELECT COUNT(*) FROM periodos WHERE estado IN ('configuracion','concertacion','seguimiento','evaluacion','calificacion') AND eliminado_en IS NULL")->fetchColumn();
 
         // Notificaciones no leídas
         $notiService = new NotificacionService();
@@ -42,14 +43,15 @@ class DashboardController
         $misCompromisosEnviados = (int) $stmt->fetchColumn();
 
         ResponseHelper::success([
-            'entidades' => $entidades,
-            'usuarios' => $usuarios,
-            'evaluaciones' => $evaluaciones,
-            'periodos' => $periodos,
-            'notificaciones_no_leidas' => $notificacionesNoLeidas,
-            'compromisos_pendientes_aprobacion' => $compromisosPendientes,
-            'mis_compromisos_enviados' => $misCompromisosEnviados,
-        ]);
+          'entidades' => $entidades,
+          'dependencias' => $dependencias,
+          'usuarios' => $usuarios,
+          'evaluaciones' => $evaluaciones,
+          'periodos' => $periodos,
+          'notificaciones_no_leidas' => $notificacionesNoLeidas,
+          'compromisos_pendientes_aprobacion' => $compromisosPendientes,
+          'mis_compromisos_enviados' => $misCompromisosEnviados,
+         ]);
     }
 
     /** Estadísticas detalladas para el panel admin */

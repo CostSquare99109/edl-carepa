@@ -146,4 +146,18 @@ class ValidatorHelper
     {
         return $this->errors;
     }
+
+    public static function requireFields(array $data, array $requiredFields): bool
+    {
+        $helper = new self();
+        $rules = [];
+        foreach ($requiredFields as $field) {
+            $rules[$field] = 'required';
+        }
+        $ok = $helper->validate($data, $rules);
+        if (!$ok) {
+            ResponseHelper::error(implode('; ', array_values($helper->getErrors())), 422);
+        }
+        return $ok;
+    }
 }

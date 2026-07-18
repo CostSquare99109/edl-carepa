@@ -85,7 +85,7 @@ export default function App() {
     <Route path="evaluaciones" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><EvaluacionList /></RoleExcludedRoute>} />
     <Route path="admin-evaluaciones" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><AdminEvaluaciones /></RoleExcludedRoute>} />
     <Route path="evidencias" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><EvidenciaList /></RoleExcludedRoute>} />
-    <Route path="mis-evidencias" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><EvidenciasEvaluado /></RoleExcludedRoute>} />
+    <Route path="mis-evidencias" element={<RoleExcludedRoute excludedRoles={['admin_carepa', 'evaluador', 'jefe_dependencia']}><EvidenciasEvaluado /></RoleExcludedRoute>} />
     <Route path="reportes" element={<ReportesPage />} />
     <Route path="admin-reportes" element={<AdminReportes />} />
     <Route path="notificaciones" element={<AdminNotificaciones />} />

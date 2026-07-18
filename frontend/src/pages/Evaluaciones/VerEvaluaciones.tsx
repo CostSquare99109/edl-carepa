@@ -701,7 +701,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                             <td className="text-sm">{c.descripcion}</td>
                             <td className="text-center text-sm">{c.peso}%</td>
                             <td className="text-center text-sm font-semibold">
-                              {formatearPuntaje(c.puntaje)}
+                              {formatearNota(c.calificacion)}
                             </td>
                           </tr>
                         ))}
@@ -721,7 +721,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                       <div key={c.id} className="border border-inst-borde rounded-lg p-3">
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-medium">
-                            {c.compromiso_competencia || c.descripcion}
+                            {c.competencia_nombre || c.compromiso_competencia || c.descripcion}
                             {c.decreto && <span className="text-xs text-inst-texto-claro ml-1">(Decreto {c.decreto})</span>}
                           </p>
                           <Badge tone="info">
