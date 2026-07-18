@@ -3,16 +3,20 @@
 namespace App\Controller;
 
 use App\Service\CargoManualService;
+use App\Service\ReporteManualService;
 use App\Helper\ResponseHelper;
+use App\Helper\PdfHelper;
 use App\Middleware\AuthMiddleware;
 
 class CargoManualController
 {
  private CargoManualService $service;
+ private ReporteManualService $reporteService;
 
  public function __construct()
  {
   $this->service = new CargoManualService();
+  $this->reporteService = new ReporteManualService();
  }
 
  public function listar(): void
@@ -32,6 +36,21 @@ class CargoManualController
    ResponseHelper::notFound('Cargo no encontrado');
   }
   ResponseHelper::success($cargo);
+ }
+
+ /**
+  * GET /api/v1/cargos-manual/{id}/pdf
+  * Genera PDF de la ficha del cargo
+  */
+ public function pdf(int $id): void
+ {
+  $html = $this->reporteService->fichaHtml($id);
+  if (!$html) {
+   ResponseHelper::notFound('Cargo no encontrado');
+  }
+  $denominacion = preg_replace('/[^a-zA-Z0-9]+/', '_', $this->service->ver($id)['denominacion'] ?? 'cargo');
+  $filename = 'manual_' . $id . '_' . strtolower($denominacion) . '.pdf';
+  PdfHelper::generar($html, $filename, true);
  }
 
  public function conteos(): void

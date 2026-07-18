@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface CargoDetalle {
   id: number;
@@ -37,6 +38,7 @@ const SECCION_ICONO_DEFAULT = { titulo: 'description', icono: 'description' };
 export default function ManualFuncionesFicha() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { token } = useAuth();
   const [cargo, setCargo] = useState<CargoDetalle | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -71,6 +73,28 @@ export default function ManualFuncionesFicha() {
       // no es JSON, devolver como texto
     }
     return { tipo: 'texto', valor: contenido };
+  };
+
+  const descargarPdf = async () => {
+    if (!id || !token) return;
+    try {
+      const API_BASE = (import.meta as any).env?.VITE_API_URL || '/api/v1';
+      const res = await fetch(`${API_BASE}/cargos-manual/${id}/pdf`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Error al generar PDF');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `manual_${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      alert('Error al descargar PDF: ' + e.message);
+    }
   };
 
   if (cargando) {
@@ -110,9 +134,18 @@ export default function ManualFuncionesFicha() {
       <div className="bg-white border rounded-lg p-6 mb-4">
         <div className="flex justify-between items-start mb-2">
           <h1 className="text-2xl font-bold text-inst-azul-osc">{cargo.denominacion}</h1>
-          <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-            {cargo.codigo}-{cargo.grado}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+              {cargo.codigo}-{cargo.grado}
+            </span>
+            <button
+              onClick={descargarPdf}
+              className="bg-inst-azul hover:bg-inst-azul-osc text-white text-sm px-3 py-1 rounded flex items-center gap-1"
+            >
+              <span className="material-icons text-base">download</span>
+              PDF
+            </button>
+          </div>
         </div>
         <div className="text-sm text-gray-600 mb-4">
           {cargo.dependencia_nombre || 'Sin dependencia'} - Decreto 159/2024

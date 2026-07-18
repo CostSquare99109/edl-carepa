@@ -135,6 +135,7 @@ $router->group('/api/v1', function (Router $r) {
   $r->get('/cargos-manual', [\App\Controller\CargoManualController::class, 'listar'], ['permiso:cargos_manual.ver']);
   $r->get('/cargos-manual/conteos', [\App\Controller\CargoManualController::class, 'conteos'], ['permiso:cargos_manual.ver']);
   $r->get('/cargos-manual/catalogos', [\App\Controller\CargoManualController::class, 'catalogos'], []);
+  $r->get('/cargos-manual/{id}/pdf', [\App\Controller\CargoManualController::class, 'pdf'], ['permiso:cargos_manual.ver']);
   $r->get('/cargos-manual/{id}', [\App\Controller\CargoManualController::class, 'ver'], ['permiso:cargos_manual.ver']);
 
   $r->get('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'ver'], ['permiso:usuarios.listar']);
