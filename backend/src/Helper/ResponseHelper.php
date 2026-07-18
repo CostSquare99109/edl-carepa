@@ -4,6 +4,8 @@ namespace App\Helper;
 
 class ResponseHelper
 {
+    public const SERVER_ERROR_MESSAGE = 'Error interno del servidor. Contacte al administrador.';
+
     public static function success(mixed $data = null, string $message = 'Operacion exitosa', int $httpCode = 200): void
     {
         http_response_code($httpCode);

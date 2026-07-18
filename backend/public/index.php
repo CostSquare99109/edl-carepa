@@ -126,7 +126,18 @@ $router->group('/api/v1', function (Router $r) {
   $r->get('/usuarios/evaluadores-por-dependencia', [\App\Controller\UsuarioController::class, 'evaluadoresPorDependencia'], ['permiso:compromisos.listar']);
   $r->get('/usuarios/evaluadores-buscar', [\App\Controller\UsuarioController::class, 'evaluadoresBuscar'], ['permiso:compromisos.listar']);
   $r->get('/usuarios/jefe-dependencia', [\App\Controller\UsuarioController::class, 'jefeDependencia'], ['permiso:compromisos.listar']);
- $r->get('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'ver'], ['permiso:usuarios.listar']);
+
+  // Manual de Funciones - rutas anidadas bajo /usuarios/{id}/cargo-manual (DEBEN ir ANTES de /usuarios/{id})
+  $r->get('/usuarios/{id}/cargo-manual', [\App\Controller\CargoManualController::class, 'cargoDeUsuario'], ['permiso:cargos_manual.ver']);
+  $r->post('/usuarios/{id}/cargo-manual', [\App\Controller\CargoManualController::class, 'asignar'], ['permiso:cargos_manual.asignar']);
+
+  // Catalogo de cargos del Manual de Funciones (rutas fijas ANTES de parametricas)
+  $r->get('/cargos-manual', [\App\Controller\CargoManualController::class, 'listar'], ['permiso:cargos_manual.ver']);
+  $r->get('/cargos-manual/conteos', [\App\Controller\CargoManualController::class, 'conteos'], ['permiso:cargos_manual.ver']);
+  $r->get('/cargos-manual/catalogos', [\App\Controller\CargoManualController::class, 'catalogos'], []);
+  $r->get('/cargos-manual/{id}', [\App\Controller\CargoManualController::class, 'ver'], ['permiso:cargos_manual.ver']);
+
+  $r->get('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'ver'], ['permiso:usuarios.listar']);
  $r->put('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'actualizar'], ['permiso:usuarios.editar']);
  $r->delete('/usuarios/{id}', [\App\Controller\UsuarioController::class, 'eliminar'], ['permiso:usuarios.editar']);
  $r->put('/usuarios/{id}/restablecer-password', [\App\Controller\UsuarioController::class, 'restablecerPassword'], ['permiso:usuarios.restablecer']);

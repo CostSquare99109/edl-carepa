@@ -103,6 +103,12 @@ class MenuController
     'ruta' => '/compromisos/solicitudes-cambio',
     'permisos' => ['jefe_personal.solicitudes'],
    ],
+   [
+    'label' => 'Manual de Funciones',
+    'icon' => 'menu_book',
+    'ruta' => '/manual-funciones',
+    'permisos' => ['cargos_manual.ver'],
+   ],
   ];
  }
 
@@ -126,6 +132,12 @@ class MenuController
     'icon' => 'people',
     'ruta' => '/usuarios',
     'permisos' => ['usuarios.listar'],
+   ],
+   [
+    'label' => 'Manual de Funciones',
+    'icon' => 'menu_book',
+    'ruta' => '/manual-funciones',
+    'permisos' => ['cargos_manual.ver'],
    ],
   ];
  }

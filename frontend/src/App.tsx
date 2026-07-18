@@ -42,6 +42,8 @@ import AdminReportes from './pages/Admin/AdminReportes'
 import AdminNotificaciones from './pages/Admin/AdminNotificaciones'
 import AdminConfiguracion from './pages/Admin/AdminConfiguracion'
 import Perfil from './pages/Perfil'
+import ManualFuncionesIndice from './pages/ManualFunciones/Indice'
+import ManualFuncionesFicha from './pages/ManualFunciones/Ficha'
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
  const { token, rolActivo } = useAuth()
@@ -92,6 +94,8 @@ export default function App() {
      <Route path="configuracion" element={<AdminConfiguracion />} />
      <Route path="parametros" element={<AdminConfiguracion />} />
     <Route path="consulta-funcionario" element={<ConsultaFuncionario />} />
+    <Route path="manual-funciones" element={<ManualFuncionesIndice />} />
+    <Route path="manual-funciones/:id" element={<ManualFuncionesFicha />} />
     <Route path="compromisos-y-competencias" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><CompromisosYCompetencias /></RoleExcludedRoute>} />
     <Route path="compromisos/mios" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><MisCompromisos /></RoleExcludedRoute>} />
     <Route path="compromisos/concertar" element={<RoleExcludedRoute excludedRoles={['admin_carepa']}><ConcertarCompromisos /></RoleExcludedRoute>} />

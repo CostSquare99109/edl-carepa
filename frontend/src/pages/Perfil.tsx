@@ -3,6 +3,7 @@ import { api } from '../lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { Card, Button, Input, Alert, Badge, Modal, SkeletonText } from '../components/ui'
 import { toast } from 'sonner'
+import CargoManualCard from '../components/CargoManualCard'
 
 interface UsuarioPerfil {
  id: number
@@ -302,6 +303,12 @@ export default function Perfil() {
  ) : null}
  </dl>
  </Card>
+
+ {/* Card: Mi Cargo del Manual (Decreto 159/2024) */}
+ <CargoManualCard
+   usuarioId={perfil.usuario.id}
+   denominacionActual={perfil.usuario.denominacion_empleo || perfil.usuario.cargo || ''}
+ />
 
  {/* Card: Contacto (editable) */}
  <Card>
