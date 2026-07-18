@@ -48,9 +48,9 @@ class ReporteManualService
    $contenido = $d['contenido'];
    $esLista = false;
    $items = [];
-   $textoPlano = $contenido;
+   $textoPlano = is_string($contenido) ? $contenido : '';
 
-   $decoded = json_decode($contenido, true);
+   $decoded = json_decode((string) $contenido, true);
    if (is_array($decoded)) {
     $esLista = true;
     $items = $decoded;
@@ -62,7 +62,21 @@ class ReporteManualService
    if ($esLista) {
     $seccionesHtml .= '<ol>';
     foreach ($items as $item) {
-     $seccionesHtml .= '<li>' . htmlspecialchars((string) $item, ENT_QUOTES, 'UTF-8') . '</li>';
+     if (is_array($item)) {
+      // Lista con sub-arreglo (ej. {"comunes":[...],"nivel":[...]})
+      $seccionesHtml .= '<li><ul>';
+      foreach ($item as $subKey => $subVal) {
+       $label = is_string($subKey) ? htmlspecialchars($subKey, ENT_QUOTES, 'UTF-8') . ': ' : '';
+       if (is_array($subVal)) {
+        $seccionesHtml .= '<li>' . $label . htmlspecialchars(implode(', ', array_map('strval', $subVal)), ENT_QUOTES, 'UTF-8') . '</li>';
+       } else {
+        $seccionesHtml .= '<li>' . $label . htmlspecialchars((string) $subVal, ENT_QUOTES, 'UTF-8') . '</li>';
+       }
+      }
+      $seccionesHtml .= '</ul></li>';
+     } else {
+      $seccionesHtml .= '<li>' . htmlspecialchars((string) $item, ENT_QUOTES, 'UTF-8') . '</li>';
+     }
     }
     $seccionesHtml .= '</ol>';
    } else {
