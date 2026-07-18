@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
+import NivelBadge from './NivelBadge';
+import NaturalezaBadge from './NaturalezaBadge';
 
 interface CargoAsignado {
   id: number;
@@ -83,13 +85,9 @@ export default function CargoManualCard({ usuarioId, denominacionActual }: Props
           <div>
             <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Dependencia</div>
             <div className="text-sm text-inst-texto">{cargo.dependencia_nombre || '-'}</div>
-            <div className="flex gap-2 mt-2">
-              <span className="inline-block px-2 py-0.5 rounded text-xs bg-indigo-100 text-indigo-800">
-                {cargo.nivel}
-              </span>
-              <span className="inline-block px-2 py-0.5 rounded text-xs bg-green-100 text-green-800">
-                {cargo.naturaleza.replace(/_/g, ' ')}
-              </span>
+            <div className="flex gap-2 mt-2 flex-wrap">
+              <NivelBadge nivel={cargo.nivel} size="sm" />
+              <NaturalezaBadge naturaleza={cargo.naturaleza} size="sm" />
             </div>
           </div>
           {cargo.proposito_principal && (
