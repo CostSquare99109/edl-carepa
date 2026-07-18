@@ -1,5 +1,10 @@
 mysqldump: Deprecated program name. It will be removed in a future release, use '/data/data/com.termux/files/usr/bin/mariadb-dump' instead
 /*M!999999\- enable the sandbox mode */ 
+-- MariaDB dump 10.19-12.3.2-MariaDB, for Android (aarch64)
+--
+-- Host: localhost    Database: edl_carepa
+-- ------------------------------------------------------
+-- Server version	12.3.2-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -11,6 +16,11 @@ mysqldump: Deprecated program name. It will be removed in a future release, use 
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*M!100616 SET @OLD_NOTE_VERBOSITY=@@NOTE_VERBOSITY, NOTE_VERBOSITY=0 */;
+
+--
+-- Table structure for table `auditoria`
+--
+
 DROP TABLE IF EXISTS `auditoria`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -30,8 +40,12 @@ CREATE TABLE `auditoria` (
   KEY `idx_accion` (`accion`),
   KEY `idx_entidad_registro` (`entidad`,`registro_id`),
   KEY `idx_fecha` (`creado_en`)
-) ENGINE=InnoDB AUTO_INCREMENT=2731 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2745 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `auditoria`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `auditoria` WRITE;
@@ -2765,11 +2779,30 @@ INSERT INTO `auditoria` VALUES
 (2727,12,'enviar_compromiso_comportamental','compromisos',34,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 21:28:21'),
 (2728,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 21:28:36'),
 (2729,12,'enviar_compromiso_comportamental','compromisos',35,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 21:28:37'),
-(2730,12,'enviar_compromiso_comportamental','compromisos',36,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 21:28:39');
+(2730,12,'enviar_compromiso_comportamental','compromisos',36,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 21:28:39'),
+(2731,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 22:45:44'),
+(2732,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 22:45:54'),
+(2733,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 22:47:23'),
+(2734,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 22:47:57'),
+(2735,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 22:49:45'),
+(2736,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 22:50:15'),
+(2737,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:59:08'),
+(2738,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:01:22'),
+(2739,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 23:01:43'),
+(2740,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"admin_carepa\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 23:01:47'),
+(2741,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"admin_carepa\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:01:47'),
+(2742,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 23:02:57'),
+(2743,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"admin_carepa\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 23:03:00'),
+(2744,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-17 23:06:25');
 /*!40000 ALTER TABLE `auditoria` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `ausentismos`
+--
+
 DROP TABLE IF EXISTS `ausentismos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2794,6 +2827,10 @@ CREATE TABLE `ausentismos` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `ausentismos`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `ausentismos` WRITE;
 /*!40000 ALTER TABLE `ausentismos` DISABLE KEYS */;
@@ -2803,6 +2840,11 @@ INSERT INTO `ausentismos` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `cargas_masivas`
+--
+
 DROP TABLE IF EXISTS `cargas_masivas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2827,6 +2869,10 @@ CREATE TABLE `cargas_masivas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `cargas_masivas`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `cargas_masivas` WRITE;
 /*!40000 ALTER TABLE `cargas_masivas` DISABLE KEYS */;
@@ -2834,6 +2880,11 @@ LOCK TABLES `cargas_masivas` WRITE;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `cargos_manual`
+--
+
 DROP TABLE IF EXISTS `cargos_manual`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2846,7 +2897,7 @@ CREATE TABLE `cargos_manual` (
   `grado` varchar(10) NOT NULL COMMENT 'Grado salarial (01-04)',
   `denominacion` varchar(200) NOT NULL COMMENT 'Nombre del cargo segun manual',
   `num_cargos` smallint(5) unsigned NOT NULL DEFAULT 1 COMMENT 'Cantidad de plazas',
-  `naturaleza` enum('carrera_administrativa','libre_nombramiento','libre_nombramiento_gerencia_publica','libre_nombramiento_remocion','periodo_fijo') NOT NULL DEFAULT 'carrera_administrativa',
+  `naturaleza` enum('carrera_administrativa','libre_nombramiento','libre_nombramiento_gerencia_publica','libre_nombramiento_remocion','periodo_fijo','temporal') NOT NULL DEFAULT 'carrera_administrativa',
   `jefe_inmediato` varchar(200) DEFAULT NULL,
   `proposito_principal` text DEFAULT NULL COMMENT 'Seccion II de la ficha',
   `fuente` varchar(50) DEFAULT 'decreto_159_2024' COMMENT 'Origen del dato',
@@ -2861,8 +2912,12 @@ CREATE TABLE `cargos_manual` (
   KEY `idx_denominacion` (`denominacion`),
   KEY `idx_eliminado` (`eliminado_en`),
   CONSTRAINT `1` FOREIGN KEY (`dependencia_id`) REFERENCES `dependencias` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=96 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=152 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cargos_manual`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `cargos_manual` WRITE;
@@ -2894,7 +2949,7 @@ INSERT INTO `cargos_manual` VALUES
 (24,'global',14,'asistencial','407','02','Auxiliar Administrativo - Asistente',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Administrar, la información de la Secretaría para personal interno y externo de conformidad con los procesos establecidos.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (25,'global',14,'asistencial','407','02','Auxiliar Administrativo -',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Apoyar los procesos administrativos de la Oficina Jurídica mediante la gestión eficiente de la documentación, garantizando el adecuado manejo, organización, registro, conservación y seguimiento de los expedientes jurídicos y demás documentos de la dependencia, conforme a las normas vigentes en materia de archivo, gestión documental y procedimientos legales, contribuyendo al cumplimiento de los objetivos institucionales.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (26,'global',14,'asistencial','407','02','Auxiliar Administrativo - Talento',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Asistir al PU de Gestión de Talento Humano y al jefe de la dependencia en todo lo relacionado con la liquidación y pago de las prestaciones sociales y demás derechos laborales del personal adscrito a la Administración Municipal, apoyo en los procesos de administración de personal.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(27,'global',14,'asistencial','407','02','Auxiliar Administrativo – Gestión Documental',2,'carrera_administrativa','Secretario General y Servicios Adtivos','Establecer políticas administrativas sobre gestión documental de acuerdo a la normatividad vigente para brindar un servicio eficiente a los usuarios.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
+(27,'global',14,'asistencial','407','02','Auxiliar Administrativo – Gestión Documental',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Establecer políticas administrativas sobre gestión documental de acuerdo a la normatividad vigente para brindar un servicio eficiente a los usuarios.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 00:02:16',NULL),
 (28,'global',14,'asistencial','407','02','Auxiliar Administrativo – Mensajero y',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Apoyo y asistencia técnica a la administración municipal en las labores de recibo y entrega de correspondencia al interior de todas y cada una de las dependencias.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (29,'global',14,'asistencial','407','02','Auxiliar Administrativo – Asistente',1,'carrera_administrativa','Secretaría General y Servicios Adtivos','Manejo de la información requerida al interior de los procesos contractuales del municipio en la plataforma SECOP.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (30,'global',14,'asistencial','470','01','Auxiliar Servicios Generales – Aseo',1,'carrera_administrativa','Secretaría General y de Servicios','Realizar labores de mantenimiento general de las instalaciones e inmuebles de propiedad del municipio.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
@@ -2912,10 +2967,8 @@ INSERT INTO `cargos_manual` VALUES
 (42,'global',21,'profesional','219','01','Profesional Universitario – Fiscalización',1,'carrera_administrativa','Secretario de Hacienda','Velar por el fortalecimiento de las distintas rentas a cargo de la administración municipal propendiendo por un recaudo oportuno de las mismas y su cobro efectivo por parte de la entidad, así como seguimiento y control de todos y cada uno de los procesos de cobro de ingresos propios en la localidad.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (43,'global',21,'profesional','219','01','y Persuasivo.',1,'carrera_administrativa','Secretario (a) de Hacienda','Velar por el fortalecimiento de las distintas rentas a cargo de la administración municipal propendiendo por un recaudo oportuno de las mismas y su cobro efectivo por parte de la entidad, así como seguimiento y control de todos y cada uno de los procesos de cobro de ingresos propios en la localidad. Lo anterior mediante el diseño e implementación de procesos de cobro coactivo y persuasivo al interior de la Secretaría de hacienda.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (44,'global',21,'profesional','219','01','Datos',1,'carrera_administrativa','Secretario(a) de Hacienda','Manejo de la información estadística a nivel contable, financiera y de presupuesto de la Secretaría de Hacienda de manera que contribuya a la toma de decisiones oportunas y ajustadas a la realidad económica del municipio y al reporte con calidad y de manera oportuna a los diferentes entes de control.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(45,'global',21,'asistencial','367','02','II. PROPÓSITO PRINCIPAL III. DESCRIPCION DE FUNCIONES ESENCIALES',1,'carrera_administrativa','Secretario(a) de Hacienda','Apoyar en la preparación de la información financiera de acuerdo a las disposiciones legales vigentes para fortalecer la calidad de la información de la tesorería de manera que sirva de base para la toma de decisiones administrativas. De igual manera, mantener un registro actualizado sobre bancos y fondos, a fin de conocer saldos actualizados para la toma de decisiones.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(46,'global',21,'asistencial','367','02','Rendición de Cuentas, actualización SECOP II',1,'carrera_administrativa','Secretario(a) Hacienda','Apoyar la gestión administrativa y financiera en la Secretaría de Hacienda del Municipio de Carepa, garantizando el cumplimiento de la rendición de cuentas, la transparencia en la contratación estatal a través del SECOP II, y la correcta ejecución de procesos de seguimiento financiero y presupuestal.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (47,'global',21,'asistencial','407','02','Tesorería',1,'carrera_administrativa','Secretario(a) Hacienda','Brindar apoyo en las actividades operativas y administrativas de la Tesorería Municipal, garantizando el adecuado manejo de los recursos financieros, el control de pagos y la actualización de la información contable, en cumplimiento de la normatividad vigente y bajo la supervisión del Tesorero General.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(48,'global',21,'asistencial','407','02','Auxiliar Administrativo – Impuestos',2,'carrera_administrativa','Secretario de Hacienda','Facturar en forma oportuna la liquidación de los distintos Impuestos para asegurar el ingreso de los recursos proyectados en el presupuesto, velar por el recaudo efectivo de los ingresos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
+(48,'global',21,'asistencial','407','02','Auxiliar Administrativo – Impuestos',1,'carrera_administrativa','Secretario de Hacienda','Facturar en forma oportuna la liquidación de los distintos Impuestos para asegurar el ingreso de los recursos proyectados en el presupuesto, velar por el recaudo efectivo de los ingresos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:02:16',NULL),
 (49,'global',21,'asistencial','407','02','Auxiliar Administrativo – Asistente',1,'carrera_administrativa','Secretario de Hacienda','Realizar actividades administrativas y operativas de apoyo a las funciones del superior inmediato de acuerdo con los procesos y procedimientos establecidos por la entidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (50,'global',21,'asistencial','407','02','Auxiliar Administrativo – Impuestos y',1,'carrera_administrativa','Secretario(a) de Hacienda','Apoyo en los procesos de cobro persuasivo y coactivo que se adelanten por pate de la administración municipal.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (51,'global',21,'asistencial','407','02','Auxiliar Administrativo – Mensajero y',1,'carrera_administrativa','Secretaría de Hacienda','Apoyo y asistencia técnica a la Secretaría de Hacienda en las labores de recibo y entrega de correspondencia interna y externas, organismos no gubernamentales, empresas y particulares, asegurando que la documentación llegue a su destino en tiempo y forma.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
@@ -2931,12 +2984,12 @@ INSERT INTO `cargos_manual` VALUES
 (61,'global',17,'asistencial','407','02','Auxiliar Administrativo - SISBEN',1,'carrera_administrativa','Secretaría de Planeación, Ordenamiento','Apoyo para lograr un manejo adecuado de la información estadística que se genera y requiere en cada una de las dependencias de la administración especialmente en la oficina del SISBEN.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (62,'global',17,'asistencial','407','02','Auxiliar Administrativo - Asistente',1,'carrera_administrativa','Secretaría de Planeación,','Coordinar y ejecutar actividades administrativas y operativas que permitan la correcta gestión documental y contractual de la Secretaría, garantizando la adecuada atención a las solicitudes del público y otras entidades gubernamentales, y el cumplimiento de los planes, programas y proyectos asignados, con el fin de contribuir al cumplimiento de los objetivos de la Secretaría y asegurar la eficiencia en los procesos internos, la atención de los servicios solicitados, y el control de calidad y gestión interna.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (63,'global',9,'directivo','020','02','Secretario de Infraestructura Física',1,'libre_nombramiento_remocion','Alcalde Municipal','','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(64,'global',16,'profesional','219','01','Profesional Universitario– Infraestructura',2,'carrera_administrativa','Secretaría de Infraestructura Física','Realizar gerencia, programación y ejecución de los diferentes proyectos de obra pública adelantados directamente por la administración municipal o a través de las entidades de cofinanciación de la nación, el departamento o la región.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
+(64,'global',16,'profesional','219','01','Profesional Universitario– Infraestructura',1,'carrera_administrativa','Secretaría de Infraestructura Física','Realizar gerencia, programación y ejecución de los diferentes proyectos de obra pública adelantados directamente por la administración municipal o a través de las entidades de cofinanciación de la nación, el departamento o la región.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:03:15',NULL),
 (65,'global',16,'asistencial','367','02','Técnico Administrativo – Control de OOPPMM',1,'carrera_administrativa','Secretaría de Infraestructura Física','Apoyo en la ejecución de las políticas adoptadas por la Administración Municipal tendientes a la construcción, expansión de redes eléctricas, mantenimiento y conservación de obras y edificios públicos para garantizar el desarrollo local y mejoramiento de la calidad de vida de la comunidad en general, acorde al Plan de Desarrollo y Misión Institucional.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (66,'global',16,'asistencial','407','02','Auxiliar Administrativo – Asistente',1,'carrera_administrativa','Secretaría de Infraestructura Física','Realizar actividades administrativas y operativas de apoyo a las funciones del superior inmediato de acuerdo con los procesos y procedimientos establecidos por la entidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (67,'global',12,'profesional','219','01','Profesional Universitario - Médico Veterinario',1,'carrera_administrativa','Secretario de Agricultura y Medio Ambiente','Ejecutar los planes, programas y proyectos de la dependencia en relación con la sanidad y protección y bienestar animal del municipio de conformidad con la normatividad, políticas y lineamientos vigentes.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (68,'global',12,'profesional','219','01','Profesional Universitario – Programas y',1,'carrera_administrativa','Secretario de Agricultura y Medio Ambiente','Estudiar, evaluar y asesorar la formulación, seguimiento y evaluación de planes, políticas, programas de acuerdo a los lineamientos de la dependencia y los parámetros nacionales para el sector, garantizando el correcto desarrollo de las funciones de la secretaría de agricultura y medio ambiente.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(69,'global',12,'asistencial','314','02','Técnico Operativo - Asistente Técnico',5,'carrera_administrativa','Secretario de Agricultura y Medio Ambiente','Contribuir con la materialización de los programas y proyectos que en materia de asistencia técnica agropecuaria se implementen en la localidad a través de la SAMA para el fomento de la producción agropecuaria del municipio Realizar elaboración, gerencia, programación y ejecución de los diferentes proyectos agropecuarios que se materialicen en la localidad de conformidad con los lineamientos del PDM.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
+(69,'global',12,'asistencial','314','02','Técnico Operativo - Asistente Técnico',1,'carrera_administrativa','Secretario de Agricultura y Medio Ambiente','Contribuir con la materialización de los programas y proyectos que en materia de asistencia técnica agropecuaria se implementen en la localidad a través de la SAMA para el fomento de la producción agropecuaria del municipio Realizar elaboración, gerencia, programación y ejecución de los diferentes proyectos agropecuarios que se materialicen en la localidad de conformidad con los lineamientos del PDM.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:03:24',NULL),
 (70,'global',12,'asistencial','407','02','Auxiliar Administrativo – Asistente',1,'carrera_administrativa','Secretario de Agricultura y Medio','Realizar actividades administrativas y operativas de apoyo a las funciones del superior inmediato de acuerdo con los procesos y procedimientos establecidos por la entidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (71,'global',9,'directivo','020','02','Secretario(a) de Despacho – Educación y',1,'libre_nombramiento_remocion','Alcalde Municipal','Coordinar los procesos de Gestión educativa, cultural y deportiva en el municipio, para dar cumplimiento a los programas y proyectos planteados en el Plan de Desarrollado Municipal.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (72,'global',13,'profesional','219','02','Profesional Universitario – Seguridad',1,'carrera_administrativa','Secretario(a) de Educación y Cultura','Coordinar la ejecución y puesta en marcha de todos y cada uno de los programas de seguridad alimentaria liderados por el municipio de Carepa, realizando los reportes y seguimientos que el programa requiere de manera oportuna, así como realizando supervisión y vigilancia al mismo.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
@@ -2947,26 +3000,82 @@ INSERT INTO `cargos_manual` VALUES
 (77,'global',13,'asistencial','367','02','Técnico Administrativo – Cultura',1,'carrera_administrativa','Secretario de Educación y Cultura','Apoyar en la promoción y desarrollo de actividades culturales que desarrolle la secretaría de educación de acuerdo con lo establecido en el Plan de Desarrollo Municipal.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (78,'global',13,'asistencial','367','04','Técnico Administrativo – Programas de',1,'carrera_administrativa','Secretario(a) de Educación y Cultura','Contribuir a la formulación y diseño de estrategias de acceso y permanencia a la educación superior conforme a los lineamientos establecidos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (79,'global',13,'asistencial','367','02','Técnico Administrativo – SIMAT',1,'carrera_administrativa','Secretario(a) de Educación y Cultura','Apoyar, en la planeación, gestión, evaluación y seguimiento de los proyectos presentados por la Secretaría de Educación y Cultura para el cumplimiento del Plan de Desarrollo Municipal.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(80,'global',9,'directivo','020','02','II. PROPÓSITO PRINCIPAL Vigilar, inspeccionar y controlar la prestación de los servicios de salud para que la población goce de una mejor calidad de vida, a través de estrategias que permitan garantiz',1,'libre_nombramiento_remocion','Alcalde Municipal','Vigilar, inspeccionar y controlar la prestación de los servicios de salud para que la población goce de una mejor calidad de vida, a través de estrategias que permitan garantizar el propósito de vigilancia y control. Coordinar el manejo integral de los programas sociales de la entidad de conformidad con lo establecido en el plan de desarrollo municipal y las políticas públicas del nivel central.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (81,'global',19,'profesional','219','01','Profesional Universitario - Promoción y',1,'carrera_administrativa','Secretario de Salud y Protección social','Realizar e impulsar acciones de promoción de la salud, prevención de riesgos y atención de las poblaciones especiales, tales como población en situación de desplazamiento, discapacidad, adultos mayores, mujeres gestantes, población indígena, población infantil, adolescente y joven, así como coordinar todo lo relacionado con el desarrollo y la promoción comunitaria en salud.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (82,'global',19,'profesional','219','01','Profesional Universitario – Social',1,'carrera_administrativa','Secretario de Salud y Protección Social','Acompañar los procesos municipales de transformación en el campo social partiendo de las necesidades, intereses y reivindicaciones de los grupos más necesitados de la población y en el desarrollo de estrategias de intervención que contribuyan a superar situaciones sociales problemáticas a nivel familiar y grupal. Integrar los equipos de trabajo vinculados a la entidad tendientes a materializar de manera más eficiente y efectiva los diferentes programas y servicios de las dependencias que integran la estructura organizacional del municipio.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (83,'global',19,'profesional','219','01','Profesional Universitario - Salud Pública',1,'carrera_administrativa','Secretario de Salud y Protección Social','Establecer estrategias y acciones de promoción de la salud prevención de la enfermedad y vigilancia en salud pública que garanticen la accesibilidad y cobertura de la población del municipio.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (84,'global',19,'profesional','219','01','Profesional Universitario - Aseguramiento',1,'carrera_administrativa','Secretario de Salud y Protección Social','Vigilar el funcionamiento del régimen subsidiado y contributivo en salud a fin de verificar que este se preste conforme a los lineamientos establecidos por las autoridades competentes en la normatividad vigente. De igual manera, implementación de las políticas que propendan por el mejoramiento de la accesibilidad, la calidad y la eficiencia en la prestación de los servicios de salud.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (85,'global',19,'profesional','219','01','Profesional Universitario - Psicólogo',1,'carrera_administrativa','Secretario de Salud y Protección social','Promover la salud mental para los diferentes grupos poblacionales del Municipio de Carepa mediante atención y detección temprana de problemas psicológicos para contribuir con el bienestar emocional de los habitantes.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(86,'global',19,'asistencial','367','02','Técnico Administrativo – Programas',8,'carrera_administrativa','Secretario de Salud y Protección Social','Realizar acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
+(86,'global',19,'asistencial','367','02','Técnico Administrativo – Programas',1,'carrera_administrativa','Secretario de Salud y Protección Social','Realizar acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:02:16',NULL),
 (87,'global',19,'asistencial','367','02','Técnico Administrativo – Programas Sociales',1,'carrera_administrativa','Secretaría de salud y Protección Social','','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(88,'global',19,'asistencial','407','02','Auxiliar Administrativo - Asistente',2,'carrera_administrativa','Secretario de Salud y Protección Social','Administrar, la información de la secretaría para personal interno y externo de conformidad con los procesos establecidos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(89,'temporal',19,'asistencial','367','01','Técnico Administrativo – Programas',1,'carrera_administrativa','Secretario de Salud y Protección Social','Apoyar las acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(90,'temporal',19,'asistencial','407','00','Auxiliar Administrativo – Programas',5,'carrera_administrativa','Secretario de Salud y Protección Social','Apoyar las acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(91,'temporal',15,'profesional','219','00','Profesional Universitario – Abogado Comisaria de',1,'carrera_administrativa','Secretaría de Gobierno y Participación Ciudadana Naturaleza del cargo Carrera administrativa','Brindar apoyo profesional en el análisis, gestión y acompañamiento de los procesos jurídicos adelantados desde la Comisaría de Familia del Municipio de Carepa, Antioquia, con el fin de garantizar la protección integral de los derechos de los miembros del grupo familiar, en el marco de la normatividad vigente, contribuyendo al fortalecimiento institucional de la Secretaría de Gobierno y Participación Ciudadana y al cumplimiento de sus funciones en materia de protección y restitución de derechos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(92,'temporal',13,'asistencial','314','01','Técnico Operativo – Monitores',8,'carrera_administrativa','Secretario de Educación y Cultura','Contribuir al fortalecimiento de los procesos artísticos y culturales del municipio de Carepa mediante el diseño, desarrollo y acompañamiento de actividades formativas, creativas y comunitarias en los distintos programas culturales adscritos a la Secretaría de Educación y Cultura, como son danza bullerengue, danza baile moderno, danza urbana, música folclórica, danza folclórica, artes plásticas y pinturas, música vallenata, teatro y títeres, promoviendo la participación y la convivencia ciudadana, y el desarrollo del talento local.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(93,'temporal',21,'asistencial','367','01','II. PROPÓSITO PRINCIPAL III. DESCRIPCION DE FUNCIONES ESENCIALES',1,'carrera_administrativa','Secretario(a) de Hacienda','Apoyar en la preparación de la información financiera de acuerdo a las disposiciones legales vigentes para fortalecer la calidad de la información de la tesorería de manera que sirva de base para la toma de decisiones administrativas. De igual manera, mantener un registro actualizado sobre bancos y fondos, a fin de conocer saldos actualizados para la toma de decisiones.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(94,'temporal',21,'asistencial','367','01','II. PROPÓSITO PRINCIPAL III. DESCRIPCION DE FUNCIONES ESENCIALES',1,'carrera_administrativa','Secretario(a) de Hacienda','Apoyar técnicamente la gestión del área de impuestos en procesos de control, seguimiento, análisis, facturación, liquidación y recaudo de tributos municipales, con el fin de garantizar el cumplimiento normativo, la eficiencia en la atención al contribuyente y el incremento del recaudo municipal.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(95,'temporal',20,'asistencial','340','01','Técnico - Agente de Tránsito',2,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL);
+(88,'global',19,'asistencial','407','02','Auxiliar Administrativo - Asistente',1,'carrera_administrativa','Secretario de Salud y Protección Social','Administrar, la información de la secretaría para personal interno y externo de conformidad con los procesos establecidos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:02:16',NULL),
+(89,'temporal',19,'asistencial','367','01','Técnico Administrativo – Programas',1,'carrera_administrativa','Secretario de Salud y Protección Social','Apoyar las acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 23:58:30','2026-07-18 04:58:30'),
+(90,'temporal',19,'asistencial','407','00','Auxiliar Administrativo – Programas',5,'carrera_administrativa','Secretario de Salud y Protección Social','Apoyar las acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 23:58:30','2026-07-18 04:58:30'),
+(91,'temporal',15,'profesional','219','00','Profesional Universitario – Abogado Comisaria de',1,'carrera_administrativa','Secretaría de Gobierno y Participación Ciudadana Naturaleza del cargo Carrera administrativa','Brindar apoyo profesional en el análisis, gestión y acompañamiento de los procesos jurídicos adelantados desde la Comisaría de Familia del Municipio de Carepa, Antioquia, con el fin de garantizar la protección integral de los derechos de los miembros del grupo familiar, en el marco de la normatividad vigente, contribuyendo al fortalecimiento institucional de la Secretaría de Gobierno y Participación Ciudadana y al cumplimiento de sus funciones en materia de protección y restitución de derechos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 23:58:30','2026-07-18 04:58:30'),
+(92,'temporal',13,'asistencial','314','01','Técnico Operativo – Monitores',8,'carrera_administrativa','Secretario de Educación y Cultura','Contribuir al fortalecimiento de los procesos artísticos y culturales del municipio de Carepa mediante el diseño, desarrollo y acompañamiento de actividades formativas, creativas y comunitarias en los distintos programas culturales adscritos a la Secretaría de Educación y Cultura, como son danza bullerengue, danza baile moderno, danza urbana, música folclórica, danza folclórica, artes plásticas y pinturas, música vallenata, teatro y títeres, promoviendo la participación y la convivencia ciudadana, y el desarrollo del talento local.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:06:11',NULL),
+(95,'temporal',20,'asistencial','340','01','Técnico - Agente de Tránsito',2,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
+(96,'global',9,'directivo','039','01','Gerente PDET',1,'periodo_fijo',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(97,'global',9,'directivo','020','02','Secretario de Despacho – Salud',1,'libre_nombramiento_remocion',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16','2026-07-18 05:02:16'),
+(98,'global',19,'directivo','020','02','Secretario de Despacho – Salud',1,'libre_nombramiento_remocion',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(99,'global',19,'profesional','219','01','Profesional Universitario – Epidemiología',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(100,'global',19,'tecnico','367','02','Técnico Administrativo – Vacunación',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(101,'global',19,'tecnico','367','02','Técnico Administrativo – Salud Ambiental',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(102,'global',19,'tecnico','367','02','Técnico Administrativo – RIPS',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(103,'global',12,'tecnico','314','02','Técnico Operativo – Riego y Drenaje',2,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:05:40',NULL),
+(104,'global',12,'tecnico','314','02','Técnico Operativo – Ganadería',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(105,'global',12,'tecnico','314','02','Técnico Operativo – Piscicultura',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-17 23:53:54',NULL),
+(106,'global',12,'tecnico','314','02','Técnico Operativo – Suelos',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(107,'global',16,'profesional','219','01','Profesional Universitario – Obras Civiles',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(108,'global',10,'tecnico','303','04','Inspector de Policía 3a a 6a Categoría',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-17 23:53:54',NULL),
+(109,'global',17,'profesional','219','01','Profesional Universitario – Catastro',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-17 23:53:54',NULL),
+(110,'global',19,'directivo','020','02','Secretario de Despacho – Salud',1,'libre_nombramiento_remocion',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(111,'global',19,'profesional','219','01','Profesional Universitario – Epidemiología',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(112,'global',19,'tecnico','367','02','Técnico Administrativo – Vacunación',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(113,'global',19,'tecnico','367','02','Técnico Administrativo – Salud Ambiental',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(114,'global',19,'tecnico','367','02','Técnico Administrativo – RIPS',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(115,'global',12,'tecnico','314','02','Técnico Operativo – Riego y Drenaje',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(116,'global',12,'tecnico','314','02','Técnico Operativo – Ganadería',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(118,'global',12,'tecnico','314','02','Técnico Operativo – Suelos',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(119,'global',16,'profesional','219','01','Profesional Universitario – Obras Civiles',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(120,'global',10,'tecnico','303','04','Inspector de Policía 3a-6a Categoría',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-18 00:02:16','2026-07-18 05:02:16'),
+(121,'global',9,'directivo','039','01','Gerente PDET',1,'periodo_fijo',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:59:14','2026-07-18 04:59:14'),
+(122,'temporal',15,'profesional','219','00','Profesional Universitario – Gestión Social',4,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-18 00:06:11',NULL),
+(123,'temporal',15,'asistencial','407','00','Auxiliar Administrativo – Programas Sociales',3,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:56:27',NULL),
+(124,'temporal',21,'tecnico','367','01','Técnico Administrativo – Tesorería',2,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:56:27',NULL),
+(125,'temporal',21,'asistencial','407','00','Auxiliar Administrativo – Impuestos',6,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:56:27',NULL),
+(126,'temporal',17,'asistencial','407','00','Auxiliar Administrativo – Planeación',3,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:56:27',NULL),
+(127,'temporal',13,'tecnico','314','01','Técnico Operativo – Monitores Escolares',8,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:58:30','2026-07-18 04:58:30'),
+(128,'temporal',13,'asistencial','407','00','Auxiliar Administrativo – Cultura',2,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:56:27',NULL),
+(129,'temporal',19,'profesional','219','00','Profesional Universitario – Psicología Comunitaria',3,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-17 23:56:27',NULL),
+(130,'temporal',19,'tecnico','367','01','Técnico Administrativo – Aseguramiento',4,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-18 00:06:11',NULL),
+(131,'temporal',19,'asistencial','407','00','Auxiliar Administrativo – EAPB',5,'temporal',NULL,NULL,'decreto_159_2024','2026-07-17 23:56:27','2026-07-18 00:06:11',NULL),
+(133,'global',19,'directivo','020','02','Secretario de Despacho – Salud',1,'libre_nombramiento_remocion',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(134,'global',19,'tecnico','367','04','Técnico Administrativo – Calidad',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(135,'global',14,'tecnico','367','02','Técnico Administrativo – Archivo',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(136,'global',14,'tecnico','367','02','Técnico Administrativo – Correspondencia',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(137,'global',21,'tecnico','367','02','Técnico Administrativo – Contabilidad',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(138,'global',21,'tecnico','367','02','Técnico Administrativo – Presupuesto',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(139,'global',17,'tecnico','367','02','Técnico Administrativo – Catastro',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(140,'global',17,'tecnico','367','02','Técnico Administrativo – Ordenamiento Rural',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(141,'global',13,'tecnico','367','02','Técnico Administrativo – Matrículas',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(142,'global',19,'tecnico','367','02','Técnico Administrativo – Historias Clínicas',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(143,'global',19,'tecnico','367','02','Técnico Administrativo – Autorizaciones',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(144,'global',12,'tecnico','367','02','Técnico Administrativo – Inventarios',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(145,'global',16,'tecnico','367','02','Técnico Administrativo – Planos',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(146,'global',9,'tecnico','367','02','Técnico Administrativo – Protocolo',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(147,'global',14,'asistencial','407','02','Auxiliar Administrativo – Fotocopias',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(148,'global',17,'asistencial','407','02','Auxiliar Administrativo – Archivo',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(149,'global',21,'asistencial','407','02','Auxiliar Administrativo – Recaudo',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(150,'global',19,'asistencial','407','02','Auxiliar Administrativo – Admisiones',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
+(151,'global',13,'asistencial','407','02','Auxiliar Administrativo – Biblioteca',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL);
 /*!40000 ALTER TABLE `cargos_manual` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `cargos_manual_detalle`
+--
+
 DROP TABLE IF EXISTS `cargos_manual_detalle`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -2983,6 +3092,10 @@ CREATE TABLE `cargos_manual_detalle` (
   CONSTRAINT `1` FOREIGN KEY (`cargo_manual_id`) REFERENCES `cargos_manual` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=599 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cargos_manual_detalle`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `cargos_manual_detalle` WRITE;
@@ -3258,19 +3371,6 @@ INSERT INTO `cargos_manual_detalle` VALUES
 (268,44,'conocimientos','[\"Manejo de herramientas Ofimáticas, (Procesadores de texto, Word, Excel Power Point).\", \"Programas y software\", \"Normatividad contable\", \"Conocimiento en gestión y análisis de datos contables, financieros y presupuestarios.\", \"Conocimiento en normativas contables y fiscales locales y nacionales. .\", \"Normatividad de impuestos y rentas\", \"Régimen tributario\", \"Sistema de Gestión de la Calidad aplicables dentro del Municipio\", \"COMPETENCIAS COMPORTAMENTALES\", \"Proyectar, y controlar los certificados de disponibilidad presupuestal y manejar el registro presupuestal.\", \"Efectuar oportunamente los registros requeridos, para la generación de informes presupuéstales.\", \"Velar por la actualización de la información presupuestal.\", \"Realizar las actividades requeridas para un adecuado manejo del presupuesto.\", \"Coadyuvar en la elaboración del proyecto de presupuesto, para asegurar su correcta ejecución.\", \"Participar en la elaboración de planes, programas y proyectos de inversión Pública Municipal.\", \"Coadyuvar en los estudios y seguimientos necesarios para la elaboración del Presupuesto Municipal.\", \"Opinar sobre los traslados presupuéstales necesarios, según recursos disponibles por cada artículo presupuestal, para garantizar el cumplimiento oportuno de planes, programas y proyectos.\", \"Realizar proyecciones que permitan conocer el comportamiento de los ingresos y egresos para el manejo adecuado de los recursos.\", \"Efectuar las adiciones a que haya lugar y según la destinación, para garantizar el cumplimiento oportuno de planes, programas y proyectos.\"]',268,'2026-07-17 15:14:40'),
 (269,44,'requisitos_estudio','ESTUDIOS NBC: Ciencias Sociales y Humanas - Titulo de formación universitaria o profesión Abogado Titulado. NBC Economía, Administración, Contaduría y Afines. Título de formación universitaria o profesión Administrador de empresas y/o administrador público. Tarjeta profesional vigente en los casos exigidos por la Ley.',269,'2026-07-17 15:14:40'),
 (270,44,'requisitos_experiencia','EXPERIENCIA Un (01) año de experiencia relacionada.',270,'2026-07-17 15:14:40'),
-(271,45,'proposito','Apoyar en la preparación de la información financiera de acuerdo a las disposiciones legales vigentes para fortalecer la calidad de la información de la tesorería de manera que sirva de base para la toma de decisiones administrativas. De igual manera, mantener un registro actualizado sobre bancos y fondos, a fin de conocer saldos actualizados para la toma de decisiones.',271,'2026-07-17 15:14:40'),
-(272,45,'funciones','[\"Efectuar los diferentes registros requeridos para la obtención de los informes contables y financieros, realizar recaudos de ingresos y cuadrar caja diariamente.\", \"Mantener actualizada la información contable.\", \"Llevar correctamente y al orden del día los libros de contabilidad, así como la ejecución de los demás trabajos contables de la dependencia.\", \"Coadyuvar en la elaboración del Balance General y de los Estados Financieros, para asegurar su correcta consolidación.\", \"Registrar y codificar contablemente de acuerdo al Plan General de Contabilidad Pública, los movimientos que genere la administración, con el fin de obtener los estados contables.\", \"Emitir los reportes contables y financieros necesarios, para permitirle al ordenador del gasto y al pagador, tomar decisiones oportunamente.\", \"Ingresar al sistema todo movimiento que se genere desde la Tesorería, Presupuesto, Nómina y Almacén por intermedio de los diferentes documentos soporte de las actividades.\", \"Efectuar las conciliaciones de todas las cuentas bancarias que posee el Municipio.\", \"Entrega de informes comparativos de las conciliaciones con respecto a los bancos.\", \"Coadyuvar en la legalización de los rendimientos financieros que generen las cuentas de ahorro y legalización de notas débito por cobros de comisiones de consignaciones nacionales.\", \"Realizar labores de apoyo a los procesos administrativos que se ejecuten en la Secretaría de conformidad con los planes, programas y proyectos establecidos, velando porque los reportes de ingresos recaudados a través de las entidades financieras, se realicen de manera oportuna y los mismos se reflejen en la ejecución presupuestal del municipio.\", \"Ejecutar los planes, programas y proyectos asignados por la Dirección Financiera y la Tesorería de Rentas Municipales, para lograr el fortalecimiento de los sistemas de información municipal.\", \"Ingresar al sistema de tesorería las órdenes de pago canceladas, su valor y los datos con relación al banco, también, las consignaciones efectuadas.\", \"Modificar y actualizar los datos solicitados solamente por las personas autorizadas, para asegurar confiabilidad en la información requerida.\", \"Operar los diferentes programas instalados para prestar eficientemente los servicios a cargo de la Dirección financiera y Tesorería y garantizar su actualización y adecuado funcionamiento.\", \"Reportar oportunamente los informes financieros, tales como: boletín de caja, ejecución presupuestal de ingresos y egresos, y demás soportes, entre otros, para la toma de decisiones y rendición de cuentas oportunas.\", \"Pasar a la sección de contabilidad todo movimiento que se efectúe tanto de ingresos como egresos en su respectiva planilla de resumen.\", \"Desglosar las diversas deducciones y entregar oportunamente los informes para sus respectivos pagos.\", \"Elaborar, examinar y revisar la documentación que se procesa con el fin de lograr el funcionamiento regular de la dependencia.\", \"Preparar y entregar los certificados que se autoricen, a los proveedores y contratistas.\", \"Presentar ante los entes gubernamentales y/o entidades particulares y privadas los informes solicitados.\", \"Adoptar, las acciones necesarias para garantizar el sistema de gestión de la calidad y el control interno dentro de la dependencia.\", \"Y las demás que sean asignados por su jefe inmediato.\"]',272,'2026-07-17 15:14:40'),
-(273,45,'contribuciones','[\"Asegurar la precisión y oportunidad en el registro de los diferentes movimientos contables y financieros, garantizando la actualización diaria de la información y la conciliación para una adecuada toma de decisiones.\", \"Efectuar las conciliaciones bancarias y presentar informes comparativos que permitan un adecuado seguimiento de los recursos,\", \"Ingresar y validar la información financiera en los sistemas administrativos, asegurando que los ingresos y egresos de la entidad se reflejen oportunamente en la ejecución presupuestal del municipio.\", \"Adoptar y ejecutar acciones para fortalecer el sistema de gestión de la calidad y el control interno dentro de la dependencia, asegurando que los procesos contables cumplan con el Plan General de Contabilidad Pública y las normativas vigentes.\"]',273,'2026-07-17 15:14:40'),
-(274,45,'conocimientos','[\"Manejo de herramientas Ofimáticas, (Procesadores de texto, Word Excel Power Point).\", \"Normas contables actualizadas.\", \"Contabilidad Pública\", \"Sistema de Gestión de la Calidad aplicables dentro del Municipio\"]',274,'2026-07-17 15:14:40'),
-(275,45,'competencias','{\"comunes\": [\"Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compromiso con la organización Trabajo en equipo Adaptación al cambio\"], \"nivel\": [\"Confiabilidad Técnica Disciplina Responsabilidad\"]}',275,'2026-07-17 15:14:40'),
-(276,45,'requisitos_estudio','ESTUDIOS Título de terminación técnica profesional o tecnológica; o Terminación y/o aprobación del pensum académico de educación superior del núcleo básico del conocimiento en: Contaduría Pública.',276,'2026-07-17 15:14:40'),
-(277,45,'requisitos_experiencia','EXPERIENCIA Un (01) año de experiencia relacionada',277,'2026-07-17 15:14:40'),
-(278,46,'proposito','Apoyar la gestión administrativa y financiera en la Secretaría de Hacienda del Municipio de Carepa, garantizando el cumplimiento de la rendición de cuentas, la transparencia en la contratación estatal a través del SECOP II, y la correcta ejecución de procesos de seguimiento financiero y presupuestal.',278,'2026-07-17 15:14:40'),
-(279,46,'funciones','[\"Efectuar los diferentes registros requeridos para la obtención de los informes en materia financiera.\", \"Mantener actualizada la información digital y física de los egresos a cargo del municipio, logrando su clasificación por tipo de gastos, rubro, proveedor, valor etc.\", \"Realizar labores de apoyo a los procesos administrativos que se ejecuten en la tesorería de conformidad con los planes, programas y proyectos establecidos.\", \"Ejecutar los planes, programas y proyectos asignados a la TESORERIA, para lograr el fortalecimiento de las rentas municipales.\", \"Apoyar los censos anuales de contribuyentes de la oficina de impuestos.\", \"Actualizar los datos solicitados solamente por las personas autorizadas, para asegurar confiabilidad en la información requerida en materia de información financiera.\", \"Operar los diferentes programas instalados para prestar eficientemente los servicios a cargo de la tesorería\", \"Cargue oportuno en a la plataforma SECOP II o la que haga sus veces de los diferentes comprobantes de egresos con sus respectivos soportes.\", \"Reportar oportunamente cualquier situación que se tenga conocimiento en relación con la información financiera de la localidad de toda índole.\", \"Preparar y entregar los certificados que se autoricen, a los diferentes usuarios\", \"Adoptar, las acciones necesarias para garantizar el sistema de gestión de la calidad y el control interno dentro de la dependencia.\", \"Recopilar, analizar y consolidar información financiera y administrativa para la rendición de cuentas institucional.\", \"Coordinar y apoyar la realización de audiencias públicas de rendición de cuentas.\", \"Registrar y actualizar la información contractual en la plataforma SECOP II o la que haga sus veces.\", \"Verificar el cumplimiento de los requisitos legales en los procesos contractuales publicados.\", \"Apoyar a las dependencias en la utilización y administración de la plataforma SECOP II o la que haga sus veces.\", \"Colaborar en la implementación de estrategias de transparencia y buen gobierno.\", \"Brindar capacitaciones a los funcionarios sobre SECOP II y rendición de cuentas.\", \"Y las demás que sean asignadas por su jefe inmediato.\"]',279,'2026-07-17 15:14:40'),
-(280,46,'contribuciones','[\"Se registra en el sistema todo movimiento que se genere en materia de egresos y órdenes de pago\", \"Inventario actualizado y clasificado de los egresos a cargo del municipio\", \"Plataforma SECOP II actualizado con el cargue de egresos y sus diferentes comprobantes.\"]',280,'2026-07-17 15:14:40'),
-(281,46,'competencias','{\"comunes\": [\"Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compromiso con la organización Trabajo en equipo Adaptación al cambio Capacidad de análisis y síntesis.\"], \"nivel\": [\"Confiabilidad Técnica Disciplina Responsabilidad\"]}',281,'2026-07-17 15:14:40'),
-(282,46,'requisitos_estudio','ESTUDIOS Título de formación técnica profesional o tecnólogo profesional en la disciplina académica del núcleo básico del conocimiento en: Administración, Economía, Contaduría Pública y afines.',282,'2026-07-17 15:14:40'),
-(283,46,'requisitos_experiencia','EXPERIENCIA Un (01) año de experiencia relacionada',283,'2026-07-17 15:14:40'),
 (284,47,'proposito','Brindar apoyo en las actividades operativas y administrativas de la Tesorería Municipal, garantizando el adecuado manejo de los recursos financieros, el control de pagos y la actualización de la información contable, en cumplimiento de la normatividad vigente y bajo la supervisión del Tesorero General.',284,'2026-07-17 15:14:40'),
 (285,47,'funciones','[\"Apoyar en la recepción, revisión y trámite de documentos relacionados con pagos, ingresos y egresos del municipio.\", \"Elaborar proyecciones de ingresos y egresos que permitan una adecuada planificación financiera\", \"Colaborar en la elaboración y control de órdenes de pago y su respectiva documentación de soporte.\", \"Registrar y actualizar la información de los movimientos financieros en los sistemas contables utilizados por la entidad.\", \"Realizar conciliaciones bancarias periódicas en coordinación con el Tesorero General.\", \"Verificar el cumplimiento de los requisitos legales y administrativos en los procesos de pago.\", \"Apoyar en el control de las cuentas por pagar y cuentas por cobrar.\", \"Brindar información y orientación a proveedores, contratistas y ciudadanos sobre trámites relacionados con la Tesorería.\", \"Gestionar y archivar la documentación de la dependencia conforme a las normas establecidas.\", \"Apoyar la elaboración de informes financieros y administrativos requeridos por los entes de control.\", \"Apoyar en la ejecución del presupuesto asignado a la Tesorería Municipal.\", \"Realizar seguimiento a los pagos programados y garantizar su correcta ejecución.\", \"Generar reportes sobre la ejecución presupuestal para la toma de decisiones.\", \"Enviar a los distintos estamentos gubernamentales los documentos que estos pudiesen solicitar y que tengan relación directa con sus funciones.\", \"Elaborar resolución de viáticos y adelantar los trámites para la autorización de los mismos.\", \"Reportar de manera oportuna cualquier daño, deterioro, pérdida o anomalía en los equipos de oficina y bienes cargados al inventario de la dependencia.\", \"Llevar la agenda y recordar los compromisos.\", \"Tramitar los pedidos de útiles, papelería y demás elementos de oficina que se requieran en la dependencia.\", \"Adoptar, las acciones necesarias para garantizar el sistema de gestión de la calidad y el control interno dentro de la dependencia.\", \"Y las demás que sean asignadas por su jefe inmediato.\"]',285,'2026-07-17 15:14:40'),
 (286,47,'contribuciones','[\"Implementación de un sistema de organización para la gestión de documentos, facilitando su acceso y reduciendo tiempos de búsqueda.\", \"Control y ejecución eficiente de las conciliaciones bancarias y pagos programados para evitar retrasos y mejorar la planificación financiera.\", \"Procedimientos para mejorar la orientación a proveedores y ciudadanos sobre los trámites de Tesorería.\"]',286,'2026-07-17 15:14:40'),
@@ -3478,13 +3578,6 @@ INSERT INTO `cargos_manual_detalle` VALUES
 (488,79,'competencias','{\"comunes\": [\"Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compromiso con la organización Trabajo en equipo Adaptación al cambio\"], \"nivel\": [\"Confiabilidad Técnica Disciplina Responsabilidad\"]}',488,'2026-07-17 15:14:41'),
 (489,79,'requisitos_estudio','Título de formación técnica profesional o tecnólogo en la disciplina académica del núcleo básico del conocimiento en: Ingeniería de Sistemas, Educación, Administración, Economía, Administración, Contaduría y Afines',489,'2026-07-17 15:14:41'),
 (490,79,'requisitos_experiencia','Un (01) año de experiencia relacionada.',490,'2026-07-17 15:14:41'),
-(491,80,'proposito','Vigilar, inspeccionar y controlar la prestación de los servicios de salud para que la población goce de una mejor calidad de vida, a través de estrategias que permitan garantizar el propósito de vigilancia y control. Coordinar el manejo integral de los programas sociales de la entidad de conformidad con lo establecido en el plan de desarrollo municipal y las políticas públicas del nivel central.',491,'2026-07-17 15:14:41'),
-(492,80,'funciones','[\"Fijar las políticas de la Secretaría, acorde con el Plan de Desarrollo Municipal a fin de dar cumplimiento a la misión institucional.\", \"Establecer las estrategias y el plan de acción a seguir para el logro de las políticas, programas y proyectos consagrados en el Plan de Desarrollo Municipal y liderar su ejecución.\", \"Supervisar la ejecución del presupuesto que corresponda a la Secretaría para controlar el gasto.\", \"Asistir ante el Concejo Municipal, juntas, comités y otros estamentos cuando le sean delegados por el señor Alcalde para que lo represente.\", \"Rendir informes periódicos al Alcalde y demás instituciones que lo requieran sobre el desarrollo y ejecución de los proyectos relacionados con las actividades de la Secretaría y/o la Administración central, para su correspondiente análisis, evaluación, seguimiento y toma de decisiones.\", \"Coordinar con la secretaría de Planeación, los planes y programas de la Secretaría, tanto en su etapa de elaboración y formulación, para que sean inscritos en el Banco de Programas y Proyectos de Inversión Municipal.\", \"Gestionar ante las diferentes dependencias de la entidad o con organismos del orden Municipal, Departamental, subregional, Nacional e internacional, la obtención de los recursos necesarios, para asegurar el oportuno cumplimiento de los planes, programas y proyectos establecidos en el Plan de Desarrollo.\", \"Planear, dirigir y controlar el cumplimiento de los objetivos y estrategias que apunten al cumplimiento de la misión del organismo en concordancia con los planes de desarrollo y las políticas trazadas.\", \"Dirigir la formulación y fijación de políticas, adoptar los planes generales relacionados con el organismo y velar por el cumplimiento de los términos y condiciones establecidos para su ejecución.\", \"Implementar las políticas sociales y el desarrollo de la comunidad trazadas por el programa de gobierno y el Plan de Desarrollo Municipal, garantizando la inversión Social del Municipio, conjuntamente con la proveniente del sector estatal no municipal y el privado.\", \"Adelantar dentro del marco de las funciones propias del organismo las gestiones necesarias para asegurar el oportuno cumplimiento de los planes, programas y proyectos.\", \"Dirigir, coordinar y controlar la ejecución de planes, programas y proyectos dirigidos a los grupos de población más vulnerables a la desnutrición y en especial a los establecimientos educativos, para asegurar el mejoramiento nutricional.\", \"Realizar administración y puesta en marcha de cada uno de los programas sociales actualmente liderados y que se llegaren liderar por parte de la administración municipal. Velando siempre por que los mismos contribuyan de manera efectiva al mejoramiento de las condiciones de vida de la población en condiciones de vulnerabilidad.\", \"Investigar, diagnosticar y definir las variables sociales que afectan el normal funcionamiento de grupos poblacionales como menores en situación irregular, familia, discapacitados, indigentes, desplazados, tercera edad, mujeres cabeza de familia y madres comunitarias, población LGTBI.\", \"Gestionar ante las diferentes dependencias de la entidad o con organismos del orden Municipal, Departamental, subregional, Nacional e internacional, la obtención de recursos económicos, técnicos, tecnológicos y humanos, a fin de ejecutar políticas, programas y proyectos en materia de bienestar social, que permitan ampliar y mejorar la prestación de los servicios.\", \"Establecer las estrategias y el plan de acción a seguir, para el logro de las políticas, programas y proyectos consagrados en el Plan de Desarrollo Municipal y liderar su ejecución en relación con la población vulnerable.\", \"Solicitar y suministrar a las respectivas entidades u organismos Municipales, la información que sea necesaria para la actualización y el correcto funcionamiento del Sistema de Información de la Dependencia en relación con la población vulnerable.\", \"Supervisar la ejecución del presupuesto que corresponda a la secretaría para controlar el gasto.\", \"Proponer a quien corresponda, la realización de programas de capacitación e investigación según las necesidades determinadas en el plan de desarrollo Municipal e institucional en relación con los grupos de población vulnerable.\", \"Verificar que los recursos provenientes de las diferentes fuentes de financiamiento, se administren adecuadamente y se utilicen en función de las prioridades establecidas en el Plan de Desarrollo Municipal.\", \"Evaluar periódicamente el funcionamiento de la SECRETARÌA y aplicar los correctivos cuando fuese necesario.\", \"Atender y canalizar las quejas que los usuarios presenten sobre la eficiencia en la prestación de los servicios en cualquiera de los programas liderados por la entidad y vigilar que se tomen los correctivos del caso.\", \"Presentar iniciativas de proyectos de acuerdos, planes y programas en asuntos relacionados con la dependencia, para mejorar la calidad en la prestación del servicio.\", \"Asistir ante el Concejo Municipal, juntas, comités y otros estamentos, cuando le sean delegados por el señor Alcalde para que lo represente.\", \"Rendir informes periódicos al Alcalde, Concejo Municipal y demás instituciones que lo requieran sobre el desarrollo y ejecución de los proyectos relacionados con las actividades de la secretaría de Inclusión Social, para su correspondiente análisis, evaluación, seguimiento y toma de decisiones.\", \"Adoptar las acciones necesarias para garantizar el sistema de gestión de la calidad y el control interno dentro de la dependencia.\"]',492,'2026-07-17 15:14:41'),
-(493,80,'contribuciones','[\"Bases de datos actualizadas en relación con la población en estado de indefensión.\", \"Programas y subsidios orientados al mejoramiento de la calidad de vida de la población más necesitada.\", \"Gestión de recursos y proyectos en beneficio de la población vulnerable.\"]',493,'2026-07-17 15:14:41'),
-(494,80,'conocimientos','[\"Manejo grupal y formación de equipos.\"]',494,'2026-07-17 15:14:41'),
-(495,80,'competencias','{\"comunes\": [\"Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compromiso con la organización Trabajo en equipo Adaptación al cambio\"], \"nivel\": []}',495,'2026-07-17 15:14:41'),
-(496,80,'requisitos_estudio','Título profesional en NBC: Ciencias de la salud, económicas, administrativas o jurídicas. Tarjeta profesional vigente en los casos exigidos por la Ley.',496,'2026-07-17 15:14:41'),
-(497,80,'requisitos_experiencia','Dos (02) años de experiencia profesional',497,'2026-07-17 15:14:41'),
 (498,81,'proposito','Realizar e impulsar acciones de promoción de la salud, prevención de riesgos y atención de las poblaciones especiales, tales como población en situación de desplazamiento, discapacidad, adultos mayores, mujeres gestantes, población indígena, población infantil, adolescente y joven, así como coordinar todo lo relacionado con el desarrollo y la promoción comunitaria en salud.',498,'2026-07-17 15:14:41'),
 (499,81,'funciones','[\"Coordinar e impulsar acciones de salud, en la red para la superación de la pobreza.\", \"Impulsar las acciones educativas sobre diferentes aspectos de la promoción social.\", \"Participar en la formulación, diseño, organización, ejecución y control de planes y programas del área interna de su competencia.\", \"Coordinar, promover y participar en los estudios e investigaciones que permitan mejorar la prestación de los servicios a su cargo y el oportuno cumplimiento de los planes, programas y proyectos, así como la ejecución y utilización óptima de los recursos disponibles.\", \"Administrar, controlar y evaluar el desarrollo de los programas, proyectos y las actividades propias de la asistencia social y presentar los informes sobre el avance de cada uno de ellos.\", \"Impulsar con el personal a cargo las acciones que permitan materializar las políticas gubernamentales orientadas a la población vulnerable especialmente infancia, adultos mayores, discapacitados, jóvenes y adolescentes, mujeres cabeza de familia y etnias,\", \"Proponer e implantar los procedimientos e instrumentos requeridos para mejorar la prestación de los servicios a su cargo.\", \"Proyectar, desarrollar y recomendar las acciones que deban adoptarse para el logro de los objetivos y las metas propuestas en relación con los programas sociales.\", \"Estudiar, evaluar y conceptuar sobre las materias de competencia del área interna de desempeño, y absolver consultas de acuerdo con las políticas institucionales.\", \"Coordinar y realizar estudios e investigaciones tendientes al logro de los objetivos, planes y programas de la entidad y preparar los informes respectivos, de acuerdo con las instrucciones recibidas.\", \"Ejercer interventoría a la ejecución de actividades y el desarrollo de contratos que guardan relación directa con los programas sociales.\", \"Adoptar las acciones necesarias para garantizar el sistema de gestión de la calidad y el control interno dentro de la dependencia.\", \"Presentar informes de gestión para hacer seguimiento y evaluación a los objetivos trazados por la dependencia.\", \"Apoyar al jefe de la dependencia en la elaboración de los planes de acción\"]',499,'2026-07-17 15:14:41'),
 (500,81,'contribuciones','[\"Los habitantes del municipio en situación especial acceden a los diferentes programas sociales del municipio.\", \"Los subsidios se entregan de manera efectiva y oportuna.\", \"Se cuenta con bases de datos de todos y cada uno de los programas sociales debidamente actualizadas.\", \"Manejo adecuado de las plataformas de sistemas.\"]',500,'2026-07-17 15:14:41'),
@@ -3566,20 +3659,6 @@ INSERT INTO `cargos_manual_detalle` VALUES
 (576,92,'competencias','{\"comunes\": [\"Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compromiso con la organización Trabajo en equipo Adaptación al cambio\"], \"nivel\": [\"Confiabilidad Técnica Disciplina Responsabilidad\"]}',576,'2026-07-17 15:14:41'),
 (577,92,'requisitos_estudio','Título de formación técnica o tecnólogo del núcleo básico del conocimiento en: Ciencias de la Educación, Bellas Artes. Equivalencias: De conformidad con el Decreto ley 785 de 2005, Artículo 25 Numeral 25.2.3 Un (1) año de educación superior por un (1) año de experiencia y viceversa, o por seis (6) meses de experiencia relacionada y curso específico de mínimo sesenta (60) horas de duración y viceversa, siempre y cuando se acredite diploma de bachiller para ambos casos.',577,'2026-07-17 15:14:41'),
 (578,92,'requisitos_experiencia','Un (1) año de experiencia relacionada',578,'2026-07-17 15:14:41'),
-(579,93,'proposito','Apoyar en la preparación de la información financiera de acuerdo a las disposiciones legales vigentes para fortalecer la calidad de la información de la tesorería de manera que sirva de base para la toma de decisiones administrativas. De igual manera, mantener un registro actualizado sobre bancos y fondos, a fin de conocer saldos actualizados para la toma de decisiones.',579,'2026-07-17 15:14:41'),
-(580,93,'funciones','[\"Efectuar los diferentes registros requeridos para la obtención de los informes contables y financieros, realizar recaudos de ingresos y cuadrar caja diariamente.\", \"Mantener actualizada la información contable.\", \"Llevar correctamente y al orden del día los libros de contabilidad, así como la ejecución de los demás trabajos contables de la dependencia.\", \"Coadyuvar en la elaboración del Balance General y de los Estados Financieros, para asegurar su correcta consolidación.\", \"Registrar y codificar contablemente de acuerdo al Plan General de Contabilidad Pública, los movimientos que genere la administración, con el fin de obtener los estados contables.\", \"Emitir los reportes contables y financieros necesarios, para permitirle al ordenador del gasto y al pagador, tomar decisiones oportunamente.\", \"Ingresar al sistema todo movimiento que se genere desde la Tesorería, Presupuesto, Nómina y Almacén por intermedio de los diferentes documentos soporte de las actividades.\", \"Efectuar las conciliaciones de todas las cuentas bancarias que posee el Municipio.\", \"Entrega de informes comparativos de las conciliaciones con respecto a los bancos.\", \"Coadyuvar en la legalización de los rendimientos financieros que generen las cuentas de ahorro y legalización de notas débito por cobros de comisiones de consignaciones nacionales.\", \"Realizar labores de apoyo a los procesos administrativos que se ejecuten en la Secretaría de conformidad con los planes, programas y proyectos establecidos.\", \"Ejecutar los planes, programas y proyectos asignados por la Dirección Financiera y la Tesorería de Rentas Municipales, para lograr el fortalecimiento de los sistemas de información municipal.\", \"Ingresar al sistema de tesorería las órdenes de pago canceladas, su valor y los datos con relación al banco, también, las consignaciones efectuadas.\", \"Modificar y actualizar los datos solicitados solamente por las personas autorizadas, para asegurar confiabilidad en la información requerida.\", \"Operar los diferentes programas instalados para prestar eficientemente los servicios a cargo de la Dirección financiera y Tesorería y garantizar su actualización y adecuado funcionamiento.\", \"Reportar oportunamente los informes financieros, tales como: boletín de caja, ejecución presupuestal de ingresos y egresos, y demás soportes, entre otros, para la toma de decisiones y rendición de cuentas oportunas.\", \"Pasar a la sección de contabilidad todo movimiento que se efectúe tanto de ingresos como egresos en su respectiva planilla de resumen.\", \"Desglosar las diversas deducciones y entregar oportunamente los informes para sus respectivos pagos.\", \"Elaborar, examinar y revisar la documentación que se procesa con el fin de lograr el funcionamiento regular de la dependencia.\", \"Preparar y entregar los certificados que se autoricen, a los proveedores y contratistas.\", \"Presentar ante los entes gubernamentales y/o entidades particulares y privadas los informes solicitados.\", \"Adoptar, las acciones necesarias para garantizar el sistema de gestión de la calidad y el control interno dentro de la dependencia.\", \"Y las demás que sean asignados por su jefe inmediato.\"]',580,'2026-07-17 15:14:41'),
-(581,93,'contribuciones','[\"Asegurar la precisión y oportunidad en el registro de los diferentes movimientos contables y financieros, garantizando la actualización diaria de la información y la conciliación para una adecuada toma de decisiones.\", \"Efectuar las conciliaciones bancarias y presentar informes comparativos que permitan un adecuado seguimiento de los recursos,\", \"Ingresar y validar la información financiera en los sistemas administrativos, asegurando que los ingresos y egresos de la entidad se reflejen oportunamente en la ejecución presupuestal del municipio.\", \"Adoptar y ejecutar acciones para fortalecer el sistema de gestión de la calidad y el control interno dentro de la dependencia, asegurando que los procesos contables cumplan con el Plan General de Contabilidad Pública y las normativas vigentes.\"]',581,'2026-07-17 15:14:41'),
-(582,93,'conocimientos','[\"Manejo de herramientas Ofimáticas, (Procesadores de texto, Word Excel Power Point).\", \"Normas contables actualizadas.\", \"Contabilidad Pública\", \"Sistema de Gestión de la Calidad aplicables dentro del Municipio\"]',582,'2026-07-17 15:14:41'),
-(583,93,'competencias','{\"comunes\": [\"Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compromiso con la organización Trabajo en equipo Adaptación al cambio\"], \"nivel\": [\"Confiabilidad Técnica Disciplina Responsabilidad\"]}',583,'2026-07-17 15:14:41'),
-(584,93,'requisitos_estudio','Título de terminación técnica profesional o tecnológica; o Terminación y/o aprobación del pensum académico de educación superior del núcleo básico del conocimiento en: Contaduría Pública',584,'2026-07-17 15:14:41'),
-(585,93,'requisitos_experiencia','Seis (06) meses de experiencia relacionada',585,'2026-07-17 15:14:41'),
-(586,94,'proposito','Apoyar técnicamente la gestión del área de impuestos en procesos de control, seguimiento, análisis, facturación, liquidación y recaudo de tributos municipales, con el fin de garantizar el cumplimiento normativo, la eficiencia en la atención al contribuyente y el incremento del recaudo municipal.',586,'2026-07-17 15:14:41'),
-(587,94,'funciones','[\"Ejecutar actividades técnicas relacionadas con la facturación seguimiento de los impuestos municipales, especialmente Industria y Comercio e Impuesto Predial Unificado.\", \"Registrar en el sistema, las novedades que presenten los contribuyentes de Industria y Comercio sobre sus actividades para garantizar información actualizada.\", \"Reportar las novedades en el sistema sobre los diferentes impuestos, para garantizar información actualizada.\", \"Recepcionar revisar y validar las autoliquidaciones y declaraciones presentadas por los contribuyentes, proponiendo ajustes o requerimientos cuando sea necesario.\", \"Realizar estudios y análisis técnicos que permitan identificar evasión, omisión o inexactitud en las declaraciones tributarias.\", \"Diseñar y ejecutar estrategias para mejorar el recaudo de los contribuyentes.\", \"Actualizar y consolidar la información tributaria registrada en las bases de datos y sistemas institucionales.\", \"Apoyar en la elaboración de actos administrativos, conceptos y respuestas a derechos de petición en temas tributarios.\", \"Verificar el cumplimiento de la normatividad tributaria por parte de los contribuyentes, proponiendo sanciones o medidas correctivas cuando corresponda.\", \"Proponer y participar en campañas de socialización y educación tributaria para contribuyentes.\", \"Hacer seguimiento a la actualización catastral, bases gravables y tarifas aplicables al Impuesto Predial Unificado.\", \"Apoyar técnicamente la planeación y ejecución del presupuesto de ingresos tributarios.\", \"Atender consultas técnicas de los contribuyentes y orientar en temas relacionados con el cumplimiento de las obligaciones tributarias.\", \"Realizar Auditoria a los Bancos sobre recaudo del Impuesto Predial.\", \"Elaborar informes relacionados con Impuesto Predial Unificado.\", \"Mantener actualizada base datos predial (novedades, cambio intereses, tarifa, estratos).\", \"Efectuar ajustes al Impuesto Predial Unificado, revisar las resoluciones de la Secretaría de Hacienda y actualizar el sistema.\", \"Entregar y recibir los formularios de declaración de ventas brutas de industria y comercio, a los respectivos contribuyentes matriculados como agentes del impuesto, para su correspondiente revisión e ingreso de novedades al sistema.\", \"Mantener un registro actualizado sobre establecimientos públicos, comerciales, industriales y de servicios, a fin de permitir información oportuna para la toma de decisiones.\", \"Expedir para la firma del funcionario correspondiente, y a solicitud del usuario o autoridad competente, los Paz y Salvos por concepto de Impuesto Predial Unificado.\", \"Facturar en forma oportuna la liquidación trimestral del Impuesto Predial Unificado.\", \"Realizar recaudo a través de la caja habilitada en las instalaciones de la entidad, de los distintos ingresos a favor del ente municipal.\", \"Realizar control y seguimiento técnico a los reportes de recaudo efectuados por las entidades financieras.\", \"Apoyar la implementación del Sistema de Gestión de la Calidad en lo relacionado con los procesos tributarios.\", \"Las demás funciones que le sean asignadas por su jefe inmediato y que correspondan a la naturaleza del cargo.\"]',587,'2026-07-17 15:14:41'),
-(588,94,'contribuciones','[\"Cumplimiento efectivo de los cronogramas de liquidación, fiscalización y control tributario.\", \"Mejora continua en los procesos de recaudo, facturación mediante propuestas técnicas viables.\", \"Reportes tributarios claros, oportunos y ajustados a la normativa vigente.\", \"Gestión efectiva de la base de datos de contribuyentes y actualización permanente.\", \"Atención técnica oportuna y clara a los usuarios internos y externos.\"]',588,'2026-07-17 15:14:41'),
-(589,94,'conocimientos','[\"Normatividad tributaria nacional y municipal (estatuto tributario local).\", \"Manejo avanzado de herramientas ofimáticas (Word, Excel, PowerPoint).\", \"Sistemas de información tributaria y bases de datos.\", \"Técnicas de análisis financiero y tributario.\", \"Sistema de Gestión de Calidad y Gestión Documental.\", \"Atención al ciudadano y servicio público.\"]',589,'2026-07-17 15:14:41'),
-(590,94,'competencias','{\"comunes\": [\"Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compromiso con la organización Trabajo en equipo Adaptación al cambio\"], \"nivel\": [\"Confiabilidad Técnica Disciplina Responsabilidad\"]}',590,'2026-07-17 15:14:41'),
-(591,94,'requisitos_estudio','Título de formación técnica profesional o tecnólogo profesional en la disciplina académica del núcleo básico del conocimiento en: Administración, Economía, Contaduría Pública y afines.',591,'2026-07-17 15:14:41'),
-(592,94,'requisitos_experiencia','Seis (06) meses de experiencia relacionada',592,'2026-07-17 15:14:41'),
 (593,95,'proposito','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.',593,'2026-07-17 15:14:41'),
 (594,95,'funciones','[\"Verificar el cumplimiento de las normas del Código Nacional de Tránsito y demás disposiciones sobre la materia, para el correcto desarrollo del flujo vehicular.\", \"Controlar el tránsito en las vías públicas municipales y nacionales, con el propósito de disminuir la accidentalidad vial.\", \"Apoyar las Capacitaciones conductores, propietarios de vehículos, peatones, educadores y estudiantes en normas de tránsito y seguridad vial, para una mejor aplicación y promoción de las mismas.\", \"Elaborar al conductor infractor la Orden de Comparendo Nacional o diligenciar el informe de accidente cuando sea necesario.\", \"Inmovilizar vehículos en cumplimiento a órdenes de autoridad competente cuando las normas de tránsito o transporte lo faculten y colocarlos a disposición de la jurisdicción correspondiente, para la investigación a que haya lugar.\", \"Apoyar a los organismos municipales y entidades que lo requieran en la organización vehicular y peatonal durante fiestas y eventos culturales, deportivos y catastróficos, con el fin de que estos tengan un correcto funcionamiento.\", \"Trasladar y/o velar porque a conductores en estado de embriaguez o cuando la situación lo amerite, se les practique el examen de alcoholemia o droga, para que sirva como base o prueba en el análisis de una infracción o en el desarrollo de una investigación que aclare la causa de un accidente.\", \"Coadyuvar en la señalización de las diferentes vías urbanas municipales, para una correcta organización vial.\", \"Auxiliar a Conductores con percance en las carreteras, al igual que conducir vehículos, cuando se requiera, como apoyo al usuario y a la institución.\", \"Realizar labores de apoyo a los diferentes grupos de trabajo dentro de la Secretaría.\", \"Promover y desarrollar la cultura ciudadana, enfatizando en aspectos como tolerancia, democracia y participación en los habitantes del Municipio.\", \"Cuidar y salvaguardar los bienes y equipos que la Administración Municipal entregue a su cargo para el cabal ejercicio de sus funciones.\", \"Apoyar el control de la ocupación y uso del espacio público de conformidad con los programas y planes trazados por la administración municipal\", \"Adoptar, las acciones necesarias para garantizar el sistema de gestión de la calidad y el control interno dentro de la dependencia.\"]',594,'2026-07-17 15:14:41'),
 (595,95,'contribuciones','[\"Reducción del índice de infracciones.\", \"Disminución de la accidentalidad vial.\", \"Mejoramiento del flujo vehicular y peatonal en el municipio.\", \"Normas de tránsito y transporte.\", \"Relaciones humanas y primeros auxilios.\", \"Mecánica automotriz y Diesel.\", \"Técnicas de conducción.\", \"Ubicación geográfica del municipio.\", \"Sistema de Gestión de calidad aplicable dentro del Municipio.\"]',595,'2026-07-17 15:14:41'),
@@ -3590,6 +3669,11 @@ INSERT INTO `cargos_manual_detalle` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `cargos_manual_requisitos`
+--
+
 DROP TABLE IF EXISTS `cargos_manual_requisitos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3611,6 +3695,10 @@ CREATE TABLE `cargos_manual_requisitos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `cargos_manual_requisitos`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `cargos_manual_requisitos` WRITE;
 /*!40000 ALTER TABLE `cargos_manual_requisitos` DISABLE KEYS */;
@@ -3618,6 +3706,11 @@ LOCK TABLES `cargos_manual_requisitos` WRITE;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `competencias`
+--
+
 DROP TABLE IF EXISTS `competencias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3629,6 +3722,10 @@ CREATE TABLE `competencias` (
   PRIMARY KEY (`codigo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `competencias`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `competencias` WRITE;
@@ -3652,6 +3749,11 @@ INSERT INTO `competencias` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `compromiso_mejoramiento_seguimientos`
+--
+
 DROP TABLE IF EXISTS `compromiso_mejoramiento_seguimientos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3675,6 +3777,10 @@ CREATE TABLE `compromiso_mejoramiento_seguimientos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `compromiso_mejoramiento_seguimientos`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `compromiso_mejoramiento_seguimientos` WRITE;
 /*!40000 ALTER TABLE `compromiso_mejoramiento_seguimientos` DISABLE KEYS */;
@@ -3682,6 +3788,11 @@ LOCK TABLES `compromiso_mejoramiento_seguimientos` WRITE;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `compromisos`
+--
+
 DROP TABLE IF EXISTS `compromisos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3726,6 +3837,10 @@ CREATE TABLE `compromisos` (
 ) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `compromisos`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `compromisos` WRITE;
 /*!40000 ALTER TABLE `compromisos` DISABLE KEYS */;
@@ -3766,6 +3881,11 @@ INSERT INTO `compromisos` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `compromisos_mejoramiento`
+--
+
 DROP TABLE IF EXISTS `compromisos_mejoramiento`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3791,6 +3911,10 @@ CREATE TABLE `compromisos_mejoramiento` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `compromisos_mejoramiento`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `compromisos_mejoramiento` WRITE;
 /*!40000 ALTER TABLE `compromisos_mejoramiento` DISABLE KEYS */;
@@ -3798,6 +3922,11 @@ LOCK TABLES `compromisos_mejoramiento` WRITE;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `concertaciones`
+--
+
 DROP TABLE IF EXISTS `concertaciones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3833,6 +3962,10 @@ CREATE TABLE `concertaciones` (
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `concertaciones`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `concertaciones` WRITE;
 /*!40000 ALTER TABLE `concertaciones` DISABLE KEYS */;
@@ -3844,6 +3977,11 @@ INSERT INTO `concertaciones` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `conductas`
+--
+
 DROP TABLE IF EXISTS `conductas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3861,6 +3999,10 @@ CREATE TABLE `conductas` (
   CONSTRAINT `fk_conducta_competencia` FOREIGN KEY (`competencia_codigo`) REFERENCES `competencias` (`codigo`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `conductas`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `conductas` WRITE;
@@ -3940,6 +4082,11 @@ INSERT INTO `conductas` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `csrf_tokens`
+--
+
 DROP TABLE IF EXISTS `csrf_tokens`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -3953,8 +4100,12 @@ CREATE TABLE `csrf_tokens` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_token` (`token`),
   KEY `idx_expiracion` (`expiracion`)
-) ENGINE=InnoDB AUTO_INCREMENT=568 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=581 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `csrf_tokens`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `csrf_tokens` WRITE;
@@ -4526,11 +4677,29 @@ INSERT INTO `csrf_tokens` VALUES
 (564,'df16b397a905476692d45c63a72e400e071f460d1726535b3b79f900c51d147c','2026-07-17 22:27:59',0,'2026-07-17 21:27:59',NULL),
 (565,'8161a4dccb6a7611d05382c11340540d3909eb7b2a18c84ae45a7f40e9538328','2026-07-17 22:28:21',1,'2026-07-17 21:28:21','2026-07-17 21:28:21'),
 (566,'73b3eedca773ae9ac0a00a8b28f83764eade5ada120ebd7b67ed0c82ceeb12f5','2026-07-17 22:28:37',1,'2026-07-17 21:28:37','2026-07-17 21:28:37'),
-(567,'0285067013e9a4b03af5170748536f520e0e1885f9521e5c2ea5dbdc8d83ab70','2026-07-17 22:28:38',1,'2026-07-17 21:28:38','2026-07-17 21:28:38');
+(567,'0285067013e9a4b03af5170748536f520e0e1885f9521e5c2ea5dbdc8d83ab70','2026-07-17 22:28:38',1,'2026-07-17 21:28:38','2026-07-17 21:28:38'),
+(568,'8d1f9ee19aca9167a32136fdf558856258a6cbca45fa5ef6cb3ca067fed56c6a','2026-07-17 23:59:08',1,'2026-07-17 22:59:08','2026-07-17 23:00:20'),
+(569,'c6fc8d55eebad15d3081f96ebd35808ffc59fafcfdabd44637e14b3858352203','2026-07-18 00:00:41',1,'2026-07-17 23:00:41','2026-07-17 23:00:42'),
+(570,'b2cc1430da9ff074c752906d4550abe2b8a8b817a27719889e9f6db7a4417743','2026-07-18 00:01:23',0,'2026-07-17 23:01:23',NULL),
+(571,'682daed2aa895bb1dc63aee97e9734d6688b8b7173030f24dcaa3d09669fe92e','2026-07-18 00:01:23',1,'2026-07-17 23:01:23','2026-07-17 23:01:47'),
+(572,'a2bc13a288c3c470dc172e18a224e34a4be16b17d6ca8fc742b17ea6829c3f18','2026-07-18 00:01:44',1,'2026-07-17 23:01:44','2026-07-17 23:01:47'),
+(573,'0047f622574596826e15a360a09e27c359a3a6ccd5d4e5263c7b172d1aaada67','2026-07-18 00:01:47',0,'2026-07-17 23:01:47',NULL),
+(574,'47bff6099fcbbb8b58fca30bc8e76d900f434001939b08aca04b43501b149441','2026-07-18 00:01:47',0,'2026-07-17 23:01:47',NULL),
+(575,'3f5105d840be91db24e24a713eb41840bf40b63068a9470996779ac0b0404273','2026-07-18 00:01:47',0,'2026-07-17 23:01:47',NULL),
+(576,'b1620f7e138e1bbcb3ad5dc8855964dddcd55f861c8a858765355ed8f2a0434c','2026-07-18 00:01:48',0,'2026-07-17 23:01:48',NULL),
+(577,'117be6a181b007f4c10215d08aa6299f047c4e23e740708445dd085e01a1d363','2026-07-18 00:02:57',0,'2026-07-17 23:02:57',NULL),
+(578,'454a100f90a0d79752d490f4d27ed2626ca5cab29556dbbd8adea7ab77e91a24','2026-07-18 00:02:57',1,'2026-07-17 23:02:57','2026-07-17 23:03:00'),
+(579,'f5b98b19ca11f28207f5a2393ff23f0b201bdd121bc5f304d6cfc948c0acae26','2026-07-18 00:03:00',0,'2026-07-17 23:03:00',NULL),
+(580,'d1749adc690a45216f3873ff3cbbf09930ec165081860d5da05046502cfd78e5','2026-07-18 00:03:00',0,'2026-07-17 23:03:00',NULL);
 /*!40000 ALTER TABLE `csrf_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `dependencias`
+--
+
 DROP TABLE IF EXISTS `dependencias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4552,6 +4721,10 @@ CREATE TABLE `dependencias` (
   CONSTRAINT `fk_dep_jefe` FOREIGN KEY (`jefe_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `dependencias`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `dependencias` WRITE;
@@ -4579,6 +4752,11 @@ INSERT INTO `dependencias` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `encargos`
+--
+
 DROP TABLE IF EXISTS `encargos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4597,6 +4775,10 @@ CREATE TABLE `encargos` (
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `encargos`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `encargos` WRITE;
 /*!40000 ALTER TABLE `encargos` DISABLE KEYS */;
@@ -4609,6 +4791,11 @@ INSERT INTO `encargos` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `entidades`
+--
+
 DROP TABLE IF EXISTS `entidades`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4630,6 +4817,10 @@ CREATE TABLE `entidades` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `entidades`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `entidades` WRITE;
 /*!40000 ALTER TABLE `entidades` DISABLE KEYS */;
@@ -4639,6 +4830,11 @@ INSERT INTO `entidades` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `evaluaciones`
+--
+
 DROP TABLE IF EXISTS `evaluaciones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4692,6 +4888,10 @@ CREATE TABLE `evaluaciones` (
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `evaluaciones`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `evaluaciones` WRITE;
 /*!40000 ALTER TABLE `evaluaciones` DISABLE KEYS */;
@@ -4702,6 +4902,11 @@ INSERT INTO `evaluaciones` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `evidencias`
+--
+
 DROP TABLE IF EXISTS `evidencias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4737,6 +4942,10 @@ CREATE TABLE `evidencias` (
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `evidencias`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `evidencias` WRITE;
 /*!40000 ALTER TABLE `evidencias` DISABLE KEYS */;
@@ -4769,6 +4978,11 @@ INSERT INTO `evidencias` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `ext_dependencias`
+--
+
 DROP TABLE IF EXISTS `ext_dependencias`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4780,6 +4994,10 @@ CREATE TABLE `ext_dependencias` (
   UNIQUE KEY `uk_descripcion` (`Descripcion`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ext_dependencias`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `ext_dependencias` WRITE;
@@ -4807,6 +5025,11 @@ INSERT INTO `ext_dependencias` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `funcionarios`
+--
+
 DROP TABLE IF EXISTS `funcionarios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -4824,6 +5047,10 @@ CREATE TABLE `funcionarios` (
   UNIQUE KEY `uk_cedula` (`Cedula`)
 ) ENGINE=InnoDB AUTO_INCREMENT=268 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `funcionarios`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `funcionarios` WRITE;
@@ -5047,6 +5274,11 @@ INSERT INTO `funcionarios` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `historial_evaluadores`
+--
+
 DROP TABLE IF EXISTS `historial_evaluadores`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5070,6 +5302,10 @@ CREATE TABLE `historial_evaluadores` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `historial_evaluadores`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `historial_evaluadores` WRITE;
 /*!40000 ALTER TABLE `historial_evaluadores` DISABLE KEYS */;
@@ -5079,6 +5315,11 @@ INSERT INTO `historial_evaluadores` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `mejoramiento_seguimientos`
+--
+
 DROP TABLE IF EXISTS `mejoramiento_seguimientos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5098,6 +5339,10 @@ CREATE TABLE `mejoramiento_seguimientos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `mejoramiento_seguimientos`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `mejoramiento_seguimientos` WRITE;
 /*!40000 ALTER TABLE `mejoramiento_seguimientos` DISABLE KEYS */;
@@ -5105,6 +5350,11 @@ LOCK TABLES `mejoramiento_seguimientos` WRITE;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `metas`
+--
+
 DROP TABLE IF EXISTS `metas`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5137,6 +5387,10 @@ CREATE TABLE `metas` (
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `metas`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `metas` WRITE;
 /*!40000 ALTER TABLE `metas` DISABLE KEYS */;
@@ -5150,6 +5404,11 @@ INSERT INTO `metas` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `movilidades`
+--
+
 DROP TABLE IF EXISTS `movilidades`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5184,6 +5443,10 @@ CREATE TABLE `movilidades` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `movilidades`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `movilidades` WRITE;
 /*!40000 ALTER TABLE `movilidades` DISABLE KEYS */;
@@ -5191,6 +5454,11 @@ LOCK TABLES `movilidades` WRITE;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `naturalezas_cargo`
+--
+
 DROP TABLE IF EXISTS `naturalezas_cargo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5203,6 +5471,10 @@ CREATE TABLE `naturalezas_cargo` (
   PRIMARY KEY (`codigo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `naturalezas_cargo`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `naturalezas_cargo` WRITE;
@@ -5218,6 +5490,11 @@ INSERT INTO `naturalezas_cargo` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `niveles_jerarquicos`
+--
+
 DROP TABLE IF EXISTS `niveles_jerarquicos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5229,6 +5506,10 @@ CREATE TABLE `niveles_jerarquicos` (
   PRIMARY KEY (`codigo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `niveles_jerarquicos`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `niveles_jerarquicos` WRITE;
@@ -5243,6 +5524,11 @@ INSERT INTO `niveles_jerarquicos` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `notificaciones`
+--
+
 DROP TABLE IF EXISTS `notificaciones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5263,6 +5549,10 @@ CREATE TABLE `notificaciones` (
   CONSTRAINT `fk_not_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `notificaciones`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `notificaciones` WRITE;
@@ -5309,6 +5599,11 @@ INSERT INTO `notificaciones` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `nucleos_basicos_conocimiento`
+--
+
 DROP TABLE IF EXISTS `nucleos_basicos_conocimiento`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5322,6 +5617,10 @@ CREATE TABLE `nucleos_basicos_conocimiento` (
   KEY `idx_nbc` (`nbc`)
 ) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `nucleos_basicos_conocimiento`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `nucleos_basicos_conocimiento` WRITE;
@@ -5386,6 +5685,11 @@ INSERT INTO `nucleos_basicos_conocimiento` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `parametros`
+--
+
 DROP TABLE IF EXISTS `parametros`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5401,6 +5705,10 @@ CREATE TABLE `parametros` (
   UNIQUE KEY `uk_clave` (`clave`)
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `parametros`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `parametros` WRITE;
@@ -5424,6 +5732,11 @@ INSERT INTO `parametros` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `periodos`
+--
+
 DROP TABLE IF EXISTS `periodos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5451,6 +5764,10 @@ CREATE TABLE `periodos` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `periodos`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `periodos` WRITE;
 /*!40000 ALTER TABLE `periodos` DISABLE KEYS */;
@@ -5460,6 +5777,11 @@ INSERT INTO `periodos` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `permisos`
+--
+
 DROP TABLE IF EXISTS `permisos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5477,6 +5799,10 @@ CREATE TABLE `permisos` (
   KEY `idx_modulo` (`modulo`)
 ) ENGINE=InnoDB AUTO_INCREMENT=75 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `permisos`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `permisos` WRITE;
@@ -5542,6 +5868,11 @@ INSERT INTO `permisos` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `rate_limits`
+--
+
 DROP TABLE IF EXISTS `rate_limits`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5557,6 +5888,10 @@ CREATE TABLE `rate_limits` (
 ) ENGINE=InnoDB AUTO_INCREMENT=10759 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `rate_limits`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `rate_limits` WRITE;
 /*!40000 ALTER TABLE `rate_limits` DISABLE KEYS */;
@@ -5567,6 +5902,11 @@ INSERT INTO `rate_limits` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `recuperaciones`
+--
+
 DROP TABLE IF EXISTS `recuperaciones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5584,6 +5924,10 @@ CREATE TABLE `recuperaciones` (
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `recuperaciones`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `recuperaciones` WRITE;
 /*!40000 ALTER TABLE `recuperaciones` DISABLE KEYS */;
@@ -5598,6 +5942,11 @@ INSERT INTO `recuperaciones` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `responsables`
+--
+
 DROP TABLE IF EXISTS `responsables`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5621,6 +5970,10 @@ CREATE TABLE `responsables` (
   KEY `Id_dependencia` (`Id_dependencia`,`id_tbl_tipo_vinculacion`,`id_tbl_detalle_cargo`)
 ) ENGINE=InnoDB AUTO_INCREMENT=271 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `responsables`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `responsables` WRITE;
@@ -5892,6 +6245,11 @@ INSERT INTO `responsables` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `rol_permiso`
+--
+
 DROP TABLE IF EXISTS `rol_permiso`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5905,6 +6263,10 @@ CREATE TABLE `rol_permiso` (
   CONSTRAINT `fk_rp_rol` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `rol_permiso`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `rol_permiso` WRITE;
@@ -6051,6 +6413,11 @@ INSERT INTO `rol_permiso` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `roles`
+--
+
 DROP TABLE IF EXISTS `roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -6067,6 +6434,10 @@ CREATE TABLE `roles` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `roles`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `roles` WRITE;
 /*!40000 ALTER TABLE `roles` DISABLE KEYS */;
@@ -6080,6 +6451,11 @@ INSERT INTO `roles` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `sesiones`
+--
+
 DROP TABLE IF EXISTS `sesiones`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -6097,8 +6473,12 @@ CREATE TABLE `sesiones` (
   KEY `idx_token` (`token_hash`(64)),
   KEY `idx_expiracion` (`fecha_expiracion`),
   CONSTRAINT `fk_ses_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1840 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1854 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `sesiones`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `sesiones` WRITE;
@@ -7942,11 +8322,30 @@ INSERT INTO `sesiones` VALUES
 (1836,12,'5cc112802a51a3788a04802d8332c19c8e480178f262ef1b59cc06cceec1e1d5','127.0.0.1','curl/8.20.0','2026-07-17 23:26:41',0,'2026-07-17 21:26:41'),
 (1837,12,'c64928aee020e18f88c395c7b859b4ea18921e0c05db8dc89745f97121eb9bd6','127.0.0.1','curl/8.20.0','2026-07-17 23:27:59',0,'2026-07-17 21:27:59'),
 (1838,12,'7c93daa61a781ead91c3621c8235e3cdde2616fb59d1841fc2b3e8aa3e80e8ef','127.0.0.1','curl/8.20.0','2026-07-17 23:28:20',0,'2026-07-17 21:28:20'),
-(1839,12,'87651a0bebeb7768d5e3073632fdb3b615c501e1847bc84337fda19cbaa2da32','127.0.0.1','curl/8.20.0','2026-07-17 23:28:36',0,'2026-07-17 21:28:36');
+(1839,12,'87651a0bebeb7768d5e3073632fdb3b615c501e1847bc84337fda19cbaa2da32','127.0.0.1','curl/8.20.0','2026-07-17 23:28:36',0,'2026-07-17 21:28:36'),
+(1840,11,'baa976e735fc89e68d88f8ef117232b6efebaf53de8c24dd574478ae98f5e501','127.0.0.1','curl/8.20.0','2026-07-18 00:45:44',0,'2026-07-17 22:45:44'),
+(1841,11,'5205047d8127b8d87792af1ba494a00769b23f60410b2917589da36f3202386a','127.0.0.1','curl/8.20.0','2026-07-18 00:45:54',0,'2026-07-17 22:45:54'),
+(1842,11,'cc909a709bcc900d50f651fd5cfa1242e255aea7475386f45b11acd899a5f639','127.0.0.1','curl/8.20.0','2026-07-18 00:47:22',0,'2026-07-17 22:47:22'),
+(1843,11,'ceb7a5bfa0104a00b8ca6b37c3a8d1648ea75cad9a49fab5d8de928c2b73b149','127.0.0.1','curl/8.20.0','2026-07-18 00:47:57',0,'2026-07-17 22:47:57'),
+(1844,11,'e7778f4e73070b06d15dccf64c29f61a3ca54ebbb6e05570a618e91309e4f112','127.0.0.1','curl/8.20.0','2026-07-18 00:49:45',0,'2026-07-17 22:49:45'),
+(1845,11,'5e87fc96dfe86ffc7248ebc95e768c7863b583588a6934b30099ef503504e933','127.0.0.1','curl/8.20.0','2026-07-18 00:50:15',0,'2026-07-17 22:50:15'),
+(1846,11,'4405678ef0da723626d0f8fc1d9a179c51dd91d20a47baeca34072c0b91a810a','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 00:59:08',0,'2026-07-17 22:59:08'),
+(1847,12,'4b95ce8b589cfe4ed3d1ef49d1423cfb7649bc2eb11199b561721d322a843394','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 01:01:22',0,'2026-07-17 23:01:22'),
+(1848,12,'ddbbf6f9bfd3f86f5e493eba738af1e17ba0269160e35597315000bfcc81994a','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:01:43',0,'2026-07-17 23:01:43'),
+(1849,12,'760663db7d809671c4b5516d233eaf1ea8821ad618c0fa3a40e2ba1eca728d2f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:01:47',0,'2026-07-17 23:01:47'),
+(1850,12,'760663db7d809671c4b5516d233eaf1ea8821ad618c0fa3a40e2ba1eca728d2f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 01:01:47',0,'2026-07-17 23:01:47'),
+(1851,12,'f94ddb05245cf8ea566dab3f09b58ab1d47d49ebee570bb90f26f5b4746b7609','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:02:57',0,'2026-07-17 23:02:57'),
+(1852,12,'c8220458c9efada1340d52b3c526177e6d4492cd3a16b7ca3a6bc12b49b1a008','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:03:00',0,'2026-07-17 23:03:00'),
+(1853,12,'4d576822ead5ca5064b1575a2f47da67663b7ca51632e957a401dadcd90f5357','127.0.0.1','curl/8.20.0','2026-07-18 01:06:25',0,'2026-07-17 23:06:25');
 /*!40000 ALTER TABLE `sesiones` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `solicitudes_cambio_evaluador`
+--
+
 DROP TABLE IF EXISTS `solicitudes_cambio_evaluador`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -7979,6 +8378,10 @@ CREATE TABLE `solicitudes_cambio_evaluador` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `solicitudes_cambio_evaluador`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `solicitudes_cambio_evaluador` WRITE;
 /*!40000 ALTER TABLE `solicitudes_cambio_evaluador` DISABLE KEYS */;
@@ -7988,6 +8391,11 @@ INSERT INTO `solicitudes_cambio_evaluador` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `tbl_cargo`
+--
+
 DROP TABLE IF EXISTS `tbl_cargo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -7999,6 +8407,10 @@ CREATE TABLE `tbl_cargo` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tbl_cargo`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `tbl_cargo` WRITE;
@@ -8028,6 +8440,11 @@ INSERT INTO `tbl_cargo` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `tbl_detalle_cargo`
+--
+
 DROP TABLE IF EXISTS `tbl_detalle_cargo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -8040,6 +8457,10 @@ CREATE TABLE `tbl_detalle_cargo` (
   KEY `id_tbl_cargo` (`id_tbl_cargo`)
 ) ENGINE=InnoDB AUTO_INCREMENT=147 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `tbl_detalle_cargo`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `tbl_detalle_cargo` WRITE;
@@ -8195,6 +8616,11 @@ INSERT INTO `tbl_detalle_cargo` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `usuario_cargo_manual`
+--
+
 DROP TABLE IF EXISTS `usuario_cargo_manual`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -8216,6 +8642,10 @@ CREATE TABLE `usuario_cargo_manual` (
   CONSTRAINT `2` FOREIGN KEY (`cargo_manual_id`) REFERENCES `cargos_manual` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=189 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuario_cargo_manual`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `usuario_cargo_manual` WRITE;
@@ -8413,6 +8843,11 @@ INSERT INTO `usuario_cargo_manual` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `usuario_rol`
+--
+
 DROP TABLE IF EXISTS `usuario_rol`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -8428,6 +8863,10 @@ CREATE TABLE `usuario_rol` (
   CONSTRAINT `fk_ur_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `usuario_rol`
+--
 
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `usuario_rol` WRITE;
@@ -8694,6 +9133,11 @@ INSERT INTO `usuario_rol` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `usuarios`
+--
+
 DROP TABLE IF EXISTS `usuarios`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -8750,6 +9194,10 @@ CREATE TABLE `usuarios` (
 ) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `usuarios`
+--
+
 SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
@@ -8763,8 +9211,8 @@ INSERT INTO `usuarios` VALUES
 (8,'1067890123','CC',NULL,'Fernando',NULL,'Torres Nino',NULL,'fernando.torres@carepa.gov.co',0,'3117890123',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,NULL,NULL,'hecho_en_carrera','Profesional Especializado',NULL,'17',0,NULL,0,'2017-11-01',NULL,1,0,NULL,NULL,'2026-06-26 08:44:10','2026-06-26 10:09:37',NULL),
 (9,'1078901234','CC',NULL,'Lucia',NULL,'Castro Rojas',NULL,'lucia.castro@carepa.gov.co',0,'3118901234',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,'asistencial','carrera_administrativa','provisional','Auxiliar Administrativo','407','08',0,NULL,0,'2023-01-10','Administrar, la información de la Secretaría para personal interno y externo de conformidad con los procesos establecidos.',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-17 15:16:46',NULL),
 (10,'1089012345','CC',NULL,'Roberto',NULL,'Munoz Silva',NULL,'roberto.munoz@carepa.gov.co',0,'3119012345',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,'profesional','carrera_administrativa','hecho_en_carrera','Profesional Universitario','219','15',0,NULL,0,'2021-07-01','Servir de apoyo en el desarrollo de los diferentes procesos entregados a la Secretaría GENERAL en materia jurídica. De igual manera, prestar asesoría y apoyo en lo relacionado con la emisión de conceptos, proyección de actos administrativos, contestación de demandas, acciones populares o de grupos, acciones de tutelas, derechos de petición y demás situaciones en la cual se haga necesario la intervención de profesional en el área del derecho',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-17 15:16:46',NULL),
-(11,'admin','CC',NULL,'Admin',NULL,'Principal',NULL,'admin@carepa.gov.co',0,NULL,NULL,'$2y$12$j0e5LsIrBgyeiodR5OsqxORemB155dkOUX/7Tp22mcys12OJrCV0C','activo',0,NULL,'2026-07-17 21:10:36',1,NULL,0,NULL,NULL,'hecho_en_carrera','Administrador',NULL,'25',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 08:49:40','2026-07-17 21:10:36',NULL),
-(12,'1040353165','CC','masculino','YEISON',NULL,'ROMAÑA','CORDOBA','maiayevir@hotmail.com',0,'2147483647',NULL,'$2y$12$1vnmrEzaw2YHMsgV.fbuZeIwLONpshGe8xYCRE8Yynzqj.EZeY8Tu','activo',0,NULL,'2026-07-17 21:28:36',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,'2026-02-03',NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-17 21:28:36',NULL),
+(11,'admin','CC',NULL,'Admin',NULL,'Principal',NULL,'admin@carepa.gov.co',0,NULL,NULL,'$2y$12$j0e5LsIrBgyeiodR5OsqxORemB155dkOUX/7Tp22mcys12OJrCV0C','activo',0,NULL,'2026-07-17 22:59:08',1,NULL,0,NULL,NULL,'hecho_en_carrera','Administrador',NULL,'25',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 08:49:40','2026-07-17 22:59:08',NULL),
+(12,'1040353165','CC','masculino','YEISON',NULL,'ROMAÑA','CORDOBA','maiayevir@hotmail.com',0,'2147483647',NULL,'$2y$12$1vnmrEzaw2YHMsgV.fbuZeIwLONpshGe8xYCRE8Yynzqj.EZeY8Tu','activo',0,NULL,'2026-07-17 23:06:25',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,'2026-02-03',NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-17 23:06:25',NULL),
 (13,'43141896','CC','femenino','LUSELY',NULL,'OREJUELA',NULL,'user80@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-07-17 21:14:07',1,14,0,'directivo','libre_nombramiento_gerencia_publica','hecho_en_carrera','Secretario de despacho','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-17 21:14:07',NULL),
 (14,'32290307','CC',NULL,'RUBITH','ELISA','CARVAJAL','VILLADA','rubith.carvajal@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-06-30 16:16:10',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-17 15:18:03',NULL),
 (15,'39425357','CC',NULL,'ALBA','NELLY','GUERRA','MONTOYA','user1@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$bKQTlKgEnfSlrd6fV3d2Xu8QzN5nKH7mYJ0wR4ePvT1bHcDgFsW2a','activo',0,NULL,NULL,1,12,0,'profesional','carrera_administrativa',NULL,'Profesional Universitario - Médico Veterinario','219','01',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:13:26','2026-07-17 15:18:03',NULL),
@@ -8986,6 +9434,10 @@ INSERT INTO `usuarios` VALUES
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Dumping routines for database 'edl_carepa'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -8996,3 +9448,4 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
+-- Dump completed on 2026-07-18  0:07:31
