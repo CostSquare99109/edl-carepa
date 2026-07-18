@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import NivelBadge from '../../components/NivelBadge';
+import PlantaBadge from '../../components/PlantaBadge';
+import NaturalezaBadge from '../../components/NaturalezaBadge';
 
 interface Cargo {
   id: number;
@@ -232,16 +235,14 @@ export default function ManualFuncionesIndice() {
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">{c.denominacion}</td>
                     <td className="px-4 py-3 text-sm text-gray-700">{c.dependencia_nombre || '-'}</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded text-xs ${NIVEL_COLOR[c.nivel] || 'bg-gray-100 text-gray-800'}`}>
-                        {c.nivel}
-                      </span>
+                      <NivelBadge nivel={c.nivel} size="sm" />
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded text-xs ${NATURALEZA_COLOR[c.naturaleza] || 'bg-gray-100 text-gray-800'}`}>
-                        {c.naturaleza.replace(/_/g, ' ')}
-                      </span>
+                      <NaturalezaBadge naturaleza={c.naturaleza} size="sm" />
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">{c.planta}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      <PlantaBadge planta={c.planta} size="sm" />
+                    </td>
                     <td className="px-4 py-3 text-sm text-right text-gray-700">{c.num_cargos}</td>
                     <td className="px-4 py-3 text-right">
                       <button

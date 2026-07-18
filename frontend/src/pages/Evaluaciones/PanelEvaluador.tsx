@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { api, type PaginatedData } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, Tooltip, SkeletonText } from '../../components/ui';
+import CargoManualTooltip from '../../components/CargoManualTooltip';
 import { toast } from 'sonner';
 
 interface Periodo {
@@ -730,6 +731,7 @@ export default function PanelEvaluador() {
                         <td className="text-center text-sm">{(ev as any).evaluado_grado || '-'}</td>
                         <td className="text-center">
                           <div className="flex items-center justify-center gap-1">
+                            {ev.evaluado_id && <CargoManualTooltip usuarioId={ev.evaluado_id} />}
                             <Button
                               variant="primary"
                               size="sm"

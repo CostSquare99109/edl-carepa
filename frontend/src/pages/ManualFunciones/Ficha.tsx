@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import NivelBadge from '../../components/NivelBadge';
+import PlantaBadge from '../../components/PlantaBadge';
+import NaturalezaBadge from '../../components/NaturalezaBadge';
 
 interface CargoDetalle {
   id: number;
@@ -153,11 +156,15 @@ export default function ManualFuncionesFicha() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <div className="text-xs text-gray-500 uppercase">Nivel</div>
-            <div className="text-sm font-medium">{cargo.nivel}</div>
+            <div className="text-sm font-medium">
+              <NivelBadge nivel={cargo.nivel} size="md" />
+            </div>
           </div>
           <div>
             <div className="text-xs text-gray-500 uppercase">Naturaleza</div>
-            <div className="text-sm font-medium">{cargo.naturaleza.replace(/_/g, ' ')}</div>
+            <div className="text-sm font-medium">
+              <NaturalezaBadge naturaleza={cargo.naturaleza} size="md" />
+            </div>
           </div>
           <div>
             <div className="text-xs text-gray-500 uppercase">Planta</div>
