@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState } from '../../components/ui';
+import CargoManualTooltip from '../../components/CargoManualTooltip';
 import VerEvaluaciones from './VerEvaluaciones';
 import { toast } from 'sonner';
 
@@ -16,6 +17,7 @@ interface Periodo {
 
 interface EvaluadoPeriodo {
   id: number;
+  usuario_id?: number;
   documento: string;
   nombre_completo: string;
   nivel: string;
@@ -826,7 +828,7 @@ export default function EvaluarPage() {
                           )}
                         </td>
                         <td className="py-3 px-3 text-sm">
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 items-center">
                             <Button
                               variant="primary"
                               size="sm"
@@ -841,6 +843,7 @@ export default function EvaluarPage() {
                             >
                               Ver evaluaciones
                             </Button>
+                            {(ev.usuario_id || ev.id) && <CargoManualTooltip usuarioId={ev.usuario_id || ev.id} />}
                           </div>
                         </td>
                       </tr>
