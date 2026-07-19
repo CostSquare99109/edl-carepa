@@ -44,6 +44,10 @@ interface PackageGrupo {
   evaluacionId: number;
   evaluacion: Evaluacion | null;
   compromisos: Compromiso[];
+  /** Etiqueta visible arriba del periodo (ej. "Pendiente de aceptación", "Rechazados", "Vigentes") */
+  etiqueta?: string;
+  /** Clave estable para React keys en listas y en Set<expandidos>. Una por cada (evaluacion, estado relevante). */
+  grupoKey: string;
 }
 
 export default function MisCompromisos() {
@@ -58,8 +62,8 @@ export default function MisCompromisos() {
   const [rechazandoId, setRechazandoId] = useState<number | null>(null);
   const [obsRechazar, setObsRechazar] = useState('');
 
-  // Paquetes expandidos (ojo)
-  const [expandidos, setExpandidos] = useState<Set<number>>(new Set());
+  // Paquetes expandidos (ojo) - usa grupoKey (string) porque cada (evaluacion, estado) tiene su propia card
+  const [expandidos, setExpandidos] = useState<Set<string>>(new Set());
 
   // Vista activa (tabs exclusivos: solo una a la vez)
   const [activeView, setActiveView] = useState<ActiveView>('list');
@@ -104,7 +108,9 @@ export default function MisCompromisos() {
     if (ev.concertacion_id) concertToEval.set(ev.concertacion_id, ev.id);
   }
 
-  // Agrupar compromisos por evaluacion via concertacion_id
+  // Agrupar compromisos por evaluacion via concertacion_id, luego subdividir
+  // cada evaluacion en grupos segun el estado (vigente / rechazados).
+  // Cada grupo es una CARD INDEPENDIENTE con su propio ojito.
   const paquetes: PackageGrupo[] = [];
   const evalMap = new Map(evaluaciones.map(e => [e.id, e]));
   const agrupados = new Map<number, Compromiso[]>();
@@ -115,7 +121,45 @@ export default function MisCompromisos() {
     agrupados.get(eid)!.push(c);
   }
   for (const [eid, comps] of agrupados) {
-    paquetes.push({ evaluacionId: eid, evaluacion: evalMap.get(eid) || null, compromisos: comps });
+    const ev = evalMap.get(eid) || null;
+    // Estados terminales: NO requieren accion del evaluado. Se muestran
+    // en su propia card como "Historico" sin botones de aceptar/rechazar.
+    const terminales = ['cumplido', 'incumplido', 'rechazado_evaluado'];
+    const vigentes = comps.filter(c => !terminales.includes(c.estado));
+    const rechazados = comps.filter(c => c.estado === 'devuelto');
+
+    // Card VIGENTES: propuesta activa del evaluado (estado propuesto)
+    if (vigentes.length > 0) {
+      paquetes.push({
+        evaluacionId: eid,
+        evaluacion: ev,
+        compromisos: vigentes,
+        grupoKey: `${eid}-vigentes`,
+        etiqueta: 'Pendiente de aceptación',
+      });
+    }
+    // Card RECHAZADOS: compromisos devueltos por el evaluador (modo historico).
+    // Esta card tiene su PROPIO ojito, separada de la de vigentes.
+    if (rechazados.length > 0) {
+      paquetes.push({
+        evaluacionId: eid,
+        evaluacion: ev,
+        compromisos: rechazados,
+        grupoKey: `${eid}-rechazados`,
+        etiqueta: 'Rechazados',
+      });
+    }
+    // Card TERMINALES: cumplidos/incumplidos como su propia card independiente.
+    const terminalesComps = comps.filter(c => terminales.includes(c.estado));
+    if (terminalesComps.length > 0) {
+      paquetes.push({
+        evaluacionId: eid,
+        evaluacion: ev,
+        compromisos: terminalesComps,
+        grupoKey: `${eid}-terminales`,
+        etiqueta: 'Cerrados',
+      });
+    }
   }
 
   function limpiarFormularioCambio() {
@@ -180,10 +224,10 @@ export default function MisCompromisos() {
     setActiveView('list');
   }
 
-  function toggleExpandir(eid: number) {
+  function toggleExpandir(grupoKey: string) {
     setExpandidos(prev => {
       const next = new Set(prev);
-      if (next.has(eid)) next.delete(eid); else next.add(eid);
+      if (next.has(grupoKey)) next.delete(grupoKey); else next.add(grupoKey);
       return next;
     });
   }
@@ -281,13 +325,16 @@ export default function MisCompromisos() {
               {paquetes.map(pkg => {
                 const ev = pkg.evaluacion;
                 const pendiente = tienePendientes(pkg.compromisos);
-                const expandido = expandidos.has(pkg.evaluacionId);
+                const expandido = expandidos.has(pkg.grupoKey);
+                const esRechazados = pkg.grupoKey.endsWith('-rechazados');
+                const esCerrados = pkg.grupoKey.endsWith('-terminales');
+                const esVigentes = pkg.grupoKey.endsWith('-vigentes');
                 return (
-                  <div key={pkg.evaluacionId} className={`edl-card ${pendiente ? 'border-l-4 border-amber-500 bg-amber-50' : ''}`}>
+                  <div key={pkg.grupoKey} className={`edl-card ${esVigentes && pendiente ? 'border-l-4 border-amber-500 bg-amber-50' : ''} ${esRechazados ? 'border-l-4 border-red-400 bg-red-50/30' : ''} ${esCerrados ? 'border-l-4 border-gray-400' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
                         <button
-                          onClick={() => toggleExpandir(pkg.evaluacionId)}
+                          onClick={() => toggleExpandir(pkg.grupoKey)}
                           className="p-1.5 rounded-full hover:bg-inst-gris transition-colors"
                           title={expandido ? 'Ocultar compromisos' : 'Ver compromisos'}
                         >
@@ -301,9 +348,19 @@ export default function MisCompromisos() {
                             <span className="text-xs text-inst-texto-claro">
                               ({pkg.compromisos.length} compromisos)
                             </span>
-                            {pendiente && (
+                            {esVigentes && pendiente && (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">
                                 Pendiente de aceptación
+                              </span>
+                            )}
+                            {esRechazados && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium">
+                                Rechazados
+                              </span>
+                            )}
+                            {esCerrados && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
+                                Cerrados
                               </span>
                             )}
                           </div>
