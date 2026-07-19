@@ -125,7 +125,7 @@ export default function MisCompromisos() {
     // Estados terminales: NO requieren accion del evaluado. Se muestran
     // en su propia card como "Historico" sin botones de aceptar/rechazar.
     const terminales = ['cumplido', 'incumplido', 'rechazado_evaluado'];
-    const vigentes = comps.filter(c => !terminales.includes(c.estado));
+    const vigentes = comps.filter(c => c.estado === 'propuesto');
     const rechazados = comps.filter(c => c.estado === 'devuelto');
 
     // Card VIGENTES: propuesta activa del evaluado (estado propuesto)
