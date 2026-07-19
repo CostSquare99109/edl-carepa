@@ -319,7 +319,7 @@ export default function MisCompromisos() {
                     {expandido && (
                       <div className="mt-4 border-t border-inst-borde pt-4">
                         {(() => {
-                          const ESTADOS_HISTORICO = ['cumplido', 'incumplido', 'rechazado'];
+                          const ESTADOS_HISTORICO = ['cumplido', 'incumplido', 'rechazado', 'devuelto'];
                           const allFuncionales = pkg.compromisos.filter(c => c.tipo === 'funcional');
                           const allComportamentales = pkg.compromisos.filter(c => c.tipo === 'comportamental');
                           const funcionales = allFuncionales.filter(c => !ESTADOS_HISTORICO.includes(c.estado));
