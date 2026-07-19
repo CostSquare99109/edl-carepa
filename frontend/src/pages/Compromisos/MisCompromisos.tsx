@@ -431,37 +431,6 @@ export default function MisCompromisos() {
                                   {renderTabla(comportamentales, false)}
                                 </div>
                               )}
-                              {(funcionalesHistorico.length > 0 || comportamentalesHistorico.length > 0) && (
-                                <div className="edl-card bg-inst-gris/30 border-t-4 border-inst-texto-claro/40 mt-6">
-                                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-inst-borde">
-                                    <span className="material-icons text-inst-texto-claro text-base">inbox</span>
-                                    <h4 className="text-xs uppercase font-bold text-inst-texto-claro">
-                                      Bandeja de Historial
-                                    </h4>
-                                    <span className="text-xs text-inst-texto-claro/70">
-                                      ({funcionalesHistorico.length + comportamentalesHistorico.length} compromisos evaluados anteriormente)
-                                    </span>
-                                  </div>
-                                  <div className="space-y-3">
-                                    {funcionalesHistorico.length > 0 && (
-                                      <div>
-                                        <h5 className="text-xs font-semibold text-inst-texto-claro mb-1 flex items-center gap-1">
-                                          <span className="material-icons text-xs">task_alt</span> Funcionales anteriores
-                                        </h5>
-                                        {renderTabla(funcionalesHistorico, true)}
-                                      </div>
-                                    )}
-                                    {comportamentalesHistorico.length > 0 && (
-                                      <div>
-                                        <h5 className="text-xs font-semibold text-inst-texto-claro mb-1 flex items-center gap-1">
-                                          <span className="material-icons text-xs">psychology</span> Comportamentales anteriores
-                                        </h5>
-                                        {renderTabla(comportamentalesHistorico, false)}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
                               {pkg.compromisos.length === 0 && (
                                 <p className="text-sm text-inst-texto-claro text-center py-4">No hay compromisos registrados.</p>
                               )}
