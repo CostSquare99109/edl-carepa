@@ -33,7 +33,7 @@ const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   aprobado: { label: 'Aprobado', color: 'bg-green-100 text-green-800' },
   aceptado_evaluado: { label: 'Aceptado', color: 'bg-green-200 text-green-900' },
   rechazado_evaluado: { label: 'Rechazado', color: 'bg-red-200 text-red-900' },
-  devuelto: { label: 'Devuelto', color: 'bg-red-100 text-red-800' },
+  devuelto: { label: 'Rechazado', color: 'bg-red-100 text-red-800' },
   en_progreso: { label: 'En progreso', color: 'bg-blue-100 text-blue-800' },
   cumplido: { label: 'Cumplido', color: 'bg-green-200 text-green-900' },
   incumplido: { label: 'Incumplido', color: 'bg-red-200 text-red-900' },

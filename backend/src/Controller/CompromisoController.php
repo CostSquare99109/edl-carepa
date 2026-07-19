@@ -625,7 +625,8 @@ class CompromisoController
         $user = AuthMiddleware::user();
         $pagina = (int) ($_GET['pagina'] ?? 1);
         $porPagina = (int) ($_GET['por_pagina'] ?? 20);
-        $resultado = $this->service->pendientesAprobacion($user, $pagina, $porPagina);
+        $estado = isset($_GET['estado']) ? SanitizerHelper::sanitize((string) $_GET['estado']) : 'propuesto';
+        $resultado = $this->service->pendientesAprobacion($user, $pagina, $porPagina, $estado);
         ResponseHelper::success($resultado);
     }
 

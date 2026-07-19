@@ -337,9 +337,9 @@ class CompromisoService
         ];
     }
 
-    public function pendientesAprobacion(array $user, int $pagina = 1, int $porPagina = 20): array
+    public function pendientesAprobacion(array $user, int $pagina = 1, int $porPagina = 20, ?string $estado = 'propuesto'): array
     {
-        return $this->repo->pendientesPorEvaluador((int) $user['id'], $pagina, $porPagina);
+        return $this->repo->pendientesPorEvaluador((int) $user['id'], $pagina, $porPagina, $estado);
     }
 
     public function actualizar(int $id, array $datos): void

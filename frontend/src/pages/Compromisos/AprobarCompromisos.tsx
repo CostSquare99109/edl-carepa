@@ -51,6 +51,7 @@ const TIPO_LABELS: Record<string, { label: string; icon: string }> = {
 
 export default function AprobarCompromisos() {
   const [pendientes, setPendientes] = useState<Compromiso[]>([]);
+  const [rechazados, setRechazados] = useState<Compromiso[]>([]);
   const [loading, setLoading] = useState(true);
   const [aprobarId, setAprobarId] = useState<number | null>(null);
   const [peso, setPeso] = useState('');
@@ -59,18 +60,24 @@ export default function AprobarCompromisos() {
   const [obsDevolver, setObsDevolver] = useState('');
   const [resumen, setResumen] = useState<ResumenPesos | null>(null);
   const [saving, setSaving] = useState(false);
+  const [verRechazadoId, setVerRechazadoId] = useState<number | null>(null);
 
   useEffect(() => {
-    cargarPendientes();
+    cargarCompromisos();
   }, []);
 
-  async function cargarPendientes() {
+  async function cargarCompromisos() {
     setLoading(true);
     try {
-      const res = await api.get<PaginatedData<Compromiso>>('/compromisos/pendientes?por_pagina=50');
-      setPendientes(res.data || []);
+      // Cargar en paralelo: pendientes (estado=propuesto) y rechazados (estado=devuelto)
+      const [resPendientes, resRechazados] = await Promise.all([
+        api.get<PaginatedData<Compromiso>>('/compromisos/pendientes?estado=propuesto&por_pagina=50'),
+        api.get<PaginatedData<Compromiso>>('/compromisos/pendientes?estado=devuelto&por_pagina=50'),
+      ]);
+      setPendientes(resPendientes.data || []);
+      setRechazados(resRechazados.data || []);
     } catch (err) {
-      console.error('Error cargando pendientes:', err);
+      console.error('Error cargando compromisos:', err);
     } finally {
       setLoading(false);
     }

@@ -75,15 +75,26 @@ class CompromisoRepository extends BaseRepository
         ];
     }
 
-    public function pendientesPorEvaluador(int $evaluadorId, int $pagina = 1, int $porPagina = 20): array
+    public function pendientesPorEvaluador(int $evaluadorId, int $pagina = 1, int $porPagina = 20, ?string $estado = 'propuesto'): array
     {
+        // Si no se pasa estado, por defecto 'propuesto' (compatibilidad).
+        // Soporta multiples estados separados por coma (ej. 'propuesto,devuelto').
+        $estadosValidos = ['propuesto', 'devuelto', 'aprobado', 'rechazado', 'rechazado_evaluado'];
+        $estados = array_filter(array_map('trim', explode(',', (string) $estado)));
+        $estados = array_values(array_intersect($estados, $estadosValidos));
+        if (empty($estados)) {
+            $estados = ['propuesto'];
+        }
+        $placeholders = implode(',', array_fill(0, count($estados), '?'));
+        $paramsEstados = $estados;
+
         $conditions = [
             "c.tipo = 'funcional'",
             'c.eliminado_en IS NULL',
-            "c.estado = 'propuesto'",
+            "c.estado IN ({$placeholders})",
             'con.evaluador_id = ?',
         ];
-        $params = [$evaluadorId];
+        $params = array_merge($paramsEstados, [$evaluadorId]);
 
         $where = implode(' AND ', $conditions);
         $countStmt = $this->pdo->prepare("

@@ -36,7 +36,7 @@ const ESTADO_LABELS: Record<string, string> = {
  concertado: 'Concertado',
  propuesto: 'Propuesto',
  aprobado: 'Aprobado',
- devuelto: 'Devuelto',
+ devuelto: 'Rechazado',
  pendiente: 'Pendiente',
  en_progreso: 'En Progreso',
  cumplido: 'Cumplido',
@@ -111,7 +111,7 @@ export default function AdminCompromisos() {
      { label: 'Concertados', value: stats.concertados, color: 'border-blue-500' },
      { label: 'Propuestos', value: stats.propuestos, color: 'border-yellow-500' },
      { label: 'Aprobados', value: stats.aprobados, color: 'border-green-500' },
-     { label: 'Devueltos', value: stats.devueltos, color: 'border-red-500' },
+     { label: 'Rechazados', value: stats.devueltos, color: 'border-red-500' },
     ].map(s => (
      <div key={s.label} className={`bg-white rounded-lg shadow-sm p-3 border-l-4 ${s.color}`}>
       <p className="text-2xl font-bold text-inst-azul">{s.value}</p>
