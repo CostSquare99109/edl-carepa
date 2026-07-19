@@ -138,32 +138,16 @@ export default function MisCompromisos() {
         etiqueta: 'Pendiente de aceptación',
       });
     }
-    // Card RECHAZADOS: compromisos devueltos por el evaluador (modo historico).
-    // Se subdividen en una card por cada "intento" del evaluado (agrupados por
-    // fecha de creacion). Asi no se mezclan distintas propuestas rechazadas.
+    // Card RECHAZADOS: una sola card por evaluacion con TODOS los rechazados
+    // juntos. Cada rechazo es un "intento" independiente del evaluado, todos
+    // mostrados juntos en esta card (modo historico).
     if (rechazados.length > 0) {
-      // Agrupar por timestamp de creacion (mismo intento = misma fecha)
-      const intentosMap = new Map<string, Compromiso[]>();
-      for (const c of rechazados) {
-        // Normalizar timestamp al segundo (rechazos del mismo intento caen en el mismo segundo)
-        const fechaKey = (c.creado_en || '').substring(0, 19); // YYYY-MM-DDTHH:MM:SS
-        if (!intentosMap.has(fechaKey)) intentosMap.set(fechaKey, []);
-        intentosMap.get(fechaKey)!.push(c);
-      }
-      // Ordenar intentos del mas reciente al mas antiguo
-      const intentosOrdenados = Array.from(intentosMap.entries()).sort((a, b) =>
-        b[0].localeCompare(a[0])
-      );
-      intentosOrdenados.forEach(([fechaKey, compsIntento], idx) => {
-        // idx 0 es el mas reciente (ultimo intento). Le ponemos "Rechazados (último intento)"
-        const sufijo = idx === 0 ? '-ultimo' : `-intento-${idx}`;
-        paquetes.push({
-          evaluacionId: eid,
-          evaluacion: ev,
-          compromisos: compsIntento,
-          grupoKey: `${eid}-rechazados${sufijo}`,
-          etiqueta: idx === 0 ? 'Rechazados (último intento)' : `Rechazados (intento ${idx + 1})`,
-        });
+      paquetes.push({
+        evaluacionId: eid,
+        evaluacion: ev,
+        compromisos: rechazados,
+        grupoKey: `${eid}-rechazados`,
+        etiqueta: 'Rechazados',
       });
     }
     // Card TERMINALES: cumplidos/incumplidos como su propia card independiente.
