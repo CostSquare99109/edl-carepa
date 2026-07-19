@@ -376,13 +376,10 @@ export default function MisCompromisos() {
                     {expandido && (
                       <div className="mt-4 border-t border-inst-borde pt-4">
                         {(() => {
-                          const ESTADOS_HISTORICO = ['cumplido', 'incumplido', 'rechazado', 'devuelto'];
+                          // Cada paquete ya viene con sus compromisos filtrados por estado
+                          // (vigentes / rechazados / cerrados). Solo renderizamos lo que tenga.
                           const allFuncionales = pkg.compromisos.filter(c => c.tipo === 'funcional');
                           const allComportamentales = pkg.compromisos.filter(c => c.tipo === 'comportamental');
-                          const funcionales = allFuncionales.filter(c => !ESTADOS_HISTORICO.includes(c.estado));
-                          const funcionalesHistorico = allFuncionales.filter(c => ESTADOS_HISTORICO.includes(c.estado));
-                          const comportamentales = allComportamentales.filter(c => !ESTADOS_HISTORICO.includes(c.estado));
-                          const comportamentalesHistorico = allComportamentales.filter(c => ESTADOS_HISTORICO.includes(c.estado));
                           const getEstadoInfo = (estado: string) => ESTADO_LABELS[estado] || { label: estado, color: 'bg-gray-200 text-gray-700' };
                           const renderTabla = (items: Compromiso[], conPeso: boolean) => (
                             <div className="overflow-x-auto rounded border">
@@ -412,23 +409,25 @@ export default function MisCompromisos() {
                           );
                           return (
                             <div className="space-y-4">
-                              {funcionales.length > 0 && (
+                              {allFuncionales.length > 0 && (
                                 <div>
                                   <h4 className="text-xs uppercase font-bold text-inst-azul mb-2 flex items-center gap-1">
                                     <span className="material-icons text-sm">task_alt</span> Compromisos Funcionales
                                   </h4>
-                                  {renderTabla(funcionales, true)}
-                                  <div className="flex justify-end px-3 py-1 text-xs text-inst-texto-claro">
-                                    Total pesos: <span className="font-bold text-inst-azul ml-1">{funcionales.reduce((s, c) => s + c.peso, 0)}%</span>
-                                  </div>
+                                  {renderTabla(allFuncionales, true)}
+                                  {pkg.grupoKey.endsWith('-vigentes') && (
+                                    <div className="flex justify-end px-3 py-1 text-xs text-inst-texto-claro">
+                                      Total pesos: <span className="font-bold text-inst-azul ml-1">{allFuncionales.reduce((s, c) => s + (parseFloat(String(c.peso)) || 0), 0).toFixed(2)}%</span>
+                                    </div>
+                                  )}
                                 </div>
                               )}
-                              {comportamentales.length > 0 && (
+                              {allComportamentales.length > 0 && (
                                 <div>
                                   <h4 className="text-xs uppercase font-bold text-inst-azul mb-2 flex items-center gap-1">
                                     <span className="material-icons text-sm">psychology</span> Competencias Comportamentales
                                   </h4>
-                                  {renderTabla(comportamentales, false)}
+                                  {renderTabla(allComportamentales, false)}
                                 </div>
                               )}
                               {pkg.compromisos.length === 0 && (
