@@ -118,47 +118,6 @@ export default function MisCompromisos() {
     paquetes.push({ evaluacionId: eid, evaluacion: evalMap.get(eid) || null, compromisos: comps });
   }
 
-  // Compromisos historicos de TODAS las evaluaciones (independiente del paquete).
-  // Se renderizan en una bandeja global, fuera de cada card de evaluacion.
-  const ESTADOS_HISTORICO_GLOBAL: string[] = ['cumplido', 'incumplido', 'rechazado', 'devuelto'];
-  const historicosTodos: Compromiso[] = compromisos.filter(c =>
-    ESTADOS_HISTORICO_GLOBAL.includes(c.estado)
-  );
-  const historicosFuncionales = historicosTodos.filter(c => c.tipo === 'funcional');
-  const historicosComportamentales = historicosTodos.filter(c => c.tipo === 'comportamental');
-  const getEstadoInfo = (estado: string) =>
-    ESTADO_LABELS[estado] || { label: estado, color: 'bg-gray-100 text-gray-700' };
-  const renderTablaIndependiente = (items: Compromiso[], conPeso: boolean) => (
-    <div className="overflow-x-auto rounded border">
-      <table className="w-full text-sm">
-        <thead className="bg-inst-gris">
-          <tr>
-            <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">#</th>
-            <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">{conPeso ? 'Meta' : 'Competencia'}</th>
-            <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">Compromiso</th>
-            {conPeso && <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Peso</th>}
-            <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Estado</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {items.map((c, i) => (
-            <tr key={c.id} className="hover:bg-gray-50">
-              <td className="px-3 py-2 text-xs text-inst-texto-claro">{i + 1}</td>
-              <td className="px-3 py-2 text-xs text-inst-texto">{conPeso ? (c.meta_descripcion || '—') : (c.competencia_nombre || '—')}</td>
-              <td className="px-3 py-2 text-sm text-inst-texto">{c.descripcion}</td>
-              {conPeso && <td className="px-3 py-2 text-center text-sm font-semibold text-inst-azul">{c.peso}%</td>}
-              <td className="px-3 py-2 text-center">
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${getEstadoInfo(c.estado).color}`}>
-                  {getEstadoInfo(c.estado).label}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-
   function limpiarFormularioCambio() {
     setCambioEvaluadorId(0);
     setCambioMotivo('');
@@ -415,6 +374,37 @@ export default function MisCompromisos() {
                                   {renderTabla(comportamentales, false)}
                                 </div>
                               )}
+                              {(funcionalesHistorico.length > 0 || comportamentalesHistorico.length > 0) && (
+                                <div className="edl-card bg-inst-gris/30 border-t-4 border-inst-texto-claro/40 mt-6">
+                                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-inst-borde">
+                                    <span className="material-icons text-inst-texto-claro text-base">inbox</span>
+                                    <h4 className="text-xs uppercase font-bold text-inst-texto-claro">
+                                      Bandeja de Historial
+                                    </h4>
+                                    <span className="text-xs text-inst-texto-claro/70">
+                                      ({funcionalesHistorico.length + comportamentalesHistorico.length} compromisos evaluados anteriormente)
+                                    </span>
+                                  </div>
+                                  <div className="space-y-3">
+                                    {funcionalesHistorico.length > 0 && (
+                                      <div>
+                                        <h5 className="text-xs font-semibold text-inst-texto-claro mb-1 flex items-center gap-1">
+                                          <span className="material-icons text-xs">task_alt</span> Funcionales anteriores
+                                        </h5>
+                                        {renderTabla(funcionalesHistorico, true)}
+                                      </div>
+                                    )}
+                                    {comportamentalesHistorico.length > 0 && (
+                                      <div>
+                                        <h5 className="text-xs font-semibold text-inst-texto-claro mb-1 flex items-center gap-1">
+                                          <span className="material-icons text-xs">psychology</span> Comportamentales anteriores
+                                        </h5>
+                                        {renderTabla(comportamentalesHistorico, false)}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                               {pkg.compromisos.length === 0 && (
                                 <p className="text-sm text-inst-texto-claro text-center py-4">No hay compromisos registrados.</p>
                               )}
@@ -482,41 +472,6 @@ export default function MisCompromisos() {
                   </div>
                 );
               })}
-            </div>
-          )}
-
-          {/* Bandeja de Historial INDEPENDIENTE: muestra TODOS los compromisos
-              rechazados/devueltos/cumplidos/incumplidos de TODAS las evaluaciones,
-              fuera de cada card de evaluacion. */}
-          {historicosTodos.length > 0 && (
-            <div className="edl-card bg-inst-gris/30 border-t-4 border-inst-texto-claro/40 mt-6">
-              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-inst-borde">
-                <span className="material-icons text-inst-texto-claro text-base">inbox</span>
-                <h3 className="text-sm uppercase font-bold text-inst-texto-claro">
-                  Bandeja de Historial
-                </h3>
-                <span className="text-xs text-inst-texto-claro/70">
-                  ({historicosTodos.length} compromisos evaluados anteriormente)
-                </span>
-              </div>
-              <div className="space-y-3">
-                {historicosFuncionales.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-semibold text-inst-texto-claro mb-1 flex items-center gap-1">
-                      <span className="material-icons text-xs">task_alt</span> Funcionales anteriores
-                    </h4>
-                    {renderTablaIndependiente(historicosFuncionales, true)}
-                  </div>
-                )}
-                {historicosComportamentales.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-semibold text-inst-texto-claro mb-1 flex items-center gap-1">
-                      <span className="material-icons text-xs">psychology</span> Comportamentales anteriores
-                    </h4>
-                    {renderTablaIndependiente(historicosComportamentales, false)}
-                  </div>
-                )}
-              </div>
             </div>
           )}
         </div>
