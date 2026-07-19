@@ -139,14 +139,31 @@ export default function MisCompromisos() {
       });
     }
     // Card RECHAZADOS: compromisos devueltos por el evaluador (modo historico).
-    // Esta card tiene su PROPIO ojito, separada de la de vigentes.
+    // Se subdividen en una card por cada "intento" del evaluado (agrupados por
+    // fecha de creacion). Asi no se mezclan distintas propuestas rechazadas.
     if (rechazados.length > 0) {
-      paquetes.push({
-        evaluacionId: eid,
-        evaluacion: ev,
-        compromisos: rechazados,
-        grupoKey: `${eid}-rechazados`,
-        etiqueta: 'Rechazados',
+      // Agrupar por timestamp de creacion (mismo intento = misma fecha)
+      const intentosMap = new Map<string, Compromiso[]>();
+      for (const c of rechazados) {
+        // Normalizar timestamp al segundo (rechazos del mismo intento caen en el mismo segundo)
+        const fechaKey = (c.creado_en || '').substring(0, 19); // YYYY-MM-DDTHH:MM:SS
+        if (!intentosMap.has(fechaKey)) intentosMap.set(fechaKey, []);
+        intentosMap.get(fechaKey)!.push(c);
+      }
+      // Ordenar intentos del mas reciente al mas antiguo
+      const intentosOrdenados = Array.from(intentosMap.entries()).sort((a, b) =>
+        b[0].localeCompare(a[0])
+      );
+      intentosOrdenados.forEach(([fechaKey, compsIntento], idx) => {
+        // idx 0 es el mas reciente (ultimo intento). Le ponemos "Rechazados (último intento)"
+        const sufijo = idx === 0 ? '-ultimo' : `-intento-${idx}`;
+        paquetes.push({
+          evaluacionId: eid,
+          evaluacion: ev,
+          compromisos: compsIntento,
+          grupoKey: `${eid}-rechazados${sufijo}`,
+          etiqueta: idx === 0 ? 'Rechazados (último intento)' : `Rechazados (intento ${idx + 1})`,
+        });
       });
     }
     // Card TERMINALES: cumplidos/incumplidos como su propia card independiente.
@@ -326,7 +343,7 @@ export default function MisCompromisos() {
                 const ev = pkg.evaluacion;
                 const pendiente = tienePendientes(pkg.compromisos);
                 const expandido = expandidos.has(pkg.grupoKey);
-                const esRechazados = pkg.grupoKey.endsWith('-rechazados');
+                const esRechazados = pkg.grupoKey.includes('-rechazados');
                 const esCerrados = pkg.grupoKey.endsWith('-terminales');
                 const esVigentes = pkg.grupoKey.endsWith('-vigentes');
                 return (
@@ -355,7 +372,7 @@ export default function MisCompromisos() {
                             )}
                             {esRechazados && (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium">
-                                Rechazados
+                                {pkg.etiqueta || 'Rechazados'}
                               </span>
                             )}
                             {esCerrados && (
