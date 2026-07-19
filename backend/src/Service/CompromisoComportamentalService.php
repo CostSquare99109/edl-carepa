@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Service;
 
@@ -86,11 +87,23 @@ class CompromisoComportamentalService
 
         $this->validarLimites($concertacionId);
 
+        // Resolver descripcion legible: si no vino en payload, usar nombre de la
+        // competencia (no el codigo). Esto evita que la BD registre 'COM_EFEC'
+        // como descripcion humana en compromisos comportamentales.
+        $descripcion = $datos['descripcion'] ?? null;
+        if (!$descripcion) {
+            $compStmt = \App\Config\Database::getInstance()->prepare(
+                'SELECT nombre FROM competencias WHERE codigo = :cod'
+            );
+            $compStmt->execute(['cod' => $competenciaCodigo]);
+            $descripcion = $compStmt->fetchColumn() ?: $competenciaCodigo;
+        }
+
         $crearDatos = [
             'concertacion_id' => $concertacionId,
             'tipo' => 'comportamental',
             'competencia_codigo' => $competenciaCodigo,
-            'descripcion' => $datos['descripcion'] ?? $competenciaCodigo,
+            'descripcion' => $descripcion,
             'peso' => $datos['peso'] ?? 1,
             'propuesto_por_jefe_entidad' => $rolActivo === 'evaluador' ? 1 : 0,
             'estado' => 'propuesto',
@@ -153,11 +166,22 @@ class CompromisoComportamentalService
 
         $this->validarLimites($concertacionId);
 
+        // Resolver descripcion legible a partir del nombre de la competencia
+        // cuando el payload no la incluye (evita guardar codigos como 'COM_EFEC').
+        $descripcion = $datos['descripcion'] ?? null;
+        if (!$descripcion) {
+            $compStmt = \App\Config\Database::getInstance()->prepare(
+                'SELECT nombre FROM competencias WHERE codigo = :cod'
+            );
+            $compStmt->execute(['cod' => $competenciaCodigo]);
+            $descripcion = $compStmt->fetchColumn() ?: $competenciaCodigo;
+        }
+
         $crearDatos = [
             'concertacion_id' => $concertacionId,
             'tipo' => 'comportamental',
             'competencia_codigo' => $competenciaCodigo,
-            'descripcion' => $datos['descripcion'] ?? $competenciaCodigo,
+            'descripcion' => $descripcion,
             'peso' => $datos['peso'] ?? 1,
             'propuesto_por_jefe_entidad' => 0,
             'es_propuesto_evaluado' => 1,

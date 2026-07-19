@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -287,13 +288,15 @@ class CompromisoController
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $obs = isset($input['observaciones_evaluado']) ? trim($input['observaciones_evaluado']) : null;
 
+        // Aceptar la concertacion aprueba TODOS los compromisos (funcionales +
+        // comportamentales). Antes solo aprobaba funcionales -- los comportamentales
+        // quedaban en 'propuesto' para siempre. Ahora es consistente con el rechazo.
         $stmtUp = $pdo->prepare("
             UPDATE compromisos
             SET estado = 'aprobado',
                 observaciones_evaluado = COALESCE(:obs, observaciones_evaluado),
                 actualizado_en = NOW()
             WHERE concertacion_id = :cid
-              AND tipo = 'funcional'
               AND estado IN ('propuesto', 'pendiente_aprobacion')
               AND eliminado_en IS NULL
         ");
@@ -302,7 +305,23 @@ class CompromisoController
         $afectados = $stmtUp->rowCount();
 
         if ($afectados === 0) {
-            ResponseHelper::error('No hay compromisos funcionales pendientes de aceptación en esta evaluación', 400);
+            ResponseHelper::error('No hay compromisos pendientes de aceptación en esta evaluación', 400);
+        }
+
+        // Desglose por tipo para reporte al frontend y auditoria.
+        $stmtBreaks = $pdo->prepare("
+            SELECT tipo, COUNT(*) AS total
+            FROM compromisos
+            WHERE concertacion_id = :cid
+              AND estado = 'aprobado'
+              AND eliminado_en IS NULL
+              AND actualizado_en >= (NOW() - INTERVAL 2 SECOND)
+            GROUP BY tipo
+        ");
+        $stmtBreaks->execute(['cid' => $eval['concertacion_id']]);
+        $desglose = [];
+        foreach ($stmtBreaks->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+            $desglose[$row['tipo']] = (int) $row['total'];
         }
 
         $stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'cerrada', actualizado_en = NOW() WHERE id = :id");
@@ -310,17 +329,31 @@ class CompromisoController
 
         $stmtNotif = $pdo->prepare("
             INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
-            VALUES (:uid, 'exito', 'Compromisos funcionales aceptados', :msg, NOW())
+            VALUES (:uid, 'exito', 'Concertación aceptada por el evaluado', :msg, NOW())
         ");
+        $detalleNotif = sprintf(
+            'Compromisos: %d funcionales, %d comportamentales.',
+            $desglose['funcional'] ?? 0,
+            $desglose['comportamental'] ?? 0
+        );
         $stmtNotif->execute([
             'uid' => $eval['evaluador_id'],
-            'msg' => 'El evaluado ha aceptado los compromisos funcionales de la concertación.',
+            'msg' => 'El evaluado ha aceptado la concertación. ' . $detalleNotif,
+        ]);
+
+        AuditoriaService::registrar('aceptar_concertacion_evaluado', 'evaluaciones', $evaluacionId, [
+            'concertacion_id' => (int) $eval['concertacion_id'],
+            'compromisos_aprobados' => $afectados,
+            'desglose' => $desglose,
+            'observaciones_evaluado' => $obs,
         ]);
 
         ResponseHelper::success([
             'evaluacion_id' => $evaluacionId,
-            'compromisos_funcionales_aceptados' => $afectados,
-        ], 'Concertación de compromisos funcionales aceptada.');
+            'compromisos_aprobados' => $afectados,
+            'funcionales' => $desglose['funcional'] ?? 0,
+            'comportamentales' => $desglose['comportamental'] ?? 0,
+        ], 'Concertación aceptada.');
     }
 
     public function rechazarConcertacionEvaluado(int $evaluacionId): void
@@ -341,13 +374,17 @@ class CompromisoController
             ResponseHelper::error('Debe indicar el motivo del rechazo de la concertación', 400);
         }
 
+        // Al rechazar la concertacion, el evaluado devuelve TODOS los compromisos
+        // de esa concertacion (funcionales + comportamentales) para que el evaluador
+        // los ajuste y reenvie. Antes solo rechazaba funcionales, lo que dejaba
+        // los comportamentales 'propuesto' firmes mientras los funcionales quedaban
+        // en 'devuelto' -- comportamiento asimetrico y confuso.
         $stmtUp = $pdo->prepare("
             UPDATE compromisos
             SET estado = 'devuelto',
                 observaciones_evaluado = :obs,
                 actualizado_en = NOW()
             WHERE concertacion_id = :cid
-              AND tipo = 'funcional'
               AND estado IN ('propuesto', 'pendiente_aprobacion')
               AND eliminado_en IS NULL
         ");
@@ -356,7 +393,23 @@ class CompromisoController
         $afectados = $stmtUp->rowCount();
 
         if ($afectados === 0) {
-            ResponseHelper::error('No hay compromisos funcionales pendientes en esta evaluación', 400);
+            ResponseHelper::error('No hay compromisos pendientes en esta evaluación', 400);
+        }
+
+        // Desglose por tipo para reportar al frontend y al log de auditoria.
+        $stmtBreaks = $pdo->prepare("
+            SELECT tipo, COUNT(*) AS total
+            FROM compromisos
+            WHERE concertacion_id = :cid
+              AND estado = 'devuelto'
+              AND eliminado_en IS NULL
+              AND actualizado_en >= (NOW() - INTERVAL 2 SECOND)
+            GROUP BY tipo
+        ");
+        $stmtBreaks->execute(['cid' => $eval['concertacion_id']]);
+        $desglose = [];
+        foreach ($stmtBreaks->fetchAll(\PDO::FETCH_ASSOC) as $row) {
+            $desglose[$row['tipo']] = (int) $row['total'];
         }
 
         $stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'pendiente', actualizado_en = NOW() WHERE id = :id");
@@ -364,17 +417,32 @@ class CompromisoController
 
         $stmtNotif = $pdo->prepare("
             INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
-            VALUES (:uid, 'alerta', 'Compromisos funcionales rechazados', :msg, NOW())
+            VALUES (:uid, 'alerta', 'Concertación rechazada por el evaluado', :msg, NOW())
         ");
+        $detalleNotif = sprintf(
+            'Compromisos: %d funcionales, %d comportamentales.',
+            $desglose['funcional'] ?? 0,
+            $desglose['comportamental'] ?? 0
+        );
         $stmtNotif->execute([
             'uid' => $eval['evaluador_id'],
-            'msg' => 'El evaluado ha rechazado los compromisos funcionales. Puede proceder con la fijación unilateral conforme al Art. 33 de la Resolución 1760 de 2010.',
+            'msg' => 'El evaluado ha rechazado la concertación. ' . $detalleNotif .
+                     ' Puede proceder con la fijación unilateral conforme al Art. 33 de la Resolución 1760 de 2010.',
+        ]);
+
+        AuditoriaService::registrar('rechazar_concertacion_evaluado', 'evaluaciones', $evaluacionId, [
+            'concertacion_id' => (int) $eval['concertacion_id'],
+            'compromisos_devueltos' => $afectados,
+            'desglose' => $desglose,
+            'observaciones_evaluado' => $obs,
         ]);
 
         ResponseHelper::success([
             'evaluacion_id' => $evaluacionId,
-            'compromisos_funcionales_rechazados' => $afectados,
-        ], 'Concertación de compromisos funcionales rechazada.');
+            'compromisos_devueltos' => $afectados,
+            'funcionales' => $desglose['funcional'] ?? 0,
+            'comportamentales' => $desglose['comportamental'] ?? 0,
+        ], 'Concertación rechazada.');
     }
 
     public function listarPorEvaluacion(int $evaluacionId): void

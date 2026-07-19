@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Repository;
 
@@ -54,7 +55,20 @@ class CompromisoComportamentalRepository extends BaseRepository
         $offset = ($pagina - 1) * $porPagina;
         $stmt = $this->pdo->prepare("
             SELECT cc.*{$selectExtra},
-                   comp.nombre as competencia_nombre
+                   comp.nombre as competencia_nombre,
+                   comp.decreto as competencia_decreto,
+                   (
+                       SELECT CONCAT('[',
+                              GROUP_CONCAT(
+                                  JSON_OBJECT('id', co.id, 'texto', co.texto, 'orden', co.orden)
+                                  ORDER BY co.orden
+                                  SEPARATOR ','
+                              ),
+                              ']')
+                       FROM conductas co
+                       WHERE co.competencia_codigo = cc.competencia_codigo
+                         AND co.activo = 1
+                   ) AS conductas_json_list
             FROM compromisos cc
             {$joins}
             LEFT JOIN competencias comp ON comp.codigo = cc.competencia_codigo
@@ -66,8 +80,19 @@ class CompromisoComportamentalRepository extends BaseRepository
         $params[] = $offset;
         $stmt->execute($params);
 
+        $rows = $stmt->fetchAll();
+        foreach ($rows as &$row) {
+            if (!empty($row['conductas_json_list'])) {
+                $decoded = json_decode($row['conductas_json_list'], true);
+                $row['conductas'] = is_array($decoded) ? $decoded : [];
+            } else {
+                $row['conductas'] = [];
+            }
+            unset($row['conductas_json_list']);
+        }
+
         return [
-            'data' => $stmt->fetchAll(),
+            'data' => $rows,
             'total' => $total,
             'pagina' => $pagina,
             'por_pagina' => $porPagina,
@@ -157,6 +182,7 @@ class CompromisoComportamentalRepository extends BaseRepository
         $stmt = $this->pdo->prepare(
             "SELECT cc.*, cc.calificacion as puntaje,
                     comp.nombre as competencia_nombre,
+                    comp.decreto as competencia_decreto,
                     co.id as conducta_id,
                     co.texto as conducta_texto,
                     co.orden as conducta_orden

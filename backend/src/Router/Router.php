@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Router;
 
@@ -106,7 +107,7 @@ class Router
     $controller = new $controllerClass();
 
     if (!empty($params)) {
-    $args = array_values($params);
+    $args = $this->castParamsToActionSignature($controller, $action, array_values($params));
     $controller->$action(...$args);
     } else {
     $controller->$action();
@@ -126,5 +127,58 @@ class Router
     500
     );
     }
+    }
+
+    /**
+    * Convierte los parametros string (provenientes del regex del router) al
+    * tipo declarado en la firma del metodo del controller, evitando que
+    * strict_types=1 rompa la llamada con TypeError.
+    *
+    * Reglas:
+    *  - int/float: si el param es numerico, castear; si no, null.
+    *  - bool: true si es '1'/'true', false si es '0'/'false', null en otro caso.
+    *  - string: dejar como esta (los strings del regex son validos).
+    *  - array/null/union: dejar como esta.
+    */
+    private function castParamsToActionSignature(object $controller, string $action, array $args): array
+    {
+    try {
+    $ref = new \ReflectionMethod($controller, $action);
+    } catch (\ReflectionException $e) {
+    return $args;
+    }
+
+    $params = $ref->getParameters();
+    $casted = [];
+    foreach ($args as $i => $value) {
+    if (!isset($params[$i])) {
+    $casted[] = $value;
+    continue;
+    }
+    $type = $params[$i]->getType();
+    if ($type === null) {
+    $casted[] = $value;
+    continue;
+    }
+    if ($type instanceof \ReflectionNamedType) {
+    $typeName = $type->getName();
+    $allowsNull = $type->allowsNull();
+    if ($typeName === 'int') {
+    $casted[] = (is_numeric($value)) ? (int) $value : ($allowsNull ? null : 0);
+    } elseif ($typeName === 'float') {
+    $casted[] = (is_numeric($value)) ? (float) $value : ($allowsNull ? null : 0.0);
+    } elseif ($typeName === 'bool') {
+    if ($value === '1' || $value === 'true') $casted[] = true;
+    elseif ($value === '0' || $value === 'false') $casted[] = false;
+    else $casted[] = $allowsNull ? null : false;
+    } else {
+    $casted[] = $value;
+    }
+    } else {
+    // Union types, intersection types, etc. — dejar como esta.
+    $casted[] = $value;
+    }
+    }
+    return $casted;
     }
 }
