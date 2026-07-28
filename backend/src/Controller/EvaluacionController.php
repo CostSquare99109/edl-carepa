@@ -217,4 +217,42 @@ public function pendientesCalificar(): void
    $data = $this->service->obtenerEvaluacionesPrevias(0, $evaluadoId);
    ResponseHelper::success($data);
   }
+
+  /**
+   * Iniciar una evaluacion para el evaluado logueado.
+   * POST /evaluaciones/iniciar
+   *
+   * Si no existe evaluacion en ese periodo -> la crea automaticamente
+   * Si existe con estado 'rechazada' -> crea una nueva
+   * Si existe con estado 'pendiente' -> devuelve la existente
+   * Si existe con estado terminal/calificada/propuesta -> no hace nada
+   *
+   * El evaluador se resuelve desde dependencias.jefe_id (jefe de la misma dependencia)
+   */
+  public function iniciarParaEvaluado(): void
+  {
+    $user = AuthMiddleware::user();
+    if (!$user || empty($user['id'])) {
+      ResponseHelper::unauthorized();
+    }
+
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $input = SanitizerHelper::sanitizeArray($input);
+
+    $periodoId = isset($input['periodo_id']) ? (int) $input['periodo_id'] : 0;
+    if ($periodoId <= 0) {
+      ResponseHelper::error('periodo_id es requerido', 422);
+    }
+
+    $tipo = $input['tipo'] ?? 'parcial_primer_semestre';
+    $tiposValidos = ['parcial_primer_semestre', 'parcial_segundo_semestre'];
+    if (!in_array($tipo, $tiposValidos)) {
+      ResponseHelper::error('tipo de evaluación inválido. Valores válidos: ' . implode(', ', $tiposValidos), 422);
+    }
+
+    $evaluadoId = (int) $user['id'];
+    $resultado = $this->service->iniciarParaEvaluado($evaluadoId, $periodoId, $tipo);
+
+    ResponseHelper::success($resultado);
+  }
 }

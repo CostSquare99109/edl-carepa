@@ -60,9 +60,28 @@ class CompromisoService
 
         self::validarEstructuraVerboObjetoCondicion($datos['descripcion'] ?? '');
 
+        if (empty($datos['meta_id'])) {
+            ResponseHelper::error('La meta institucional es obligatoria para el compromiso funcional', 422);
+        }
+
         $concertacionId = $this->repo->resolverConcertacionId((int) $evaluacionId);
         if (!$concertacionId) {
-            ResponseHelper::error('La evaluacion no tiene concertacion asociada', 422);
+            // Auto-crear concertación si la evaluación no tiene una asociada
+            $pdo = Database::getInstance();
+            $stmt = $pdo->prepare('SELECT evaluado_id, periodo_id, evaluador_id FROM evaluaciones WHERE id = :eid AND eliminado_en IS NULL');
+            $stmt->execute(['eid' => $evaluacionId]);
+            $evalData = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$evalData) {
+                ResponseHelper::error('Evaluacion no encontrada', 404);
+            }
+            $concertacionService = new ConcertacionService();
+            $concertacionId = $concertacionService->crear([
+                'periodo_id' => $evalData['periodo_id'],
+                'evaluado_id' => $evalData['evaluado_id'],
+                'evaluador_id' => $evalData['evaluador_id'],
+                'tipo_concertacion' => 'concertacion_bilateral',
+                'evaluacion_id' => (int) $evaluacionId,
+            ], true);
         }
 
         $this->validarLimites($concertacionId);
@@ -94,20 +113,43 @@ class CompromisoService
 
         self::validarEstructuraVerboObjetoCondicion($datos['descripcion'] ?? '');
 
+        if (empty($datos['meta_id'])) {
+            ResponseHelper::error('La meta institucional es obligatoria para el compromiso funcional', 422);
+        }
+
         if ($concertacionIdDirecto) {
             $concertacionId = (int) $concertacionIdDirecto;
         } else {
             $concertacionId = $this->repo->resolverConcertacionId((int) $evaluacionId);
             if (!$concertacionId) {
-                ResponseHelper::error('La evaluacion no tiene concertacion asociada', 422);
+                // Auto-crear concertación si la evaluación no tiene una asociada
+                // (caso: evaluaciones creadas antes del fix de iniciarParaEvaluado)
+                $pdo = Database::getInstance();
+                $stmt = $pdo->prepare('SELECT evaluado_id, periodo_id, evaluador_id FROM evaluaciones WHERE id = :eid AND eliminado_en IS NULL');
+                $stmt->execute(['eid' => $evaluacionId]);
+                $evalData = $stmt->fetch(\PDO::FETCH_ASSOC);
+                if (!$evalData) {
+                    ResponseHelper::error('Evaluacion no encontrada', 404);
+                }
+                $concertacionService = new ConcertacionService();
+                $concertacionId = $concertacionService->crear([
+                    'periodo_id' => $evalData['periodo_id'],
+                    'evaluado_id' => $evalData['evaluado_id'],
+                    'evaluador_id' => $evalData['evaluador_id'],
+                    'tipo_concertacion' => 'concertacion_bilateral',
+                    'evaluacion_id' => (int) $evaluacionId,
+                ], true);
             }
         }
+
+        $this->validarPropuestaPermitida((int) ($evaluacionId ?: 0), $concertacionId);
 
         $this->validarLimites($concertacionId);
 
         $crearDatos = [
             'concertacion_id' => $concertacionId,
             'tipo' => 'funcional',
+            'meta_id' => $datos['meta_id'] ?? null,
             'descripcion' => $datos['descripcion'],
             'peso' => $datos['peso'] ?? 0,
             'propuesto_por_jefe_entidad' => 0,
@@ -313,8 +355,8 @@ class CompromisoService
         $esPrueba = !empty($pruebaVal) && (bool) $pruebaVal;
 
         $max = $esPrueba
-            ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
-            : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
+                    ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
+                    : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 3);
 
         if ($count >= $max) {
             $periodoLabel = $esPrueba ? 'periodo de prueba' : 'evaluacion anual';
@@ -322,6 +364,27 @@ class CompromisoService
                 "No se pueden agregar mas compromisos funcionales. Maximo permitido para {$periodoLabel}: {$max}",
                 422
             );
+        }
+    }
+
+    private function validarPropuestaPermitida(int $evaluacionId, int $concertacionId): void
+    {
+        $pdo = \App\Config\Database::getInstance();
+
+        if ($evaluacionId > 0) {
+            $stmt = $pdo->prepare("SELECT estado FROM evaluaciones WHERE id = ? AND eliminado_en IS NULL");
+            $stmt->execute([$evaluacionId]);
+            $estadoEval = $stmt->fetchColumn();
+            $terminales = ['calificada', 'cerrada', 'anulada', 'aprobada_comision', 'rechazada_comision'];
+            if ($estadoEval && in_array($estadoEval, $terminales, true)) {
+                ResponseHelper::error("No se pueden proponer compromisos. La evaluacion esta {$estadoEval}.", 400);
+            }
+        }
+
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND eliminado_en IS NULL AND (propuesto_por_jefe_entidad = 1 OR es_propuesto_evaluado = 0) AND estado IN ('propuesto', 'pendiente_aprobacion')");
+        $stmt->execute([$concertacionId]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            ResponseHelper::error('Ya existen compromisos pendientes de su aceptacion. Debe aceptarlos o rechazarlos antes de proponer nuevos.', 400);
         }
     }
 
@@ -387,12 +450,13 @@ class CompromisoService
 
         $count = $this->repo->contarPorConcertacion($concertacionId);
 
+        $max = $esPrueba
+                    ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
+                    : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 3);
+
         $min = $esPrueba
             ? (int) Env::get('MIN_COMPROMISOS_FUNCIONALES_PRUEBA', 1)
             : (int) Env::get('MIN_COMPROMISOS_FUNCIONALES', 1);
-        $max = $esPrueba
-            ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
-            : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 5);
 
         $errores = [];
         if ($count < $min) {

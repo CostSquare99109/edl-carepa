@@ -54,6 +54,23 @@ class CompromisoComportamentalController
         ResponseHelper::success(['id' => $id], 'Compromiso comportamental enviado', 201);
     }
 
+    public function guardar(): void
+    {
+        $input = SanitizerHelper::sanitizeArray($this->jsonInput());
+        $evaluacionId = $input['evaluacion_id'] ?? null;
+        $competencias = $input['competencias'] ?? [];
+
+        if (!$evaluacionId) {
+            ResponseHelper::error('evaluacion_id es requerido', 422);
+        }
+        if (!is_array($competencias) || empty($competencias)) {
+            ResponseHelper::error('competencias es requerido', 422);
+        }
+
+        $this->service->guardar((int) $evaluacionId, $competencias);
+        ResponseHelper::success(null, 'Compromisos comportamentales guardados');
+    }
+
     public function ver(int $id): void
     {
         $compromiso = $this->service->listar(['id' => $id])['data'] ?? null;

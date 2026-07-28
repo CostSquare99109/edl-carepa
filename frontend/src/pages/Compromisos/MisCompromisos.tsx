@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Toaster } from 'sonner';
 import { api, type PaginatedData } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 type ActiveView = 'list' | 'solicitudes' | 'cambio';
 
@@ -15,6 +17,8 @@ interface Compromiso {
   creado_en: string;
   competencia_nombre?: string;
   meta_descripcion?: string;
+  propuesto_por_jefe_entidad?: number;
+  es_propuesto_evaluado?: number;
 }
 
 interface Evaluacion {
@@ -52,11 +56,14 @@ interface PackageGrupo {
 
 export default function MisCompromisos() {
   const { usuario } = useAuth();
+  const { toast } = useToast();
   const [compromisos, setCompromisos] = useState<Compromiso[]>([]);
   const [evaluaciones, setEvaluaciones] = useState<Evaluacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [mensaje, setMensaje] = useState('');
+
+  // Estados activos para identificar evaluador actual
+  const ESTADOS_ACTIVOS = ['pendiente', 'en_proceso'];
 
   // Aceptar/rechazar
   const [rechazandoId, setRechazandoId] = useState<number | null>(null);
@@ -96,7 +103,7 @@ export default function MisCompromisos() {
       setCompromisos(listaUnificada);
       setEvaluaciones(evalRes.data || []);
     } catch (err) {
-      console.error('Error cargando datos:', err);
+      toast.error('Error al cargar datos');
     } finally {
       setLoading(false);
     }
@@ -108,25 +115,28 @@ export default function MisCompromisos() {
     if (ev.concertacion_id) concertToEval.set(ev.concertacion_id, ev.id);
   }
 
-  // Agrupar compromisos por evaluacion via concertacion_id, luego subdividir
-  // cada evaluacion en grupos segun el estado (vigente / rechazados).
-  // Cada grupo es una CARD INDEPENDIENTE con su propio ojito.
+  // Agrupar compromisos por EVALUACIÓN (no por tipo).
+  // Cada evaluación genera 1 card por estado (vigentes/rechazados/cerrados).
+  // Dentro de cada card se muestran AMBOS tipos (funcionales + comportamentales).
   const paquetes: PackageGrupo[] = [];
   const evalMap = new Map(evaluaciones.map(e => [e.id, e]));
-  const agrupados = new Map<number, Compromiso[]>();
+  const agrupados = new Map<number, { ev: any, comps: Compromiso[] }>();
   for (const c of compromisos) {
     const eid = concertToEval.get(c.concertacion_id) || c.evaluacion_id || 0;
     if (!eid) continue;
-    if (!agrupados.has(eid)) agrupados.set(eid, []);
-    agrupados.get(eid)!.push(c);
+    const ev = evalMap.get(eid);
+    if (!agrupados.has(eid)) {
+      agrupados.set(eid, { ev: ev || null, comps: [] });
+    }
+    agrupados.get(eid)!.comps.push(c);
   }
-  for (const [eid, comps] of agrupados) {
-    const ev = evalMap.get(eid) || null;
-    // Estados terminales: NO requieren accion del evaluado. Se muestran
-    // en su propia card como "Historico" sin botones de aceptar/rechazar.
+
+  for (const [eid, { ev, comps }] of agrupados) {
+    // Estados terminales: NO requieren accion del evaluado.
     const terminales = ['cumplido', 'incumplido', 'rechazado_evaluado'];
-    const vigentes = comps.filter(c => c.estado === 'propuesto');
+    const vigentes = comps.filter(c => c.estado === 'propuesto' || c.estado === 'pendiente_aprobacion' || c.estado === 'aprobado');
     const rechazados = comps.filter(c => c.estado === 'devuelto');
+    const cerradas = comps.filter(c => terminales.includes(c.estado));
 
     // Card VIGENTES: propuesta activa del evaluado (estado propuesto)
     if (vigentes.length > 0) {
@@ -138,26 +148,32 @@ export default function MisCompromisos() {
         etiqueta: 'Pendiente de aceptación',
       });
     }
-    // Card RECHAZADOS: una sola card por evaluacion con TODOS los rechazados
-    // juntos. Cada rechazo es un "intento" independiente del evaluado, todos
-    // mostrados juntos en esta card (modo historico).
+    // Card RECHAZADOS: agrupar por fecha de creación (rondas de rechazo).
     if (rechazados.length > 0) {
-      paquetes.push({
-        evaluacionId: eid,
-        evaluacion: ev,
-        compromisos: rechazados,
-        grupoKey: `${eid}-rechazados`,
-        etiqueta: 'Rechazados',
-      });
+      const rondas = new Map<string, Compromiso[]>();
+      for (const c of rechazados) {
+        const fecha = c.creado_en.split(' ')[0]; // "YYYY-MM-DD" local, evita timezone
+        if (!rondas.has(fecha)) rondas.set(fecha, []);
+        rondas.get(fecha)!.push(c);
+      }
+      // Ordenar fechas descendente (más reciente primero)
+      for (const [fecha, items] of Array.from(rondas.entries()).sort((a, b) => b[0].localeCompare(a[0]))) {
+        paquetes.push({
+          evaluacionId: eid,
+          evaluacion: ev,
+          compromisos: items,
+          grupoKey: `${eid}-rechazados-${fecha}`,
+          etiqueta: `Rechazados (${fecha})`,
+        });
+      }
     }
-    // Card TERMINALES: cumplidos/incumplidos como su propia card independiente.
-    const terminalesComps = comps.filter(c => terminales.includes(c.estado));
-    if (terminalesComps.length > 0) {
+    // Card CERRADOS: compromisos terminales (cumplido / incumplido).
+    if (cerradas.length > 0) {
       paquetes.push({
         evaluacionId: eid,
         evaluacion: ev,
-        compromisos: terminalesComps,
-        grupoKey: `${eid}-terminales`,
+        compromisos: cerradas,
+        grupoKey: `${eid}-cerrados`,
         etiqueta: 'Cerrados',
       });
     }
@@ -174,7 +190,21 @@ export default function MisCompromisos() {
       setActiveView('list');
       limpiarFormularioCambio();
     } else {
+      // Verificar que las evaluaciones ya terminaron de cargar
+      if (loading) {
+        toast.info('Espere a que terminen de cargar las evaluaciones');
+        return;
+      }
+      // Filtrar solo evaluaciones activas (pendiente o en_proceso)
+      const evaluacionesActivas = evaluaciones.filter(ev => ESTADOS_ACTIVOS.includes(ev.estado));
+      if (evaluacionesActivas.length === 0) {
+        toast.warning('No tienes un evaluador asignado actualmente');
+        return;
+      }
+      // Preseleccionar el primer evaluador de la primera evaluación activa
+      const primerEvaluadorId = evaluacionesActivas[0].evaluador_id;
       limpiarFormularioCambio();
+      setCambioEvaluadorId(primerEvaluadorId);
       setActiveView('cambio');
     }
   }
@@ -190,9 +220,9 @@ export default function MisCompromisos() {
       });
       limpiarFormularioCambio();
       setActiveView('list');
-      setMensaje('Solicitud de cambio de evaluador creada exitosamente.');
+      toast.success('Solicitud de cambio de evaluador creada');
     } catch (err: any) {
-      setMensaje(err.message || 'Error al crear solicitud');
+      toast.error(err.message || 'Error al crear solicitud');
     } finally {
       setSaving(false);
     }
@@ -204,7 +234,7 @@ export default function MisCompromisos() {
       const res = await api.get<any>('/solicitudes-cambio/mis-solicitudes?por_pagina=50');
       setMisSolicitudes(res.data || res.items || []);
     } catch (err: any) {
-      setMensaje(err.message || 'Error al cargar solicitudes');
+      toast.error(err.message || 'Error al cargar solicitudes');
     } finally {
       setLoadingSolicitudes(false);
     }
@@ -235,13 +265,12 @@ export default function MisCompromisos() {
 
   async function aceptarConcertacion(evaluacionId: number) {
     setSaving(true);
-    setMensaje('');
     try {
       await api.put(`/evaluaciones/${evaluacionId}/aceptar-concertacion`);
-      setMensaje('Concertación aceptada exitosamente.');
+      toast.success('Concertación aceptada');
       cargarDatos();
     } catch (err: any) {
-      setMensaje(err.message || 'Error al aceptar');
+      toast.error(err.message || 'Error al aceptar');
     } finally {
       setSaving(false);
     }
@@ -249,21 +278,20 @@ export default function MisCompromisos() {
 
   async function rechazarConcertacion(evaluacionId: number) {
     if (!obsRechazar.trim()) {
-      setMensaje('Debe indicar el motivo del rechazo');
+      toast.error('Debe indicar el motivo del rechazo');
       return;
     }
     setSaving(true);
-    setMensaje('');
     try {
       await api.put(`/evaluaciones/${evaluacionId}/rechazar-concertacion`, {
         observaciones_evaluado: obsRechazar.trim(),
       });
       setRechazandoId(null);
       setObsRechazar('');
-      setMensaje('Concertación rechazada.');
+      toast.success('Concertación rechazada');
       cargarDatos();
     } catch (err: any) {
-      setMensaje(err.message || 'Error al rechazar');
+      toast.error(err.message || 'Error al rechazar');
     } finally {
       setSaving(false);
     }
@@ -305,13 +333,6 @@ export default function MisCompromisos() {
         </div>
       </div>
 
-      {/* Mensaje */}
-      {mensaje && (
-        <div className={`edl-card mb-4 border-l-4 ${mensaje.includes('exitosamente') || mensaje.includes('aceptada') ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-          <p className="text-sm font-medium">{mensaje}</p>
-        </div>
-      )}
-
       {/* Vista: Listado de compromisos (default) */}
       {activeView === 'list' && (
         <div>
@@ -328,7 +349,7 @@ export default function MisCompromisos() {
                 const pendiente = tienePendientes(pkg.compromisos);
                 const expandido = expandidos.has(pkg.grupoKey);
                 const esRechazados = pkg.grupoKey.includes('-rechazados');
-                const esCerrados = pkg.grupoKey.endsWith('-terminales');
+                const esCerrados = pkg.grupoKey.includes('-cerrados');
                 const esVigentes = pkg.grupoKey.endsWith('-vigentes');
                 return (
                   <div key={pkg.grupoKey} className={`edl-card ${esVigentes && pendiente ? 'border-l-4 border-amber-500 bg-amber-50' : ''} ${esRechazados ? 'border-l-4 border-red-400 bg-red-50/30' : ''} ${esCerrados ? 'border-l-4 border-gray-400' : ''}`}>
@@ -382,6 +403,11 @@ export default function MisCompromisos() {
                           const allFuncionales = pkg.compromisos.filter(c => c.tipo === 'funcional');
                           const allComportamentales = pkg.compromisos.filter(c => c.tipo === 'comportamental');
                           const getEstadoInfo = (estado: string) => ESTADO_LABELS[estado] || { label: estado, color: 'bg-gray-200 text-gray-700' };
+                          const badgePropuesto = (c: Compromiso) => {
+                            if (c.es_propuesto_evaluado) return <span className="text-[10px] px-1 py-0.5 rounded bg-blue-100 text-blue-700">Evaluado</span>;
+                            if (c.propuesto_por_jefe_entidad) return <span className="text-[10px] px-1 py-0.5 rounded bg-purple-100 text-purple-700">Jefe</span>;
+                            return <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 text-gray-500">Evaluador</span>;
+                          };
                           const renderTabla = (items: Compromiso[], conPeso: boolean) => (
                             <div className="overflow-x-auto rounded border">
                               <table className="w-full text-sm">
@@ -392,6 +418,7 @@ export default function MisCompromisos() {
                                     <th className="text-left px-3 py-2 text-xs font-semibold text-inst-texto">{conPeso ? 'Compromiso' : 'Descripción'}</th>
                                     {conPeso && <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Peso</th>}
                                     <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Estado</th>
+                                    <th className="text-center px-3 py-2 text-xs font-semibold text-inst-texto">Propuesto por</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y">
@@ -402,6 +429,7 @@ export default function MisCompromisos() {
                                       <td className="px-3 py-2 text-sm text-inst-texto">{c.descripcion}</td>
                                       {conPeso && <td className="px-3 py-2 text-center text-sm font-semibold text-inst-azul">{c.peso}%</td>}
                                       <td className="px-3 py-2 text-center"><span className={`text-xs px-1.5 py-0.5 rounded-full ${getEstadoInfo(c.estado).color}`}>{getEstadoInfo(c.estado).label}</span></td>
+                                      <td className="px-3 py-2 text-center">{badgePropuesto(c)}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -440,7 +468,7 @@ export default function MisCompromisos() {
                       </div>
                     )}
 
-                    {pendiente && (
+                    {pendiente && pkg.compromisos.some(c => c.propuesto_por_jefe_entidad === 1) && (
                       <div className="mt-4 border-t border-inst-borde pt-4">
                         {rechazandoId === pkg.evaluacionId ? (
                           <div className="space-y-3 p-4 bg-red-50 rounded-lg border border-red-200">
@@ -569,7 +597,7 @@ export default function MisCompromisos() {
               <label className="edl-label">Evaluador actual</label>
               <select value={cambioEvaluadorId} onChange={e => setCambioEvaluadorId(Number(e.target.value))} className="edl-input">
                 <option value={0}>Seleccione...</option>
-                {Array.from(new Map(evaluaciones.filter(ev => ev.evaluador_id).map(ev => [ev.evaluador_id, ev])).values()).map(ev => (
+                {Array.from(new Map(evaluaciones.filter(ev => ev.evaluador_id && ESTADOS_ACTIVOS.includes(ev.estado)).map(ev => [ev.evaluador_id, ev])).values()).map(ev => (
                   <option key={ev.evaluador_id} value={ev.evaluador_id}>{ev.evaluador_nombre}</option>
                 ))}
               </select>
@@ -610,6 +638,7 @@ export default function MisCompromisos() {
           </div>
         </div>
       )}
+      <Toaster position="top-right" richColors />
     </div>
   );
 }

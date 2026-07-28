@@ -1,0 +1,55 @@
+strict_tdd: true
+context: |
+  edl-carepa-frontend is a Node.js/TypeScript, Node.js/TypeScript ESM, React, Python project.
+  Detected markers: .kilo/package.json, .kilo/npm package manager, frontend/package.json, frontend/tsconfig.json, frontend/npm package manager, GitHub Actions.
+  Package managers: npm.
+  Additional evidence: Test-like files detected (7); examples: .logs/php_test.log, backend/tests/test_evaluaciones_fechas.php, tests/api_test.py, tests/flow_test.py, tests/run_tests.php.
+  Primary test command: pytest.
+  Unit tests: pytest (pytest).
+  Integration tests: none.
+  E2E tests: none.
+rules:
+  proposal:
+    require_problem_statement: true
+  spec:
+    require_acceptance_criteria: true
+  design:
+    require_tradeoffs: true
+  tasks:
+    protect_review_workload: true
+  apply:
+    test_command: "pytest"
+  verify:
+    test_command: "pytest"
+testing:
+  detected: "2026-07-18"
+  runner:
+    command: "pytest"
+    framework: "pytest"
+  layers:
+    unit: "pytest"
+    integration: ""
+    e2e: ""
+  commands:
+    unit:
+      - scope: "."
+        command: "pytest"
+        framework: "pytest"
+    integration:
+      []
+    e2e:
+      []
+  coverage:
+    command: ""
+    commands:
+      []
+quality:
+  lint: ""
+  lint_commands:
+    []
+  typecheck: ""
+  typecheck_commands:
+    []
+  format: ""
+  format_commands:
+    []

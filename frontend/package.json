@@ -6,7 +6,11 @@
 	"scripts": {
 		"dev": "node ./node_modules/.bin/vite",
 		"build": "node ./node_modules/.bin/vite build",
-		"preview": "node ./node_modules/.bin/vite preview"
+		"preview": "node ./node_modules/.bin/vite preview",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest run --coverage"
 	},
 	"dependencies": {
 		"react": "^19.1.0",
@@ -15,17 +19,49 @@
 		"sonner": "^2.0.7"
 	},
 	"devDependencies": {
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"@testing-library/user-event": "^14.6.1",
 		"@types/node": "^25.8.0",
 		"@types/react": "^19.1.0",
 		"@types/react-dom": "^19.1.0",
 		"@vitejs/plugin-react": "^4.4.0",
+		"@vitest/ui": "^4.1.10",
 		"autoprefixer": "^10.4.21",
+		"jsdom": "^29.1.1",
 		"postcss": "^8.5.3",
+		"rollup-plugin-visualizer": "^7.0.1",
 		"tailwindcss": "^3.4.17",
 		"typescript": "^5.8.3",
-		"vite": "^6.3.5"
+		"vite": "^6.3.5",
+		"vitest": "^4.1.10"
 	},
 	"allowScripts": {
 		"esbuild@0.25.12": true
+	},
+	"vitest": {
+		"environment": "jsdom",
+		"setupFiles": [
+			"./vitest.setup.ts"
+		],
+		"include": [
+			"src/**/*.test.{ts,tsx}"
+		],
+		"coverage": {
+			"provider": "v8",
+			"reporter": [
+				"text",
+				"json",
+				"html"
+			],
+			"exclude": [
+				"node_modules/**",
+				"dist/**",
+				"**/*.d.ts",
+				"**/*.test.ts",
+				"**/*.test.tsx",
+				"vitest.setup.ts"
+			]
+		}
 	}
 }

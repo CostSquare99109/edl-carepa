@@ -1,0 +1,1 @@
+const r={azul:"#0A2B5E",rojo:"#C4282B",verde:"#1E5A3C"},a={azul:"bg-[#0A2B5E]",azulText:"text-[#0A2B5E]",azulBorder:"border-[#0A2B5E]",azulClaro:"bg-[#003366]",azulClaroText:"text-[#003366]",azulClaroBorder:"border-[#003366]"};export{r as C,a};

@@ -265,7 +265,7 @@ export default function EvidenciaList() {
       header: 'Ubicación / Archivo',
       render: (ev: any) => ev.archivo_nombre ? (
         <a
-          href={api.archivoUrl(ev.id)}
+          href={api.downloadUrl(api.archivoUrl(ev.id))}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sky-600 hover:underline inline-flex items-center gap-1 max-w-[220px] truncate"
@@ -297,22 +297,7 @@ export default function EvidenciaList() {
     },
     { key: 'registrado', header: 'Registrado por', render: (ev) => ev.registrado_nombre || '-' },
     { key: 'fecha', header: 'Fecha', render: (ev) => <span className="text-xs">{new Date(ev.creado_en).toLocaleDateString('es-CO')}</span> },
-    {
-      key: 'editar',
-      header: 'Editar',
-      align: 'center',
-      render: (ev) => (
-        <Tooltip content="Editar evidencia">
-          <button
-            onClick={() => setEditando({ ...ev })}
-            className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul-osc hover:text-inst-azul-osc"
-            aria-label="Editar evidencia"
-          >
-            <span className="material-icons text-lg">edit</span>
-          </button>
-        </Tooltip>
-      ),
-    },
+  
   ]
 
   return (
@@ -482,107 +467,6 @@ export default function EvidenciaList() {
                 <Alert tone="warning" className="mt-3">
                   <span className="text-xs">Sin concertación activa en este período. No se pueden registrar evidencias.</span>
                 </Alert>
-              )}
-            </Card>
-          </div>
-
-          {/* Right: Formulario */}
-          <div className="lg:col-span-3">
-            <Card className="border border-inst-azul-osc/20 bg-inst-azul/5 h-full">
-              <h3 className="font-heading font-semibold text-inst-azul-osc mb-4 flex items-center gap-2">
-                <span className="material-icons text-lg">note_add</span>
-                Registrar evidencia
-              </h3>
-              {!puedeCrear ? (
-                <EmptyState
-                  icon={<span className="material-icons text-3xl">lock</span>}
-                  title="Concertación requerida"
-                  description="El evaluado debe tener una concertación aprobada para poder registrar evidencias."
-                />
-              ) : (
-                <div className="space-y-3">
-                  <Select
-                    label="Compromiso o competencia *"
-                    required
-                    value={formCompromisoId}
-                    onChange={e => setFormCompromisoId(e.target.value ? Number(e.target.value) : '')}
-                    placeholder="Seleccione un compromiso o competencia"
-                    options={compromisos.map(c => ({
-                      value: String(c.id),
-                      label: `${c.tipo === 'funcional' ? '📋 Funcional' : '🧠 Comportamental'}: ${(c.compromiso_competencia || c.descripcion).slice(0, 120)}`,
-                    }))}
-                    error={submitted && !formCompromisoId ? 'Campo obligatorio' : undefined}
-                    helperText={compromisoSeleccionado ? `Tipo: ${compromisoSeleccionado.tipo}` : undefined}
-                  />
-
-                  <div>
-                    <label htmlFor="ev-desc" className="edl-label">
-                      Descripción de la evidencia <span className="text-inst-rojo">*</span>
-                    </label>
-                    <textarea
-                      id="ev-desc"
-                      value={formDescripcion}
-                      onChange={e => setFormDescripcion(e.target.value)}
-                      className="edl-input min-h-[80px]"
-                      placeholder="Detalle del elemento, documento o soporte que demuestra el cumplimiento o incumplimiento"
-                    />
-                    {submitted && !formDescripcion.trim() && (
-                      <p className="mt-1 text-xs text-inst-rojo flex items-center gap-1" role="alert">
-                        <span aria-hidden="true">⚠</span> Campo obligatorio
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="ev-ubic" className="edl-label">Ubicación (física o virtual)</label>
-                    <textarea
-                      id="ev-ubic"
-                      value={formUbicacion}
-                      onChange={e => setFormUbicacion(e.target.value)}
-                      className="edl-input min-h-[60px]"
-                      placeholder="Ej: Archivo central, Caja 12, Carpeta 3 — o https://drive.google.com/..."
-                    />
-                    {submitted && !formUbicacion.trim() && !formArchivo && (
-                      <p className="mt-1 text-xs text-inst-rojo" role="alert">Indique la ubicación o adjunte un archivo</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="ev-file" className="edl-label">Adjuntar archivo de soporte (opcional)</label>
-                    <input
-                      id="ev-file"
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
-                      onChange={e => setFormArchivo(e.target.files?.[0] ?? null)}
-                      className="edl-input"
-                    />
-                    <p className="mt-1 text-xs text-inst-texto-claro">
-                      Formatos: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX. Máx. 10MB.
-                    </p>
-                    {formArchivo && (
-                      <p className="mt-1 text-xs text-inst-azul">
-                        Archivo: <strong>{formArchivo.name}</strong> ({Math.round(formArchivo.size / 1024)} KB)
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="ev-obs" className="edl-label">Observación (opcional)</label>
-                    <textarea
-                      id="ev-obs"
-                      value={formObservacion}
-                      onChange={e => setFormObservacion(e.target.value)}
-                      className="edl-input min-h-[60px]"
-                      placeholder="Observaciones adicionales sobre la evidencia"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="primary" loading={guardando} onClick={guardarEvidencia}>
-                      Guardar evidencia
-                    </Button>
-                  </div>
-                </div>
               )}
             </Card>
           </div>

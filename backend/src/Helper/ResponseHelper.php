@@ -31,6 +31,11 @@ class ResponseHelper
         exit;
     }
 
+    public static function serverError(string $message = self::SERVER_ERROR_MESSAGE): void
+    {
+        self::error($message);
+    }
+
     public static function validationError(array $errors): void
     {
         self::error('Datos de entrada invalidos', 422, $errors);

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { api, type PaginatedData } from '../../lib/api'
 import { Card, Button, Badge, Tooltip, SkeletonText, Modal } from '../../components/ui'
 import { toast } from 'sonner'
+import { useToast } from '../../contexts/ToastContext'
 
 interface Usuario {
   id: number
@@ -44,6 +45,7 @@ export default function UsuarioList() {
   const [loading, setLoading] = useState(true)
   const [editando, setEditando] = useState<Usuario | null>(null)
   const [saving, setSaving] = useState(false)
+  const { confirm } = useToast()
   const [editForm, setEditForm] = useState({
     documento: '', tipo_documento: 'CC',
     primer_nombre: '', segundo_nombre: '',
@@ -112,16 +114,23 @@ export default function UsuarioList() {
     }
   }
 
-  const eliminarUsuario = async (u: Usuario) => {
+  const eliminarUsuario = (u: Usuario) => {
     const nombre = `${u.primer_nombre || ''} ${u.primer_apellido || ''}`.trim()
-    if (!confirm(`¿Eliminar usuario "${nombre}" (${u.documento})? Esta acción no se puede deshacer.`)) return
-    try {
-      await api.delete(`/usuarios/${u.id}`)
-      toast.success(`Usuario ${nombre} eliminado correctamente`)
-      cargar()
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Error al eliminar usuario')
-    }
+    confirm({
+      title: 'Eliminar usuario',
+      message: `¿Eliminar usuario "${nombre}" (${u.documento})? Esta acción no se puede deshacer.`,
+      variant: 'danger',
+      confirmLabel: 'Eliminar',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/usuarios/${u.id}`)
+          toast.success(`Usuario ${nombre} eliminado correctamente`)
+          cargar()
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : 'Error al eliminar usuario')
+        }
+      },
+    })
   }
 
   const nombreCompleto = (u: Usuario) =>

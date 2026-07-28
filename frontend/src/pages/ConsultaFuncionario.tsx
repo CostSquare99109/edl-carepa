@@ -65,7 +65,7 @@ export default function ConsultaFuncionario() {
  <div className="edl-card">
  <div className="bg-inst-gris rounded-lg p-3 text-sm text-inst-texto-claro flex items-start gap-2 mb-4">
  <span className="material-icons text-base mt-0.5">info</span>
- <p>Ingrese el numero de cedula para consultar el estado de evaluacion del desempeno laboral.</p>
+ <p>Ingrese el numero de cedula para consultar el estado de evaluacion del desempeño laboral.</p>
  </div>
 
  <div className="flex gap-2 items-end">

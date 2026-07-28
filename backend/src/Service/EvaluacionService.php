@@ -946,4 +946,133 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
   $row = $stmt->fetch(\PDO::FETCH_ASSOC);
   return ((int) ($row['c'] ?? 0)) > 0;
  }
+
+ /**
+  * Inicia una evaluacion para el evaluado logueado.
+  *
+  * Flujo:
+  * - Si NO existe evaluacion -> crea evaluacion + concertacion automaticamente
+  * - Si existe estado 'rechazada' -> crea una nueva evaluacion (la rechazada queda historico)
+  * - Si existe estado 'pendiente' -> retorna la existente (ya se puede proponer)
+  * - Si existe estado terminal (calificada/cerrada/anulada) -> retorna error
+  * - Si existe estado 'propuesta' -> retorna error (ya se envio)
+  *
+  * El evaluador se resuelve desde dependencias.jefe_id
+  */
+ public function iniciarParaEvaluado(int $evaluadoId, int $periodoId, string $tipo = 'parcial_primer_semestre'): array
+ {
+  $pdo = Database::getInstance();
+  $user = AuthMiddleware::user();
+
+  $tiposValidos = ['parcial_primer_semestre', 'parcial_segundo_semestre'];
+  if (!in_array($tipo, $tiposValidos)) {
+    ResponseHelper::error('tipo de evaluación inválido', 422);
+  }
+
+  // Estados que permiten iniciar nueva propuesta
+  $estadosPermitidos = ['pendiente'];
+  // Estados que permiten crear otra evaluacion nueva
+  $estadosRecreables = ['rechazada'];
+
+  // Buscar evaluacion existente del MISMO TIPO
+  $stmt = $pdo->prepare("
+    SELECT id, estado, evaluador_id, concertacion_id
+    FROM evaluaciones
+    WHERE evaluado_id = ? AND periodo_id = ? AND tipo = ? AND eliminado_en IS NULL
+    ORDER BY id DESC
+    LIMIT 1
+  ");
+  $stmt->execute([$evaluadoId, $periodoId, $tipo]);
+  $evalExistente = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+  if ($evalExistente) {
+    $estado = $evalExistente['estado'];
+
+    // Terminales/ya propuesta -> no se puede iniciar
+    if (in_array($estado, ['calificada', 'cerrada', 'anulada', 'aprobada_comision', 'propuesta'])) {
+      ResponseHelper::error('Ya existe una evaluacion en estado ' . $estado . '. No es posible iniciar una nueva.', 409);
+    }
+
+    // Rechazada -> se puede crear otra
+    if (in_array($estado, $estadosRecreables)) {
+      // Continuar a creacion
+    } elseif (in_array($estado, $estadosPermitidos)) {
+      // Ya existe pendiente, devolverla
+      return [
+        'evaluacion_id' => (int) $evalExistente['id'],
+        'evaluador_id' => (int) $evalExistente['evaluador_id'],
+        'concertacion_id' => $evalExistente['concertacion_id'] ? (int) $evalExistente['concertacion_id'] : null,
+        'mensaje' => 'Evaluacion existente en estado ' . $estado,
+        'creada' => false,
+      ];
+    }
+  }
+
+  // Obtener datos del evaluado para saber su dependencia
+  $stmtEval = $pdo->prepare("
+    SELECT u.id, u.dependencia_id, u.primer_nombre, u.primer_apellido,
+           d.jefe_id as evaluador_id
+    FROM usuarios u
+    LEFT JOIN dependencias d ON d.id = u.dependencia_id
+    WHERE u.id = ? AND u.eliminado_en IS NULL
+  ");
+  $stmtEval->execute([$evaluadoId]);
+  $evaluado = $stmtEval->fetch(\PDO::FETCH_ASSOC);
+
+  if (!$evaluado) {
+    ResponseHelper::notFound('Evaluado no encontrado');
+  }
+
+  $evaluadorId = $evaluado['evaluador_id'] ?? null;
+
+  if (!$evaluadorId) {
+    // Buscar si hay algun evaluador en la misma dependencia
+    $stmtEv = $pdo->prepare("
+      SELECT u.id FROM usuarios u
+      INNER JOIN usuario_rol ur ON ur.usuario_id = u.id
+      INNER JOIN roles r ON r.id = ur.rol_id
+      WHERE u.dependencia_id = ? AND u.eliminado_en IS NULL AND u.estado = 'activo'
+      AND r.codigo = 'evaluador'
+      LIMIT 1
+    ");
+    $stmtEv->execute([$evaluado['dependencia_id']]);
+    $ev = $stmtEv->fetch(\PDO::FETCH_ASSOC);
+    $evaluadorId = $ev ? (int) $ev['id'] : null;
+  }
+
+  if (!$evaluadorId) {
+    ResponseHelper::error('No se encontro un evaluador para la dependencia del evaluado', 422);
+  }
+
+  // Crear evaluacion
+  $crearDatos = [
+    'periodo_id' => $periodoId,
+    'evaluado_id' => $evaluadoId,
+    'evaluador_id' => $evaluadorId,
+    'tipo' => $tipo,
+    'estado' => 'pendiente',
+  ];
+
+  $evaluacionId = $this->evaluacionRepo->crear($crearDatos);
+  AuditoriaService::registrar('crear_evaluacion', 'evaluaciones', $evaluacionId);
+
+  // Crear concertacion asociada
+  $concertacionService = new ConcertacionService();
+  $concertacionId = $concertacionService->crear([
+    'periodo_id' => $periodoId,
+    'evaluado_id' => $evaluadoId,
+    'evaluador_id' => $evaluadorId,
+    'evaluacion_id' => $evaluacionId,
+    'estado' => 'pendiente',
+    'tipo_concertacion' => 'concertacion_bilateral',
+  ], true);
+
+  return [
+    'evaluacion_id' => $evaluacionId,
+    'evaluador_id' => $evaluadorId,
+    'concertacion_id' => $concertacionId,
+    'mensaje' => 'Evaluacion creada exitosamente',
+    'creada' => true,
+  ];
+ }
 }

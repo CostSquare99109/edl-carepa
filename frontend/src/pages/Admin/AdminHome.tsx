@@ -84,7 +84,7 @@ export default function AdminHome() {
       icon: 'person',
       tone: 'info' as Tone,
       filter: 'evaluado',
-      route: '/admin/usuarios',
+      route: '/admin-usuarios',
     },
     {
       label: 'Evaluadores',
@@ -92,7 +92,7 @@ export default function AdminHome() {
       icon: 'rate_review',
       tone: 'success' as Tone,
       filter: 'evaluador',
-      route: '/admin/usuarios',
+      route: '/admin-usuarios',
     },
     {
       label: 'Evaluaciones Completadas',
@@ -100,7 +100,7 @@ export default function AdminHome() {
       icon: 'task_alt',
       tone: 'success' as Tone,
       filter: 'completada',
-      route: '/admin/evaluaciones',
+      route: '/admin-evaluaciones',
     },
     {
       label: 'Evaluaciones Pendientes',
@@ -108,7 +108,7 @@ export default function AdminHome() {
       icon: 'pending',
       tone: 'danger' as Tone,
       filter: 'pendiente',
-      route: '/admin/evaluaciones',
+      route: '/admin-evaluaciones',
     },
   ];
 

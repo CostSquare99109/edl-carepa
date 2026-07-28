@@ -21,14 +21,18 @@ class EvidenciaService
 
  public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
  {
-  $user = AuthMiddleware::user();
-  $rolActivo = AuthMiddleware::rolActivo();
+     $user = AuthMiddleware::user();
+     $rolActivo = AuthMiddleware::rolActivo();
 
-  if (in_array($rolActivo, ['evaluador', 'evaluado'])) {
-   $filtros['registrado_por'] = $user['id'];
-  }
+     // Para evaluados, filtrar por evaluado_id (via concertacion) en lugar de registrado_por
+     // así ven todas las evidencias de su evaluación, no solo las que registraron personalmente
+     if ($rolActivo === 'evaluado') {
+         $filtros['evaluado_id'] = $user['id'];
+     } elseif ($rolActivo === 'evaluador') {
+         $filtros['evaluador_id'] = $user['id'];
+     }
 
-  return $this->evidenciaRepo->listarConRelaciones($filtros, $pagina, $porPagina);
+     return $this->evidenciaRepo->listarConRelaciones($filtros, $pagina, $porPagina);
  }
 
  /**
@@ -54,7 +58,6 @@ class EvidenciaService
    $periodoId = (int) ($datos['periodo_id'] ?? 0);
    $observacion = trim($datos['observacion'] ?? '');
    $tipo = $datos['tipo'] ?? 'compromiso';
-   $evaluacionId = isset($datos['evaluacion_id']) ? (int) $datos['evaluacion_id'] : 0;
 
    if ($compromisoId <= 0) {
    ResponseHelper::error('Debe seleccionar un compromiso o competencia', 400);
@@ -105,6 +108,8 @@ class EvidenciaService
    ResponseHelper::error('Compromiso no encontrado', 404);
    }
 
+   $concertacionId = (int) $compromiso['concertacion_id'];
+
    // VALIDACION 1: No permitir duplicar evidencia en el mismo compromiso para el mismo evaluado en el mismo periodo
    $stmtDup = $pdo->prepare("
     SELECT id FROM evidencias
@@ -119,7 +124,7 @@ class EvidenciaService
    ResponseHelper::error('Ya existe una evidencia registrada para este compromiso en este periodo. No se permiten duplicados.', 409);
    }
 
-   // VALIDACION 2: Contar evidencias por tipo (funcional/comportamental) en este periodo
+   // VALIDACION 2: Contar evidencias existentes por tipo en este periodo
    $stmtCount = $pdo->prepare("
     SELECT c.tipo, COUNT(*) as total
     FROM evidencias e
@@ -141,19 +146,41 @@ class EvidenciaService
 
    $tipoCompromiso = $compromiso['tipo']; // 'funcional' o 'comportamental'
 
-   if ($tipoCompromiso === 'funcional' && $funcionales >= 3) {
-   ResponseHelper::error('Ya ha alcanzado el limite de 3 evidencias funcionales para este periodo. No puede registrar mas.', 422);
+   // Limite dinamico: numero de compromisos aprobados de ese tipo en la concertacion
+   $stmtLim = $pdo->prepare("
+    SELECT
+     SUM(CASE WHEN tipo = 'funcional' THEN 1 ELSE 0 END) as lim_func,
+     SUM(CASE WHEN tipo = 'comportamental' THEN 1 ELSE 0 END) as lim_comp
+    FROM compromisos
+    WHERE concertacion_id = :cid
+      AND estado IN ('aprobado', 'en_progreso', 'cumplido')
+      AND eliminado_en IS NULL
+   ");
+   $stmtLim->execute(['cid' => $concertacionId]);
+   $limites = $stmtLim->fetch(\PDO::FETCH_ASSOC);
+   $limFunc = (int) ($limites['lim_func'] ?? 0);
+   $limComp = (int) ($limites['lim_comp'] ?? 0);
+
+   if ($tipoCompromiso === 'funcional' && $limFunc > 0 && $funcionales >= $limFunc) {
+   ResponseHelper::error(
+    "Ya ha alcanzado el limite de {$limFunc} evidencia(s) funcional(es) para este periodo. No puede registrar mas.",
+    422
+   );
    }
-   if ($tipoCompromiso === 'comportamental' && $comportamentales >= 3) {
-   ResponseHelper::error('Ya ha alcanzado el limite de 3 evidencias comportamentales para este periodo. No puede registrar mas.', 422);
+   if ($tipoCompromiso === 'comportamental' && $limComp > 0 && $comportamentales >= $limComp) {
+   ResponseHelper::error(
+    "Ya ha alcanzado el limite de {$limComp} evidencia(s) comportamental(es) para este periodo. No puede registrar mas.",
+    422
+   );
    }
 
-   // VALIDACION 3: Bloqueo total si ya completó 3 funcionales + 3 comportamentales = 6
-   if ($funcionales >= 3 && $comportamentales >= 3) {
-   ResponseHelper::error('Ya ha completado las 6 evidencias requeridas (3 funcionales + 3 comportamentales) para este periodo. No puede agregar mas.', 422);
+   // VALIDACION 3: Bloqueo total si ya completo todos los compromisos aprobados
+   if ($limFunc > 0 && $limComp > 0 && $funcionales >= $limFunc && $comportamentales >= $limComp) {
+   ResponseHelper::error(
+    "Ya ha completado todas las evidencias requeridas ({$limFunc} funcional(es) + {$limComp} comportamental(es)) para este periodo. No puede agregar mas.",
+    422
+   );
    }
-
-   $concertacionId = (int) $compromiso['concertacion_id'];
 
    $crearDatos = [
    'concertacion_id' => $concertacionId,
@@ -172,10 +199,6 @@ class EvidenciaService
    $crearDatos['archivo_nombre'] = $archivoNombre;
    $crearDatos['archivo_mime'] = $archivoMime;
    $crearDatos['archivo_tamano'] = $archivoTamano;
-   }
-
-   if ($evaluacionId > 0) {
-   $crearDatos['evaluacion_id'] = $evaluacionId;
    }
 
    $id = $this->evidenciaRepo->crear($crearDatos);

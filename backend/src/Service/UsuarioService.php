@@ -187,22 +187,40 @@ class UsuarioService
 
  public function asignarRoles(int $id, array $roles, ?int $entidadId = null): void
  {
- $usuario = $this->repo->buscarPorId($id);
- if (!$usuario) {
- ResponseHelper::error('Usuario no encontrado', 404);
- }
+  $usuario = $this->repo->buscarPorId($id);
+  if (!$usuario) {
+  ResponseHelper::error('Usuario no encontrado', 404);
+  }
 
- $this->repo->removerRoles($id);
- $pdo = Database::getInstance();
- foreach ($roles as $rolCodigo) {
- $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = ?");
- $stmt->execute([$rolCodigo]);
- $rol = $stmt->fetch();
- if ($rol) {
- $this->repo->asignarRol($id, $rol['id'], $entidadId ?? $usuario['entidad_id']);
- }
- }
+  // Validar roles permitidos según el rol del usuario que hace la petición
+  $user = AuthMiddleware::user();
+  $rolesUsuario = $user['roles'] ?? [];
+ 
+  // Jefe de dependencia solo puede asignar evaluador y evaluado
+  if (in_array('jefe_dependencia', $rolesUsuario) && !in_array('jefe_personal', $rolesUsuario) && !in_array('admin_carepa', $rolesUsuario)) {
+  $rolesPermitidos = ['evaluador', 'evaluado'];
+  $rolesInvalidos = array_diff($roles, $rolesPermitidos);
+  if (!empty($rolesInvalidos)) {
+  ResponseHelper::error('El rol Jefe de Dependencia solo puede asignar roles: evaluador, evaluado', 403);
+  }
+  // Filtrar solo los roles permitidos
+  $roles = array_intersect($roles, $rolesPermitidos);
+  if (empty($roles)) {
+  ResponseHelper::error('Debe asignar al menos un rol válido (evaluador o evaluado)', 422);
+  }
+  }
 
- AuditoriaService::registrar('asignar_roles', 'usuarios', $id, null, ['roles' => $roles]);
+  $this->repo->removerRoles($id);
+  $pdo = Database::getInstance();
+  foreach ($roles as $rolCodigo) {
+  $stmt = $pdo->prepare("SELECT id FROM roles WHERE codigo = ?");
+  $stmt->execute([$rolCodigo]);
+  $rol = $stmt->fetch();
+  if ($rol) {
+  $this->repo->asignarRol($id, $rol['id'], $entidadId ?? $usuario['entidad_id']);
+  }
+  }
+
+  AuditoriaService::registrar('asignar_roles', 'usuarios', $id, null, ['roles' => $roles]);
  }
 }

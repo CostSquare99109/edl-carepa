@@ -65,6 +65,21 @@ class ConcertacionController
  ResponseHelper::success($resultado);
  }
 
+ public function aprobarPendientes(int $id): void
+ {
+  $resultado = $this->service->aprobarPendientes($id);
+  ResponseHelper::success($resultado, 'Compromisos aprobados correctamente');
+ }
+
+ public function rechazarPendientes(int $id): void
+ {
+  $input = json_decode(file_get_contents('php://input'), true) ?: [];
+  $input = SanitizerHelper::sanitizeArray($input);
+  $observaciones = $input['observaciones'] ?? '';
+  $resultado = $this->service->rechazarPendientes($id, $observaciones);
+  ResponseHelper::success($resultado, 'Compromisos rechazados correctamente');
+ }
+
  public function fijarUnilateral(int $id): void
  {
  $input = json_decode(file_get_contents('php://input'), true) ?: [];

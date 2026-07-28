@@ -164,7 +164,7 @@ class CompromisoComportamentalRepository extends BaseRepository
 
     public function contarPorConcertacion(int $concertacionId): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND eliminado_en IS NULL AND tipo = 'comportamental' AND estado NOT IN ('cumplido','incumplido','rechazado')");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND eliminado_en IS NULL AND tipo = 'comportamental' AND estado IN ('propuesto', 'aprobado', 'pendiente_aprobacion')");
         $stmt->execute([$concertacionId]);
         return (int) $stmt->fetchColumn();
     }
@@ -191,7 +191,7 @@ class CompromisoComportamentalRepository extends BaseRepository
              LEFT JOIN conductas co ON co.competencia_codigo = cc.competencia_codigo AND co.activo = 1
              INNER JOIN concertaciones con ON con.id = cc.concertacion_id
              INNER JOIN evaluaciones ev ON ev.concertacion_id = con.id
-             WHERE ev.id = ? AND cc.eliminado_en IS NULL AND cc.tipo = 'comportamental'
+              WHERE ev.id = ? AND cc.eliminado_en IS NULL AND cc.tipo = 'comportamental'
              ORDER BY cc.id, co.orden"
         );
         $stmt->execute([$evaluacionId]);

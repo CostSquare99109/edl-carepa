@@ -113,10 +113,8 @@ function diasEntre(fechaInicio: string, fechaFin: string): number {
 }
 
 const TIPOS_EVALUACION = [
-  { value: 'parcial_eventual', label: 'Evaluación parcial eventual' },
   { value: 'parcial_primer_semestre', label: 'Evaluación 1 semestre' },
   { value: 'parcial_segundo_semestre', label: 'Evaluación 2 semestre' },
-  { value: 'calificacion_extraordinaria', label: 'Calificación extraordinaria' },
 ] as const;
 
 const PESO_FUNCIONALES = 85;
@@ -300,11 +298,14 @@ export default function EvaluarPage() {
 
     if (ev.evaluacion_id && ev.evaluacion_id > 0) {
       try {
-        const res = await api.get<any>(`/compromisos/evaluacion/${ev.evaluacion_id}`);
-        const funcionales = ((res.funcionales || []) as Compromiso[]).filter(c =>
+        const [resFunc, resComp] = await Promise.all([
+          api.get<any>(`/compromisos/evaluacion/${ev.evaluacion_id}`),
+          api.get<any>(`/compromisos-comportamentales/evaluacion/${ev.evaluacion_id}`),
+        ]);
+        const funcionales = ((resFunc.funcionales || []) as Compromiso[]).filter(c =>
           ['aprobado', 'cumplido', 'incumplido', 'en_progreso'].includes(c.estado)
         );
-        const comportamentales = ((res.comportamentales || []) as Compromiso[]).filter(c =>
+        const comportamentales = ((resComp || []) as Compromiso[]).filter(c =>
           ['aprobado', 'cumplido', 'incumplido', 'en_progreso'].includes(c.estado)
         );
         const todos = [...funcionales, ...comportamentales];
@@ -532,11 +533,14 @@ export default function EvaluarPage() {
     let todosCompromisos = compromisos;
     if (selectedEvaluado.evaluacion_id && selectedEvaluado.evaluacion_id > 0) {
       try {
-        const res = await api.get<any>(`/compromisos/evaluacion/${selectedEvaluado.evaluacion_id}`);
-        const f = ((res.funcionales || []) as Compromiso[]).filter(c =>
+        const [resFunc, resComp] = await Promise.all([
+          api.get<any>(`/compromisos/evaluacion/${selectedEvaluado.evaluacion_id}`),
+          api.get<any>(`/compromisos-comportamentales/evaluacion/${selectedEvaluado.evaluacion_id}`),
+        ]);
+        const f = ((resFunc.funcionales || []) as Compromiso[]).filter(c =>
           ['aprobado', 'cumplido', 'incumplido', 'en_progreso'].includes(c.estado)
         );
-        const c = ((res.comportamentales || []) as Compromiso[]).filter(c =>
+        const c = ((resComp || []) as Compromiso[]).filter(c =>
           ['aprobado', 'cumplido', 'incumplido', 'en_progreso'].includes(c.estado)
         );
         todosCompromisos = [...f, ...c];

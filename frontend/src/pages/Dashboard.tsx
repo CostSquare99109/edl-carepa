@@ -46,6 +46,7 @@ interface Notificacion {
 const EXCLUDED_FOR_ADMIN_CAREPA = ['evaluaciones', 'periodos'];
 const EXCLUDED_FOR_EVALUADOR = ['entidades', 'dependencias', 'usuarios'];
 const EXCLUDED_FOR_EVALUADO = ['entidades', 'dependencias', 'usuarios', 'evaluaciones', 'periodos'];
+const EXCLUDED_FOR_JEFE_DEPENDENCIA = ['dependencias', 'usuarios'];
 
 const CARD_ITEMS = [
  { key: 'dependencias', label: 'Dependencias', icon: 'account_tree', color: 'text-purple-700', bg: 'bg-purple-100' },
@@ -122,16 +123,19 @@ function DashboardContent() {
  const [passwordMsg, setPasswordMsg] = useState('');
  const [passwordMsgTone, setPasswordMsgTone] = useState<'success' | 'danger'>('success');
 
- const isAdmin = rolActivo === 'admin_carepa';
- const isEvaluador = rolActivo === 'evaluador';
- const isEvaluado = rolActivo === 'evaluado';
- const excludedForRole = isAdmin
-  ? EXCLUDED_FOR_ADMIN_CAREPA
-  : isEvaluador
-  ? EXCLUDED_FOR_EVALUADOR
-  : isEvaluado
-  ? EXCLUDED_FOR_EVALUADO
-  : [];
+  const isAdmin = rolActivo === 'admin_carepa';
+  const isEvaluador = rolActivo === 'evaluador';
+  const isEvaluado = rolActivo === 'evaluado';
+  const isJefeDependencia = rolActivo === 'jefe_dependencia';
+  const excludedForRole = isAdmin
+   ? EXCLUDED_FOR_ADMIN_CAREPA
+   : isEvaluador
+   ? EXCLUDED_FOR_EVALUADOR
+   : isEvaluado
+   ? EXCLUDED_FOR_EVALUADO
+   : isJefeDependencia
+   ? EXCLUDED_FOR_JEFE_DEPENDENCIA
+   : [];
  const visibleCards = CARD_ITEMS.filter(item => !excludedForRole.includes(item.key));
  const puedeAprobar = rolActivo === 'evaluador';
 
@@ -205,10 +209,11 @@ function DashboardContent() {
   ? 'Evaluado'
   : '';
 
- const totalPendientes =
-  resumen.compromisos_pendientes_aprobacion +
-  resumen.mis_compromisos_enviados +
-  resumen.notificaciones_no_leidas;
+ const totalPendientes = isAdmin
+  ? 0 // El admin gestiona desde sus vistas dedicadas; no sumar notificaciones de otros roles.
+  : (resumen.compromisos_pendientes_aprobacion +
+     resumen.mis_compromisos_enviados +
+     resumen.notificaciones_no_leidas);
 
  const saludo = (() => {
   const h = new Date().getHours();
@@ -320,7 +325,7 @@ function DashboardContent() {
         </p>
         <p className="text-sm text-amber-700 mt-0.5">Funcionarios han enviado compromisos que requieren su revisión.</p>
         <button
-         onClick={() => navigate('/compromisos/aprobar')}
+         onClick={() => navigate('/dashboard/compromisos/aprobar')}
          className="text-sm text-amber-800 underline font-medium mt-1"
         >
          Ir a Aprobar Compromisos
@@ -328,7 +333,7 @@ function DashboardContent() {
        </div>
       </Card>
      ) : null}
-     {resumen.mis_compromisos_enviados > 0 ? (
+     {resumen.mis_compromisos_enviados > 0 && rolActivo === 'evaluado' ? (
       <Card className="bg-sky-50 border-sky-200 flex items-start gap-3 animate-slideUp">
        <span className="material-icons text-3xl text-sky-600">schedule</span>
        <div className="flex-1">
@@ -337,7 +342,7 @@ function DashboardContent() {
         </p>
         <p className="text-sm text-sky-700 mt-0.5">Sus compromisos enviados están pendientes de aprobación.</p>
         <button
-         onClick={() => navigate('/compromisos/mios')}
+         onClick={() => navigate('/dashboard/compromisos/mios')}
          className="text-sm text-sky-800 underline font-medium mt-1"
         >
          Ver Mis Compromisos
@@ -367,8 +372,10 @@ function DashboardContent() {
 
 
 
-   {/* Notificaciones */}
-   {!cargando && safeNotificaciones.length > 0 ? (
+   {/* Notificaciones: solo se muestran en roles no-admin.
+       El admin tiene su propia sección "Actividad reciente" (auditoría del sistema),
+       y las notificaciones son contextualmente del rol evaluado/evaluador. */}
+   {!cargando && !isAdmin && safeNotificaciones.length > 0 ? (
     <Card>
      <div className="flex items-center justify-between mb-4">
       <h3 className="edl-section-title">

@@ -1,0 +1,298 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 850" width="1200" height="850" style="font-family: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <!-- Definitions for Gradients, Shadows, and Patterns -->
+  <defs>
+    <!-- Grid Pattern -->
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#E2E8F0" stroke-width="1" stroke-opacity="0.6"/>
+    </pattern>
+
+    <!-- Shadows -->
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.08" />
+    </filter>
+    <filter id="shadow-sm" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0F172A" flood-opacity="0.05" />
+    </filter>
+
+    <!-- Gradients -->
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A2B5E" />
+      <stop offset="100%" stop-color="#051733" />
+    </linearGradient>
+
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A2B5E" />
+      <stop offset="100%" stop-color="#1E3A8A" />
+    </linearGradient>
+
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F9B233" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#F8FAFC" />
+    </linearGradient>
+
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E3EBF2" />
+      <stop offset="100%" stop-color="#F1F5F9" />
+    </linearGradient>
+
+    <!-- Connectors / Markers -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#F9B233" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0A2B5E" />
+    </marker>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="850" fill="#F8FAFC" />
+  <rect width="1200" height="850" fill="url(#grid)" />
+
+  <!-- ==================== HEADER SECTION ==================== -->
+  <g transform="translate(20, 20)" filter="url(#shadow)">
+    <!-- Header Box -->
+    <rect width="1160" height="100" rx="16" fill="url(#headerGrad)" />
+    
+    <!-- Stylized Institutional Shield & Checkmark Graphic (Alcaldia / Evaluation) -->
+    <g transform="translate(30, 20)">
+      <!-- Outer Shield Crest -->
+      <path d="M 0 5 C 0 5 15 -2 30 5 C 30 25 30 45 15 55 C 0 45 0 25 0 5 Z" fill="#F9B233" />
+      <path d="M 4 8 C 4 8 15 2 26 8 C 26 24 26 41 15 50 C 4 41 4 24 4 8 Z" fill="#0A2B5E" />
+      <!-- Star / Checkmark representing evaluation achievement -->
+      <path d="M 10 27 L 14 31 L 22 21" fill="none" stroke="#F9B233" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    </g>
+
+    <!-- Header Text -->
+    <text x="80" y="44" fill="#FFFFFF" font-size="24" font-weight="800" letter-spacing="0.5">EDL CAREPA</text>
+    <text x="80" y="66" fill="#F9B233" font-size="14" font-weight="600" letter-spacing="0.2">Sistema Integral de Evaluación del Desempeño Laboral</text>
+    
+    <!-- Badges -->
+    <g transform="translate(760, 35)">
+      <!-- Law Badge -->
+      <rect x="0" y="0" width="190" height="30" rx="15" fill="#1E3A8A" stroke="#3B82F6" stroke-width="1" />
+      <text x="95" y="19" fill="#E2E8F0" font-size="11" font-weight="700" text-anchor="middle">ACUERDO CNSC 617 DE 2018</text>
+
+      <!-- Entity Badge -->
+      <rect x="200" y="0" width="170" height="30" rx="15" fill="#14532D" stroke="#22C55E" stroke-width="1" />
+      <text x="285" y="19" fill="#E8F5E9" font-size="11" font-weight="700" text-anchor="middle">ALCALDÍA DE CAREPA</text>
+    </g>
+  </g>
+
+  <!-- ==================== LEFT COLUMN: TECH STACK ==================== -->
+  <!-- Container Header -->
+  <g transform="translate(20, 140)" filter="url(#shadow)">
+    <rect width="360" height="680" rx="16" fill="url(#cardGrad)" stroke="#E2E8F0" stroke-width="1.5" />
+    
+    <!-- Title -->
+    <rect x="0" y="0" width="360" height="50" rx="16" fill="#0A2B5E" clip-path="inset(0 0 10 0)" />
+    <!-- Round top corners of title clip path -->
+    <path d="M 0 16 A 16 16 0 0 1 16 0 L 344 0 A 16 16 0 0 1 360 16 L 360 50 L 0 50 Z" fill="#0A2B5E" />
+    
+    <text x="20" y="31" fill="#FFFFFF" font-size="15" font-weight="700">ARQUITECTURA &amp; STACK TECNOLÓGICO</text>
+    
+    <!-- Card 1: FRONTEND LAYER (React) -->
+    <g transform="translate(20, 70)" filter="url(#shadow-sm)">
+      <rect width="320" height="175" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+      <!-- Left color bar -->
+      <rect x="0" y="0" width="6" height="175" rx="3" fill="#61DAFB" />
+      
+      <!-- Tech Icon (Sleek screen/code box) -->
+      <rect x="20" y="15" width="28" height="22" rx="4" fill="#E3EBF2" />
+      <path d="M 24 22 L 28 26 L 32 22 M 28 30 L 32 30" fill="none" stroke="#0A2B5E" stroke-width="1.5" />
+      <text x="56" y="31" fill="#0A2B5E" font-size="14" font-weight="800">Capa Cliente (SPA)</text>
+      
+      <text x="20" y="60" fill="#3B82F6" font-size="12" font-weight="700">React 19.1 • TypeScript 5.8</text>
+      
+      <text x="20" y="85" fill="#64748B" font-size="11.5" font-weight="500">• Interfaz SPA reactiva optimizada por Vite 6.3</text>
+      <text x="20" y="105" fill="#64748B" font-size="11.5" font-weight="500">• Rutas robustas con React Router DOM 7.6</text>
+      <text x="20" y="125" fill="#64748B" font-size="11.5" font-weight="500">• Estilos utilitarios rápidos con TailwindCSS 3.4</text>
+      <text x="20" y="145" fill="#64748B" font-size="11.5" font-weight="500">• Feedback instantáneo mediante Sonner Toasts</text>
+    </g>
+
+    <!-- Card 2: BACKEND LAYER (PHP API) -->
+    <g transform="translate(20, 265)" filter="url(#shadow-sm)">
+      <rect width="320" height="195" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+      <!-- Left color bar -->
+      <rect x="0" y="0" width="6" height="195" rx="3" fill="#777BB4" />
+      
+      <!-- Server Icon -->
+      <rect x="20" y="15" width="28" height="22" rx="4" fill="#E3EBF2" />
+      <line x1="24" y1="21" x2="44" y2="21" stroke="#0A2B5E" stroke-width="2" />
+      <line x1="24" y1="26" x2="44" y2="26" stroke="#0A2B5E" stroke-width="2" />
+      <circle cx="28" cy="31" r="1.5" fill="#777BB4" />
+      <circle cx="34" cy="31" r="1.5" fill="#777BB4" />
+      <text x="56" y="31" fill="#0A2B5E" font-size="14" font-weight="800">Capa Servidor (API REST)</text>
+      
+      <text x="20" y="60" fill="#777BB4" font-size="12" font-weight="700">PHP 8.2+ • Arquitectura Segura</text>
+      
+      <text x="20" y="85" fill="#64748B" font-size="11.5" font-weight="500">• Patrón de código Controller-Service-Repository</text>
+      <text x="20" y="105" fill="#64748B" font-size="11.5" font-weight="500">• Seguridad JWT + CSRF de sesión &amp; Rate Limit</text>
+      <text x="20" y="125" fill="#64748B" font-size="11.5" font-weight="500">• Auditoría automatizada CUD con histórico</text>
+      <text x="20" y="145" fill="#64748B" font-size="11.5" font-weight="500">• Exportaciones PDF institucionales con Dompdf</text>
+      <text x="20" y="165" fill="#64748B" font-size="11.5" font-weight="500">• Notificaciones SMTP y pull periódico dinámico</text>
+    </g>
+
+    <!-- Card 3: DATABASE LAYER (MariaDB) -->
+    <g transform="translate(20, 480)" filter="url(#shadow-sm)">
+      <rect width="320" height="175" rx="12" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1" />
+      <!-- Left color bar -->
+      <rect x="0" y="0" width="6" height="175" rx="3" fill="#003545" />
+      
+      <!-- DB Icon -->
+      <path d="M 20 20 C 20 15 48 15 48 20 C 48 25 20 25 20 20 Z" fill="#E3EBF2" stroke="#0A2B5E" stroke-width="1.5" />
+      <path d="M 20 20 L 20 38 C 20 43 48 43 48 38 L 48 20" fill="none" stroke="#0A2B5E" stroke-width="1.5" />
+      <path d="M 20 29 C 20 34 48 34 48 29" fill="none" stroke="#0A2B5E" stroke-width="1.5" />
+      <text x="56" y="31" fill="#0A2B5E" font-size="14" font-weight="800">Persistencia de Datos</text>
+      
+      <text x="20" y="60" fill="#00A2D6" font-size="12" font-weight="700">MariaDB 10.6+ • Relacional</text>
+      
+      <text x="20" y="85" fill="#64748B" font-size="11.5" font-weight="500">• Control de Acceso Basado en Roles (RBAC)</text>
+      <text x="20" y="105" fill="#64748B" font-size="11.5" font-weight="500">• 6 roles jerárquicos y 51 permisos detallados</text>
+      <text x="20" y="125" fill="#64748B" font-size="11.5" font-weight="500">• Soporte Multi-rol activo sin re-autenticación</text>
+      <text x="20" y="145" fill="#64748B" font-size="11.5" font-weight="500">• Eliminación lógica segura (Soft Delete)</text>
+    </g>
+  </g>
+
+  <!-- ==================== MAIN CONTENT: EDL LIFECYCLE ==================== -->
+  <g transform="translate(400, 140)">
+    <!-- Main Header label -->
+    <text x="10" y="0" fill="#0A2B5E" font-size="18" font-weight="800" letter-spacing="0.3">CICLO DE EVALUACIÓN Y FLUJOS DE NEGOCIO</text>
+    <text x="10" y="22" fill="#64748B" font-size="12" font-weight="600">Proceso secuencial de administración de carrera administrativa de la CNSC</text>
+
+    <!-- ==================== FLOW CONNECTING PATHS ==================== -->
+    <!-- Path Phase 1 -> Phase 2 -->
+    <path d="M 375 140 L 415 140" fill="none" stroke="#F9B233" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+    <!-- Path Phase 2 -> Phase 4 -->
+    <path d="M 580 255 L 580 295" fill="none" stroke="#F9B233" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+    <!-- Path Phase 1 -> Phase 3 -->
+    <path d="M 190 255 L 190 295" fill="none" stroke="#F9B233" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+    <!-- Path Phase 3 -> Phase 4 -->
+    <path d="M 375 410 L 415 410" fill="none" stroke="#F9B233" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow)" />
+
+    <!-- ==================== PHASE CARDS ==================== -->
+    
+    <!-- FASE 1: CONCERTACIÓN -->
+    <g transform="translate(10, 45)" filter="url(#shadow)">
+      <rect width="365" height="210" rx="14" fill="#FFFFFF" stroke="#0A2B5E" stroke-opacity="0.12" stroke-width="1" />
+      
+      <!-- Phase Header Ribbon -->
+      <rect x="0" y="0" width="365" height="40" rx="14" fill="#0A2B5E" clip-path="inset(0 0 10 0)" />
+      <path d="M 0 14 A 14 14 0 0 1 14 0 L 351 0 A 14 14 0 0 1 365 14 L 365 40 L 0 40 Z" fill="#0A2B5E" />
+      <text x="15" y="25" fill="#FFFFFF" font-size="13" font-weight="800">FASE 1: Concertación Bilateral</text>
+      <!-- Subdued Number -->
+      <text x="330" y="28" fill="#F9B233" font-size="20" font-weight="900" text-anchor="middle">01</text>
+      
+      <!-- Content -->
+      <text x="15" y="65" fill="#3B82F6" font-size="12" font-weight="700">Plazo Mandatorio: 15 + 3 días hábiles</text>
+      
+      <text x="15" y="90" fill="#334155" font-size="12" font-weight="500">• Fijación de metas concertadas (Evaluado/Evaluador)</text>
+      <text x="15" y="110" fill="#334155" font-size="12" font-weight="500">• Opción de fijación unilateral + testigo ante desacuerdos</text>
+      <text x="15" y="130" fill="#334155" font-size="12" font-weight="500">• 85% Peso Compromisos Funcionales (Metas del área)</text>
+      <text x="15" y="150" fill="#334155" font-size="12" font-weight="500">• 15% Peso Compromisos Comportamentales (Conductas)</text>
+      <text x="15" y="170" fill="#334155" font-size="12" font-weight="500">• Catálogo normativo de Decretos 2539/2005 y 815/2018</text>
+      <text x="15" y="190" fill="#334155" font-size="12" font-weight="500">• Firma digital / aceptación de concertación en sistema</text>
+    </g>
+
+    <!-- FASE 2: SEGUIMIENTO Y EVIDENCIAS -->
+    <g transform="translate(405, 45)" filter="url(#shadow)">
+      <rect width="365" height="210" rx="14" fill="#FFFFFF" stroke="#0A2B5E" stroke-opacity="0.12" stroke-width="1" />
+      
+      <!-- Phase Header Ribbon -->
+      <rect x="0" y="0" width="365" height="40" rx="14" fill="#0A2B5E" clip-path="inset(0 0 10 0)" />
+      <path d="M 0 14 A 14 14 0 0 1 14 0 L 351 0 A 14 14 0 0 1 365 14 L 365 40 L 0 40 Z" fill="#0A2B5E" />
+      <text x="15" y="25" fill="#FFFFFF" font-size="13" font-weight="800">FASE 2: Seguimiento y Evidencias</text>
+      <text x="330" y="28" fill="#F9B233" font-size="20" font-weight="900" text-anchor="middle">02</text>
+      
+      <!-- Content -->
+      <text x="15" y="65" fill="#10B981" font-size="12" font-weight="700">Trazabilidad de Portafolio de Evidencias</text>
+      
+      <text x="15" y="90" fill="#334155" font-size="12" font-weight="500">• Cargue descriptivo de evidencias por evaluador/evaluado</text>
+      <text x="15" y="110" fill="#334155" font-size="12" font-weight="500">• Sin almacenamiento de archivos (mayor rendimiento de BD)</text>
+      <text x="15" y="130" fill="#334155" font-size="12" font-weight="500">• Generación automática de Planes de Mejoramiento</text>
+      <text x="15" y="150" fill="#334155" font-size="12" font-weight="500">• Activados por bajo rendimiento o alertas preventivas</text>
+      <text x="15" y="170" fill="#334155" font-size="12" font-weight="500">• Plazos de cumplimiento estrictos y auditables</text>
+      <text x="15" y="190" fill="#334155" font-size="12" font-weight="500">• Bitácora de acompañamiento para retroalimentación</text>
+    </g>
+
+    <!-- FASE 3: EVALUACIONES PARCIALES -->
+    <g transform="translate(10, 310)" filter="url(#shadow)">
+      <rect width="365" height="210" rx="14" fill="#FFFFFF" stroke="#0A2B5E" stroke-opacity="0.12" stroke-width="1" />
+      
+      <!-- Phase Header Ribbon -->
+      <rect x="0" y="0" width="365" height="40" rx="14" fill="#0A2B5E" clip-path="inset(0 0 10 0)" />
+      <path d="M 0 14 A 14 14 0 0 1 14 0 L 351 0 A 14 14 0 0 1 365 14 L 365 40 L 0 40 Z" fill="#0A2B5E" />
+      <text x="15" y="25" fill="#FFFFFF" font-size="13" font-weight="800">FASE 3: Calificaciones Parciales</text>
+      <text x="330" y="28" fill="#F9B233" font-size="20" font-weight="900" text-anchor="middle">03</text>
+      
+      <!-- Content -->
+      <text x="15" y="65" fill="#EC4899" font-size="12" font-weight="700">Semestrales Obligatorias y Eventuales</text>
+      
+      <text x="15" y="90" fill="#334155" font-size="12" font-weight="500">• 1er Semestre: Ordinario, rango fijo (01 Feb - 31 Jul)</text>
+      <text x="15" y="110" fill="#334155" font-size="12" font-weight="500">• 2do Semestre: Ordinario, rango fijo (01 Ago - 31 Ene)</text>
+      <text x="15" y="130" fill="#334155" font-size="12" font-weight="500">• Parciales Eventuales: Cambio de evaluador, retiros,</text>
+      <text x="15" y="146" fill="#334155" font-size="12" font-weight="500">   periodo de prueba o separación temporal > 30 días</text>
+      <text x="15" y="166" fill="#334155" font-size="12" font-weight="500">• Validación de escala comportamental (frecuencia conductual)</text>
+      <text x="15" y="186" fill="#334155" font-size="12" font-weight="500">• Justificación obligatoria (>=40 carac.) para respuestas extras</text>
+    </g>
+
+    <!-- FASE 4: CALIFICACIÓN DEFINITIVA -->
+    <g transform="translate(405, 310)" filter="url(#shadow)">
+      <rect width="365" height="210" rx="14" fill="#FFFFFF" stroke="#0A2B5E" stroke-opacity="0.12" stroke-width="1" />
+      
+      <!-- Phase Header Ribbon -->
+      <rect x="0" y="0" width="365" height="40" rx="14" fill="#0A2B5E" clip-path="inset(0 0 10 0)" />
+      <path d="M 0 14 A 14 14 0 0 1 14 0 L 351 0 A 14 14 0 0 1 365 14 L 365 40 L 0 40 Z" fill="#0A2B5E" />
+      <text x="15" y="25" fill="#FFFFFF" font-size="13" font-weight="800">FASE 4: Calificación Definitiva</text>
+      <text x="330" y="28" fill="#F9B233" font-size="20" font-weight="900" text-anchor="middle">04</text>
+      
+      <!-- Content -->
+      <text x="15" y="65" fill="#F59E0B" font-size="12" font-weight="700">Consolidación de Resultados</text>
+      
+      <text x="15" y="90" fill="#334155" font-size="12" font-weight="500">• Ponderación por días laborados de parciales registradas</text>
+      <text x="15" y="110" fill="#334155" font-size="12" font-weight="500">• Fórmulas matemáticas estrictas para el 85% / 15%</text>
+      <text x="15" y="130" fill="#334155" font-size="12" font-weight="700">• Rango de Calificaciones Finales de Acuerdo 617:</text>
+      <text x="15" y="148" fill="#059669" font-size="11.5" font-weight="600">   - Sobresaliente: Excelente rendimiento (>= 90%)</text>
+      <text x="15" y="164" fill="#2563EB" font-size="11.5" font-weight="600">   - Satisfactorio: Rendimiento conforme (65% a 89%)</text>
+      <text x="15" y="180" fill="#DC2626" font-size="11.5" font-weight="600">   - No Satisfactorio: Nivel deficiente (&lt;= 65%)</text>
+      <text x="15" y="196" fill="#334155" font-size="11.5" font-weight="500">• Generación de PDF firmado con validez institucional</text>
+    </g>
+
+    <!-- ==================== SECURITY & AUDITING BANNER ==================== -->
+    <g transform="translate(10, 540)" filter="url(#shadow)">
+      <rect width="760" height="110" rx="14" fill="url(#glowGrad)" stroke="#0A2B5E" stroke-opacity="0.15" stroke-width="1.5" />
+      
+      <!-- Shield Lock Icon -->
+      <g transform="translate(20, 20)">
+        <path d="M 15 5 C 15 5 25 2 30 7 C 30 20 30 35 15 45 C 0 35 0 20 0 7 C 5 2 15 5 15 5 Z" fill="#0A2B5E" />
+        <circle cx="15" cy="22" r="5" fill="#F9B233" />
+        <rect x="13" y="24" width="4" height="10" fill="#F9B233" />
+      </g>
+      
+      <text x="70" y="32" fill="#0A2B5E" font-size="14" font-weight="800">Mecanismos de Control, Auditoría &amp; Seguridad</text>
+      
+      <!-- Column 1 specs -->
+      <text x="70" y="55" fill="#334155" font-size="11" font-weight="600">SEGURIDAD WEB ACTIVA:</text>
+      <text x="70" y="72" fill="#64748B" font-size="11" font-weight="500">• Control CSRF por Sesión &amp; Rate Limit de IPs</text>
+      <text x="70" y="88" fill="#64748B" font-size="11" font-weight="500">• Cabeceras seguras (HSTS, CSP, X-Frame)</text>
+
+      <!-- Column 2 specs -->
+      <text x="320" y="55" fill="#334155" font-size="11" font-weight="600">AUDITORÍA COMPLETA (CUD):</text>
+      <text x="320" y="72" fill="#64748B" font-size="11" font-weight="500">• Tracking de cambios con estado previo y nuevo</text>
+      <text x="320" y="88" fill="#64748B" font-size="11" font-weight="500">• Bloqueo automático por intentos fallidos de Login</text>
+
+      <!-- Column 3 specs -->
+      <text x="560" y="55" fill="#334155" font-size="11" font-weight="600">AUDITORÍA DIRIGIDA 2026:</text>
+      <text x="560" y="72" fill="#64748B" font-size="11" font-weight="500">• Soporte de bitácoras institucionales</text>
+      <text x="560" y="88" fill="#64748B" font-size="11" font-weight="500">• Reportes consolidados e informes consolidados</text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <rect x="20" y="828" width="1160" height="2" fill="#E2E8F0" />
+  <text x="600" y="842" fill="#64748B" font-size="11" font-weight="500" text-anchor="middle">Desarrollado para la Alcaldía de Carepa, Antioquia, Colombia • Gestión de Carrera Administrativa del Servicio Público</text>
+</svg>

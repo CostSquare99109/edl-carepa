@@ -82,8 +82,10 @@ export default function CompromisosYCompetencias() {
 
  function handleVerPropuestos() {
   if (!evaluado) return;
-  navigate(`/dashboard/compromisos/propuestos`, {
-   state: { evaluado },
+  const eid = evaluacionSeleccionada || evaluado.evaluacion_id;
+  if (!eid) return;
+  navigate(`/dashboard/compromisos/propuestos/${eid}`, {
+   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
   });
  }
 

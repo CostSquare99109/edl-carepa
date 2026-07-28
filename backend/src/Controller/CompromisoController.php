@@ -493,7 +493,15 @@ class CompromisoController
             ResponseHelper::error(implode('; ', $validacion['errores']), 422);
         }
 
-        $stmtUp = $pdo->prepare("UPDATE compromisos SET estado = 'pendiente_aprobacion', actualizado_en = NOW() WHERE concertacion_id = :cid AND tipo = 'funcional' AND eliminado_en IS NULL AND estado NOT IN ('cumplido','incumplido','rechazado')");
+        $sumaPesos = (new \App\Repository\CompromisoRepository($pdo))->sumPesosPorConcertacion($concertacionId);
+        if (abs($sumaPesos - 100) > 0.01) {
+            ResponseHelper::error(
+                "La suma de los pesos de los compromisos funcionales debe ser exactamente 100%. Actual: {$sumaPesos}%",
+                422
+            );
+        }
+
+        $stmtUp = $pdo->prepare("UPDATE compromisos SET estado = 'pendiente_aprobacion', actualizado_en = NOW() WHERE concertacion_id = :cid AND tipo = 'funcional' AND eliminado_en IS NULL AND estado = 'propuesto'");
         $stmtUp->execute(['cid' => $concertacionId]);
 
         $stmtNotif = $pdo->prepare("
@@ -709,5 +717,85 @@ class CompromisoController
         $compromisos = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         ResponseHelper::success($compromisos);
+    }
+
+    /**
+     * GET /compromisos/mis-compromisos?periodo_id=X
+     *
+     * Retorna todos los compromisos del evaluado autenticado (funcionales +
+     * comportamentales) para un periodo, con el conteo por tipo.
+     * El frontend EvidenciasEvaluado usa esto para calcular dinamicamente
+     * cuantos slots de evidencia mostrar por tipo.
+     */
+    public function misCompromisos(): void
+    {
+        $user = AuthMiddleware::user();
+        $periodoId = (int) ($_GET['periodo_id'] ?? 0);
+
+        if ($periodoId <= 0) {
+            ResponseHelper::error('periodo_id es requerido', 400);
+        }
+
+        $pdo = Database::getInstance();
+
+        // Compromisos funcionales del evaluado en el periodo
+        $sqlFunc = "
+            SELECT c.id, c.concertacion_id, c.tipo, c.meta_id, c.descripcion,
+                   c.peso, c.estado, c.resultado_esperado, c.medio_verificacion,
+                   m.descripcion AS meta_descripcion
+            FROM compromisos c
+            INNER JOIN concertaciones con ON con.id = c.concertacion_id
+            INNER JOIN evaluaciones ev ON ev.concertacion_id = con.id
+            LEFT JOIN metas m ON m.id = c.meta_id
+            WHERE con.evaluado_id = :uid
+              AND ev.periodo_id = :pid
+              AND c.tipo = 'funcional'
+              AND c.eliminado_en IS NULL
+              AND con.eliminado_en IS NULL
+              AND ev.eliminado_en IS NULL
+            ORDER BY c.id
+        ";
+        $stmtF = $pdo->prepare($sqlFunc);
+        $stmtF->execute(['uid' => $user['id'], 'pid' => $periodoId]);
+        $funcionales = $stmtF->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Compromisos comportamentales del evaluado en el periodo
+        $sqlComp = "
+            SELECT c.id, c.concertacion_id, c.tipo, c.competencia_codigo,
+                   c.descripcion, c.peso, c.estado,
+                   c.nivel_comportamental, c.puntaje_comportamental
+            FROM compromisos c
+            INNER JOIN concertaciones con ON con.id = c.concertacion_id
+            INNER JOIN evaluaciones ev ON ev.concertacion_id = con.id
+            WHERE con.evaluado_id = :uid
+              AND ev.periodo_id = :pid
+              AND c.tipo = 'comportamental'
+              AND c.eliminado_en IS NULL
+              AND con.eliminado_en IS NULL
+              AND ev.eliminado_en IS NULL
+            ORDER BY c.id
+        ";
+        $stmtC = $pdo->prepare($sqlComp);
+        $stmtC->execute(['uid' => $user['id'], 'pid' => $periodoId]);
+        $comportamentales = $stmtC->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Solo compromisos en estados que permiten registro de evidencias
+        $estadosActivos = ['aprobado', 'en_progreso', 'cumplido', 'aceptado_evaluado'];
+        $funcionalesActivos = array_values(array_filter(
+            $funcionales,
+            fn($c) => in_array($c['estado'], $estadosActivos, true)
+        ));
+        $comportamentalesActivos = array_values(array_filter(
+            $comportamentales,
+            fn($c) => in_array($c['estado'], $estadosActivos, true)
+        ));
+
+        ResponseHelper::success([
+            'funcionales' => $funcionalesActivos,
+            'comportamentales' => $comportamentalesActivos,
+            'total_funcionales' => count($funcionalesActivos),
+            'total_comportamentales' => count($comportamentalesActivos),
+            'total' => count($funcionalesActivos) + count($comportamentalesActivos),
+        ]);
     }
 }

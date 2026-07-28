@@ -82,7 +82,7 @@ class CompromisoComportamentalService
                 'evaluador_id' => $user['id'],
                 'tipo_concertacion' => $datos['tipo_concertacion'] ?? 'concertacion_bilateral',
                 'evaluacion_id' => $evaluacionId,
-            ]);
+            ], true);
         }
 
         $this->validarLimites($concertacionId);
@@ -113,6 +113,66 @@ class CompromisoComportamentalService
         AuditoriaService::registrar('crear_compromiso_comportamental', 'compromisos', $id);
 
         return $id;
+    }
+
+    public function guardar(int $evaluacionId, array $competencias): void
+    {
+        $user = AuthMiddleware::user();
+        $rolActivo = AuthMiddleware::rolActivo();
+
+        $concertacionId = $this->repo->resolverConcertacionId($evaluacionId);
+        if (!$concertacionId) {
+            $pdo = Database::getInstance();
+            $stmt = $pdo->prepare("SELECT evaluado_id, periodo_id FROM evaluaciones WHERE id = :eid AND eliminado_en IS NULL");
+            $stmt->execute(['eid' => $evaluacionId]);
+            $evalData = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if (!$evalData) {
+                ResponseHelper::error('Evaluacion no encontrada', 404);
+            }
+            $concertacionService = new ConcertacionService();
+            $concertacionId = $concertacionService->crear([
+                'periodo_id' => $evalData['periodo_id'],
+                'evaluado_id' => $evalData['evaluado_id'],
+                'evaluador_id' => $user['id'],
+                'tipo_concertacion' => 'concertacion_bilateral',
+                'evaluacion_id' => $evaluacionId,
+            ], true);
+        }
+
+        $existingStmt = Database::getInstance()->prepare(
+            "SELECT id FROM compromisos WHERE concertacion_id = ? AND tipo = 'comportamental' AND eliminado_en IS NULL AND estado = 'propuesto'"
+        );
+        $existingStmt->execute([$concertacionId]);
+        $existingIds = $existingStmt->fetchAll(\PDO::FETCH_COLUMN);
+        foreach ($existingIds as $eid) {
+            $this->repo->eliminar((int) $eid);
+        }
+
+        foreach ($competencias as $comp) {
+            $competenciaCodigo = $comp['competencia_id'] ?? '';
+            if (empty($competenciaCodigo)) {
+                continue;
+            }
+
+            $compStmt = Database::getInstance()->prepare(
+                'SELECT nombre FROM competencias WHERE codigo = :cod'
+            );
+            $compStmt->execute(['cod' => $competenciaCodigo]);
+            $descripcion = $compStmt->fetchColumn() ?: $competenciaCodigo;
+
+            $crearDatos = [
+                'concertacion_id' => $concertacionId,
+                'tipo' => 'comportamental',
+                'competencia_codigo' => $competenciaCodigo,
+                'descripcion' => $descripcion,
+                'peso' => 1,
+                'propuesto_por_jefe_entidad' => $rolActivo === 'evaluador' ? 1 : 0,
+                'estado' => 'propuesto',
+            ];
+
+            $id = $this->repo->crear($crearDatos);
+            AuditoriaService::registrar('crear_compromiso_comportamental', 'compromisos', $id);
+        }
     }
 
     public function enviar(array $datos, array $user): int
@@ -160,9 +220,11 @@ class CompromisoComportamentalService
                     'evaluador_id' => $user['id'],
                     'tipo_concertacion' => $datos['tipo_concertacion'] ?? 'concertacion_bilateral',
                     'evaluacion_id' => $evaluacionId,
-                ]);
+                ], true);
             }
         }
+
+        $this->validarPropuestaPermitida((int) ($evaluacionId ?: 0), $concertacionId);
 
         $this->validarLimites($concertacionId);
 
@@ -381,6 +443,27 @@ class CompromisoComportamentalService
 
         $this->repo->actualizar($id, $actualizar);
         AuditoriaService::registrar('calificar_compromiso_comportamental', 'compromisos', $id);
+    }
+
+    private function validarPropuestaPermitida(int $evaluacionId, int $concertacionId): void
+    {
+        $pdo = Database::getInstance();
+
+        if ($evaluacionId > 0) {
+            $stmt = $pdo->prepare("SELECT estado FROM evaluaciones WHERE id = ? AND eliminado_en IS NULL");
+            $stmt->execute([$evaluacionId]);
+            $estadoEval = $stmt->fetchColumn();
+            $terminales = ['calificada', 'cerrada', 'anulada', 'aprobada_comision', 'rechazada_comision'];
+            if ($estadoEval && in_array($estadoEval, $terminales, true)) {
+                ResponseHelper::error("No se pueden proponer compromisos. La evaluacion esta {$estadoEval}.", 400);
+            }
+        }
+
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND eliminado_en IS NULL AND (propuesto_por_jefe_entidad = 1 OR es_propuesto_evaluado = 0) AND estado IN ('propuesto', 'pendiente_aprobacion')");
+        $stmt->execute([$concertacionId]);
+        if ((int) $stmt->fetchColumn() > 0) {
+            ResponseHelper::error('Ya existen compromisos pendientes de su aceptacion. Debe aceptarlos o rechazarlos antes de proponer nuevos.', 400);
+        }
     }
 
     private function validarLimites(int $concertacionId): void

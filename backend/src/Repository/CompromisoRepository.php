@@ -110,12 +110,16 @@ class CompromisoRepository extends BaseRepository
             SELECT c.*,
                    ev.primer_nombre as ev_nombre, ev.primer_apellido as ev_apellido,
                    ed.primer_nombre as ed_nombre, ed.primer_apellido as ed_apellido,
-                   p.nombre as periodo_nombre
+                   p.nombre as periodo_nombre,
+                   m.descripcion as meta_descripcion,
+                   ev2.tipo as evaluacion_tipo, ev2.id as evaluacion_id
             FROM compromisos c
             INNER JOIN concertaciones con ON con.id = c.concertacion_id
             INNER JOIN usuarios ev ON ev.id = con.evaluador_id
             INNER JOIN usuarios ed ON ed.id = con.evaluado_id
             LEFT JOIN periodos p ON p.id = con.periodo_id
+            LEFT JOIN metas m ON m.id = c.meta_id
+            LEFT JOIN evaluaciones ev2 ON ev2.concertacion_id = c.concertacion_id AND ev2.eliminado_en IS NULL
             WHERE {$where}
             ORDER BY c.creado_en ASC LIMIT ? OFFSET ?
         ");
@@ -141,14 +145,14 @@ class CompromisoRepository extends BaseRepository
 
     public function sumPesosPorConcertacion(int $concertacionId): float
     {
-        $stmt = $this->pdo->prepare("SELECT COALESCE(SUM(peso), 0) FROM compromisos WHERE concertacion_id = ? AND tipo = 'funcional' AND eliminado_en IS NULL AND estado != 'rechazado'");
+        $stmt = $this->pdo->prepare("SELECT COALESCE(SUM(peso), 0) FROM compromisos WHERE concertacion_id = ? AND tipo = 'funcional' AND eliminado_en IS NULL AND estado IN ('propuesto', 'aprobado', 'pendiente_aprobacion')");
         $stmt->execute([$concertacionId]);
         return (float) $stmt->fetchColumn();
     }
 
     public function contarPorConcertacion(int $concertacionId): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND tipo = 'funcional' AND eliminado_en IS NULL AND estado NOT IN ('cumplido','incumplido','rechazado')");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND tipo = 'funcional' AND eliminado_en IS NULL AND estado IN ('propuesto', 'aprobado', 'pendiente_aprobacion')");
         $stmt->execute([$concertacionId]);
         return (int) $stmt->fetchColumn();
     }
@@ -170,7 +174,7 @@ class CompromisoRepository extends BaseRepository
              INNER JOIN concertaciones con ON con.id = c.concertacion_id
              INNER JOIN evaluaciones ev ON ev.concertacion_id = con.id
              LEFT JOIN metas m ON m.id = c.meta_id
-             WHERE ev.id = ? AND c.tipo = 'funcional' AND c.eliminado_en IS NULL
+              WHERE ev.id = ? AND c.tipo = 'funcional' AND c.eliminado_en IS NULL
              ORDER BY c.id"
         );
         $stmt->execute([$evaluacionId]);

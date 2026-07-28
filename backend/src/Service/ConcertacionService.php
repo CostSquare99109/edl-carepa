@@ -61,18 +61,20 @@ if ((int) $concertacion['evaluador_id'] !== $user['id'] &&
 return $concertacion;
  }
 
-  public function crear(array $datos): int
+  public function crear(array $datos, bool $esInterno = false): int
   {
-  $user = AuthMiddleware::user();
-  $rolActivo = AuthMiddleware::rolActivo();
+  if (!$esInterno) {
+    $user = AuthMiddleware::user();
+    $rolActivo = AuthMiddleware::rolActivo();
 
-if ($rolActivo !== 'evaluador') {
- ResponseHelper::forbidden('Solo evaluadores pueden crear concertaciones');
+    if ($rolActivo !== 'evaluador') {
+      ResponseHelper::forbidden('Solo evaluadores pueden crear concertaciones');
+    }
    }
 
    $periodoId = $datos['periodo_id'] ?? null;
    $evaluadoId = $datos['evaluado_id'] ?? null;
-   $evaluadorId = $datos['evaluador_id'] ?? $user['id'];
+   $evaluadorId = $datos['evaluador_id'] ?? ($esInterno ? null : ($user['id'] ?? null));
    $tipoConcertacion = $datos['tipo_concertacion'] ?? 'concertacion_bilateral';
    $evaluacionId = $datos['evaluacion_id'] ?? null;
 
@@ -355,6 +357,108 @@ if (empty($compromisos)) {
  'motivo' => $motivo,
  'testigo_id' => $testigoId,
  ]);
+ }
+
+ public function aprobarPendientes(int $concertacionId): array
+ {
+  $concertacion = $this->concertacionRepo->buscarPorId($concertacionId);
+  if (!$concertacion) {
+   ResponseHelper::notFound('Concertacion no encontrada');
+  }
+
+  $user = AuthMiddleware::user();
+  $pdo = Database::getInstance();
+  $stmtEval = $pdo->prepare("SELECT evaluador_id FROM evaluaciones WHERE concertacion_id = ? AND eliminado_en IS NULL LIMIT 1");
+  $stmtEval->execute([$concertacionId]);
+  $evEvalId = $stmtEval->fetchColumn();
+  $evaluadorId = $evEvalId ? (int) $evEvalId : (int) $concertacion['evaluador_id'];
+  if ((int) $evaluadorId !== (int) $user['id']) {
+   ResponseHelper::forbidden('Solo el evaluador asignado puede aprobar compromisos pendientes');
+  }
+
+  $stmt = $pdo->prepare("
+   UPDATE compromisos
+   SET estado = 'aprobado',
+       actualizado_en = NOW()
+   WHERE concertacion_id = :cid
+     AND estado IN ('propuesto', 'pendiente_aprobacion')
+     AND eliminado_en IS NULL
+  ");
+  $stmt->execute(['cid' => $concertacionId]);
+  $afectados = $stmt->rowCount();
+
+  if ($afectados === 0) {
+   ResponseHelper::error('No hay compromisos pendientes de aprobacion en esta concertacion', 400);
+  }
+
+  $stmtNotif = $pdo->prepare("
+   INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
+   VALUES (:uid, 'exito', 'Compromisos aprobados por el evaluador', :msg, NOW())
+  ");
+  $stmtNotif->execute([
+   'uid' => $concertacion['evaluado_id'],
+   'msg' => "El evaluador ha aprobado {$afectados} compromiso(s) en su concertacion.",
+  ]);
+
+  AuditoriaService::registrar('aprobar_compromisos_pendientes', 'concertaciones', $concertacionId, [
+   'compromisos_aprobados' => $afectados,
+  ]);
+
+  return ['concertacion_id' => $concertacionId, 'compromisos_aprobados' => $afectados];
+ }
+
+ public function rechazarPendientes(int $concertacionId, string $observaciones): array
+ {
+  if (trim($observaciones) === '') {
+   ResponseHelper::error('Debe indicar el motivo del rechazo de los compromisos', 400);
+  }
+
+  $concertacion = $this->concertacionRepo->buscarPorId($concertacionId);
+  if (!$concertacion) {
+   ResponseHelper::notFound('Concertacion no encontrada');
+  }
+
+  $user = AuthMiddleware::user();
+  $pdo = Database::getInstance();
+  $stmtEval = $pdo->prepare("SELECT evaluador_id FROM evaluaciones WHERE concertacion_id = ? AND eliminado_en IS NULL LIMIT 1");
+  $stmtEval->execute([$concertacionId]);
+  $evEvalId = $stmtEval->fetchColumn();
+  $evaluadorId = $evEvalId ? (int) $evEvalId : (int) $concertacion['evaluador_id'];
+  if ((int) $evaluadorId !== (int) $user['id']) {
+   ResponseHelper::forbidden('Solo el evaluador asignado puede rechazar compromisos pendientes');
+   }
+
+  $stmt = $pdo->prepare("
+   UPDATE compromisos
+   SET estado = 'devuelto',
+       observaciones_evaluador = :obs,
+       actualizado_en = NOW()
+   WHERE concertacion_id = :cid
+     AND estado IN ('propuesto', 'pendiente_aprobacion')
+     AND eliminado_en IS NULL
+  ");
+  $stmt->execute(['cid' => $concertacionId, 'obs' => trim($observaciones)]);
+  $afectados = $stmt->rowCount();
+
+  if ($afectados === 0) {
+   ResponseHelper::error('No hay compromisos pendientes de rechazo en esta concertacion', 400);
+  }
+
+  $stmtNotif = $pdo->prepare("
+   INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)
+   VALUES (:uid, 'alerta', 'Compromisos devueltos por el evaluador', :msg, NOW())
+  ");
+  $stmtNotif->execute([
+   'uid' => $concertacion['evaluado_id'],
+   'msg' => "El evaluador ha devuelto {$afectados} compromiso(s) con observaciones. Revise y ajuste su propuesta.",
+  ]);
+
+  AuditoriaService::registrar('rechazar_compromisos_pendientes', 'concertaciones', $concertacionId, [
+   'compromisos_devueltos' => $afectados,
+   'observaciones' => $observaciones,
+  ]);
+
+  return ['concertacion_id' => $concertacionId, 'compromisos_devueltos' => $afectados];
  }
 
  public function compromisosPorEvaluacion(int $evaluacionId): array

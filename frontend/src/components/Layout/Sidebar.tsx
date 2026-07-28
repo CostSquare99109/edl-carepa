@@ -173,7 +173,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps) {
-  const { menu } = useAuth();
+  const { menu, logout } = useAuth();
   const sidebarRef = useRef<HTMLElement>(null);
   const location = useLocation();
   const sections = groupMenu(menu);
@@ -271,44 +271,36 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
       />
 
       <aside
-        ref={sidebarRef}
-        id="sidebar-main"
-        aria-label="Menú lateral"
-        aria-hidden={!isMobileOpen}
-        className={`
-          bg-white border-r border-inst-borde flex flex-col overflow-hidden shadow-xl lg:shadow-none
-          transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
-          ${isOpen ? 'w-64' : 'w-16'}
-          /* Desktop: flex sibling that pushes content */
-          lg:relative lg:z-auto lg:translate-x-0 lg:flex-shrink-0
-          /* Mobile: fixed drawer that slides in/out */
-          fixed inset-y-0 left-0 z-50
-          ${isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full'}
-        `}
-      >
+  ref={sidebarRef}
+  id="sidebar-main"
+  aria-label="Menú lateral"
+  aria-hidden={!isMobileOpen}
+  className={`
+    bg-white border-r border-inst-borde flex flex-col overflow-hidden shadow-xl lg:shadow-none
+    transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
+    fixed inset-y-0 left-0 z-50 w-64
+    ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+    lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:z-auto lg:flex-shrink-0
+    ${isOpen ? 'lg:w-64' : 'lg:w-16'}
+  `}
+>
         {/* Sidebar header / brand area */}
         <div className="flex items-center h-14 border-b border-inst-borde bg-white flex-shrink-0">
           <div
-            className={`flex items-center gap-3 min-w-0 flex-1 overflow-hidden px-3 transition-opacity duration-200 ${
+            className={`flex items-center gap-3 flex-1 px-3 transition-opacity duration-200 ${
               isOpen ? 'opacity-100' : 'opacity-0 lg:hidden'
             }`}
           >
-            <img
-              src={`${import.meta.env.BASE_URL}escudo.png`}
-              alt="Escudo de Carepa"
-              className="h-10 w-10 object-contain flex-shrink-0"
-              onError={(e) => {
-                const img = e.target as HTMLImageElement;
-                img.style.display = 'none';
-                const parent = img.parentElement;
-                if (parent && !parent.querySelector('.escudo-fb')) {
-                  const fb = document.createElement('div');
-                  fb.className = 'escudo-fb h-10 w-10 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-base flex-shrink-0';
-                  fb.textContent = 'C';
-                  parent.prepend(fb);
-                }
-              }}
-            />
+            <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-base">
+              <img
+                src={`${import.meta.env.BASE_URL}escudo.png`}
+                alt="Escudo de Carepa"
+                className="h-10 w-10 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
             <div className="leading-tight min-w-0">
               <h1 className="text-base font-heading font-bold text-inst-azul-osc truncate">EDL Carepa</h1>
             </div>
@@ -320,22 +312,16 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
               isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
           >
-            <img
-              src={`${import.meta.env.BASE_URL}escudo.png`}
-              alt="Carepa"
-              className="h-8 w-8 object-contain"
-              onError={(e) => {
-                const img = e.target as HTMLImageElement;
-                img.style.display = 'none';
-                const parent = img.parentElement;
-                if (parent && !parent.querySelector('.escudo-fb-collapsed')) {
-                  const fb = document.createElement('div');
-                  fb.className = 'escudo-fb-collapsed h-8 w-8 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-sm';
-                  fb.textContent = 'C';
-                  parent.appendChild(fb);
-                }
-              }}
-            />
+            <div className="h-8 w-8 flex-shrink-0 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-sm">
+              <img
+                src={`${import.meta.env.BASE_URL}escudo.png`}
+                alt="Carepa"
+                className="h-8 w-8 object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            </div>
           </div>
 
           {/* Mobile close button inside drawer */}
@@ -371,14 +357,24 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
           ))}
         </nav>
 
-        <div
-          className={`border-t border-inst-borde bg-white flex-shrink-0 transition-all duration-200 ${
-            isOpen ? 'p-3 opacity-100' : 'p-2 opacity-0 max-h-0 overflow-hidden border-t-0'
-          }`}
-        >
-          <p className="text-[10px] text-inst-texto-claro leading-tight whitespace-nowrap">
-                    <span className="text-inst-azul-osc font-semibold">EDL Carepa</span>
-                  </p>
+        <div className="border-t border-inst-borde bg-white flex-shrink-0">
+          <button
+            type="button"
+            onClick={logout}
+            className={`flex items-center gap-3 w-full text-left text-inst-rojo hover:bg-red-50 transition-colors ${
+              isOpen ? 'px-3 py-2.5' : 'px-0 py-2 justify-center'
+            }`}
+            title={!isOpen ? 'Cerrar sesión' : undefined}
+          >
+            <span className="material-icons text-xl flex-shrink-0">logout</span>
+            <span
+              className={`text-sm font-medium whitespace-nowrap transition-all duration-200 ease-out overflow-hidden ${
+                isOpen ? 'opacity-100 max-w-[200px]' : 'opacity-0 max-w-0'
+              }`}
+            >
+              Cerrar sesión
+            </span>
+          </button>
         </div>
       </aside>
     </>

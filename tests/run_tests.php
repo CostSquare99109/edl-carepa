@@ -44,7 +44,7 @@ echo "=== EDL-CAREPA API Tests ===\n\n";
 
 // 1. Login
 echo "--- Auth ---\n";
-$resp = api('POST', '/api/v1/auth/login', ['documento' => 'admin', 'password' => '12345678']);
+$resp = api('POST', '/api/v1/auth/login', ['documento' => '1040353165', 'password' => '12345678']);
 $token = $resp['data']['token'] ?? '';
 if ($resp['code'] === '01' && $token) {
     echo "  [OK] Login\n";
@@ -65,7 +65,7 @@ test('Dashboard periodo-activo', 'GET', '/api/v1/dashboard/periodo-activo', [], 
 
 echo "\n--- CRUD Modules ---\n";
 test('Usuarios listar', 'GET', '/api/v1/usuarios?por_pagina=5', [], $token);
-test('Usuario ver (id=1)', 'GET', '/api/v1/usuarios/1', [], $token);
+test('Usuario ver (id=12)', 'GET', '/api/v1/usuarios/12', [], $token);
 test('Dependencias listar', 'GET', '/api/v1/dependencias', [], $token);
 test('Periodos listar', 'GET', '/api/v1/periodos', [], $token);
 test('Entidades listar', 'GET', '/api/v1/entidades', [], $token);
@@ -80,7 +80,7 @@ test('Ausentismos listar', 'GET', '/api/v1/ausentismos?por_pagina=5', [], $token
 test('Movilidades listar', 'GET', '/api/v1/movilidades?por_pagina=5', [], $token);
 
 echo "\n--- Reportes ---\n";
-test('Reportes resumen', 'GET', '/api/v1/reportes/resumen', [], $token);
+test('Reportes resumen', 'GET', '/api/v1/reportes/resumen?periodo_id=1', [], $token);
 test('Reportes funcionario (id=6)', 'GET', '/api/v1/reportes/funcionario/6', [], $token);
 
 echo "\n--- Dashboard ---\n";
@@ -89,18 +89,40 @@ test('Actividad', 'GET', '/api/v1/dashboard/actividad?por_pagina=5', [], $token)
 test('Buscar funcionario global', 'GET', '/api/v1/usuarios/buscar-global?q=Juan', [], $token);
 
 echo "\n--- Consulta funcionario ---\n";
-test('Consulta por cedula', 'GET', '/api/v1/consulta-funcionario?cedula=52987634', [], $token);
+test('Consulta por cedula', 'GET', '/api/v1/consulta-funcionario/52987634', [], $token);
 
 echo "\n--- Compromisos flows ---\n";
 test('Compromisos pendientes', 'GET', '/api/v1/compromisos/pendientes', [], $token);
-test('Propuestos por evaluado', 'GET', '/api/v1/compromisos/propuestos-evaluado', [], $token);
-test('Buscar evaluado', 'GET', '/api/v1/compromisos/buscar-evaluado?q=Juan', [], $token);
+test('Propuestos por evaluado', 'GET', '/api/v1/compromisos/propuestos-evaluado?evaluacion_id=1', [], $token);
+test('Buscar evaluado', 'GET', '/api/v1/compromisos/buscar-evaluado?documento=1040353165', [], $token);
 test('Competencias comportamentales', 'GET', '/api/v1/compromisos/competencias-comportamentales', [], $token);
 test('Evaluaciones pendientes calificar', 'GET', '/api/v1/evaluaciones/pendientes-calificar', [], $token);
 test('Compromisos mejoramiento listar', 'GET', '/api/v1/compromisos-mejoramiento', [], $token);
 
 echo "\n--- Logout ---\n";
-test('Logout', 'POST', '/api/v1/auth/logout', [], $token);
+$csrfResp = api('GET', '/api/v1/auth/csrf', [], $token);
+$csrfToken = $csrfResp['data']['csrf_token'] ?? '';
+$opts = [
+    'http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/json\r\nAuthorization: Bearer $token\r\nX-CSRF-Token: $csrfToken",
+    ]
+];
+$ctx = stream_context_create($opts);
+$body = @file_get_contents('http://localhost:8000/api/v1/auth/logout', false, $ctx);
+if ($body === false) {
+    echo "  [FAIL] Logout: " . (error_get_last()['message'] ?? 'Network error') . "\n";
+    $fail++;
+} else {
+    $resp = json_decode($body, true);
+    if ($resp && $resp['code'] === '01') {
+        echo "  [OK] Logout\n";
+        $pass++;
+    } else {
+        echo "  [FAIL] Logout: " . ($resp['message'] ?? 'Invalid response') . "\n";
+        $fail++;
+    }
+}
 
 echo "\n=== RESUMEN: $pass OK, $fail FAIL ===\n";
 exit($fail > 0 ? 1 : 0);

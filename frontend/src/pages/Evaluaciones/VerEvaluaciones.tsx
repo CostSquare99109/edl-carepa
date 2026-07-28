@@ -511,14 +511,6 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                         >
                           <span className="material-icons text-base">visibility</span>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDescargarPDF(ev)}
-                          title="Descargar PDF"
-                        >
-                          <span className="material-icons text-base">picture_as_pdf</span>
-                        </Button>
                         {esAnulable(ev.estado) && (
                           <Button
                             variant="ghost"

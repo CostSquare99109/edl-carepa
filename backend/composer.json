@@ -8,15 +8,38 @@
         "phpmailer/phpmailer": "^7.1",
 		"dompdf/dompdf": "^3.1"
     },
+    "require-dev": {
+        "pestphp/pest": "^4.7",
+        "pestphp/pest-plugin-laravel": "^4.1",
+        "phpunit/phpunit": "^11.0",
+        "phpstan/phpstan": "^1.10"
+    },
     "autoload": {
         "psr-4": {
             "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
         }
     },
     "config": {
         "optimize-autoloader": true,
         "audit": {
             "block-insecure": false
-        }
+        },
+		"allow-plugins": {
+			"pestphp/pest-plugin": true
+		}
+    },
+    "scripts": {
+        "test": "php vendor/bin/pest",
+        "test:unit": "php vendor/bin/pest tests/Unit",
+        "test:feature": "php vendor/bin/pest tests/Feature",
+        "test:coverage": "php vendor/bin/pest --coverage",
+        "test:parallel": "php vendor/bin/pest --parallel",
+        "phpstan": "php vendor/bin/phpstan analyse src --level=5",
+        "cs-fix": "php vendor/bin/php-cs-fixer fix src tests"
     }
 }

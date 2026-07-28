@@ -37,7 +37,11 @@ class EvaluacionRepository extends BaseRepository
  ed.documento as evaluado_documento,
  ed.dependencia_id as evaluado_dependencia_id,
  TRIM(CONCAT_WS(' ', evr.primer_nombre, evr.segundo_nombre, evr.primer_apellido, evr.segundo_apellido)) as evaluador_nombre,
- p.nombre as periodo_nombre
+ p.nombre as periodo_nombre,
+  CASE
+    WHEN ev.estado IN ('calificada','aprobada_comision','rechazada_comision','cerrada','anulada') THEN 0
+    ELSE 1
+  END as puede_proponer
  FROM evaluaciones ev
  INNER JOIN usuarios ed ON ed.id = ev.evaluado_id
  INNER JOIN usuarios evr ON evr.id = ev.evaluador_id

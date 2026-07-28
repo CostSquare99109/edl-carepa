@@ -319,6 +319,10 @@ export default function AdminUsuarios() {
         if (!form.fecha_inicio_evaluacion) return 'Debe indicar la fecha de inicio del período de evaluación';
         if (!form.motivo_fecha_inicio_diferente) return 'Debe indicar el motivo de fecha de inicio diferente';
       }
+      // Validar que se asigne al menos un rol (evaluador o evaluado)
+      if (form.roles.length === 0) {
+        return 'Debe asignar al menos un rol: Evaluador o Evaluado';
+      }
     } else {
       if (form.evaluacion_inicio_febrero === 0) {
         if (!form.fecha_inicio_evaluacion) return 'Debe indicar la fecha de inicio del período de evaluación';
@@ -377,13 +381,27 @@ export default function AdminUsuarios() {
         payload.password = form.password;
       }
 
+      let usuarioId: number;
       if (editando) {
         await api.put(`/usuarios/${editando.id}`, payload);
+        usuarioId = editando.id;
         toast.success('Usuario actualizado correctamente');
       } else {
-        await api.post('/usuarios', payload);
+        const res = await api.post<{ id: number }>('/usuarios', payload);
+        usuarioId = res.id;
         toast.success('Usuario creado correctamente');
       }
+
+      // Asignar roles si es jefe_dependencia
+      if (rolActivo === 'jefe_dependencia' && usuarioId && form.roles.length > 0) {
+        try {
+          await api.put(`/usuarios/${usuarioId}/roles`, { roles: form.roles });
+          toast.success('Roles asignados correctamente');
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : 'Error al asignar roles');
+        }
+      }
+
       setModalAbierto(false); cargar();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Error al guardar usuario');
@@ -831,41 +849,121 @@ export default function AdminUsuarios() {
             {/* SECCIÓN 5: ROLES */}
             <div className="edl-card border-l-4 border-l-inst-azul">
               <h4 className="font-heading font-semibold text-inst-azul mb-3">5. Roles y responsabilidades</h4>
-              <p className="text-xs text-inst-texto-claro mb-3">
-                El rol se asigna automáticamente según la naturaleza del cargo:{' '}
-                <strong>Carrera Administrativa</strong> → <Badge tone="info">Evaluado</Badge>,{' '}
-                <strong>Libre Nombramiento</strong> → <Badge tone="success">Evaluador</Badge>.
-                Los roles adicionales pueden ser gestionados por el administrador desde la tabla de usuarios.
-              </p>
-
-              {/* Es evaluador y evaluado (CNSC video 8) */}
-              <div className="bg-inst-gris p-3 rounded">
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={!!form.es_evaluador_y_evaluado}
-                    onChange={e => setForm({ ...form, es_evaluador_y_evaluado: e.target.checked ? 1 : 0 })}
-                    className="mt-1 w-4 h-4 accent-inst-azul"
-                  />
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-inst-texto">¿Es evaluador y simultáneamente evaluado?</span>
-                    <p className="text-xs text-inst-texto-claro mt-1">
-                      Marque esta opción si el servidor tiene la responsabilidad de evaluar a otro servidor y a su vez es sujeto de evaluación.
+              {rolActivo === 'jefe_dependencia' ? (
+                <>
+                  <p className="text-xs text-inst-texto-claro mb-3">
+                    Como Jefe de Personal puede asignar roles <strong>Evaluador</strong> y <strong>Evaluado</strong>.
+                    El sistema asigna automáticamente uno según la naturaleza del cargo.
+                  </p>
+                  <div className="bg-inst-gris p-3 rounded space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={form.roles.includes('evaluador')}
+                                            onChange={e => setForm({
+                                              ...form,
+                                              roles: e.target.checked
+                                                ? [...new Set([...form.roles, 'evaluador'])]
+                                                : form.roles.filter(r => r !== 'evaluador')
+                                            })}
+                                            className="w-4 h-4 accent-inst-azul"
+                                          />
+                                          <span className="text-sm font-medium text-inst-texto">Evaluador</span>
+                                          <Badge tone="success" className="ml-auto">Evaluador</Badge>
+                                        </label>
+                                        <label className="flex items-center gap-3 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={form.roles.includes('evaluado')}
+                                            onChange={e => setForm({
+                                              ...form,
+                                              roles: e.target.checked
+                                                ? [...new Set([...form.roles, 'evaluado'])]
+                                                : form.roles.filter(r => r !== 'evaluado')
+                                            })}
+                                            className="w-4 h-4 accent-inst-azul"
+                                          />
+                                          <span className="text-sm font-medium text-inst-texto">Evaluado</span>
+                                          <Badge tone="info" className="ml-auto">Evaluado</Badge>
+                                        </label>
+                    <p className="text-xs text-inst-texto-claro">
+                      {form.roles.includes('evaluador') && form.roles.includes('evaluado')
+                        ? 'El usuario tiene ambos roles (evaluador y evaluado simultáneamente).'
+                        : form.roles.includes('evaluador')
+                        ? 'Rol: Evaluador (asignado por naturaleza Libre Nombramiento o selección manual).'
+                        : form.roles.includes('evaluado')
+                        ? 'Rol: Evaluado (asignado por naturaleza Carrera Administrativa o selección manual).'
+                        : 'Debe seleccionar al menos un rol.'}
                     </p>
                   </div>
-                </label>
-                {form.es_evaluador_y_evaluado === 1 && (
-                  <div className="mt-3 pl-7">
-                    <Select
-                      label="Dependencia donde realiza la evaluación *"
-                      value={form.dependencia_evaluacion_id}
-                      onChange={e => setForm({ ...form, dependencia_evaluacion_id: e.target.value })}
-                      placeholder="Seleccionar dependencia..."
-                      options={dependencias.map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))}
-                    />
+                  {/* Es evaluador y evaluado (CNSC video 8) - checkbox separado para dependencia_evaluacion */}
+                  <div className="bg-inst-gris p-3 rounded mt-3">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!form.es_evaluador_y_evaluado}
+                        onChange={e => setForm({ ...form, es_evaluador_y_evaluado: e.target.checked ? 1 : 0 })}
+                        className="mt-1 w-4 h-4 accent-inst-azul"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-inst-texto">¿Es evaluador y simultáneamente evaluado?</span>
+                        <p className="text-xs text-inst-texto-claro mt-1">
+                          Marque esta opción si el servidor tiene la responsabilidad de evaluar a otro servidor y a su vez es sujeto de evaluación.
+                        </p>
+                      </div>
+                    </label>
+                    {form.es_evaluador_y_evaluado === 1 && (
+                      <div className="mt-3 pl-7">
+                        <Select
+                          label="Dependencia donde realiza la evaluación *"
+                          value={form.dependencia_evaluacion_id}
+                          onChange={e => setForm({ ...form, dependencia_evaluacion_id: e.target.value })}
+                          placeholder="Seleccionar dependencia..."
+                          options={dependencias.map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))}
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs text-inst-texto-claro mb-3">
+                    El rol se asigna automáticamente según la naturaleza del cargo:{' '}
+                    <strong>Carrera Administrativa</strong> → <Badge tone="info">Evaluado</Badge>,{' '}
+                    <strong>Libre Nombramiento</strong> → <Badge tone="success">Evaluador</Badge>.
+                    Los roles adicionales pueden ser gestionados por el administrador desde la tabla de usuarios.
+                  </p>
+
+                  {/* Es evaluador y evaluado (CNSC video 8) */}
+                  <div className="bg-inst-gris p-3 rounded">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!form.es_evaluador_y_evaluado}
+                        onChange={e => setForm({ ...form, es_evaluador_y_evaluado: e.target.checked ? 1 : 0 })}
+                        className="mt-1 w-4 h-4 accent-inst-azul"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-inst-texto">¿Es evaluador y simultáneamente evaluado?</span>
+                        <p className="text-xs text-inst-texto-claro mt-1">
+                          Marque esta opción si el servidor tiene la responsabilidad de evaluar a otro servidor y a su vez es sujeto de evaluación.
+                        </p>
+                      </div>
+                    </label>
+                    {form.es_evaluador_y_evaluado === 1 && (
+                      <div className="mt-3 pl-7">
+                        <Select
+                          label="Dependencia donde realiza la evaluación *"
+                          value={form.dependencia_evaluacion_id}
+                          onChange={e => setForm({ ...form, dependencia_evaluacion_id: e.target.value })}
+                          placeholder="Seleccionar dependencia..."
+                          options={dependencias.map(d => ({ value: String(d.id), label: `${d.codigo} — ${d.nombre}` }))}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* SECCIÓN 6: PERÍODO DE PRUEBA */}

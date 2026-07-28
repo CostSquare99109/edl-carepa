@@ -231,6 +231,7 @@ $r->get('/evaluaciones/{id}/evaluaciones-previas', [\App\Controller\EvaluacionCo
  $r->put('/compromisos/confirmar-concertacion/{id}', [\App\Controller\CompromisoController::class, 'confirmarConcertacion'], ['permiso:compromisos.crear']);
  $r->get('/compromisos/pendientes', [\App\Controller\CompromisoController::class, 'pendientesAprobacion'], ['permiso:compromisos.aprobar']);
  $r->get('/compromisos/propuestos-evaluado', [\App\Controller\CompromisoController::class, 'propuestosPorEvaluado'], ['permiso:compromisos.listar']);
+ $r->get('/compromisos/mis-compromisos', [\App\Controller\CompromisoController::class, 'misCompromisos'], ['permiso:compromisos.listar']);
  $r->put('/compromisos/{id}/aprobar', [\App\Controller\CompromisoController::class, 'aprobar'], ['permiso:compromisos.aprobar']);
  $r->put('/compromisos/{id}/rechazar', [\App\Controller\CompromisoController::class, 'rechazar'], ['permiso:compromisos.aprobar']);
  $r->put('/compromisos/{id}/devolver', [\App\Controller\CompromisoController::class, 'devolver'], ['permiso:compromisos.devolver']);
@@ -322,6 +323,15 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 CorsMiddleware::handle();
 
+// SPA fallback: si la ruta no empieza con /api, sirve index.html del build
+if ($method !== 'OPTIONS' && strpos($uri, '/api') !== 0) {
+    $spaIndex = dirname(__DIR__) . '/frontend/dist/index.html';
+    if (file_exists($spaIndex)) {
+        readfile($spaIndex);
+        return;
+    }
+}
+
 if ($method !== 'OPTIONS') {
- $router->dispatch($method, $uri);
+    $router->dispatch($method, $uri);
 }

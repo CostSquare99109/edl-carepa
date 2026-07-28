@@ -8,17 +8,33 @@ interface Evaluado {
   primer_nombre: string;
 }
 
+interface Conducta {
+  id: number;
+  texto: string;
+  orden: number;
+}
+
 interface Compromiso {
   id: number;
   tipo: string;
   descripcion: string;
   peso: number;
   estado: string;
+  meta_descripcion?: string;
   competencia_nombre?: string;
   competencia_decreto?: string;
+  competencia_codigo?: string;
   es_propuesto_jefe?: number;
-  observaciones_evaluador?: string;
   es_propuesto_evaluado?: number;
+  observaciones_evaluador?: string;
+  conductas?: Conducta[];
+}
+
+function formatearDecreto(d: string | undefined): string {
+  if (!d) return '-';
+  const m = d.match(/(\d+)\/(\d+)/);
+  if (m) return `D.${m[1]}/${m[2]}`;
+  return d;
 }
 
 export default function VerCompromisosPropuestos() {
@@ -29,16 +45,14 @@ export default function VerCompromisosPropuestos() {
 
   const [compromisos, setCompromisos] = useState<Compromiso[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  const [concertacionId, setConcertacionId] = useState<number | null>(null);
 
-  const [aprobarId, setAprobarId] = useState<number | null>(null);
-  const [aprobarPeso, setAprobarPeso] = useState('');
-  const [aprobarObs, setAprobarObs] = useState('');
-  const [savingAprobar, setSavingAprobar] = useState(false);
+  const [rechazoModal, setRechazoModal] = useState(false);
+  const [rechazoObs, setRechazoObs] = useState('');
 
-  const [rechazarId, setRechazarId] = useState<number | null>(null);
-  const [rechazarObs, setRechazarObs] = useState('');
-  const [savingRechazar, setSavingRechazar] = useState(false);
+  const [expandido, setExpandido] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (evaluacionId) cargarCompromisos();
@@ -47,7 +61,11 @@ export default function VerCompromisosPropuestos() {
   async function cargarCompromisos() {
     setLoading(true);
     try {
-      // Paquete 1 (funcionales) y Paquete 2 (comportamentales) en paralelo.
+      const evalRes = await api.get<any>(`/evaluaciones/${evaluacionId}`);
+      if (evalRes?.concertacion_id) {
+        setConcertacionId(Number(evalRes.concertacion_id));
+      }
+
       const [funcRes, compRes] = await Promise.all([
         api.get<any>(`/compromisos/evaluacion/${evaluacionId}`),
         api.get<any>(`/compromisos-comportamentales/evaluacion/${evaluacionId}`),
@@ -57,7 +75,7 @@ export default function VerCompromisosPropuestos() {
       const comportamentales = compLista.map((c: any) => ({ ...c, tipo: 'comportamental' }));
       const todos = [...funcionales, ...comportamentales];
       const propuestos = todos.filter((c: Compromiso) =>
-        c.estado === 'propuesto' || c.estado === 'pendiente'
+        ['propuesto', 'pendiente', 'pendiente_aprobacion'].includes(c.estado)
       );
       setCompromisos(propuestos);
     } catch (err) {
@@ -67,50 +85,47 @@ export default function VerCompromisosPropuestos() {
     }
   }
 
-  async function confirmarAprobacion(comp: Compromiso) {
-    const pesoNum = parseFloat(aprobarPeso);
-    if (isNaN(pesoNum) || pesoNum < 0 || pesoNum > 100) {
-      setMessage({ tipo: 'error', texto: 'El peso debe ser un número entre 0 y 100' });
+  async function handleAceptarTodo() {
+    if (!concertacionId) {
+      setMessage({ tipo: 'error', texto: 'No se encontró la concertación asociada.' });
       return;
     }
-    setSavingAprobar(true);
+    setSaving(true);
     setMessage(null);
     try {
-      await api.put(`/compromisos/${comp.id}/aprobar`, {
-        peso: pesoNum,
-        observaciones_evaluador: aprobarObs.trim() || null,
-      });
-      setAprobarId(null);
-      setAprobarPeso('');
-      setAprobarObs('');
-      setCompromisos(prev => prev.filter(c => c.id !== comp.id));
-      setMessage({ tipo: 'ok', texto: `Compromiso "${comp.descripcion.slice(0, 50)}..." aprobado correctamente.` });
+      await api.put(`/concertaciones/${concertacionId}/aprobar-pendientes`);
+      setMessage({ tipo: 'ok', texto: 'Todos los compromisos fueron aprobados correctamente.' });
+      cargarCompromisos();
     } catch (err: any) {
-      setMessage({ tipo: 'error', texto: err.message || 'Error al aprobar' });
+      setMessage({ tipo: 'error', texto: err.message || 'Error al aprobar compromisos' });
     } finally {
-      setSavingAprobar(false);
+      setSaving(false);
     }
   }
 
-  async function confirmarRechazo(comp: Compromiso) {
-    if (!rechazarObs.trim()) {
+  async function handleRechazarTodo() {
+    if (!concertacionId) {
+      setMessage({ tipo: 'error', texto: 'No se encontró la concertación asociada.' });
+      return;
+    }
+    if (!rechazoObs.trim()) {
       setMessage({ tipo: 'error', texto: 'Debe indicar el motivo del rechazo' });
       return;
     }
-    setSavingRechazar(true);
+    setSaving(true);
     setMessage(null);
     try {
-      await api.put(`/compromisos/${comp.id}/rechazar`, {
-        observaciones_evaluador: rechazarObs.trim(),
+      await api.put(`/concertaciones/${concertacionId}/rechazar-pendientes`, {
+        observaciones: rechazoObs.trim(),
       });
-      setRechazarId(null);
-      setRechazarObs('');
-      setCompromisos(prev => prev.filter(c => c.id !== comp.id));
-      setMessage({ tipo: 'ok', texto: `Compromiso rechazado. El evaluado será notificado para ajustar su propuesta.` });
+      setRechazoModal(false);
+      setRechazoObs('');
+      setMessage({ tipo: 'ok', texto: 'Todos los compromisos fueron devueltos al evaluado para ajuste.' });
+      cargarCompromisos();
     } catch (err: any) {
-      setMessage({ tipo: 'error', texto: err.message || 'Error al rechazar' });
+      setMessage({ tipo: 'error', texto: err.message || 'Error al rechazar compromisos' });
     } finally {
-      setSavingRechazar(false);
+      setSaving(false);
     }
   }
 
@@ -118,7 +133,7 @@ export default function VerCompromisosPropuestos() {
     return (
       <div className="edl-card text-center py-8">
         <p className="text-inst-texto-claro">No se encontraron datos del evaluado.</p>
-        <button onClick={() => navigate('/compromisos-y-competencias')} className="edl-btn-primary mt-4">Volver</button>
+        <button onClick={() => navigate('/dashboard/compromisos-y-competencias')} className="edl-btn-primary mt-4">Volver</button>
       </div>
     );
   }
@@ -127,10 +142,14 @@ export default function VerCompromisosPropuestos() {
   const comportamentales = compromisos.filter(c => c.tipo === 'comportamental');
   const totalPendientes = funcionales.length + comportamentales.length;
 
+  function toggleConductas(id: number) {
+    setExpandido(prev => ({ ...prev, [id]: !prev[id] }));
+  }
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => navigate('/compromisos-y-competencias')} className="edl-btn-secondary flex items-center gap-1 text-sm">
+        <button onClick={() => navigate('/dashboard/compromisos-y-competencias')} className="edl-btn-secondary flex items-center gap-1 text-sm">
           <span className="material-icons text-lg">arrow_back</span>Volver
         </button>
         <h2 className="edl-section-title">Compromisos propuestos por {evaluado.nombre_completo}</h2>
@@ -154,263 +173,142 @@ export default function VerCompromisosPropuestos() {
         </div>
       ) : (
         <>
-          <div className="text-sm text-inst-texto-claro mb-4">
-            <strong>{totalPendientes}</strong> compromiso(s) propuesto(s) pendente(s) de revisión.
-            Puede aprobarlos asignando un peso o rechazarlos con observaciones.
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <p className="text-sm text-inst-texto-claro">
+              <strong>{totalPendientes}</strong> compromiso(s) propuesto(s) pendiente(s) de revisión.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAceptarTodo}
+                disabled={saving}
+                className="edl-btn-primary bg-green-600 hover:bg-green-700 flex items-center gap-2 px-5 py-2"
+              >
+                <span className="material-icons text-lg">check_circle</span>
+                {saving ? 'Aprobando...' : 'Aceptar todo'}
+              </button>
+              <button
+                onClick={() => setRechazoModal(true)}
+                disabled={saving}
+                className="edl-btn-secondary text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-2 px-5 py-2"
+              >
+                <span className="material-icons text-lg">cancel</span>
+                Rechazar todo
+              </button>
+            </div>
           </div>
 
           {/* Funcionales */}
           {funcionales.length > 0 && (
             <div className="edl-card mb-6">
               <h3 className="font-heading font-bold text-inst-azul mb-4 flex items-center gap-2">
-                <span className="material-icons">work</span>Compromisos funcionales propuestos
+                <span className="material-icons">work</span>Compromisos funcionales
               </h3>
               <div className="space-y-4">
-                {funcionales.map(c => {
-                  const isAprobar = aprobarId === c.id;
-                  const isRechazar = rechazarId === c.id;
-                  return (
-                    <div key={c.id} className="border border-inst-borde rounded-lg p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <p className="text-sm text-inst-texto mb-1">{c.descripcion}</p>
-                          <div className="flex flex-wrap gap-3 text-xs text-inst-texto-claro">
-                            <span>Peso propuesto: <strong>{Number(c.peso)}%</strong></span>
-                            {c.es_propuesto_evaluado ? (
-                              <span className="text-blue-700">Propuesto por evaluado</span>
-                            ) : null}
-                            {c.es_propuesto_jefe ? (
-                              <span className="text-green-700">Propuesto por jefe de entidad</span>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="flex gap-2 ml-auto">
-                          {aprobarId !== c.id && rechazarId !== c.id && (
-                            <>
-                              <button
-                                onClick={() => { setAprobarId(c.id); setRechazarId(null); setAprobarPeso(''); setAprobarObs(''); }}
-                                className="edl-btn-primary text-sm flex items-center gap-1"
-                              >
-                                <span className="material-icons text-sm">check_circle</span>
-                                Aprobar
-                              </button>
-                              <button
-                                onClick={() => { setRechazarId(c.id); setAprobarId(null); setRechazarObs(''); }}
-                                className="edl-btn-secondary text-sm text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-1"
-                              >
-                                <span className="material-icons text-sm">cancel</span>
-                                Rechazar
-                              </button>
-                            </>
+                {funcionales.map(c => (
+                  <div key={c.id} className="border border-inst-borde rounded-lg p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-sm text-inst-texto font-medium mb-2">{c.descripcion}</p>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-inst-texto-claro">
+                          {c.meta_descripcion && (
+                            <span><strong>Meta:</strong> {c.meta_descripcion}</span>
                           )}
+                          <span><strong>Peso:</strong> {Number(c.peso)}%</span>
+                          {c.es_propuesto_evaluado ? (
+                            <span className="text-blue-700 font-medium">Propuesto por evaluado</span>
+                          ) : null}
                         </div>
                       </div>
-
-                      {/* Panel aprobar */}
-                      {isAprobar && (
-                        <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <h4 className="font-heading font-bold text-inst-azul text-sm mb-3">Aprobar compromiso</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                            <div>
-                              <label className="edl-label">Peso a asignar (%) *</label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="0.01"
-                                value={aprobarPeso}
-                                onChange={e => setAprobarPeso(e.target.value)}
-                                className="edl-input"
-                                placeholder="0 - 100"
-                              />
-                            </div>
-                            <div>
-                              <label className="edl-label">Observaciones (opcional)</label>
-                              <input
-                                type="text"
-                                value={aprobarObs}
-                                onChange={e => setAprobarObs(e.target.value)}
-                                className="edl-input"
-                                placeholder="Observaciones del evaluador..."
-                              />
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => confirmarAprobacion(c)}
-                              disabled={savingAprobar || !aprobarPeso}
-                              className="edl-btn-primary flex items-center gap-1 text-sm"
-                            >
-                              <span className="material-icons text-sm">check</span>
-                              {savingAprobar ? 'Confirmando...' : 'Confirmar aprobación'}
-                            </button>
-                            <button
-                              onClick={() => { setAprobarId(null); setAprobarPeso(''); setAprobarObs(''); }}
-                              className="edl-btn-secondary text-sm"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Panel rechazar */}
-                      {isRechazar && (
-                        <div className="mt-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                          <h4 className="font-heading font-bold text-red-700 text-sm mb-2">
-                            Rechazar compromiso — obligatorio indicar motivo
-                          </h4>
-                          <div className="mb-3">
-                            <label className="edl-label">Motivo del rechazo *</label>
-                            <textarea
-                              value={rechazarObs}
-                              onChange={e => setRechazarObs(e.target.value)}
-                              className="edl-input min-h-[60px]"
-                              placeholder="Explique por qué rechaza este compromiso y qué debe ajustar el evaluado..."
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => confirmarRechazo(c)}
-                              disabled={savingRechazar || !rechazarObs.trim()}
-                              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center gap-1 text-sm disabled:opacity-50"
-                            >
-                              <span className="material-icons text-sm">cancel</span>
-                              {savingRechazar ? 'Confirmando...' : 'Confirmar rechazo'}
-                            </button>
-                            <button
-                              onClick={() => { setRechazarId(null); setRechazarObs(''); }}
-                              className="edl-btn-secondary text-sm"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
           {/* Comportamentales */}
           {comportamentales.length > 0 && (
-            <div className="edl-card">
+            <div className="edl-card mb-6">
               <h3 className="font-heading font-bold text-inst-azul mb-4 flex items-center gap-2">
-                <span className="material-icons">psychology</span>Compromisos comportamentales propuestos
+                <span className="material-icons">psychology</span>Competencias comportamentales
               </h3>
               <div className="space-y-4">
-                {comportamentales.map(c => {
-                  const isAprobar = aprobarId === c.id;
-                  const isRechazar = rechazarId === c.id;
-                  return (
-                    <div key={c.id} className="border border-inst-borde rounded-lg p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <p className="text-sm text-inst-texto mb-1">{c.competencia_nombre || c.descripcion}</p>
-                          <div className="flex flex-wrap gap-3 text-xs text-inst-texto-claro">
-                            <span>{c.competencia_decreto === '2539_2005' ? 'D.2539/2005' : c.competencia_decreto === '815_2018' ? 'D.815/2018' : '-'}</span>
-                            {c.es_propuesto_jefe ? (
-                              <span className="text-green-700 flex items-center gap-1">
-                                <span className="material-icons text-sm">check</span>Propuesto por jefe
-                              </span>
-                            ) : (
-                              <span className="text-blue-700">Propuesto por evaluado</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2 ml-auto">
-                          {aprobarId !== c.id && rechazarId !== c.id && (
-                            <>
-                              <button
-                                onClick={() => { setAprobarId(c.id); setRechazarId(null); setAprobarPeso('0'); setAprobarObs(''); }}
-                                className="edl-btn-primary text-sm flex items-center gap-1"
-                              >
-                                <span className="material-icons text-sm">check_circle</span>
-                                Aprobar
-                              </button>
-                              <button
-                                onClick={() => { setRechazarId(c.id); setAprobarId(null); setRechazarObs(''); }}
-                                className="edl-btn-secondary text-sm text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-1"
-                              >
-                                <span className="material-icons text-sm">cancel</span>
-                                Rechazar
-                              </button>
-                            </>
-                          )}
+                {comportamentales.map(c => (
+                  <div key={c.id} className="border border-inst-borde rounded-lg p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="text-sm text-inst-texto font-medium mb-1">
+                          {c.competencia_nombre || c.descripcion}
+                          <span className="text-xs text-inst-texto-claro ml-2 font-normal">
+                            ({c.competencia_codigo || ''}) — {formatearDecreto(c.competencia_decreto)}
+                          </span>
+                        </p>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-inst-texto-claro mt-1">
+                          {c.es_propuesto_evaluado ? (
+                            <span className="text-blue-700 font-medium">Propuesto por evaluado</span>
+                          ) : null}
                         </div>
                       </div>
-
-                      {/* Panel aprobar */}
-                      {isAprobar && (
-                        <div className="mt-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <h4 className="font-heading font-bold text-inst-azul text-sm mb-3">Aprobar competencia</h4>
-                          <div className="mb-3">
-                            <label className="edl-label">Observaciones (opcional)</label>
-                            <input
-                              type="text"
-                              value={aprobarObs}
-                              onChange={e => setAprobarObs(e.target.value)}
-                              className="edl-input"
-                              placeholder="Observaciones del evaluador..."
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => confirmarAprobacion(c)}
-                              disabled={savingAprobar}
-                              className="edl-btn-primary flex items-center gap-1 text-sm"
-                            >
-                              <span className="material-icons text-sm">check</span>
-                              {savingAprobar ? 'Confirmando...' : 'Confirmar aprobación'}
-                            </button>
-                            <button
-                              onClick={() => { setAprobarId(null); setAprobarObs(''); }}
-                              className="edl-btn-secondary text-sm"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Panel rechazar */}
-                      {isRechazar && (
-                        <div className="mt-3 p-4 bg-red-50 rounded-lg border border-red-200">
-                          <h4 className="font-heading font-bold text-red-700 text-sm mb-2">
-                            Rechazar — obligatorio indicar motivo
-                          </h4>
-                          <div className="mb-3">
-                            <label className="edl-label">Motivo del rechazo *</label>
-                            <textarea
-                              value={rechazarObs}
-                              onChange={e => setRechazarObs(e.target.value)}
-                              className="edl-input min-h-[60px]"
-                              placeholder="Explique por qué rechaza esta competencia y qué debe ajustar el evaluado..."
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => confirmarRechazo(c)}
-                              disabled={savingRechazar || !rechazarObs.trim()}
-                              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center gap-1 text-sm disabled:opacity-50"
-                            >
-                              <span className="material-icons text-sm">cancel</span>
-                              {savingRechazar ? 'Confirmando...' : 'Confirmar rechazo'}
-                            </button>
-                            <button
-                              onClick={() => { setRechazarId(null); setRechazarObs(''); }}
-                              className="edl-btn-secondary text-sm"
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                      <button
+                        onClick={() => toggleConductas(c.id)}
+                        className="text-xs text-inst-azul hover:underline flex items-center gap-1"
+                      >
+                        <span className="material-icons text-sm">{expandido[c.id] ? 'expand_less' : 'expand_more'}</span>
+                        {expandido[c.id] ? 'Ocultar' : 'Ver'} conductas ({c.conductas?.length || 0})
+                      </button>
                     </div>
-                  );
-                })}
+                    {expandido[c.id] && c.conductas && c.conductas.length > 0 && (
+                      <div className="mt-3 pl-4 border-l-2 border-inst-azul space-y-1">
+                        {c.conductas
+                          .sort((a, b) => a.orden - b.orden)
+                          .map(cond => (
+                            <p key={cond.id} className="text-xs text-inst-texto flex items-start gap-2">
+                              <span className="text-inst-azul mt-0.5">•</span>
+                              {cond.texto}
+                            </p>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Modal rechazo masivo */}
+          {rechazoModal && (
+            <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+              <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+                <h3 className="font-heading font-bold text-red-700 text-lg mb-2">Rechazar todos los compromisos</h3>
+                <p className="text-xs text-inst-texto-claro mb-4">
+                  Los compromisos serán devueltos al evaluado para que ajuste su propuesta.
+                  Debe indicar el motivo del rechazo.
+                </p>
+                <div className="mb-4">
+                  <label className="edl-label">Motivo del rechazo *</label>
+                  <textarea
+                    value={rechazoObs}
+                    onChange={e => setRechazoObs(e.target.value)}
+                    className="edl-input min-h-[100px]"
+                    placeholder="Explique por qué rechaza estos compromisos y qué debe ajustar el evaluado..."
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleRechazarTodo}
+                    disabled={saving || !rechazoObs.trim()}
+                    className="bg-red-600 text-white px-5 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm disabled:opacity-50"
+                  >
+                    <span className="material-icons text-lg">cancel</span>
+                    {saving ? 'Rechazando...' : 'Confirmar rechazo'}
+                  </button>
+                  <button
+                    onClick={() => { setRechazoModal(false); setRechazoObs(''); }}
+                    className="edl-btn-secondary"
+                  >
+                    Cancelar
+                  </button>
+                </div>
               </div>
             </div>
           )}

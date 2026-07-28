@@ -190,6 +190,11 @@ class ApiClient {
  }
 
   async postFormData<T>(path: string, formData: FormData): Promise<T> {
+  // Ensure we have a fresh CSRF token before mutating request
+  if (!this.getCsrfToken()) {
+    await this.fetchCsrfToken();
+  }
+
   const opts: RequestInit = {
   method: 'POST',
   headers: {} as HeadersInit,
@@ -217,9 +222,55 @@ class ApiClient {
   throw new Error('Respuesta invalida del servidor.');
   }
 
+  // Handle CSRF token expiration (419) - fetch new token and retry once
+  if (res.status === 419 || (json.code === '02' && (json.message || '').toLowerCase().includes('csrf'))) {
+    if (DEBUG) console.log('[API] CSRF token expired, fetching new token and retrying...');
+    await this.fetchCsrfToken();
+
+    const retryOpts: RequestInit = {
+      method: 'POST',
+      headers: {} as HeadersInit,
+    };
+    const retryToken = this.getToken();
+    if (retryToken) (retryOpts.headers as Record<string,string>)['Authorization'] = `Bearer ${retryToken}`;
+    const retryCsrf = this.getCsrfToken();
+    if (retryCsrf) (retryOpts.headers as Record<string,string>)['X-CSRF-Token'] = retryCsrf;
+    retryOpts.body = formData;
+
+    const retryRes = await fetch(`${API_BASE}${path}`, retryOpts);
+    const retryText = await retryRes.text();
+    if (!retryText) throw new Error('El servidor no respondio en reintento.');
+
+    let retryJson: ApiResponse<T>;
+    try {
+      retryJson = JSON.parse(retryText);
+    } catch {
+      throw new Error('Respuesta invalida del servidor en reintento.');
+    }
+
+    if (retryRes.status === 401) {
+      localStorage.removeItem('edl_token');
+      localStorage.removeItem('edl_user');
+      localStorage.removeItem('edl_rol_activo');
+      localStorage.removeItem('edl_csrf');
+      window.location.href = '/login';
+      throw new Error('Sesion expirada');
+    }
+
+    if (retryJson.code !== '01') {
+      throw new Error(retryJson.message || 'Error del servidor');
+    }
+
+    // Pre-fetch fresh CSRF for next mutating request
+    this.fetchCsrfToken();
+    return retryJson.data;
+  }
+
   if (res.status === 401) {
   localStorage.removeItem('edl_token');
   localStorage.removeItem('edl_user');
+  localStorage.removeItem('edl_rol_activo');
+  localStorage.removeItem('edl_csrf');
   window.location.href = '/login';
   throw new Error('Sesion expirada');
   }
@@ -227,6 +278,9 @@ class ApiClient {
   if (json.code !== '01') {
   throw new Error(json.message || 'Error del servidor');
   }
+
+  // Pre-fetch fresh CSRF for next mutating request
+  this.fetchCsrfToken();
 
   return json.data;
   }
@@ -285,7 +339,8 @@ class ApiClient {
 
   downloadUrl(path: string): string {
     const token = this.getToken();
-    const url = `${API_BASE}${path}`;
+    // path puede ser relativo (/evidencias/archivo/29) o ya incluir API_BASE (/api/v1/evidencias/archivo/29)
+    const url = path.startsWith('/api/') || path.startsWith('http') ? path : `${API_BASE}${path}`;
     if (!token) return url;
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}token=${encodeURIComponent(token)}`;

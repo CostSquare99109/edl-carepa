@@ -115,32 +115,38 @@ class MenuController
 
  private function menuAdminCarepa(): array
  {
-  return [
-   [
-    'label' => 'Inicio',
-    'icon' => 'dashboard',
-    'ruta' => '/',
-    'permisos' => ['dashboard.ver'],
-   ],
-   [
-    'label' => 'Dependencias',
-    'icon' => 'account_tree',
-    'ruta' => '/dependencias',
-    'permisos' => ['dependencias.listar'],
-   ],
-   [
-    'label' => 'Usuarios',
-    'icon' => 'people',
-    'ruta' => '/usuarios',
-    'permisos' => ['usuarios.listar'],
-   ],
-   [
-    'label' => 'Manual de Funciones',
-    'icon' => 'menu_book',
-    'ruta' => '/manual-funciones',
-    'permisos' => ['cargos_manual.ver'],
-   ],
-  ];
+     return [
+         [
+             'label' => 'Inicio',
+             'icon' => 'dashboard',
+             'ruta' => '/',
+             'permisos' => ['dashboard.ver'],
+         ],
+         [
+             'label' => 'Dependencias',
+             'icon' => 'account_tree',
+             'ruta' => '/dependencias',
+             'permisos' => ['dependencias.listar'],
+         ],
+         [
+             'label' => 'Usuarios',
+             'icon' => 'people',
+             'ruta' => '/usuarios',
+             'permisos' => ['usuarios.listar'],
+         ],
+         [
+             'label' => 'Manual de Funciones',
+             'icon' => 'menu_book',
+             'ruta' => '/manual-funciones',
+             'permisos' => ['cargos_manual.ver'],
+         ],
+         [
+             'label' => 'Mis Evidencias',
+             'icon' => 'folder_open',
+             'ruta' => '/mis-evidencias',
+             'permisos' => ['evidencias.listar', 'evidencias.crear'],
+         ],
+     ];
  }
 
  private function menuJefeDependencia(array $user): array

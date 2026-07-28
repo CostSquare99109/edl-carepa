@@ -147,7 +147,7 @@ export default function Layout() {
                 EDL Carepa
               </h1>
               <p className="text-[10px] text-inst-texto-claro">
-                Evaluacion del Desempeno Laboral
+                Evaluacion del Desempeño Laboral
               </p>
             </div>
 
