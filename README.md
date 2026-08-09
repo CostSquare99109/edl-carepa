@@ -1,6 +1,6 @@
-# EDL Carepa — Evaluacion del Desempeno Laboral
+# EDL Carepa — Evaluación del Desempeño Laboral
 
-> Sistema integral de Evaluacion del Desempeno Laboral para la Alcaldia de Carepa, Antioquia, Colombia. Implementa el ciclo completo de evaluacion de servidores publicos conforme al **Acuerdo CNSC 617 de 2018**.
+> Sistema integral de Evaluación del Desempeño Laboral para la Alcaldia de Carepa, Antioquia, Colombia. Implementa el ciclo completo de evaluacion de servidores publicos conforme al **Acuerdo CNSC 617 de 2018**.
 
 [![Stack](https://img.shields.io/badge/PHP-8.2-777BB4)](https://www.php.net)
 [![Stack](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev)
@@ -33,7 +33,7 @@
 
 ## Acerca del proyecto
 
-**EDL Carepa** es una aplicacion web full-stack que automatiza el ciclo anual de evaluacion del desempeno laboral de los servidores publicos de carrera administrativa del municipio de Carepa. Digitaliza las cuatro fases obligatorias del Sistema Tipo de la CNSC: concertacion de compromisos, seguimiento, evaluaciones parciales y calificacion definitiva, con traf administrativos (dependencias, metas, usuarios, ausentismos, cargue masivo y reportes).
+**EDL Carepa** es una aplicacion web full-stack que automatiza el ciclo anual de evaluación del desempeño laboral de los servidores publicos de carrera administrativa del municipio de Carepa. Digitaliza las cuatro fases obligatorias del Sistema Tipo de la CNSC: concertacion de compromisos, seguimiento, evaluaciones parciales y calificacion definitiva, con traf administrativos (dependencias, metas, usuarios, ausentismos, cargue masivo y reportes).
 
 El proyecto esta alineado con:
 
