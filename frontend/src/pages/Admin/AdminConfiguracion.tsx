@@ -87,7 +87,7 @@ export default function AdminConfiguracion() {
      <button onClick={() => setMostrarNuevo(true)} className="edl-btn-primary text-sm">
       <span className="material-icons text-base align-middle mr-1">add</span>Nuevo
      </button>
-     <button onClick={guardarTodos} disabled={guardando} className="edl-btn-primary text-sm bg-inst-azul-osc hover:bg-inst-azul-osc/90">
+     <button onClick={guardarTodos} disabled={guardando} className="edl-btn-primary text-sm bg-inst-azul hover:bg-inst-azul/90">
       <span className="material-icons text-base align-middle mr-1">save</span>Guardar Todo
      </button>
     </div>
@@ -101,7 +101,7 @@ export default function AdminConfiguracion() {
       <span className="material-icons text-sm align-middle mr-1">tune</span>
       Parametros EDL - Acuerdo 617 de 2018
      </h3>
-     <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+     <div className="bg-inst-surface rounded-lg shadow-sm overflow-x-auto">
       <table className="w-full text-sm">
        <thead>
         <tr className="border-b bg-inst-gris">
@@ -128,7 +128,7 @@ export default function AdminConfiguracion() {
           <td className="px-4 py-3"><span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-inst-azul/10 text-inst-azul">{p.tipo}</span></td>
           <td className="px-4 py-3 text-inst-texto-claro text-xs">{p.descripcion || '---'}</td>
           <td className="px-4 py-3">
-           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-azul-osc hover:text-inst-azul-osc/80" title="Guardar">
+           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-azul hover:text-inst-azul/80" title="Guardar">
             <span className="material-icons text-base">save</span>
            </button>
           </td>
@@ -146,7 +146,7 @@ export default function AdminConfiguracion() {
       <span className="material-icons text-sm align-middle mr-1">admin_panel_settings</span>
       Parametros del Sistema
      </h3>
-     <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+     <div className="bg-inst-surface rounded-lg shadow-sm overflow-x-auto">
       <table className="w-full text-sm">
        <thead>
         <tr className="border-b bg-inst-gris">
@@ -173,7 +173,7 @@ export default function AdminConfiguracion() {
           <td className="px-4 py-3"><span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-inst-azul/10 text-inst-azul">{p.tipo}</span></td>
           <td className="px-4 py-3 text-inst-texto-claro text-xs">{p.descripcion || '---'}</td>
           <td className="px-4 py-3 flex items-center gap-2">
-           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-azul-osc hover:text-inst-azul-osc/80" title="Guardar">
+           <button onClick={() => guardarParametro(p.clave)} disabled={guardando} className="text-inst-azul hover:text-inst-azul/80" title="Guardar">
             <span className="material-icons text-base">save</span>
            </button>
            <button onClick={() => eliminarParametro(p.id)} className="text-inst-rojo hover:text-inst-rojo/80" title="Eliminar">
@@ -194,7 +194,7 @@ export default function AdminConfiguracion() {
 
    {mostrarNuevo && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setMostrarNuevo(false)}>
-     <div className="bg-white rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+     <div className="bg-inst-surface rounded-xl shadow-2xl w-full max-w-md" onClick={e => e.stopPropagation()}>
       <div className="p-5 border-b">
        <h3 className="text-lg font-bold text-inst-azul">Nuevo Parametro</h3>
       </div>

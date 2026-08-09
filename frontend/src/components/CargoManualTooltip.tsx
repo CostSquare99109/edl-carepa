@@ -78,8 +78,8 @@ export default function CargoManualTooltip({ usuarioId, inline = false, classNam
 
   if (inline) {
     return (
-      <div className={`text-xs text-gray-600 bg-blue-50 border-l-4 border-blue-400 p-2 my-1 ${className}`}>
-        <div className="font-semibold text-blue-900">Proposito Principal (Manual 159/2024)</div>
+      <div className={`text-xs text-gray-600 bg-inst-azul-surface border-l-4 border-inst-azul p-2 my-1 ${className}`}>
+        <div className="font-semibold text-inst-azul">Proposito Principal (Manual 159/2024)</div>
         <div className="text-gray-700 mt-1">{cargo.proposito_principal}</div>
       </div>
     );
@@ -93,7 +93,7 @@ export default function CargoManualTooltip({ usuarioId, inline = false, classNam
         onMouseLeave={() => setShowTooltip(false)}
         onFocus={() => setShowTooltip(true)}
         onBlur={() => setShowTooltip(false)}
-        className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 cursor-help"
+        className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-inst-azul-light text-inst-azul rounded-full hover:bg-inst-azul-light cursor-help"
         aria-label={`Ver proposito principal del cargo ${cargo.denominacion}`}
       >
         <span className="material-icons text-xs">info</span>
@@ -102,9 +102,9 @@ export default function CargoManualTooltip({ usuarioId, inline = false, classNam
       {showTooltip && (
         <div
           role="tooltip"
-          className="absolute z-50 bottom-full left-0 mb-2 w-80 bg-white border border-gray-300 rounded-lg shadow-lg p-3 text-left"
+          className="absolute z-50 bottom-full left-0 mb-2 w-80 bg-inst-surface border border-gray-300 rounded-lg shadow-lg p-3 text-left"
         >
-          <div className="text-xs font-bold text-blue-900">{cargo.denominacion}</div>
+          <div className="text-xs font-bold text-inst-azul">{cargo.denominacion}</div>
           <div className="text-[10px] text-gray-500 mb-2">
             Codigo {cargo.codigo}-{cargo.grado} | {cargo.planta} | {cargo.dependencia_nombre}
           </div>
@@ -113,7 +113,7 @@ export default function CargoManualTooltip({ usuarioId, inline = false, classNam
           <div className="mt-2 text-right">
             <a
               href={`/dashboard/manual-funciones/${cargo.id}`}
-              className="text-[10px] text-blue-600 hover:underline"
+              className="text-[10px] text-inst-azul hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               Ver ficha completa

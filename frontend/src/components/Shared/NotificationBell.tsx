@@ -20,7 +20,7 @@ const NOTI_ICON: Record<string, string> = {
 };
 
 const NOTI_COLOR: Record<string, string> = {
-  info: 'text-blue-600 bg-blue-100',
+  info: 'text-inst-azul bg-inst-azul-light',
   alerta: 'text-yellow-700 bg-yellow-100',
   error: 'text-red-600 bg-red-100',
   exito: 'text-green-600 bg-green-100',
@@ -78,7 +78,7 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-azul-osc transition-colors"
+        className="relative p-2 rounded-lg hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-azul transition-colors"
         title="Notificaciones"
       >
         <span className="material-icons text-xl">notifications</span>
@@ -90,21 +90,21 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-inst-borde rounded-xl shadow-xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-inst-surface border border-inst-borde rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-inst-borde bg-inst-gris-med">
             <div className="flex items-center gap-2">
-              <span className="font-heading font-semibold text-inst-azul-osc text-sm">
+              <span className="font-heading font-semibold text-inst-azul text-sm">
                 Notificaciones
               </span>
               {noLeidas > 0 && (
-                <span className="bg-inst-amarillo text-inst-azul-osc text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                <span className="bg-inst-amarillo text-inst-azul text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {noLeidas} nueva{noLeidas > 1 ? 's' : ''}
                 </span>
               )}
             </div>
             <button
               onClick={load}
-              className="p-1 rounded hover:bg-white text-inst-texto-claro"
+              className="p-1 rounded hover:bg-inst-surface text-inst-texto-claro"
               title="Actualizar"
             >
               <span className={`material-icons text-base ${loading ? 'animate-spin' : ''}`}>refresh</span>
@@ -126,7 +126,7 @@ export default function NotificationBell() {
                     handleClickNoti();
                   }}
                   className={`w-full flex items-start gap-3 px-4 py-3 text-left border-b border-inst-borde last:border-b-0 hover:bg-inst-gris transition-colors ${
-                    !n.leida ? 'bg-inst-azul-osc-light/40' : ''
+                    !n.leida ? 'bg-inst-azul-light/40' : ''
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${NOTI_COLOR[n.tipo] || 'bg-gray-100 text-gray-600'}`}>
@@ -144,7 +144,7 @@ export default function NotificationBell() {
                     </p>
                   </div>
                   {!n.leida && (
-                    <span className="w-2 h-2 rounded-full bg-inst-azul-osc flex-shrink-0 mt-2" />
+                    <span className="w-2 h-2 rounded-full bg-inst-azul flex-shrink-0 mt-2" />
                   )}
                 </button>
               ))
@@ -154,7 +154,7 @@ export default function NotificationBell() {
           <div className="border-t border-inst-borde px-4 py-2 bg-inst-gris-med">
             <button
               onClick={handleClickNoti}
-              className="w-full text-center text-xs font-medium text-inst-azul-osc hover:text-inst-azul-osc-hover py-1"
+              className="w-full text-center text-xs font-medium text-inst-azul hover:text-inst-azul-hover py-1"
             >
               Ver todas las notificaciones
             </button>

@@ -26,7 +26,7 @@ const TIPO_LABEL: Record<string, string> = {
  comision: 'Comision', reintegro: 'Reintegro', retiro: 'Retiro', otro: 'Otro',
 }
 const ESTADO_COLOR: Record<string, string> = {
- tramite: 'bg-yellow-100 text-yellow-800', aprobado: 'bg-blue-100 text-blue-800',
+ tramite: 'bg-yellow-100 text-yellow-800', aprobado: 'bg-inst-azul-light text-inst-azul',
  ejecutado: 'bg-green-100 text-green-800', anulado: 'bg-red-100 text-red-800',
 }
 
@@ -231,14 +231,14 @@ export default function MovilidadList() {
     <div className="flex items-center justify-center gap-2 mt-4">
      {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
       <button key={p} onClick={() => setPagina(p)}
-       className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-white border hover:bg-inst-gris'}`}>{p}</button>
+       className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-inst-gris'}`}>{p}</button>
      ))}
     </div>
    )}
 
    {modal && (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModal(null)}>
-     <div className="bg-white rounded-xl shadow-xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
+     <div className="bg-inst-surface rounded-xl shadow-xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
       <div className="px-6 py-4 border-b border-inst-borde">
        <h3 className="font-heading font-bold text-inst-texto">{editando ? 'Editar Movilidad' : 'Registrar Movilidad'}</h3>
       </div>
@@ -262,7 +262,7 @@ export default function MovilidadList() {
           </button>
          </div>
          {form.funcionario_id && (
-          <div className="mt-2 p-2 bg-inst-azul-osc-light rounded text-sm">
+          <div className="mt-2 p-2 bg-inst-azul-light rounded text-sm">
            <strong>Funcionario:</strong> {form.funcionario_nombre} (ID: {form.funcionario_id})
           </div>
          )}

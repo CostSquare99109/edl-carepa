@@ -292,26 +292,26 @@ export default function EvidenciasEvaluado() {
           ${isFilled
             ? tipo === 'funcional'
               ? 'border-green-400 bg-green-50/60'
-              : 'border-purple-400 bg-purple-50/60'
+              : 'border-inst-borde bg-inst-gris-med'
             : isActive
             ? tipo === 'funcional'
-              ? 'border-blue-400 bg-blue-50 animate-pulse'
-              : 'border-purple-400 bg-purple-50 animate-pulse'
+              ? 'border-inst-azul bg-inst-azul-surface animate-pulse'
+              : 'border-inst-borde bg-inst-gris-med animate-pulse'
             : 'border-dashed border-gray-300 bg-gray-50/40 opacity-60'
           }
         `}
       >
         {/* Header del slot */}
         <div className={`flex items-center gap-2 px-3 pt-3 pb-2 rounded-t-xl ${
-          tipo === 'funcional' ? 'bg-blue-100/70' : 'bg-purple-100/70'
+          tipo === 'funcional' ? 'bg-inst-azul-light' : 'bg-inst-gris-med/70'
         }`}>
           <span className={`material-icons text-base ${
-            isFilled ? 'text-green-600' : isActive ? (tipo==='funcional' ? 'text-blue-600' : 'text-purple-600') : 'text-gray-400'
+            isFilled ? 'text-green-600' : isActive ? (tipo==='funcional' ? 'text-inst-azul' : 'text-inst-azul') : 'text-gray-400'
           }`}>
             {isFilled ? 'check_circle' : isActive ? 'radio_button_checked' : 'radio_button_unchecked'}
           </span>
           <span className={`text-xs font-bold uppercase tracking-wider ${
-            isFilled ? 'text-green-700' : isActive ? (tipo==='funcional' ? 'text-blue-700' : 'text-purple-700') : 'text-gray-500'
+            isFilled ? 'text-green-700' : isActive ? (tipo==='funcional' ? 'text-inst-azul' : 'text-inst-texto-2') : 'text-gray-500'
           }`}>
             {tipo === 'funcional' ? 'Funcional' : 'Comportamental'} #{slot}
           </span>
@@ -327,7 +327,7 @@ export default function EvidenciasEvaluado() {
               {ev!.archivo_nombre && (
                 <button
                   onClick={() => descargar(ev!)}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 mt-1"
+                  className="flex items-center gap-1 text-xs text-inst-azul hover:text-inst-azul mt-1"
                 >
                   <span className="material-icons text-xs">attach_file</span>
                   {ev!.archivo_nombre!.length > 22 ? ev!.archivo_nombre!.substring(0,20)+'…' : ev!.archivo_nombre}
@@ -395,7 +395,7 @@ export default function EvidenciasEvaluado() {
   // ─────────────────────────────────────────────────────
   function renderFormulario() {
     const pasoLabel = pasoActual === 'funcional' ? 'Evidencia Funcional' : 'Evidencia Comportamental';
-    const colorClass = pasoActual === 'funcional' ? 'border-blue-400' : 'border-purple-400';
+    const colorClass = pasoActual === 'funcional' ? 'border-inst-azul' : 'border-inst-borde';
     const currentSlot = pasoActual === 'funcional' ? funcCount + 1 : compCount + 1;
     const maxCurrent = pasoActual === 'funcional' ? maxFunc : maxComp;
 
@@ -404,7 +404,7 @@ export default function EvidenciasEvaluado() {
         {/* Header del paso */}
         <div className="flex items-center gap-2 mb-5">
           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${
-            pasoActual === 'funcional' ? 'bg-blue-600' : 'bg-purple-600'
+            pasoActual === 'funcional' ? 'bg-inst-azul' : 'bg-inst-azul'
           }`}>
             {totalCount + 1}
           </div>
@@ -483,7 +483,7 @@ export default function EvidenciasEvaluado() {
               type="file"
               accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp"
               onChange={onArchivo}
-              className="edl-input text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-inst-azul file:text-white file:cursor-pointer hover:file:bg-inst-azul-osc"
+              className="edl-input text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-inst-azul file:text-white file:cursor-pointer hover:file:bg-inst-azul"
             />
             {formArchivo && (
               <p className="text-xs text-inst-texto-claro mt-1 flex items-center gap-1">
@@ -506,7 +506,7 @@ export default function EvidenciasEvaluado() {
             className={`
               edl-btn-primary w-full flex items-center justify-center gap-2 gap-y-1 py-2.5
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${pasoActual === 'funcional' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}
+              ${pasoActual === 'funcional' ? 'bg-inst-azul hover:bg-inst-azul-hover' : 'bg-inst-azul hover:bg-inst-azul-hover'}
             `}
           >
             <span className="material-icons text-sm">save</span>
@@ -525,9 +525,9 @@ export default function EvidenciasEvaluado() {
     return (
       <div className={`
         mb-5 p-4 rounded-lg border-l-4 flex items-start gap-3
-        ${pasoActual === 'funcional' ? 'bg-blue-50 border-blue-500' : 'bg-purple-50 border-purple-500'}
+        ${pasoActual === 'funcional' ? 'bg-inst-azul-light border-inst-azul' : 'bg-inst-gris-med border-inst-azul'}
       `}>
-        <span className={`material-icons text-xl mt-0.5 ${pasoActual === 'funcional' ? 'text-blue-600' : 'text-purple-600'}`}>
+        <span className={`material-icons text-xl mt-0.5 ${pasoActual === 'funcional' ? 'text-inst-azul' : 'text-inst-azul'}`}>
           info
         </span>
         <div>
@@ -638,7 +638,7 @@ export default function EvidenciasEvaluado() {
               </div>
               <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-inst-azul to-inst-azul-hover transition-all duration-300"
                   style={{ width: maxTotal > 0 ? `${(totalCount / maxTotal) * 100}%` : '0%' }}
                 />
               </div>

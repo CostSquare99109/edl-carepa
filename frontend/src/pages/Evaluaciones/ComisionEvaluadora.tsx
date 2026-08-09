@@ -114,7 +114,7 @@ async function cargarEvaluaciones() {
  header: 'Definitiva',
  align: 'center',
  render: (ev) => ev.calificacion_definitiva !== null ? (
- <span className="font-bold text-inst-azul-osc">{ev.calificacion_definitiva}%</span>
+ <span className="font-bold text-inst-azul">{ev.calificacion_definitiva}%</span>
  ) : <span className="text-inst-texto-claro">-</span>,
  },
  {
@@ -153,7 +153,7 @@ async function cargarEvaluaciones() {
  <div className="space-y-6">
  <div className="animate-fadeIn">
  <div className="flex items-center gap-2 mb-1">
- <span className="material-icons text-inst-azul-osc text-xl">gavel</span>
+ <span className="material-icons text-inst-azul text-xl">gavel</span>
  <h2 className="edl-section-title">Comisión Evaluadora</h2>
  </div>
  <p className="text-sm text-inst-texto-claro ml-7">
@@ -231,7 +231,7 @@ async function cargarEvaluaciones() {
  <button
  key={p}
  onClick={() => setPagina(p)}
- className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+ className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-inst-gris'}`}
  >
  {p}
  </button>
@@ -248,15 +248,15 @@ async function cargarEvaluaciones() {
  description={`${modalAprobar.evaluado_nombre} — ${modalAprobar.evaluado_cargo}`}
  size="lg"
  >
- <Card className="border-l-4 border-l-inst-azul-osc mb-4">
+ <Card className="border-l-4 border-l-inst-azul mb-4">
  <div className="grid grid-cols-3 gap-4 text-center">
  <div>
  <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Funcionales</p>
- <p className="text-2xl font-bold text-inst-azul-osc">{modalAprobar.nota_funcionales ?? '-'}%</p>
+ <p className="text-2xl font-bold text-inst-azul">{modalAprobar.nota_funcionales ?? '-'}%</p>
  </div>
  <div>
  <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Comportamentales</p>
- <p className="text-2xl font-bold text-inst-azul-osc">{modalAprobar.nota_comportamentales ?? '-'}%</p>
+ <p className="text-2xl font-bold text-inst-azul">{modalAprobar.nota_comportamentales ?? '-'}%</p>
  </div>
  <div>
  <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Definitiva</p>

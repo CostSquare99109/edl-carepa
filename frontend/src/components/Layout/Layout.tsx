@@ -105,7 +105,7 @@ export default function Layout() {
       />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-inst-borde sticky top-0 z-30">
+        <header className="bg-inst-surface border-b border-inst-borde sticky top-0 z-30">
           <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 h-14">
             {/* Hamburger button - ALWAYS in the header, ALWAYS at the start,
                 NEVER moves out of the header. Toggles sidebar open/close. */}
@@ -115,7 +115,7 @@ export default function Layout() {
               aria-label={hamburgerLabel}
               aria-expanded={sidebarOpen}
               aria-controls="sidebar-main"
-              className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-inst-texto-claro hover:bg-inst-gris-med hover:text-inst-azul-osc active:bg-inst-azul-osc-light transition-colors focus:outline-none focus:ring-2 focus:ring-inst-azul-osc/30"
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg text-inst-texto-claro hover:bg-inst-gris-med hover:text-inst-azul active:bg-inst-azul-light transition-colors focus:outline-none focus:ring-2 focus:ring-inst-azul/30"
             >
               <span className="material-icons text-2xl leading-none">menu</span>
             </button>
@@ -132,9 +132,9 @@ export default function Layout() {
                   const wrap = document.createElement('div');
                   wrap.className = 'escudo-fallback flex items-center gap-2';
                   wrap.innerHTML = `
-                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-inst-azul-osc flex items-center justify-center text-white font-heading font-bold text-sm">C</div>
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-inst-azul flex items-center justify-center text-white font-heading font-bold text-sm">C</div>
                     <div class="leading-tight hidden sm:block">
-                      <h1 class="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">EDL Carepa</h1>
+                      <h1 class="text-sm font-heading font-bold text-inst-azul tracking-wide">EDL Carepa</h1>
                       <p class="text-[10px] text-inst-texto-claro">Alcaldia de Carepa</p>
                     </div>
                   `;
@@ -143,7 +143,7 @@ export default function Layout() {
               }}
             />
             <div className="leading-tight hidden sm:block">
-              <h1 className="text-sm font-heading font-bold text-inst-azul-osc tracking-wide">
+              <h1 className="text-sm font-heading font-bold text-inst-azul tracking-wide">
                 EDL Carepa
               </h1>
               <p className="text-[10px] text-inst-texto-claro">
@@ -161,7 +161,7 @@ export default function Layout() {
 
             <div className="relative flex items-center gap-2 flex-shrink-0 border-l border-inst-borde pl-3 sm:pl-4" ref={perfilRef}>
               <div className="hidden sm:block text-right">
-                <p className="text-xs font-semibold text-inst-azul-osc truncate max-w-[140px]">
+                <p className="text-xs font-semibold text-inst-azul truncate max-w-[140px]">
                   {nombreCompleto}
                 </p>
                 {rolActivo && (
@@ -176,7 +176,7 @@ export default function Layout() {
                 aria-haspopup="menu"
                 aria-expanded={menuPerfilAbierto}
                 aria-label="Abrir menú de perfil"
-                className="w-9 h-9 rounded-full bg-gradient-to-br from-inst-azul-osc to-inst-azul-osc-hover text-white font-heading font-bold text-xs flex items-center justify-center hover:shadow-md transition-shadow ring-2 ring-white focus:outline-none focus:ring-inst-azul-osc"
+                className="w-9 h-9 rounded-full bg-inst-azul text-white font-heading font-bold text-xs flex items-center justify-center hover:bg-inst-azul-hover transition-all duration-base ring-2 ring-inst-surface focus:outline-none focus:ring-inst-azul"
               >
                 {iniciales}
               </button>
@@ -184,17 +184,17 @@ export default function Layout() {
                 <div
                   role="menu"
                   aria-label="Opciones de perfil"
-                  className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-inst-borde overflow-hidden z-50 animate-fadeIn"
+                  className="absolute right-0 top-full mt-2 w-56 bg-inst-surface rounded-lg shadow-lg border border-inst-borde overflow-hidden z-50 animate-fadeIn"
                 >
                   <div className="px-4 py-3 bg-inst-gris border-b border-inst-borde">
-                    <p className="text-sm font-semibold text-inst-azul-osc truncate">{nombreCompleto}</p>
+                    <p className="text-sm font-semibold text-inst-azul truncate">{nombreCompleto}</p>
                     <p className="text-xs text-inst-texto-claro truncate">{usuario?.email || ''}</p>
                   </div>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={irAPerfil}
-                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-azul-osc-light hover:text-inst-azul-osc flex items-center gap-2 focus:outline-none focus:bg-inst-azul-osc-light focus:text-inst-azul-osc"
+                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-azul-light hover:text-inst-azul flex items-center gap-2 focus:outline-none focus:bg-inst-azul-light focus:text-inst-azul"
                   >
                     <span className="material-icons text-base">person</span>
                     Ver perfil
@@ -203,7 +203,7 @@ export default function Layout() {
                     type="button"
                     role="menuitem"
                     onClick={irAPerfil}
-                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-azul-osc-light hover:text-inst-azul-osc flex items-center gap-2 focus:outline-none focus:bg-inst-azul-osc-light focus:text-inst-azul-osc"
+                    className="w-full text-left px-4 py-2 text-sm text-inst-texto hover:bg-inst-azul-light hover:text-inst-azul flex items-center gap-2 focus:outline-none focus:bg-inst-azul-light focus:text-inst-azul"
                   >
                     <span className="material-icons text-base">lock_reset</span>
                     Cambiar contraseña
@@ -223,14 +223,14 @@ export default function Layout() {
             </div>
           </div>
 
-          <div className="h-1 bg-gradient-to-r from-inst-azul-osc via-inst-amarillo to-inst-azul-osc" />
+          <div className="h-0.5 bg-inst-azul" />
         </header>
 
         <main className="flex-1 px-4 sm:px-6 py-5 sm:py-6 overflow-x-hidden">
           <Outlet />
         </main>
 
-        <footer className="text-center py-3 border-t border-inst-borde text-[11px] text-inst-texto-claro bg-white">
+        <footer className="text-center py-3 border-t border-inst-borde text-[11px] text-inst-texto-claro bg-inst-surface">
           EDL-CAREPA &copy; {new Date().getFullYear()} — Alcaldia de Carepa
         </footer>
       </div>

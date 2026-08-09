@@ -312,7 +312,7 @@ export default function AjustarCompromisos() {
             </div>
 
             {nuevoFuncionalAbierto && (
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+              <div className="mb-4 p-4 bg-inst-azul-surface rounded-lg border border-inst-azul space-y-3">
                 <h4 className="text-sm font-bold text-inst-azul">Nuevo compromiso funcional</h4>
                 <div>
                   <label className="edl-label">Descripcion</label>
@@ -376,7 +376,7 @@ export default function AjustarCompromisos() {
                               <Select value={editMotivoAjuste} onChange={e => setEditMotivoAjuste(e.target.value)} options={MOTIVOS_AJUSTE} placeholder="Motivo del ajuste" className="edl-input text-xs" />
                             </td>
                             <td className="px-3 py-2">
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">Editando</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-inst-azul-light text-inst-azul">Editando</span>
                             </td>
                             <td className="px-3 py-2 text-center">
                               <div className="flex items-center justify-center gap-1">
@@ -431,7 +431,7 @@ export default function AjustarCompromisos() {
             </div>
 
             {nuevoCompAbierto && (
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+              <div className="mb-4 p-4 bg-inst-azul-surface rounded-lg border border-inst-azul space-y-3">
                 <h4 className="text-sm font-bold text-inst-azul">Nueva competencia comportamental</h4>
                 <div>
                   <label className="edl-label">Competencia</label>

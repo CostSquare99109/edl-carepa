@@ -67,7 +67,7 @@ export default function Login() {
   const { titulo, subtitulo } = tabInfo[tab]
 
   return (
-    <div className="min-h-screen bg-inst-gris flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-inst-bg flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="edl-card animate-fadeIn">
           <div className="flex justify-center mb-6">
@@ -80,7 +80,7 @@ export default function Login() {
                 const parent = (e.target as HTMLImageElement).parentElement
                 if (parent && !parent.querySelector('.escudo-fallback')) {
                   const span = document.createElement('span')
-                  span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul-osc'
+                  span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul'
                   span.textContent = 'CAREPA'
                   parent.appendChild(span)
                 }
@@ -88,13 +88,12 @@ export default function Login() {
             />
           </div>
 
-          <h1 className="text-lg font-heading font-bold text-inst-azul-osc text-center mb-1">
+          <h1 className="text-lg font-heading font-bold text-inst-azul text-center mb-1">
             {titulo}
           </h1>
           <p className="text-sm text-inst-texto-claro text-center mb-4">{subtitulo}</p>
 
           <div className="edl-divider" />
-          <div className="edl-divider-accent" />
 
           {error ? (
             <div className="mb-4">
@@ -106,7 +105,7 @@ export default function Login() {
 
           {tab === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4" noValidate>
-              <h2 className="text-base font-heading font-semibold text-inst-azul-osc text-center mb-2">
+              <h2 className="text-base font-heading font-semibold text-inst-azul text-center mb-2">
                 Iniciar Sesión
               </h2>
 
@@ -153,7 +152,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => switchTab('recuperar')}
-                  className="text-inst-azul-osc hover:underline font-medium"
+                  className="text-inst-azul hover:underline font-medium"
                 >
                   Recuperar contraseña
                 </button>
@@ -185,7 +184,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => switchTab('login')}
-                  className="text-inst-azul-osc hover:underline font-medium"
+                  className="text-inst-azul hover:underline font-medium"
                 >
                   Iniciar sesión
                 </button>

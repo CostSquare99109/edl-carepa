@@ -73,14 +73,15 @@ export function Modal({
       <div
         ref={dialogRef}
         className={[
-          'relative w-full bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh]',
+          'relative w-full bg-inst-surface rounded-md border border-inst-borde flex flex-col max-h-[90vh]',
+          'shadow-elegant-lg',
           sizeClass[size],
         ].join(' ')}
       >
         {title || description ? (
           <div className="flex-shrink-0 px-5 pt-5 pb-3 border-b border-inst-borde">
             {title ? (
-              <h2 id="modal-title" className="text-base font-heading font-semibold text-inst-azul-osc">
+              <h2 id="modal-title" className="text-base font-heading font-semibold text-inst-azul">
                 {title}
               </h2>
             ) : null}

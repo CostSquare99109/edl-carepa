@@ -142,7 +142,7 @@ export default function AdminDependencias() {
  <button
  type="button"
  onClick={() => toggleEstado(d)}
- className="focus:outline-none focus:ring-2 focus:ring-inst-azul-osc rounded-full"
+ className="focus:outline-none focus:ring-2 focus:ring-inst-azul rounded-full"
  aria-label={`Cambiar estado de ${d.nombre}`}
  >
  <Badge tone={d.estado === 'activa' ? 'success' : 'neutral'} dot>
@@ -175,7 +175,7 @@ export default function AdminDependencias() {
  return (
  <div className="space-y-6 p-4 lg:p-6">
  <div className="flex items-center justify-between flex-wrap gap-3 animate-fadeIn">
- <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+ <h2 className="text-xl font-heading font-bold text-inst-azul">
  <span className="material-icons align-middle mr-2 text-2xl">account_tree</span>
  Dependencias
  </h2>
@@ -227,7 +227,7 @@ export default function AdminDependencias() {
  <button
  key={p}
  onClick={() => setPagina(p)}
- className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+ className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-inst-gris'}`}
  >
  {p}
  </button>

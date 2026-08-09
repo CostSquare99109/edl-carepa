@@ -15,10 +15,10 @@ const NOTIF_ICON: Record<string, string> = {
   info: 'info', alerta: 'warning', exito: 'check_circle', error: 'error',
 };
 const NOTIF_COLOR: Record<string, string> = {
-  info: 'border-inst-azul', alerta: 'border-amber-500', exito: 'border-inst-azul-osc', error: 'border-inst-rojo',
+  info: 'border-inst-azul', alerta: 'border-amber-500', exito: 'border-inst-azul', error: 'border-inst-rojo',
 };
 const NOTIF_BG: Record<string, string> = {
-  info: 'bg-blue-50', alerta: 'bg-amber-50', exito: 'bg-green-50', error: 'bg-red-50',
+  info: 'bg-inst-azul-surface', alerta: 'bg-amber-50', exito: 'bg-green-50', error: 'bg-red-50',
 };
 
 export default function AdminNotificaciones() {
@@ -80,7 +80,7 @@ export default function AdminNotificaciones() {
       {cargando ? (
         <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulClaroBorder}`} /></div>
       ) : notificaciones.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-10 text-center text-gray-400">
+        <div className="bg-inst-surface rounded-lg shadow-md p-10 text-center text-gray-400">
           <span className="material-icons text-5xl mb-2 block">notifications_off</span>
           No hay notificaciones
         </div>
@@ -88,7 +88,7 @@ export default function AdminNotificaciones() {
         <div className="space-y-2">
           {notificaciones.map(n => (
             <div key={n.id}
-              className={`bg-white rounded-lg shadow-sm border-l-4 ${NOTIF_COLOR[n.tipo] || 'border-gray-300'} ${!n.leida ? NOTIF_BG[n.tipo] || 'bg-blue-50/50' : ''} p-4 hover:shadow-md transition cursor-pointer`}
+              className={`bg-inst-surface rounded-lg shadow-sm border-l-4 ${NOTIF_COLOR[n.tipo] || 'border-gray-300'} ${!n.leida ? NOTIF_BG[n.tipo] || 'bg-inst-azul-surface/50' : ''} p-4 hover:shadow-md transition cursor-pointer`}
               onClick={() => { if (!n.leida) marcarLeida(n.id); }}
             >
               <div className="flex items-start gap-3">
@@ -112,7 +112,7 @@ export default function AdminNotificaciones() {
             <div className="flex items-center justify-center gap-2 pt-4">
               {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
                 <button key={p} onClick={() => setPagina(p)}
-                  className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azulClaro} text-white` : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
+                  className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azulClaro} text-white` : 'bg-inst-surface border hover:bg-gray-100'}`}>{p}</button>
               ))}
             </div>
           )}

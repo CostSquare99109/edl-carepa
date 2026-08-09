@@ -27,14 +27,14 @@ export default function SeccionColapsable({
   icono = 'description',
   defaultAbierto = false,
   badgeCount,
-  badgeColor = 'bg-blue-100 text-blue-800',
+  badgeColor = 'bg-inst-azul-light text-inst-azul',
   children,
   className = '',
 }: Props) {
   const [abierto, setAbierto] = useState(defaultAbierto);
 
   return (
-    <div className={`bg-white border rounded-lg overflow-hidden ${className}`}>
+    <div className={`bg-inst-surface border rounded-lg overflow-hidden ${className}`}>
       <button
         type="button"
         onClick={() => setAbierto(!abierto)}
@@ -43,7 +43,7 @@ export default function SeccionColapsable({
       >
         <div className="flex items-center gap-3">
           <span className="material-icons text-inst-azul">{icono}</span>
-          <h2 className="text-base font-semibold text-inst-azul-osc">{titulo}</h2>
+          <h2 className="text-base font-semibold text-inst-azul">{titulo}</h2>
           {badgeCount !== undefined && badgeCount > 0 && (
             <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${badgeColor}`}>
               {badgeCount}

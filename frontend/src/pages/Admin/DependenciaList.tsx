@@ -255,7 +255,7 @@ export default function DependenciaList() {
       <div className="flex items-center justify-center gap-2 p-3 border-t border-inst-borde">
        {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
         <button key={p} onClick={() => setPagina(p)}
-         className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-white border hover:bg-inst-gris'}`}>{p}</button>
+         className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-inst-gris'}`}>{p}</button>
        ))}
       </div>
      )}
@@ -264,7 +264,7 @@ export default function DependenciaList() {
 
    {modalAbierto && (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setModalAbierto(false)}>
-     <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+     <div className="bg-inst-surface rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
       <div className="px-6 py-4 border-b border-inst-borde flex items-center justify-between">
        <h3 className="font-heading font-bold text-inst-texto">{editando ? 'Editar Dependencia' : 'Nueva Dependencia'}</h3>
        <button onClick={() => setModalAbierto(false)} className="text-inst-texto-claro hover:text-inst-texto">
@@ -314,14 +314,14 @@ export default function DependenciaList() {
             ) : undefined}
            />
            {cargandoUsuarios && todosUsuarios.length === 0 && (
-            <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg p-4 text-center text-sm text-inst-texto-claro">
+            <div className="absolute z-50 mt-1 w-full bg-inst-surface border border-inst-borde rounded-lg shadow-lg p-4 text-center text-sm text-inst-texto-claro">
              Cargando usuarios...
             </div>
            )}
            {mostrarResultados && !cargandoUsuarios && (
             <>
              {resultadosJefe.length > 0 ? (
-              <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-50 mt-1 w-full bg-inst-surface border border-inst-borde rounded-lg shadow-lg max-h-60 overflow-y-auto">
                {resultadosJefe.map(u => (
                 <button
                  key={u.id}
@@ -338,7 +338,7 @@ export default function DependenciaList() {
                ))}
               </div>
              ) : (
-              <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg p-4 text-center text-sm text-inst-texto-claro">
+              <div className="absolute z-50 mt-1 w-full bg-inst-surface border border-inst-borde rounded-lg shadow-lg p-4 text-center text-sm text-inst-texto-claro">
                No se encontraron usuarios con ese criterio
               </div>
              )}

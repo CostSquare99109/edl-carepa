@@ -17,7 +17,7 @@ interface Props {
 }
 
 const PLANTA_CONFIG: Record<Planta, { label: string; color: string; textColor: string }> = {
-  global: { label: 'Global', color: 'bg-blue-100', textColor: 'text-blue-800' },
+  global: { label: 'Global', color: 'bg-inst-azul-light', textColor: 'text-inst-azul' },
   temporal: { label: 'Temporal', color: 'bg-amber-100', textColor: 'text-amber-800' },
 };
 

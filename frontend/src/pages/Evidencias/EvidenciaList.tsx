@@ -268,7 +268,7 @@ export default function EvidenciaList() {
           href={api.downloadUrl(api.archivoUrl(ev.id))}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sky-600 hover:underline inline-flex items-center gap-1 max-w-[220px] truncate"
+          className="text-inst-azul hover:underline inline-flex items-center gap-1 max-w-[220px] truncate"
           title={`Descargar ${ev.archivo_nombre}`}
         >
           <span className="material-icons text-sm">attach_file</span>
@@ -276,7 +276,7 @@ export default function EvidenciaList() {
         </a>
       ) : ev.ubicacion ? (
         ev.ubicacion.startsWith('http') ? (
-          <a href={ev.ubicacion} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline inline-flex items-center gap-1 max-w-[200px] truncate">
+          <a href={ev.ubicacion} target="_blank" rel="noopener noreferrer" className="text-inst-azul hover:underline inline-flex items-center gap-1 max-w-[200px] truncate">
             <span className="material-icons text-sm">open_in_new</span>
             {ev.ubicacion}
           </a>
@@ -304,7 +304,7 @@ export default function EvidenciaList() {
     <div className="space-y-6">
       <div className="animate-fadeIn">
         <div className="flex items-center gap-2 mb-1">
-          <span className="material-icons text-inst-azul-osc text-xl">folder_open</span>
+          <span className="material-icons text-inst-azul text-xl">folder_open</span>
           <h2 className="edl-section-title">Evidencias</h2>
         </div>
         <p className="text-sm text-inst-texto-claro ml-7">
@@ -338,7 +338,7 @@ export default function EvidenciaList() {
           {esEvaluador ? (
             <>
               <div className="flex items-center gap-2 mb-2">
-                <span className="material-icons text-inst-azul-osc">search</span>
+                <span className="material-icons text-inst-azul">search</span>
                 <span className="text-sm font-medium">Buscar evaluado asignado</span>
               </div>
               <p className="text-xs text-inst-texto-claro mb-3">
@@ -360,7 +360,7 @@ export default function EvidenciaList() {
                   </span>
                 )}
                 {mostrarDrop && resultados.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg max-h-[280px] overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full bg-inst-surface border border-inst-borde rounded-lg shadow-lg max-h-[280px] overflow-y-auto">
                     {resultados.map(r => (
                       <button
                         key={r.id}
@@ -389,7 +389,7 @@ export default function EvidenciaList() {
                   </div>
                 )}
                 {mostrarDrop && resultados.length === 0 && busquedaQ.length >= 2 && (
-                  <div className="absolute z-50 mt-1 w-full bg-white border border-inst-borde rounded-lg shadow-lg p-4 text-center">
+                  <div className="absolute z-50 mt-1 w-full bg-inst-surface border border-inst-borde rounded-lg shadow-lg p-4 text-center">
                     <span className="text-sm text-inst-texto-claro">No se encontraron evaluados</span>
                   </div>
                 )}
@@ -448,10 +448,10 @@ export default function EvidenciaList() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
           {/* Left: Info del evaluado */}
           <div className="lg:col-span-2 space-y-4">
-            <Card className="border-l-4 border-l-inst-azul-osc">
+            <Card className="border-l-4 border-l-inst-azul">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="material-icons text-inst-azul-osc text-xl">account_circle</span>
+                  <span className="material-icons text-inst-azul text-xl">account_circle</span>
                   <span className="font-heading font-bold text-inst-texto">{evaluado.nombre_completo}</span>
                   <Badge tone="info">{evaluado.documento}</Badge>
                 </div>
@@ -511,7 +511,7 @@ export default function EvidenciaList() {
               <button
                 key={p}
                 onClick={() => setPagina(p)}
-                className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+                className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-inst-gris'}`}
               >
                 {p}
               </button>
@@ -564,7 +564,7 @@ export default function EvidenciaList() {
               />
               {(editando as any).archivo_nombre && !editandoArchivo && (
                 <p className="mt-1 text-xs text-inst-texto-claro">
-                  Archivo actual: <a href={api.archivoUrl(editando.id)} target="_blank" rel="noopener noreferrer" className="text-sky-600 hover:underline">{(editando as any).archivo_nombre}</a>
+                  Archivo actual: <a href={api.archivoUrl(editando.id)} target="_blank" rel="noopener noreferrer" className="text-inst-azul hover:underline">{(editando as any).archivo_nombre}</a>
                 </p>
               )}
               {editandoArchivo && (

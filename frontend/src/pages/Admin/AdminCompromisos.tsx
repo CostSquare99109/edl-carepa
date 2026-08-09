@@ -22,12 +22,12 @@ interface Compromiso {
 }
 
 const ESTADO_COLORS: Record<string, string> = {
- concertado: 'bg-blue-100 text-blue-800',
+ concertado: 'bg-inst-azul-light text-inst-azul',
  propuesto: 'bg-yellow-100 text-yellow-800',
  aprobado: 'bg-green-100 text-green-800',
  devuelto: 'bg-red-100 text-red-800',
  pendiente: 'bg-gray-100 text-gray-700',
- en_progreso: 'bg-indigo-100 text-indigo-800',
+ en_progreso: 'bg-inst-azul-light text-inst-azul',
  cumplido: 'bg-emerald-100 text-emerald-800',
  incumplido: 'bg-red-200 text-red-900',
 }
@@ -45,7 +45,7 @@ const ESTADO_LABELS: Record<string, string> = {
 
 const TIPO_COLORS: Record<string, string> = {
  funcional: 'bg-inst-azul/10 text-inst-azul',
- comportamental: 'bg-inst-azul-osc/10 text-inst-azul-osc',
+ comportamental: 'bg-inst-azul/10 text-inst-azul',
 }
 
 const TIPO_LABELS: Record<string, string> = {
@@ -108,12 +108,12 @@ export default function AdminCompromisos() {
    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
     {[
      { label: 'Total', value: stats.total, color: 'border-inst-azul' },
-     { label: 'Concertados', value: stats.concertados, color: 'border-blue-500' },
+     { label: 'Concertados', value: stats.concertados, color: 'border-inst-azul' },
      { label: 'Propuestos', value: stats.propuestos, color: 'border-yellow-500' },
      { label: 'Aprobados', value: stats.aprobados, color: 'border-green-500' },
      { label: 'Rechazados', value: stats.devueltos, color: 'border-red-500' },
     ].map(s => (
-     <div key={s.label} className={`bg-white rounded-lg shadow-sm p-3 border-l-4 ${s.color}`}>
+     <div key={s.label} className={`bg-inst-surface rounded-lg shadow-sm p-3 border-l-4 ${s.color}`}>
       <p className="text-2xl font-bold text-inst-azul">{s.value}</p>
       <p className="text-xs text-inst-texto-claro">{s.label}</p>
      </div>
@@ -148,12 +148,12 @@ export default function AdminCompromisos() {
      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-inst-azul" />
     </div>
    ) : compromisos.length === 0 ? (
-    <div className="bg-white rounded-lg shadow-sm p-10 text-center text-gray-400">
+    <div className="bg-inst-surface rounded-lg shadow-sm p-10 text-center text-gray-400">
      <span className="material-icons text-5xl mb-2 block">task_alt</span>
      No se encontraron compromisos
     </div>
    ) : (
-    <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+    <div className="bg-inst-surface rounded-lg shadow-sm overflow-x-auto">
      <table className="w-full text-sm">
       <thead>
        <tr className="border-b bg-inst-gris">
@@ -207,25 +207,25 @@ export default function AdminCompromisos() {
              </h4>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {c.resultado_esperado && (
-               <div className="bg-white rounded-lg p-3 border border-inst-borde">
+               <div className="bg-inst-surface rounded-lg p-3 border border-inst-borde">
                 <p className="text-[10px] uppercase tracking-wider text-inst-texto-claro mb-1">Resultado Esperado</p>
                 <p className="text-sm text-inst-texto">{c.resultado_esperado}</p>
                </div>
               )}
               {c.medio_verificacion && (
-               <div className="bg-white rounded-lg p-3 border border-inst-borde">
+               <div className="bg-inst-surface rounded-lg p-3 border border-inst-borde">
                 <p className="text-[10px] uppercase tracking-wider text-inst-texto-claro mb-1">Medio de Verificacion</p>
                 <p className="text-sm text-inst-texto">{c.medio_verificacion}</p>
                </div>
               )}
               {c.plazo && (
-               <div className="bg-white rounded-lg p-3 border border-inst-borde">
+               <div className="bg-inst-surface rounded-lg p-3 border border-inst-borde">
                 <p className="text-[10px] uppercase tracking-wider text-inst-texto-claro mb-1">Plazo</p>
                 <p className="text-sm text-inst-texto">{c.plazo}</p>
                </div>
               )}
               {c.competencia_codigo && (
-               <div className="bg-white rounded-lg p-3 border border-inst-borde">
+               <div className="bg-inst-surface rounded-lg p-3 border border-inst-borde">
                 <p className="text-[10px] uppercase tracking-wider text-inst-texto-claro mb-1">Competencia</p>
                 <p className="text-sm text-inst-texto">{c.competencia_codigo}</p>
                </div>
@@ -254,7 +254,7 @@ export default function AdminCompromisos() {
         <span className="material-icons text-sm align-middle">chevron_left</span>
        </button>
        {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
-        <button key={p} onClick={() => setPagina(p)} className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-white border hover:bg-gray-100'}`}>
+        <button key={p} onClick={() => setPagina(p)} className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-gray-100'}`}>
          {p}
         </button>
        ))}

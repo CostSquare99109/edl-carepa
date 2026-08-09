@@ -124,7 +124,7 @@ export default function ReportesPage() {
        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
         tipo === t.value
          ? 'bg-inst-azul text-white border-inst-azul'
-         : 'bg-white text-inst-texto border-inst-borde hover:bg-inst-gris'
+         : 'bg-inst-surface text-inst-texto border-inst-borde hover:bg-inst-gris'
        }`}
       >
        <span className="material-icons text-base">{t.icon}</span>

@@ -16,7 +16,7 @@ describe('UI Components', () => {
     it('applies variant classes', () => {
       render(<Button variant="primary">Primary</Button>)
       const btn = screen.getByRole('button')
-      expect(btn).toHaveClass('bg-inst-azul-osc')
+      expect(btn).toHaveClass('bg-inst-azul')
     })
 
     it('applies size classes', () => {
@@ -90,7 +90,7 @@ describe('UI Components', () => {
     it('renders card with children', () => {
       render(<Card>Card content</Card>)
       expect(screen.getByText(/card content/i)).toBeInTheDocument()
-      expect(screen.getByTestId('card')).toHaveClass('bg-white')
+      expect(screen.getByTestId('card')).toHaveClass('bg-inst-surface')
     })
   })
 

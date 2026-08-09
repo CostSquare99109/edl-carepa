@@ -163,7 +163,7 @@ export default function EvaluacionList() {
 
   const puntajeColor = (p: number | null) => {
     if (p === null || p === undefined || isNaN(p)) return 'text-inst-texto-claro'
-    if (p >= 80) return 'text-inst-azul-osc font-semibold'
+    if (p >= 80) return 'text-inst-azul font-semibold'
     if (p >= 60) return 'text-amber-600 font-semibold'
     return 'text-inst-rojo font-semibold'
   }
@@ -231,7 +231,7 @@ export default function EvaluacionList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-1">
-        <span className="material-icons text-inst-azul-osc text-xl">assessment</span>
+        <span className="material-icons text-inst-azul text-xl">assessment</span>
         <h2 className="edl-section-title">Evaluaciones</h2>
       </div>
       <div className="edl-divider" />
@@ -280,7 +280,7 @@ export default function EvaluacionList() {
       {reportGenerated && reportPeriodoId && reportSemestre && reportType && !reportLoading && (
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-heading font-semibold text-inst-azul-osc">
+            <h3 className="font-heading font-semibold text-inst-azul">
               Resultado de reporte {TIPOS_REPORTE.find(t => t.value === reportType)?.label || reportType}
             </h3>
             <Button variant="primary" size="sm" onClick={descargarExcel} iconLeft={<span className="material-icons text-base">table_view</span>}>
@@ -305,7 +305,7 @@ export default function EvaluacionList() {
       )}
 
       <Card>
-        <h3 className="font-heading font-semibold text-inst-azul-osc mb-4">Listado de evaluaciones</h3>
+        <h3 className="font-heading font-semibold text-inst-azul mb-4">Listado de evaluaciones</h3>
         {loading ? (
           <p className="text-inst-texto-claro text-sm">Cargando...</p>
         ) : items.length === 0 ? (
@@ -365,7 +365,7 @@ export default function EvaluacionList() {
 
       {editando && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-inst-surface rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-inst-borde">
               <h3 className="edl-section-title text-base">Editar Evaluacion #{editando.id}</h3>
               <button onClick={() => setEditando(null)} className="p-1 rounded hover:bg-inst-gris">

@@ -107,7 +107,7 @@ export default function EntidadList() {
 
    {editando && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-     <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+     <div className="bg-inst-surface rounded-lg shadow-xl border border-inst-borde w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
       <div className="flex items-center justify-between p-4 border-b border-inst-borde">
        <h3 className="edl-section-title text-base">Editar Entidad</h3>
        <button onClick={() => setEditando(null)} className="p-1 rounded hover:bg-inst-gris">

@@ -26,7 +26,7 @@ export default function AdminDashboard() {
  <AppHeader />
 
  {ADMIN_TABS.length > 0 && (
- <nav className="bg-white border-b border-inst-borde px-6 overflow-x-auto">
+ <nav className="bg-inst-surface border-b border-inst-borde px-6 overflow-x-auto">
  <div className="flex items-center gap-0">
  {ADMIN_TABS.map((item) => {
  const isActive = activeTab === item.key;
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
  <Outlet />
  </main>
 
- <footer className="text-center py-4 border-t border-inst-borde text-xs text-inst-texto-claro bg-white">
+ <footer className="text-center py-4 border-t border-inst-borde text-xs text-inst-texto-claro bg-inst-surface">
  EDL-CAREPA &copy; {currentYear} — Alcaldia de Carepa
  </footer>
  </div>

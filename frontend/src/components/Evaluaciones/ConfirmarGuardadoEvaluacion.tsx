@@ -54,19 +54,19 @@ export default function ConfirmarGuardadoEvaluacion({
             <dt className="text-inst-texto-claro">Nota funcional</dt>
             <dd className="text-right font-mono">
               {calculo.promedioFuncional.toFixed(1)} x 85% ={' '}
-              <span className="font-bold text-inst-azul-osc">
+              <span className="font-bold text-inst-azul">
                 {calculo.notaFuncionalPond.toFixed(2)}
               </span>
             </dd>
             <dt className="text-inst-texto-claro">Nota comportamental</dt>
             <dd className="text-right font-mono">
               {calculo.promedioComportamental.toFixed(1)} x 15% ={' '}
-              <span className="font-bold text-inst-azul-osc">
+              <span className="font-bold text-inst-azul">
                 {calculo.notaComportamentalPond.toFixed(2)}
               </span>
             </dd>
             <dt className="text-inst-texto">Definitiva</dt>
-            <dd className="text-right font-mono font-bold text-lg text-inst-azul-osc">
+            <dd className="text-right font-mono font-bold text-lg text-inst-azul">
               {calculo.definitiva.toFixed(2)}
             </dd>
             <dt className="text-inst-texto">Escala</dt>

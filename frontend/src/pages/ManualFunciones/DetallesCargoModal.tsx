@@ -157,7 +157,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
                 <ul className="space-y-1.5">
                   {parsed.valor.comunes.map((c, i) => (
                     <li key={i} className="flex gap-2 text-sm text-gray-800">
-                      <span className="material-icons text-base text-blue-600 flex-shrink-0">check_circle</span>
+                      <span className="material-icons text-base text-inst-azul flex-shrink-0">check_circle</span>
                       <span>{c}</span>
                     </li>
                   ))}
@@ -172,7 +172,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
                 <ul className="space-y-1.5">
                   {parsed.valor.nivel.map((c, i) => (
                     <li key={i} className="flex gap-2 text-sm text-gray-800">
-                      <span className="material-icons text-base text-indigo-600 flex-shrink-0">psychology</span>
+                      <span className="material-icons text-base text-inst-azul flex-shrink-0">psychology</span>
                       <span>{c}</span>
                     </li>
                   ))}
@@ -218,10 +218,10 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
         onClose={onClose}
         className="w-full max-w-4xl rounded-lg shadow-2xl backdrop:bg-black/40 p-0"
       >
-        <div className="bg-white rounded-lg overflow-hidden">
+        <div className="bg-inst-surface rounded-lg overflow-hidden">
           {/* Header del modal */}
           <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
-            <h2 className="text-lg font-bold text-inst-azul-osc flex items-center gap-2">
+            <h2 className="text-lg font-bold text-inst-azul flex items-center gap-2">
               <span className="material-icons">menu_book</span>
               Detalles del cargo
             </h2>
@@ -235,7 +235,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
           </div>
 
           {/* Tabs */}
-          <div className="border-b bg-white">
+          <div className="border-b bg-inst-surface">
             <div className="flex overflow-x-auto px-4">
               {tabsVisibles.map((t) => {
                 const count = tabBadgeCount(t.seccion);
@@ -272,7 +272,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
                 {/* VII. Estudio */}
                 {detallePorSeccion('requisitos_estudio') && (
                   <div>
-                    <h3 className="text-sm font-bold text-inst-azul-osc uppercase tracking-wide mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-inst-azul uppercase tracking-wide mb-2 flex items-center gap-2">
                       <span className="material-icons text-base">school</span>
                       VII. Requisitos de Estudio
                     </h3>
@@ -282,7 +282,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
                 {/* VIII. Experiencia */}
                 {detallePorSeccion('requisitos_experiencia') && (
                   <div className={detallePorSeccion('requisitos_estudio') ? 'pt-4 border-t' : ''}>
-                    <h3 className="text-sm font-bold text-inst-azul-osc uppercase tracking-wide mb-2 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-inst-azul uppercase tracking-wide mb-2 flex items-center gap-2">
                       <span className="material-icons text-base">work_history</span>
                       VIII. Requisitos de Experiencia
                     </h3>
@@ -295,7 +295,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
               </div>
             ) : (
               <div>
-                <h3 className="text-sm font-bold text-inst-azul-osc uppercase tracking-wide mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-inst-azul uppercase tracking-wide mb-3 flex items-center gap-2">
                   <span className="material-icons text-base">{tabActual.icono}</span>
                   {tabActual.numeral}. {tabActual.titulo}
                 </h3>
@@ -308,7 +308,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
 
             {/* Jefe inmediato al final */}
             {jefeInmediato && (
-              <div className="mt-6 pt-4 border-t bg-blue-50 -mx-6 px-6 py-3 -mb-5 rounded-b-lg">
+              <div className="mt-6 pt-4 border-t bg-inst-azul-surface -mx-6 px-6 py-3 -mb-5 rounded-b-lg">
                 <div className="text-xs text-gray-500 uppercase tracking-wide">Jefe inmediato</div>
                 <div className="text-sm font-medium text-inst-texto">{jefeInmediato}</div>
               </div>
@@ -319,7 +319,7 @@ const DetallesCargoModal = forwardRef<HTMLDialogElement, Props>(
           <div className="px-6 py-3 border-t bg-gray-50 flex justify-end">
             <button
               onClick={onClose}
-              className="bg-inst-azul hover:bg-inst-azul-osc text-white text-sm px-4 py-2 rounded"
+              className="bg-inst-azul hover:bg-inst-azul text-white text-sm px-4 py-2 rounded"
             >
               Cerrar
             </button>

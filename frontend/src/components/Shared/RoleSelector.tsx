@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const ROL_COLORS: Record<string, string> = {
  admin: 'bg-red-100 text-red-800',
  evaluador: 'bg-green-100 text-green-800',
- evaluado: 'bg-blue-100 text-blue-800',
+ evaluado: 'bg-inst-azul-light text-inst-azul',
 };
 
 const ROL_ICONS: Record<string, string> = {
@@ -92,7 +92,7 @@ export default function RoleSelector({ variant = 'header', onRolChange }: RoleSe
     {rolDropdownOpen && tieneMultiplesRoles && (
      <>
       <div className="fixed inset-0 z-10" onClick={() => setRolDropdownOpen(false)} />
-      <div className="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-inst-borde z-20 py-1">
+      <div className="absolute right-0 mt-1 w-56 bg-inst-surface rounded-lg shadow-lg border border-inst-borde z-20 py-1">
        <p className="px-4 py-2 text-xs font-medium text-inst-texto-claro border-b border-inst-borde">
         Cambiar rol activo
        </p>
@@ -134,7 +134,7 @@ export default function RoleSelector({ variant = 'header', onRolChange }: RoleSe
    {rolDropdownOpen && (
     <>
      <div className="fixed inset-0 z-10" onClick={() => setRolDropdownOpen(false)} />
-     <div className="absolute right-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-inst-borde z-20 py-1">
+     <div className="absolute right-0 mt-1 w-56 bg-inst-surface rounded-lg shadow-lg border border-inst-borde z-20 py-1">
       <p className="px-4 py-2 text-xs font-medium text-inst-texto-claro border-b border-inst-borde">
        Cambiar rol activo
       </p>

@@ -191,7 +191,7 @@ export default function VerCompromisos() {
                      ? [...c.conductas].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
                      : [];
                  return (
-                   <div key={c.id} className="border border-inst-borde rounded-lg p-4 bg-white">
+                   <div key={c.id} className="border border-inst-borde rounded-lg p-4 bg-inst-surface">
                      <div className="flex items-start justify-between flex-wrap gap-2 mb-2">
                        <div>
                          <p className="font-heading font-bold text-inst-azul text-base">

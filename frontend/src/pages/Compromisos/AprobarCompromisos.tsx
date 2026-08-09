@@ -160,8 +160,8 @@ export default function AprobarCompromisos() {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="material-icons text-inst-azul-osc">assignment</span>
-                    <h3 className="font-heading font-bold text-inst-azul-osc text-sm">
+                    <span className="material-icons text-inst-azul">assignment</span>
+                    <h3 className="font-heading font-bold text-inst-azul text-sm">
                       Propuesta de {p.evaluado_nombre}
                     </h3>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
@@ -175,11 +175,11 @@ export default function AprobarCompromisos() {
                     <span>Fecha: {new Date(p.creado_en).toLocaleDateString()}</span>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <span className="text-xs px-2 py-1 rounded bg-blue-50 text-inst-azul flex items-center gap-1">
+                    <span className="text-xs px-2 py-1 rounded bg-inst-azul-surface text-inst-azul flex items-center gap-1">
                       <span className="material-icons text-sm">task_alt</span>
                       {p.funcionales.length} funcional(es)
                     </span>
-                    <span className="text-xs px-2 py-1 rounded bg-purple-50 text-purple-700 flex items-center gap-1">
+                    <span className="text-xs px-2 py-1 rounded bg-inst-gris-med text-inst-texto-2 flex items-center gap-1">
                       <span className="material-icons text-sm">psychology</span>
                       {p.comportamentales.length} comportamental(es)
                     </span>
@@ -258,12 +258,12 @@ export default function AprobarCompromisos() {
         if (!p) return null;
         return (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-inst-surface rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
-              <div className="flex items-center justify-between p-5 border-b border-inst-borde sticky top-0 bg-white z-10">
+              <div className="flex items-center justify-between p-5 border-b border-inst-borde sticky top-0 bg-inst-surface z-10">
                 <div className="flex items-center gap-2">
-                  <span className="material-icons text-inst-azul-osc">assignment</span>
-                  <h3 className="font-heading font-bold text-inst-azul-osc text-lg">
+                  <span className="material-icons text-inst-azul">assignment</span>
+                  <h3 className="font-heading font-bold text-inst-azul text-lg">
                     Propuesta de {p.evaluado_nombre}
                   </h3>
                 </div>
@@ -305,13 +305,13 @@ export default function AprobarCompromisos() {
                 {/* Compromisos funcionales */}
                 {p.funcionales.length > 0 && (
                   <div>
-                    <h4 className="font-heading font-bold text-inst-azul-osc text-sm mb-2 flex items-center gap-1">
+                    <h4 className="font-heading font-bold text-inst-azul text-sm mb-2 flex items-center gap-1">
                       <span className="material-icons text-sm">task_alt</span>
                       Compromisos Funcionales ({p.funcionales.length})
                     </h4>
                     <div className="space-y-3">
                       {p.funcionales.map((c, i) => (
-                        <div key={c.id} className="border border-inst-borde rounded-lg p-4 bg-white">
+                        <div key={c.id} className="border border-inst-borde rounded-lg p-4 bg-inst-surface">
                           <div className="flex items-start justify-between mb-2">
                             <span className="text-xs font-bold text-inst-texto-claro">#{i + 1}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${ESTADO_COLORS[c.estado] || 'bg-gray-200'}`}>
@@ -321,7 +321,7 @@ export default function AprobarCompromisos() {
                           <p className="text-sm text-inst-texto mb-2">{c.descripcion}</p>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             {c.resultado_esperado && (
-                              <div><span className="font-bold text-inst-texto-claro">Resultado:</span> <span className="text-inst-azul-osc">{c.resultado_esperado}</span></div>
+                              <div><span className="font-bold text-inst-texto-claro">Resultado:</span> <span className="text-inst-azul">{c.resultado_esperado}</span></div>
                             )}
                             {c.medio_verificacion && (
                               <div><span className="font-bold text-inst-texto-claro">Verificación:</span> <span className="text-inst-texto">{c.medio_verificacion}</span></div>
@@ -350,13 +350,13 @@ export default function AprobarCompromisos() {
                 {/* Competencias comportamentales */}
                 {p.comportamentales.length > 0 && (
                   <div>
-                    <h4 className="font-heading font-bold text-inst-azul-osc text-sm mb-2 flex items-center gap-1">
+                    <h4 className="font-heading font-bold text-inst-azul text-sm mb-2 flex items-center gap-1">
                       <span className="material-icons text-sm">psychology</span>
                       Competencias Comportamentales ({p.comportamentales.length})
                     </h4>
                     <div className="space-y-3">
                       {p.comportamentales.map((c, i) => (
-                        <div key={c.id} className="border border-inst-borde rounded-lg p-4 bg-white">
+                        <div key={c.id} className="border border-inst-borde rounded-lg p-4 bg-inst-surface">
                           <div className="flex items-start justify-between mb-2">
                             <span className="text-xs font-bold text-inst-texto-claro">#{i + 1}</span>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${ESTADO_COLORS[c.estado] || 'bg-gray-200'}`}>
@@ -387,7 +387,7 @@ export default function AprobarCompromisos() {
 
                 {/* Badge de propuesto por */}
                 {p.compromisos.some(c => c.es_propuesto_evaluado) && (
-                  <div className="text-xs text-blue-700 bg-blue-50 p-2 rounded flex items-center gap-1">
+                  <div className="text-xs text-inst-azul bg-inst-azul-surface p-2 rounded flex items-center gap-1">
                     <span className="material-icons text-sm">info</span>
                     Esta propuesta fue realizada por el evaluado
                   </div>
@@ -395,7 +395,7 @@ export default function AprobarCompromisos() {
               </div>
 
               {/* Footer */}
-              <div className="flex gap-2 p-5 border-t border-inst-borde sticky bottom-0 bg-white">
+              <div className="flex gap-2 p-5 border-t border-inst-borde sticky bottom-0 bg-inst-surface">
                 <button
                   onClick={() => confirmarAprobacion(p.concertacion_id)}
                   disabled={saving}

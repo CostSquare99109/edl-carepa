@@ -124,7 +124,7 @@ export default function FijacionUnilateral() {
     <div className="flex items-center justify-between mb-4">
      <h3 className="font-heading font-bold text-inst-azul">Compromisos a fijar</h3>
      <div className="flex items-center gap-3">
-      <span className={`text-sm font-bold ${pesoValido ? 'text-inst-azul-osc' : 'text-inst-rojo'}`}>
+      <span className={`text-sm font-bold ${pesoValido ? 'text-inst-azul' : 'text-inst-rojo'}`}>
        Total peso: {totalPeso}%
       </span>
       <button onClick={agregarCompromiso} className="edl-btn-primary text-sm">
@@ -178,7 +178,7 @@ export default function FijacionUnilateral() {
 
    {mensaje && (
     <div className={`edl-card mb-4 p-3 rounded-lg text-sm ${
-     mensaje.includes('exitosamente') ? 'bg-green-50 border border-green-200 text-inst-azul-osc' : 'bg-red-50 border border-red-200 text-inst-rojo'
+     mensaje.includes('exitosamente') ? 'bg-green-50 border border-green-200 text-inst-azul' : 'bg-red-50 border border-red-200 text-inst-rojo'
     }`}>
      {mensaje}
     </div>

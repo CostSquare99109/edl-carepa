@@ -282,7 +282,7 @@ export default function MetaList() {
           <div>
             <label htmlFor="nueva-meta-desc" className="edl-label">
               Descripción *
-              <span className={`text-xs ml-2 ${contarPalabras(formNueva.descripcion) <= 20 ? 'text-inst-azul-osc' : 'text-inst-rojo'}`}>
+              <span className={`text-xs ml-2 ${contarPalabras(formNueva.descripcion) <= 20 ? 'text-inst-azul' : 'text-inst-rojo'}`}>
                 ({contarPalabras(formNueva.descripcion)}/20 palabras)
               </span>
             </label>

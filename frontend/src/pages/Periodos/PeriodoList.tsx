@@ -76,7 +76,7 @@ export default function PeriodoList() {
     <div className="space-y-6">
       <div className="animate-fadeIn">
         <div className="flex items-center gap-2 mb-1">
-          <span className="material-icons text-inst-azul-osc text-xl">
+          <span className="material-icons text-inst-azul text-xl">
             date_range
           </span>
           <h2 className="edl-section-title">Períodos de Evaluación</h2>
@@ -166,7 +166,7 @@ export default function PeriodoList() {
                     </Badge>
                   </div>
 
-                  <div className="px-5 py-2 bg-inst-azul-osc-light/30 border-b border-inst-borde flex items-center gap-4 text-sm text-inst-texto-claro">
+                  <div className="px-5 py-2 bg-inst-azul-light/30 border-b border-inst-borde flex items-center gap-4 text-sm text-inst-texto-claro">
                     <span className="flex items-center gap-1">
                       <span className="material-icons text-sm">calendar_today</span>
                       Inicio: {fmtDate(p.fecha_inicio)}

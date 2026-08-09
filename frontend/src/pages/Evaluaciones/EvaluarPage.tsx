@@ -126,7 +126,7 @@ const MIN_CARACTERES_EXCEDE = 40;
 
 function escalaFinal(puntaje: number): { label: string; color: string } {
   if (puntaje >= UMBRAL_SOBRESALIENTE) return { label: 'Sobresaliente', color: 'text-green-700 bg-green-50' };
-  if (puntaje > UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-blue-700 bg-blue-50' };
+  if (puntaje > UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-inst-azul bg-inst-azul-surface' };
   return { label: 'No Satisfactorio', color: 'text-red-700 bg-red-50' };
 }
 
@@ -802,7 +802,7 @@ export default function EvaluarPage() {
 
           {/* Paso 2: Tabla de evaluados del periodo */}
           <Card>
-            <h3 className="font-heading font-semibold text-inst-azul-osc mb-4">Evaluados del periodo</h3>
+            <h3 className="font-heading font-semibold text-inst-azul mb-4">Evaluados del periodo</h3>
             {loading ? (
               <div className="text-center py-8 text-inst-texto-claro">Cargando...</div>
             ) : evaluados.length === 0 ? (
@@ -859,7 +859,7 @@ export default function EvaluarPage() {
                         </td>
                         <td className="py-3 px-3 text-center text-sm">
                           {ev.evaluacion_id && ev.evaluacion_id > 0 && ev.calificacion_definitiva !== null ? (
-                            <span className="font-mono font-bold text-lg text-inst-azul-osc">{ev.calificacion_definitiva.toFixed(2)}%</span>
+                            <span className="font-mono font-bold text-lg text-inst-azul">{ev.calificacion_definitiva.toFixed(2)}%</span>
                           ) : ev.evaluacion_id && ev.evaluacion_id > 0 ? (
                             <input
                               type="number"
@@ -923,7 +923,7 @@ export default function EvaluarPage() {
       ) : (
         /* Paso 3: Panel de evaluación */
         <div className="space-y-6">
-          <Card className="border-l-4 border-l-inst-azul-osc">
+          <Card className="border-l-4 border-l-inst-azul">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-heading font-bold text-inst-texto">{selectedEvaluado.nombre_completo}</h3>
@@ -953,8 +953,8 @@ export default function EvaluarPage() {
 
               {/* Flujo Evaluación parcial eventual (prompt.md): paso a paso */}
               {tipoEvaluacion === 'parcial_eventual' && (
-                <div className="bg-white border border-inst-borde rounded-lg p-4 space-y-4">
-                  <div className="flex items-center gap-2 text-inst-azul-osc font-semibold">
+                <div className="bg-inst-surface border border-inst-borde rounded-lg p-4 space-y-4">
+                  <div className="flex items-center gap-2 text-inst-azul font-semibold">
                     <span className="material-icons text-inst-azul">rate_review</span>
                     Evaluar a {selectedEvaluado?.nombre_completo ?? ''}
                   </div>
@@ -1279,7 +1279,7 @@ export default function EvaluarPage() {
                   <div>
                     <p className="text-xs font-semibold text-inst-texto-claro uppercase tracking-wider mb-2">Conductas asociadas</p>
                     {evaluandoComp.conductas.map(cond => (
-                      <div key={cond.id} className="flex items-center gap-2 text-sm py-2 pl-2 border-l-2 border-inst-azul-osc-light mb-2">
+                      <div key={cond.id} className="flex items-center gap-2 text-sm py-2 pl-2 border-l-2 border-inst-azul-light mb-2">
                         <span className="flex-1">{cond.texto}</span>
                         <select
                           value={conductasForm[cond.id] || ''}
@@ -1372,7 +1372,7 @@ export default function EvaluarPage() {
           title="Confirmar evaluación"
           size="lg"
         >
-          <Card className="border-l-4 border-l-inst-azul-osc mb-4">
+          <Card className="border-l-4 border-l-inst-azul mb-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="material-icons text-inst-azul text-2xl">rate_review</span>
               <h3 className="font-heading font-bold text-inst-texto">
@@ -1385,11 +1385,11 @@ export default function EvaluarPage() {
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="p-3 bg-inst-gris-med rounded-lg">
                 <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Funcionales (85%)</p>
-                <p className="text-2xl font-bold text-inst-azul-osc">{confirmData.notaFunc.toFixed(1)}%</p>
+                <p className="text-2xl font-bold text-inst-azul">{confirmData.notaFunc.toFixed(1)}%</p>
               </div>
               <div className="p-3 bg-inst-gris-med rounded-lg">
                 <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Comportamentales (15%)</p>
-                <p className="text-2xl font-bold text-inst-azul-osc">{confirmData.notaComp.toFixed(1)}%</p>
+                <p className="text-2xl font-bold text-inst-azul">{confirmData.notaComp.toFixed(1)}%</p>
               </div>
               <div className="p-3 bg-inst-gris-med rounded-lg">
                 <p className="text-xs text-inst-texto-claro uppercase tracking-wide">Definitiva</p>
@@ -1431,7 +1431,7 @@ export default function EvaluarPage() {
             </Alert>
 
             <section>
-              <h4 className="font-semibold text-inst-azul-osc mb-1">1. Compromisos funcionales</h4>
+              <h4 className="font-semibold text-inst-azul mb-1">1. Compromisos funcionales</h4>
               <p>
                 Califique cada compromiso con una nota entre <strong>0 y 100</strong> según el grado de
                 cumplimiento observado. El peso porcentual de cada compromiso pondera automáticamente
@@ -1440,7 +1440,7 @@ export default function EvaluarPage() {
             </section>
 
             <section>
-              <h4 className="font-semibold text-inst-azul-osc mb-1">2. Compromisos comportamentales</h4>
+              <h4 className="font-semibold text-inst-azul mb-1">2. Compromisos comportamentales</h4>
               <p className="mb-2">
                 Por cada conducta asociada debe seleccionar la frecuencia con la que se presenta en
                 el ejercicio del empleo:
@@ -1454,7 +1454,7 @@ export default function EvaluarPage() {
             </section>
 
             <section>
-              <h4 className="font-semibold text-inst-azul-osc mb-1">3. Aporte a los compromisos</h4>
+              <h4 className="font-semibold text-inst-azul mb-1">3. Aporte a los compromisos</h4>
               <p>
                 Para cada competencia, responda si las conductas asociadas han favorecido el logro de
                 los compromisos laborales. Escala: <strong>Sí</strong>, <strong>Moderadamente</strong> o
@@ -1463,7 +1463,7 @@ export default function EvaluarPage() {
             </section>
 
             <section>
-              <h4 className="font-semibold text-inst-azul-osc mb-1">4. Aporte superior al estipulado</h4>
+              <h4 className="font-semibold text-inst-azul mb-1">4. Aporte superior al estipulado</h4>
               <p>
                 Indique si las conductas le han permitido al empleado aportar más de lo estipulado.
                 Si responde <strong>Sí</strong>, debe ingresar una explicación con mínimo{' '}
@@ -1473,7 +1473,7 @@ export default function EvaluarPage() {
             </section>
 
             <section>
-              <h4 className="font-semibold text-inst-azul-osc mb-1">5. Cambio de evaluador</h4>
+              <h4 className="font-semibold text-inst-azul mb-1">5. Cambio de evaluador</h4>
               <p>
                 Al final del formulario marque la casilla si quien realiza la evaluación no es el jefe
                 inmediato del evaluado e indique el motivo entre{' '}
@@ -1483,7 +1483,7 @@ export default function EvaluarPage() {
             </section>
 
             <section>
-              <h4 className="font-semibold text-inst-azul-osc mb-1">6. Ver resultado</h4>
+              <h4 className="font-semibold text-inst-azul mb-1">6. Ver resultado</h4>
               <p>
                 Una vez calificados todos los compromisos, haga clic en{' '}
                 <strong>Ver Evaluación</strong>; el sistema guardará la calificación definitiva y mostrará el resultado con gráficas.

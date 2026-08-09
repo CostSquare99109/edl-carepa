@@ -657,7 +657,7 @@ async function handleConfirmar() {
  {/* ===== ALERTA INICIAL ===== */}
  {showAlerta && evaluado && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
- <div className="bg-white rounded-lg shadow-xl p-6 max-w-md mx-4 text-center">
+ <div className="bg-inst-surface rounded-lg shadow-xl p-6 max-w-md mx-4 text-center">
  <span className="material-icons text-4xl text-yellow-500 mb-2">warning</span>
  <h3 className="font-heading font-bold text-inst-azul mb-2">Recuerde</h3>
  <p className="text-sm text-inst-texto">
@@ -982,7 +982,7 @@ async function handleConfirmar() {
  {/* ===== MODAL: Compromiso funcional ===== */}
  {showModalFuncional && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
- <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+ <div className="bg-inst-surface rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
  <h3 className="font-heading font-bold text-inst-azul mb-4">
  {funcionalEditIndex !== null ? 'Editar' : 'Registrar'} compromiso funcional
  </h3>
@@ -999,7 +999,7 @@ async function handleConfirmar() {
  <div>
  <label className="edl-label">Compromiso *</label>
  <textarea value={fDescripcion} onChange={e => setFDescripcion(e.target.value)} className="edl-input min-h-[80px]" placeholder="Digite el compromiso a concertar" />
- <p className="text-xs text-inst-texto-claro mt-1 bg-blue-50 p-2 rounded">
+ <p className="text-xs text-inst-texto-claro mt-1 bg-inst-azul-surface p-2 rounded">
  Nota: El compromiso se debe formular como: <strong>Verbo + Objeto + Condicion de resultado</strong>
  </p>
  </div>
@@ -1019,7 +1019,7 @@ async function handleConfirmar() {
  {/* ===== MODAL: Compromiso comportamental ===== */}
 {showModalComportamental && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
- <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+ <div className="bg-inst-surface rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
  <h3 className="font-heading font-bold text-inst-azul mb-4">
  Seleccionar competencias comportamentales
  </h3>
@@ -1139,7 +1139,7 @@ async function handleConfirmar() {
 	{/* ===== MODAL: Compromisos propuestos por el evaluado ===== */}
  {showModalPropuestos && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
- <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+ <div className="bg-inst-surface rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
  <h3 className="font-heading font-bold text-inst-azul mb-4">
  Compromisos propuestos por el evaluado
  </h3>
@@ -1161,7 +1161,7 @@ async function handleConfirmar() {
  <tr key={cp.id} className="border-b border-inst-borde">
  <td className="px-3 py-2">
  <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
- cp.tipo === 'comportamental' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+ cp.tipo === 'comportamental' ? 'bg-green-100 text-green-800' : 'bg-inst-azul-light text-inst-azul'
  }`}>
  {cp.tipo === 'comportamental' ? 'Comportamental' : 'Funcional'}
  </span>

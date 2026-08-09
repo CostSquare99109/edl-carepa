@@ -194,11 +194,11 @@ export default function Perfil() {
  <div className="space-y-6 p-4 lg:p-6">
  {/* Header con avatar */}
  <div className="animate-fadeIn flex items-center gap-4 flex-wrap">
- <div className="w-20 h-20 rounded-full bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-2xl flex-shrink-0">
+ <div className="w-20 h-20 rounded-full bg-inst-azul text-white flex items-center justify-center font-heading font-bold text-2xl flex-shrink-0">
  {iniciales}
  </div>
  <div>
- <h1 className="text-2xl font-heading font-bold text-inst-azul-osc">{nombreCompleto}</h1>
+ <h1 className="text-2xl font-heading font-bold text-inst-azul">{nombreCompleto}</h1>
  <p className="text-sm text-inst-texto-claro">
   {perfil.usuario.denominacion_empleo || perfil.usuario.cargo || 'Sin cargo asignado'} · Documento {perfil.usuario.documento}
  </p>
@@ -217,7 +217,7 @@ export default function Perfil() {
  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
  {/* Card: Datos personales (no editables) */}
  <Card>
- <h3 className="text-sm font-semibold text-inst-azul-osc mb-3 flex items-center gap-2">
+ <h3 className="text-sm font-semibold text-inst-azul mb-3 flex items-center gap-2">
  <span className="material-icons text-base">person</span>
  Datos personales
  </h3>
@@ -256,7 +256,7 @@ export default function Perfil() {
 
  {/* Card: Datos laborales (no editables) */}
  <Card>
- <h3 className="text-sm font-semibold text-inst-azul-osc mb-3 flex items-center gap-2">
+ <h3 className="text-sm font-semibold text-inst-azul mb-3 flex items-center gap-2">
  <span className="material-icons text-base">work</span>
  Datos laborales
  </h3>
@@ -312,7 +312,7 @@ export default function Perfil() {
 
  {/* Card: Contacto (editable) */}
  <Card>
- <h3 className="text-sm font-semibold text-inst-azul-osc mb-3 flex items-center gap-2">
+ <h3 className="text-sm font-semibold text-inst-azul mb-3 flex items-center gap-2">
  <span className="material-icons text-base">contact_mail</span>
  Contacto
  </h3>
@@ -365,7 +365,7 @@ export default function Perfil() {
  <span className="material-icons text-2xl text-amber-700">lock</span>
  </div>
  <div className="flex-1 min-w-[200px]">
- <h3 className="text-base font-heading font-semibold text-inst-azul-osc">Seguridad</h3>
+ <h3 className="text-base font-heading font-semibold text-inst-azul">Seguridad</h3>
  <p className="text-sm text-inst-texto-claro mt-0.5">
  Cambia tu contraseña periódicamente para mantener tu cuenta segura. Mínimo 8 caracteres.
  </p>

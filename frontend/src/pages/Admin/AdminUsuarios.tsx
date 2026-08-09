@@ -475,7 +475,7 @@ export default function AdminUsuarios() {
         <button
           type="button"
           onClick={() => toggleEstado(u)}
-          className="focus:outline-none focus:ring-2 focus:ring-inst-azul-osc rounded-full"
+          className="focus:outline-none focus:ring-2 focus:ring-inst-azul rounded-full"
           aria-label={`Cambiar estado de ${u.primer_nombre} ${u.primer_apellido}`}
         >
           <Badge tone={u.estado === 'activo' ? 'success' : 'neutral'} dot>
@@ -527,7 +527,7 @@ export default function AdminUsuarios() {
   return (
     <div className="space-y-6 p-4 lg:p-6">
       <div className="flex items-center justify-between flex-wrap gap-3 animate-fadeIn">
-        <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+        <h2 className="text-xl font-heading font-bold text-inst-azul">
           <span className="material-icons align-middle mr-2 text-2xl">people</span>
           Usuarios
         </h2>
@@ -597,7 +597,7 @@ export default function AdminUsuarios() {
               <button
                 onClick={() => setPagina(p => Math.max(1, p - 1))}
                 disabled={pagina === 1}
-                className="px-3 py-3 py-1 rounded text-sm bg-white border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-3 py-1 rounded text-sm bg-inst-surface border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Página anterior"
               >
                 <span className="material-icons text-sm">chevron_left</span>
@@ -608,7 +608,7 @@ export default function AdminUsuarios() {
                   <button
                     key={p}
                     onClick={() => setPagina(p)}
-                    className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul-osc text-white' : 'bg-white border hover:bg-inst-gris'}`}
+                    className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-inst-gris'}`}
                   >
                     {p}
                   </button>
@@ -616,7 +616,7 @@ export default function AdminUsuarios() {
               <button
                 onClick={() => setPagina(p => Math.min(totalPages, p + 1))}
                 disabled={pagina === totalPages}
-                className="px-3 py-1 rounded text-sm bg-white border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 rounded text-sm bg-inst-surface border hover:bg-inst-gris disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Página siguiente"
               >
                 <span className="material-icons text-sm">chevron_right</span>
@@ -784,7 +784,7 @@ export default function AdminUsuarios() {
 
             {/* SECCIÓN 4: INFORMACIÓN DEL EMPLEO (solo si NO es contratista) */}
             {form.es_contratista === 0 && (
-              <div className="edl-card border-l-4 border-l-inst-azul-osc">
+              <div className="edl-card border-l-4 border-l-inst-azul">
                 <h4 className="font-heading font-semibold text-inst-azul mb-3">4. Información del empleo</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <Select

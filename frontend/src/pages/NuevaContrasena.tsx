@@ -17,7 +17,7 @@ export default function NuevaContrasena() {
 
 	if (!email || !codigo) {
 		return (
-			<div className="min-h-screen bg-white flex items-center justify-center px-4">
+			<div className="min-h-screen bg-inst-surface flex items-center justify-center px-4">
 				<div className="edl-card text-center p-8">
 					<span className="material-icons text-5xl text-inst-rojo mb-4">error</span>
 					<h2 className="text-lg font-heading font-bold text-inst-azul mb-2">Enlace inválido</h2>
@@ -65,7 +65,7 @@ export default function NuevaContrasena() {
 	}
 
 	return (
-		<div className="min-h-screen bg-white flex items-center justify-center px-4">
+		<div className="min-h-screen bg-inst-surface flex items-center justify-center px-4">
 			<div className="w-full max-w-md">
 				<div className="edl-card">
 					{/* Logo Carepa */}

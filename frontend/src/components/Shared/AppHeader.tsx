@@ -127,7 +127,7 @@ export default function AppHeader() {
  : 'Usuario';
 
  return (
- <header className="bg-white sticky top-0 z-40 border-b border-inst-borde">
+ <header className="bg-inst-surface sticky top-0 z-40 border-b border-inst-borde">
  <div className="flex items-center gap-3 px-4 lg:px-6 py-3">
  <div className="flex-shrink-0 flex items-center gap-3">
  <img
@@ -139,14 +139,14 @@ export default function AppHeader() {
  const parent = (e.target as HTMLImageElement).parentElement;
  if (parent && !parent.querySelector('.escudo-fallback')) {
  const span = document.createElement('span');
- span.className = 'escudo-fallback text-2xl font-heading font-bold text-inst-azul-osc';
+ span.className = 'escudo-fallback text-2xl font-heading font-bold text-inst-azul';
  span.textContent = 'CAREPA';
  parent.appendChild(span);
  }
  }}
  />
  <div className="hidden sm:block leading-tight">
- <h1 className="text-base lg:text-lg font-heading font-bold text-inst-azul-osc tracking-wide">
+ <h1 className="text-base lg:text-lg font-heading font-bold text-inst-azul tracking-wide">
  Evaluación del Desempeño Laboral
  </h1>
  <p className="text-[11px] text-inst-texto-claro">
@@ -180,7 +180,7 @@ export default function AppHeader() {
  <div
  id="search-results"
  role="listbox"
- className="absolute left-0 right-0 top-full mt-1 bg-white border border-inst-borde rounded-lg shadow-lg max-h-80 overflow-y-auto z-50 animate-fadeIn"
+ className="absolute left-0 right-0 top-full mt-1 bg-inst-surface border border-inst-borde rounded-lg shadow-lg max-h-80 overflow-y-auto z-50 animate-fadeIn"
  >
  {buscando ? (
  <div className="px-4 py-3 text-sm text-inst-texto-claro">Buscando…</div>
@@ -197,7 +197,7 @@ export default function AppHeader() {
  onClick={() => irAResultado(r)}
  onMouseEnter={() => setSeleccion(i)}
  className={`w-full text-left px-4 py-2 text-sm ${
- i === seleccion ? 'bg-inst-azul-osc-light text-inst-azul-osc' : 'hover:bg-inst-gris-med'
+ i === seleccion ? 'bg-inst-azul-light text-inst-azul' : 'hover:bg-inst-gris-med'
  }`}
  >
  <div className="font-medium">{r.label}</div>
@@ -216,7 +216,7 @@ export default function AppHeader() {
  <Tooltip content="Notificaciones">
  <button
 onClick={() => navigate('/dashboard/notificaciones')}
-					className="relative p-2 rounded-md text-inst-texto-claro hover:bg-inst-gris-med hover:text-inst-azul-osc transition-colors"
+					className="relative p-2 rounded-md text-inst-texto-claro hover:bg-inst-gris-med hover:text-inst-azul transition-colors"
 					aria-label={`Notificaciones${contadorNotif > 0 ? ` (${contadorNotif} sin leer)` : ''}`}
  >
  <span className="material-icons text-xl">notifications</span>
@@ -235,7 +235,7 @@ onClick={() => navigate('/dashboard/notificaciones')}
 
  <div className="hidden md:flex items-center gap-3 flex-shrink-0">
  <div className="text-right leading-tight">
- <p className="text-sm font-medium text-inst-azul-osc">{nombreCompleto}</p>
+ <p className="text-sm font-medium text-inst-azul">{nombreCompleto}</p>
  <p className="text-xs text-inst-texto-claro">{usuario?.cargo || ''}</p>
  </div>
  </div>

@@ -49,9 +49,9 @@ const EXCLUDED_FOR_EVALUADO = ['entidades', 'dependencias', 'usuarios', 'evaluac
 const EXCLUDED_FOR_JEFE_DEPENDENCIA = ['dependencias', 'usuarios'];
 
 const CARD_ITEMS = [
- { key: 'dependencias', label: 'Dependencias', icon: 'account_tree', color: 'text-purple-700', bg: 'bg-purple-100' },
- { key: 'usuarios', label: 'Usuarios', icon: 'people', color: 'text-inst-azul-osc', bg: 'bg-blue-100' },
- { key: 'evaluaciones', label: 'Evaluaciones', icon: 'assessment', color: 'text-inst-azul-osc', bg: 'bg-green-100' },
+ { key: 'dependencias', label: 'Dependencias', icon: 'account_tree', color: 'text-inst-texto-2', bg: 'bg-inst-gris-med' },
+ { key: 'usuarios', label: 'Usuarios', icon: 'people', color: 'text-inst-azul', bg: 'bg-inst-azul-light' },
+ { key: 'evaluaciones', label: 'Evaluaciones', icon: 'assessment', color: 'text-inst-azul', bg: 'bg-green-100' },
  { key: 'periodos', label: 'Períodos activos', icon: 'calendar_today', color: 'text-inst-rojo', bg: 'bg-red-100' },
 ] as const;
 
@@ -238,7 +238,7 @@ function DashboardContent() {
          const parent = (e.target as HTMLImageElement).parentElement;
          if (parent && !parent.querySelector('.escudo-fallback')) {
           const span = document.createElement('span');
-          span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul-osc';
+          span.className = 'escudo-fallback text-3xl font-heading font-bold text-inst-azul';
           span.textContent = 'CAREPA';
           parent.appendChild(span);
          }
@@ -246,7 +246,7 @@ function DashboardContent() {
        />
       </div>
       <div>
-       <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+       <h2 className="text-xl font-heading font-bold text-inst-azul">
         {saludo}, {usuario?.primer_nombre ?? ''} {usuario?.primer_apellido ?? ''}
        </h2>
        {rolLabel ? <p className="text-sm text-inst-texto-claro mt-0.5">Rol activo: {rolLabel}</p> : null}
@@ -269,7 +269,7 @@ function DashboardContent() {
 
     {cambiandoPassword ? (
      <div className="mt-4 p-4 bg-inst-gris rounded-lg animate-slideUp">
-      <h3 className="text-sm font-bold text-inst-azul-osc mb-3">Cambiar contraseña</h3>
+      <h3 className="text-sm font-bold text-inst-azul mb-3">Cambiar contraseña</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
        <Input
         label="Contraseña actual"
@@ -334,16 +334,16 @@ function DashboardContent() {
       </Card>
      ) : null}
      {resumen.mis_compromisos_enviados > 0 && rolActivo === 'evaluado' ? (
-      <Card className="bg-sky-50 border-sky-200 flex items-start gap-3 animate-slideUp">
-       <span className="material-icons text-3xl text-sky-600">schedule</span>
+      <Card className="bg-inst-azul-surface border-inst-borde flex items-start gap-3 animate-slideUp">
+       <span className="material-icons text-3xl text-inst-azul">schedule</span>
        <div className="flex-1">
-        <p className="font-heading font-bold text-sky-800">
+        <p className="font-heading font-bold text-inst-azul">
          {resumen.mis_compromisos_enviados} compromiso{resumen.mis_compromisos_enviados > 1 ? 's' : ''} en espera
         </p>
-        <p className="text-sm text-sky-700 mt-0.5">Sus compromisos enviados están pendientes de aprobación.</p>
+        <p className="text-sm text-inst-texto-2 mt-0.5">Sus compromisos enviados están pendientes de aprobación.</p>
         <button
          onClick={() => navigate('/dashboard/compromisos/mios')}
-         className="text-sm text-sky-800 underline font-medium mt-1"
+         className="text-sm text-inst-azul underline font-medium mt-1"
         >
          Ver Mis Compromisos
         </button>

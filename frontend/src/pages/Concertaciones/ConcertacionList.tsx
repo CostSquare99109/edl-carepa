@@ -86,7 +86,7 @@ export default function ConcertacionList() {
                   </td>
                   <td className="text-center">
                   <button onClick={() => api.download(`/reportes/concertacion-pdf/${c.id}`, `concertacion_${c.id}.pdf`)}
-                   className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul-osc inline-block cursor-pointer" title="Descargar PDF">
+                   className="p-1.5 rounded hover:bg-inst-gris transition-colors text-inst-azul inline-block cursor-pointer" title="Descargar PDF">
                    <span className="material-icons text-lg">picture_as_pdf</span>
                   </button>
                   </td>
@@ -109,7 +109,7 @@ export default function ConcertacionList() {
       {/* Modal de edición */}
       {editando && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-inst-surface rounded-lg shadow-xl border border-inst-borde w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-inst-borde">
               <h3 className="edl-section-title text-base">Editar Concertacion #{editando.id}</h3>
               <button onClick={() => setEditando(null)} className="p-1 rounded hover:bg-inst-gris">

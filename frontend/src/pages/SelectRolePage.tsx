@@ -31,9 +31,9 @@ interface RolConfig {
  jefe_dependencia: {
   icon: 'supervisor_account',
   descripcion: 'Jefe de dependencia. Administra los usuarios de su dependencia, restablece contraseñas y realiza seguimiento.',
-  colorBarra: 'border-l-purple-600',
-  colorFondo: 'bg-purple-100',
-  colorTexto: 'text-purple-800',
+  colorBarra: 'border-l-inst-azul',
+  colorFondo: 'bg-inst-gris-med',
+  colorTexto: 'text-inst-texto',
   badge: 'danger',
  },
  evaluador: {
@@ -48,8 +48,8 @@ interface RolConfig {
   icon: 'person',
   descripcion: 'Consulte sus compromisos, evidencias y resultados de evaluación. Proponga compromisos funcionales y comportamentales.',
   colorBarra: 'border-l-blue-600',
-  colorFondo: 'bg-blue-100',
-  colorTexto: 'text-blue-800',
+  colorFondo: 'bg-inst-azul-light',
+  colorTexto: 'text-inst-azul',
   badge: 'info',
  },
  comision_evaluadora: {
@@ -107,7 +107,7 @@ export default function SelectRolePage() {
         const parent = (e.target as HTMLImageElement).parentElement;
         if (parent && !parent.querySelector('.escudo-fallback')) {
          const span = document.createElement('span');
-         span.className = 'escudo-fallback text-4xl font-heading font-bold text-inst-azul-osc';
+         span.className = 'escudo-fallback text-4xl font-heading font-bold text-inst-azul';
          span.textContent = 'CAREPA';
          parent.appendChild(span);
         }
@@ -115,7 +115,7 @@ export default function SelectRolePage() {
       />
      </div>
 
-     <h1 className="text-xl font-heading font-bold text-inst-azul-osc mb-1">
+     <h1 className="text-xl font-heading font-bold text-inst-azul mb-1">
       Evaluación del Desempeño Laboral
      </h1>
      <p className="text-sm text-inst-texto-claro mb-4">Alcaldía de Carepa</p>
@@ -123,7 +123,7 @@ export default function SelectRolePage() {
      <div className="edl-divider" />
      <div className="edl-divider-accent" />
 
-      <p className="text-lg font-heading font-semibold text-inst-azul-osc mb-1">
+      <p className="text-lg font-heading font-semibold text-inst-azul mb-1">
        Bienvenido, {usuario?.primer_nombre ?? ''} {usuario?.primer_apellido ?? ''}
       </p>
       {usuario?.denominacion_empleo || usuario?.cargo ? (
@@ -153,13 +153,13 @@ export default function SelectRolePage() {
         aria-busy={isLoading || undefined}
         className={`
          group relative w-full text-left
-         border border-inst-borde rounded-lg bg-white
+         border border-inst-borde rounded-lg bg-inst-surface
          border-l-4 ${cfg.colorBarra}
          hover:shadow-lg hover:-translate-y-0.5
          transition-all duration-200 ease-out
          p-5
          disabled:opacity-60 disabled:cursor-not-allowed
-         focus:outline-none focus:ring-2 focus:ring-inst-azul-osc/30
+         focus:outline-none focus:ring-2 focus:ring-inst-azul/30
         `}
        >
         <div className="flex items-start gap-4">
@@ -190,7 +190,7 @@ export default function SelectRolePage() {
         </div>
 
         <span
-         className="absolute right-4 top-1/2 -translate-y-1/2 material-icons text-inst-borde group-hover:text-inst-azul-osc transition-colors duration-200"
+         className="absolute right-4 top-1/2 -translate-y-1/2 material-icons text-inst-borde group-hover:text-inst-azul transition-colors duration-200"
          aria-hidden="true"
         >
          chevron_right

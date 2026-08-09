@@ -115,7 +115,7 @@ export default function AdminHome() {
   return (
     <div className="space-y-6 p-4 lg:p-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h2 className="text-xl font-heading font-bold text-inst-azul-osc">
+        <h2 className="text-xl font-heading font-bold text-inst-azul">
           <span className="material-icons align-middle mr-2">space_dashboard</span>
           Tablero de Control
         </h2>
@@ -130,10 +130,10 @@ export default function AdminHome() {
       </div>
 
       {stats?.periodo_activo ? (
-        <Card className="border-l-4 border-l-inst-azul-osc">
+        <Card className="border-l-4 border-l-inst-azul">
           <div className="flex items-center gap-2">
-            <span className="material-icons text-inst-azul-osc">event</span>
-            <span className="text-sm font-medium text-inst-azul-osc">
+            <span className="material-icons text-inst-azul">event</span>
+            <span className="text-sm font-medium text-inst-azul">
               Período activo: {stats.periodo_activo.nombre}
             </span>
           </div>
@@ -141,7 +141,7 @@ export default function AdminHome() {
       ) : null}
 
       <Card>
-        <h3 className="text-sm font-semibold text-inst-azul-osc mb-3">
+        <h3 className="text-sm font-semibold text-inst-azul mb-3">
           <span className="material-icons text-sm align-middle mr-1">admin_panel_settings</span>
           Roles del Sistema
         </h3>
@@ -186,7 +186,7 @@ export default function AdminHome() {
 
       {stats?.progreso_dependencias && stats.progreso_dependencias.length > 0 ? (
         <Card>
-          <h3 className="text-sm font-semibold text-inst-azul-osc mb-3">
+          <h3 className="text-sm font-semibold text-inst-azul mb-3">
             <span className="material-icons text-sm align-middle mr-1">account_tree</span>
             Progreso por Dependencia
           </h3>
@@ -194,12 +194,12 @@ export default function AdminHome() {
             {stats.progreso_dependencias.map((dep, i) => {
               const tone: Tone = dep.progreso >= 75 ? 'success' : dep.progreso >= 50 ? 'warning' : 'danger';
               const barColor =
-                tone === 'success' ? 'bg-inst-azul-osc' : tone === 'warning' ? 'bg-amber-500' : 'bg-inst-rojo';
+                tone === 'success' ? 'bg-inst-azul' : tone === 'warning' ? 'bg-amber-500' : 'bg-inst-rojo';
               return (
                 <div key={i}>
                   <div className="flex items-center justify-between text-sm mb-1">
                     <span className="text-inst-texto truncate max-w-[200px]">{dep.dependencia}</span>
-                    <span className="font-semibold text-inst-azul-osc">{dep.progreso}%</span>
+                    <span className="font-semibold text-inst-azul">{dep.progreso}%</span>
                   </div>
                   <div
                     className="w-full bg-inst-gris-med rounded-full h-2.5 overflow-hidden"
@@ -222,8 +222,8 @@ export default function AdminHome() {
       ) : null}
 
       <Card className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-          <span className="material-icons text-2xl text-purple-700">business</span>
+        <div className="w-12 h-12 rounded-lg bg-inst-gris-med flex items-center justify-center">
+          <span className="material-icons text-2xl text-inst-texto-2">business</span>
         </div>
         <div>
           <p className="text-2xl font-bold text-inst-texto">{stats?.entidades_activas ?? 0}</p>
@@ -233,7 +233,7 @@ export default function AdminHome() {
 
       {stats?.evaluaciones_recientes && stats.evaluaciones_recientes.length > 0 ? (
         <Card>
-          <h3 className="text-sm font-semibold text-inst-azul-osc mb-3">
+          <h3 className="text-sm font-semibold text-inst-azul mb-3">
             <span className="material-icons text-sm align-middle mr-1">history</span>
             Evaluaciones Recientes
           </h3>

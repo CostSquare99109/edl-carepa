@@ -52,12 +52,12 @@ interface EvaluacionAsignada {
 
 const ESTADO_COMPROMISO: Record<string, { label: string; color: string; bg: string }> = {
   pendiente: { label: 'Sin evaluar', color: 'text-amber-600', bg: 'bg-amber-50' },
-  en_progreso: { label: 'En progreso', color: 'text-blue-600', bg: 'bg-blue-50' },
-  aprobado: { label: 'Aprobado', color: 'text-blue-600', bg: 'bg-blue-50' },
+  en_progreso: { label: 'En progreso', color: 'text-inst-azul', bg: 'bg-inst-azul-surface' },
+  aprobado: { label: 'Aprobado', color: 'text-inst-azul', bg: 'bg-inst-azul-surface' },
   cumplido: { label: 'Cumplido', color: 'text-green-600', bg: 'bg-green-50' },
   incumplido: { label: 'Incumplido', color: 'text-red-600', bg: 'bg-red-50' },
   evaluado: { label: 'Evaluado', color: 'text-green-600', bg: 'bg-green-50' },
-  validado: { label: 'Validado', color: 'text-inst-azul', bg: 'bg-blue-50' },
+  validado: { label: 'Validado', color: 'text-inst-azul', bg: 'bg-inst-azul-surface' },
 };
 
 type ValoracionFrecuencia = 'nunca' | 'algunas_veces' | 'frecuentemente' | 'siempre';
@@ -74,7 +74,7 @@ const FRECUENCIA_PUNTAJE: Record<ValoracionFrecuencia, number> = {
 const COLOR_FRECUENCIA: Record<ValoracionFrecuencia, string> = {
   nunca: 'bg-red-100 text-red-700 border-red-300',
   algunas_veces: 'bg-amber-100 text-amber-700 border-amber-300',
-  frecuentemente: 'bg-blue-100 text-blue-700 border-blue-300',
+  frecuentemente: 'bg-inst-azul-light text-inst-azul border-inst-azul',
   siempre: 'bg-green-100 text-green-700 border-green-300',
 };
 
@@ -183,7 +183,7 @@ function escalaComportamental(puntaje: number): string {
 
 function escalaFinal(puntaje: number): { label: string; color: string } {
   if (puntaje >= UMBRAL_SOBRESALIENTE) return { label: 'Sobresaliente', color: 'text-green-700 bg-green-50' };
-  if (puntaje > UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-blue-700 bg-blue-50' };
+  if (puntaje > UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-inst-azul bg-inst-azul-surface' };
   return { label: 'No Satisfactorio', color: 'text-red-700 bg-red-50' };
 }
 
@@ -628,7 +628,7 @@ export default function PanelEvaluador() {
     <div className="min-h-screen space-y-6">
       <div className="animate-fadeIn">
         <div className="flex items-center gap-2 mb-1">
-          <span className="material-icons text-inst-azul-osc text-xl">rate_review</span>
+          <span className="material-icons text-inst-azul text-xl">rate_review</span>
           <h2 className="edl-section-title">Evaluar</h2>
         </div>
         <p className="text-sm text-inst-texto-claro ml-7">
@@ -912,7 +912,7 @@ export default function PanelEvaluador() {
                   <h3 className="font-heading font-bold text-inst-texto">{evaluacionSel.evaluado_nombre}</h3>
                   <p className="text-xs text-inst-texto-claro">{evaluacionSel.evaluado_cargo} — {evaluacionSel.evaluado_dependencia}</p>
                 </div>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-inst-azul">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-inst-azul-surface text-inst-azul">
                   {TIPOS_EVALUACION.find(t => t.value === tipoEvaluacion)?.label || tipoEvaluacion}
                 </span>
               </div>
@@ -992,7 +992,7 @@ export default function PanelEvaluador() {
                           <div className="ml-4 space-y-2">
                             <p className="text-xs font-semibold text-inst-texto-claro uppercase tracking-wider">Conductas asociadas</p>
                             {c.conductas.map(cond => (
-                              <div key={cond.id} className="flex items-center gap-2 text-sm pl-2 border-l-2 border-inst-azul-osc-light">
+                              <div key={cond.id} className="flex items-center gap-2 text-sm pl-2 border-l-2 border-inst-azul-light">
                                 <span className="flex-1">{cond.texto}</span>
                                 <Select
                                   value={conductasForm[cond.id] || ''}
@@ -1012,7 +1012,7 @@ export default function PanelEvaluador() {
             )}
 
             {/* PREGUNTAS DE CIERRE */}
-            <div className="edl-card border-l-4 border-l-inst-azul-osc">
+            <div className="edl-card border-l-4 border-l-inst-azul">
               <h3 className="font-heading font-semibold text-inst-azul mb-4">Preguntas de cierre</h3>
               <div className="space-y-4">
                 <div>
@@ -1114,14 +1114,14 @@ export default function PanelEvaluador() {
                     <span className="text-sm font-bold text-inst-texto">{resumen.notaComportamentalesPct.toFixed(1)}%</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded h-2 mt-1">
-                    <div className="bg-inst-azul-osc rounded h-2 transition-all" style={{ width: `${Math.min(resumen.notaComportamentalesPct, 100)}%` }} />
+                    <div className="bg-inst-azul rounded h-2 transition-all" style={{ width: `${Math.min(resumen.notaComportamentalesPct, 100)}%` }} />
                   </div>
                 </div>
                 <hr className="border-inst-borde" />
                 <div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Nota Definitiva</span>
-                    <span className="text-lg font-bold text-inst-azul-osc">{resumen.notaDefinitiva.toFixed(1)}%</span>
+                    <span className="text-lg font-bold text-inst-azul">{resumen.notaDefinitiva.toFixed(1)}%</span>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -1159,7 +1159,7 @@ export default function PanelEvaluador() {
                         <li key={idx} className="flex items-start gap-2">
                           <span className={`material-icons text-sm flex-shrink-0 mt-0.5 ${
                             resumen.escalaFinal.label === 'Sobresaliente' ? 'text-green-600' :
-                            resumen.escalaFinal.label === 'Satisfactorio' ? 'text-blue-600' : 'text-red-600'
+                            resumen.escalaFinal.label === 'Satisfactorio' ? 'text-inst-azul' : 'text-red-600'
                           }`}>
                             {resumen.escalaFinal.label === 'No Satisfactorio' ? 'remove_circle' : 'check_circle'}
                           </span>
@@ -1172,11 +1172,11 @@ export default function PanelEvaluador() {
                 <div className="grid grid-cols-3 gap-2 pt-2 border-t border-inst-borde text-center">
                   <div>
                     <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Peso Func.</p>
-                    <p className="text-sm font-bold text-inst-azul-osc">{PESO_FUNCIONALES}%</p>
+                    <p className="text-sm font-bold text-inst-azul">{PESO_FUNCIONALES}%</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Peso Comp.</p>
-                    <p className="text-sm font-bold text-inst-azul-osc">{PESO_COMPORTAMENTALES}%</p>
+                    <p className="text-sm font-bold text-inst-azul">{PESO_COMPORTAMENTALES}%</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-inst-texto-claro uppercase tracking-wide">Escala Comp.</p>
@@ -1292,7 +1292,7 @@ export default function PanelEvaluador() {
       {confirmModal && (
         <Modal open={true} onClose={() => setConfirmModal(null)} size="sm">
           <div className="text-center py-2">
-            <span className="material-icons text-5xl text-inst-azul-osc mb-3 block mx-auto">help_outline</span>
+            <span className="material-icons text-5xl text-inst-azul mb-3 block mx-auto">help_outline</span>
             <p className="text-sm text-inst-texto mb-5">{confirmModal.msg}</p>
             <div className="flex justify-center gap-3">
               <Button variant="outline" onClick={() => setConfirmModal(null)}>No</Button>

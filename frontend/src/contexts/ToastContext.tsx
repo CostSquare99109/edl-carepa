@@ -69,7 +69,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
  ? 'bg-inst-rojo hover:bg-red-700 text-white'
  : confirmState?.variant === 'warning'
  ? 'bg-amber-500 hover:bg-amber-600 text-white'
- : 'bg-inst-azul hover:bg-blue-700 text-white';
+ : 'bg-inst-azul hover:bg-inst-azul-hover text-white';
 
  return (
  <ToastContext.Provider value={{ toast: showToast, confirm }}>
@@ -88,7 +88,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
  {confirmState?.open && (
  <div className="fixed inset-0 z-50 flex items-center justify-center">
  <div className="fixed inset-0 bg-black/50" onClick={handleCancel} />
- <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 z-10">
+ <div className="relative bg-inst-surface rounded-lg shadow-xl max-w-md w-full mx-4 p-6 z-10">
  <h3 className="text-lg font-heading font-bold text-inst-azul mb-2">
  {confirmState.title}
  </h3>

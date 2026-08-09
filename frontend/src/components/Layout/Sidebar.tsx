@@ -205,11 +205,11 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
             isOpen ? 'px-3 py-2 justify-start' : 'px-0 py-2 justify-center'
           } ${
             isActive
-              ? 'bg-inst-azul-osc text-white shadow-sm'
-              : 'text-inst-texto hover:bg-inst-azul-osc-light hover:text-inst-azul-osc'
+              ? 'bg-inst-azul text-white shadow-sm'
+              : 'text-inst-texto hover:bg-inst-azul-light hover:text-inst-azul'
           }`}
         >
-          <span className={`material-icons text-xl flex-shrink-0 transition-colors ${isActive ? 'text-white' : 'text-inst-texto-claro group-hover:text-inst-azul-osc'}`}>
+          <span className={`material-icons text-xl flex-shrink-0 transition-colors ${isActive ? 'text-white' : 'text-inst-texto-claro group-hover:text-inst-azul'}`}>
             {icon}
           </span>
           <span
@@ -225,12 +225,12 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
             <span
               className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold ${
                 isActive
-                  ? 'bg-white text-inst-azul-osc'
+                  ? 'bg-inst-surface text-inst-azul'
                   : badge.tone === 'danger'
                   ? 'bg-inst-rojo text-white'
                   : badge.tone === 'warning'
                   ? 'bg-amber-500 text-white'
-                  : 'bg-sky-500 text-white'
+                  : 'bg-inst-azul text-white'
               }`}
               aria-label={`${badge.count} pendientes`}
             >
@@ -244,7 +244,7 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
                   ? 'bg-inst-rojo text-white'
                   : badge.tone === 'warning'
                   ? 'bg-amber-500 text-white'
-                  : 'bg-sky-500 text-white'
+                  : 'bg-inst-azul text-white'
               }`}
               aria-label={`${badge.count} pendientes`}
             >
@@ -276,7 +276,7 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
   aria-label="Menú lateral"
   aria-hidden={!isMobileOpen}
   className={`
-    bg-white border-r border-inst-borde flex flex-col overflow-hidden shadow-xl lg:shadow-none
+    bg-inst-surface border-r border-inst-borde flex flex-col overflow-hidden shadow-xl lg:shadow-none
     transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
     fixed inset-y-0 left-0 z-50 w-64
     ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -285,13 +285,13 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
   `}
 >
         {/* Sidebar header / brand area */}
-        <div className="flex items-center h-14 border-b border-inst-borde bg-white flex-shrink-0">
+        <div className="flex items-center h-14 border-b border-inst-borde bg-inst-surface flex-shrink-0">
           <div
             className={`flex items-center gap-3 flex-1 px-3 transition-opacity duration-200 ${
               isOpen ? 'opacity-100' : 'opacity-0 lg:hidden'
             }`}
           >
-            <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-base">
+            <div className="h-10 w-10 flex-shrink-0 rounded-lg bg-inst-azul text-white flex items-center justify-center font-heading font-bold text-base">
               <img
                 src={`${import.meta.env.BASE_URL}escudo.png`}
                 alt="Escudo de Carepa"
@@ -302,7 +302,7 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
               />
             </div>
             <div className="leading-tight min-w-0">
-              <h1 className="text-base font-heading font-bold text-inst-azul-osc truncate">EDL Carepa</h1>
+              <h1 className="text-base font-heading font-bold text-inst-azul truncate">EDL Carepa</h1>
             </div>
           </div>
 
@@ -312,7 +312,7 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
               isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
           >
-            <div className="h-8 w-8 flex-shrink-0 rounded-lg bg-inst-azul-osc text-white flex items-center justify-center font-heading font-bold text-sm">
+            <div className="h-8 w-8 flex-shrink-0 rounded-lg bg-inst-azul text-white flex items-center justify-center font-heading font-bold text-sm">
               <img
                 src={`${import.meta.env.BASE_URL}escudo.png`}
                 alt="Carepa"
@@ -328,7 +328,7 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
           <button
             type="button"
             onClick={onClose}
-            className="lg:hidden flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-md hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-azul-osc transition-colors mx-1"
+            className="lg:hidden flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-md hover:bg-inst-gris-med text-inst-texto-claro hover:text-inst-azul transition-colors mx-1"
             aria-label="Cerrar menú lateral"
           >
             <span className="material-icons text-xl">close</span>
@@ -357,7 +357,7 @@ export default function Sidebar({ isOpen, isMobileOpen, onClose }: SidebarProps)
           ))}
         </nav>
 
-        <div className="border-t border-inst-borde bg-white flex-shrink-0">
+        <div className="border-t border-inst-borde bg-inst-surface flex-shrink-0">
           <button
             type="button"
             onClick={logout}

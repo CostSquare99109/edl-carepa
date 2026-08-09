@@ -39,16 +39,16 @@ interface Catalogos {
 
 const NATURALEZA_COLOR: Record<string, string> = {
   carrera_administrativa: 'bg-green-100 text-green-800',
-  libre_nombramiento: 'bg-blue-100 text-blue-800',
-  libre_nombramiento_gerencia_publica: 'bg-blue-100 text-blue-800',
-  libre_nombramiento_remocion: 'bg-purple-100 text-purple-800',
+  libre_nombramiento: 'bg-inst-azul-light text-inst-azul',
+  libre_nombramiento_gerencia_publica: 'bg-inst-azul-light text-inst-azul',
+  libre_nombramiento_remocion: 'bg-inst-gris-med text-inst-texto',
   periodo_fijo: 'bg-amber-100 text-amber-800',
   temporal: 'bg-orange-100 text-orange-800',
 };
 
 const NIVEL_COLOR: Record<string, string> = {
-  directivo: 'bg-indigo-100 text-indigo-800',
-  asesor: 'bg-blue-100 text-blue-800',
+  directivo: 'bg-inst-azul-light text-inst-azul',
+  asesor: 'bg-inst-azul-light text-inst-azul',
   profesional: 'bg-teal-100 text-teal-800',
   tecnico: 'bg-yellow-100 text-yellow-800',
   asistencial: 'bg-gray-100 text-gray-800',
@@ -122,7 +122,7 @@ export default function ManualFuncionesIndice() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-inst-azul-osc mb-1">
+        <h1 className="text-2xl font-bold text-inst-azul mb-1">
           Manual de Funciones
         </h1>
         <p className="text-sm text-gray-600">
@@ -132,26 +132,26 @@ export default function ManualFuncionesIndice() {
 
       {conteos && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-white border rounded-lg p-3">
+          <div className="bg-inst-surface border rounded-lg p-3">
             <div className="text-xs text-gray-500 uppercase">Total cargos</div>
-            <div className="text-2xl font-bold text-inst-azul-osc">{conteos.total_cargos}</div>
+            <div className="text-2xl font-bold text-inst-azul">{conteos.total_cargos}</div>
             <div className="text-xs text-gray-500 mt-1">
               Global: {conteos.planta_global} / Temporal: {conteos.planta_temporal}
             </div>
           </div>
-          <div className="bg-white border rounded-lg p-3">
+          <div className="bg-inst-surface border rounded-lg p-3">
             <div className="text-xs text-gray-500 uppercase">Asignaciones vigentes</div>
             <div className="text-2xl font-bold text-green-600">{conteos.asignaciones_vigentes}</div>
             <div className="text-xs text-gray-500 mt-1">Funcionarios con cargo del manual</div>
           </div>
-          <div className="bg-white border rounded-lg p-3">
+          <div className="bg-inst-surface border rounded-lg p-3">
             <div className="text-xs text-gray-500 uppercase">Secciones de detalle</div>
-            <div className="text-2xl font-bold text-indigo-600">{conteos.total_detalle}</div>
+            <div className="text-2xl font-bold text-inst-azul">{conteos.total_detalle}</div>
             <div className="text-xs text-gray-500 mt-1">7 secciones por cargo</div>
           </div>
-          <div className="bg-white border rounded-lg p-3">
+          <div className="bg-inst-surface border rounded-lg p-3">
             <div className="text-xs text-gray-500 uppercase">NBC SNIES</div>
-            <div className="text-2xl font-bold text-purple-600">{conteos.total_nbc}</div>
+            <div className="text-2xl font-bold text-inst-azul">{conteos.total_nbc}</div>
             <div className="text-xs text-gray-500 mt-1">
               {conteos.total_niveles} niveles, {conteos.total_naturalezas} naturalezas
             </div>
@@ -159,7 +159,7 @@ export default function ManualFuncionesIndice() {
         </div>
       )}
 
-      <div className="bg-white border rounded-lg p-4 mb-4">
+      <div className="bg-inst-surface border rounded-lg p-4 mb-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <input
             type="text"
@@ -209,12 +209,12 @@ export default function ManualFuncionesIndice() {
       {cargando ? (
         <div className="text-center py-12 text-gray-500">Cargando cargos...</div>
       ) : cargos.length === 0 ? (
-        <div className="bg-white border rounded p-12 text-center text-gray-500">
+        <div className="bg-inst-surface border rounded p-12 text-center text-gray-500">
           Sin resultados con los filtros actuales
         </div>
       ) : (
         <>
-          <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="bg-inst-surface border rounded-lg overflow-hidden">
             <table className="min-w-full">
               <thead className="bg-gray-50 border-b">
                 <tr>
@@ -247,7 +247,7 @@ export default function ManualFuncionesIndice() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => navigate(`/dashboard/manual-funciones/${c.id}`)}
-                        className="text-inst-azul hover:text-inst-azul-osc text-sm font-medium"
+                        className="text-inst-azul hover:text-inst-azul text-sm font-medium"
                       >
                         Ver ficha
                       </button>

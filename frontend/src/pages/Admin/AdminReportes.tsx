@@ -125,7 +125,7 @@ export default function AdminReportes() {
  <div className="space-y-4 p-4 lg:p-6">
  <h2 className="text-xl font-bold" style={{ color: COLORES.azul }}>Reportes</h2>
 
- <div className="bg-white rounded-lg shadow-sm p-4">
+ <div className="bg-inst-surface rounded-lg shadow-sm p-4">
  <h3 className="text-sm font-semibold mb-3" style={{ color: COLORES.azul }}>Generar Reporte</h3>
  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
  <div>
@@ -181,7 +181,7 @@ export default function AdminReportes() {
  {error && <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-sm">{error}</div>}
 
  {mostrarResultado && resumen && (
- <div className="bg-white rounded-lg shadow-sm p-4 space-y-4">
+ <div className="bg-inst-surface rounded-lg shadow-sm p-4 space-y-4">
  <h3 className="text-sm font-semibold" style={{ color: COLORES.azul }}>Resumen General</h3>
  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
  {resumen.general && Object.entries(resumen.general).map(([key, val]) => (
@@ -208,7 +208,7 @@ export default function AdminReportes() {
  )}
 
  {mostrarResultado && datos.length > 0 && (
- <div className="bg-white rounded-lg shadow-sm p-4">
+ <div className="bg-inst-surface rounded-lg shadow-sm p-4">
  <div className="flex items-center justify-between mb-3">
  <h3 className="text-sm font-semibold" style={{ color: COLORES.azul }}>
  Resultado ({datos.length} registros)

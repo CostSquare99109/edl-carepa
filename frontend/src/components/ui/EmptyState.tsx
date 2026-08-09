@@ -13,7 +13,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
       <div className="w-14 h-14 rounded-full bg-inst-gris-med text-inst-texto-claro flex items-center justify-center mb-4" aria-hidden="true">
         {icon ?? <span className="material-icons text-3xl">inbox</span>}
       </div>
-      <h3 className="text-base font-heading font-semibold text-inst-azul-osc mb-1">{title}</h3>
+      <h3 className="text-base font-heading font-semibold text-inst-azul mb-1">{title}</h3>
       {description ? (
         <p className="text-sm text-inst-texto-claro max-w-md">{description}</p>
       ) : null}

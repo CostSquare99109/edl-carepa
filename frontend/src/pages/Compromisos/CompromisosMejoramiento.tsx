@@ -322,7 +322,7 @@ export default function CompromisosMejoramiento() {
          <td>
           <span className={`text-xs px-2 py-0.5 rounded-full ${
            cm.estado === 'completado' ? 'bg-green-100 text-green-700' :
-           cm.estado === 'en_progreso' ? 'bg-blue-100 text-blue-700' :
+           cm.estado === 'en_progreso' ? 'bg-inst-azul-light text-inst-azul' :
            'bg-amber-100 text-amber-700'
           }`}>{cm.estado}</span>
          </td>
@@ -344,7 +344,7 @@ export default function CompromisosMejoramiento() {
       <div className="flex items-center justify-center gap-2 p-3">
        {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
         <button key={p} onClick={() => setPagina(p)}
-         className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-white border hover:bg-gray-100'}`}>{p}</button>
+         className={`px-3 py-1 rounded text-sm ${p === pagina ? 'bg-inst-azul text-white' : 'bg-inst-surface border hover:bg-gray-100'}`}>{p}</button>
        ))}
       </div>
      )}
@@ -353,7 +353,7 @@ export default function CompromisosMejoramiento() {
 
    {editando && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-     <div className="bg-white rounded-lg shadow-xl border border-inst-borde w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
+     <div className="bg-inst-surface rounded-lg shadow-xl border border-inst-borde w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
       <div className="flex items-center justify-between p-4 border-b border-inst-borde">
        <h3 className="edl-section-title text-base">Editar Compromiso de Mejoramiento</h3>
        <button onClick={() => setEditando(null)} className="p-1 rounded hover:bg-inst-gris">

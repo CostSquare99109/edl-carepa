@@ -482,7 +482,7 @@ export default function ProponerCompromisos() {
   return (
     <div>
       <div className="flex items-center gap-2 mb-1">
-        <span className="material-icons text-inst-azul-osc text-xl">rate_review</span>
+        <span className="material-icons text-inst-azul text-xl">rate_review</span>
         <h2 className="edl-section-title">Proponer Compromisos</h2>
       </div>
       <p className="text-sm text-inst-texto-claro mb-4 ml-7">
@@ -586,19 +586,19 @@ export default function ProponerCompromisos() {
       </div>
 
       {evaluacionSeleccionada > 0 && (
-        <div className="edl-card mb-4 bg-inst-azul/5 border-l-4 border-l-inst-azul-osc">
+        <div className="edl-card mb-4 bg-inst-azul/5 border-l-4 border-l-inst-azul">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
             <div>
               <span className="text-inst-texto-claro block text-xs uppercase font-bold tracking-wide">Período</span>
-              <span className="font-medium text-inst-azul-osc">{contexto.periodo_nombre || '—'}</span>
+              <span className="font-medium text-inst-azul">{contexto.periodo_nombre || '—'}</span>
             </div>
             <div>
               <span className="text-inst-texto-claro block text-xs uppercase font-bold tracking-wide">Jefe de Dependencia (revisor)</span>
-              <span className="font-medium text-inst-azul-osc">{contexto.evaluador_nombre || '—'}</span>
+              <span className="font-medium text-inst-azul">{contexto.evaluador_nombre || '—'}</span>
             </div>
             <div>
               <span className="text-inst-texto-claro block text-xs uppercase font-bold tracking-wide">Tipo de Evaluación</span>
-              <span className="font-medium text-inst-azul-osc">{tipoEvaluacionLabel}</span>
+              <span className="font-medium text-inst-azul">{tipoEvaluacionLabel}</span>
             </div>
           </div>
         </div>
@@ -620,9 +620,9 @@ export default function ProponerCompromisos() {
                 La concertación de este periodo ya está finalizada.
               </p>
               {evaluacionSeleccionadaObj?.calificacion_definitiva && (
-                <div className="bg-white p-3 rounded border border-gray-300 inline-block">
+                <div className="bg-inst-surface p-3 rounded border border-gray-300 inline-block">
                   <span className="text-xs uppercase font-bold text-gray-500 block">Calificación definitiva</span>
-                  <span className="text-2xl font-bold text-inst-azul-osc">
+                  <span className="text-2xl font-bold text-inst-azul">
                     {Number(evaluacionSeleccionadaObj.calificacion_definitiva).toFixed(2)}
                   </span>
                   {evaluacionSeleccionadaObj?.nivel_resultado && (
@@ -660,7 +660,7 @@ export default function ProponerCompromisos() {
           {/* COMPROMISOS FUNCIONALES (máx 3) */}
           <div className="edl-card mb-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-heading font-semibold text-inst-azul-osc flex items-center gap-2">
+              <h3 className="font-heading font-semibold text-inst-azul flex items-center gap-2">
                 <span className="material-icons">task_alt</span>
                 Compromisos Funcionales (máx. 3)
               </h3>
@@ -684,7 +684,7 @@ export default function ProponerCompromisos() {
             ) : (
               <div className="space-y-3">
                 {funcionales.map((f, idx) => (
-                  <div key={idx} className="border border-inst-borde rounded-lg p-4 relative bg-white">
+                  <div key={idx} className="border border-inst-borde rounded-lg p-4 relative bg-inst-surface">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-bold uppercase tracking-wide text-inst-texto-claro">
                         Compromiso #{idx + 1}
@@ -773,7 +773,7 @@ export default function ProponerCompromisos() {
 
           {/* COMPETENCIAS COMPORTAMENTALES (mín 3, máx 5) */}
           <div className="edl-card mb-4">
-            <h3 className="font-heading font-semibold text-inst-azul-osc mb-3 flex items-center gap-2">
+            <h3 className="font-heading font-semibold text-inst-azul mb-3 flex items-center gap-2">
               <span className="material-icons">psychology</span>
               Competencias Comportamentales (mín. 3, máx. 5)
             </h3>
@@ -781,8 +781,8 @@ export default function ProponerCompromisos() {
             {comportamentales.length > 0 && (
               <div className="space-y-2 mb-4">
                 {comportamentales.map((c, idx) => (
-                  <div key={idx} className="flex items-start gap-3 border border-inst-borde rounded-lg p-3 bg-white">
-                    <span className="material-icons text-inst-azul-osc mt-1">psychology</span>
+                  <div key={idx} className="flex items-start gap-3 border border-inst-borde rounded-lg p-3 bg-inst-surface">
+                    <span className="material-icons text-inst-azul mt-1">psychology</span>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium text-sm text-inst-texto">{c.competencia_nombre}</span>
@@ -832,7 +832,7 @@ export default function ProponerCompromisos() {
                         key={codigo}
                         type="button"
                         onClick={() => agregarComportamental(comp)}
-                        className="text-left text-sm p-3 border border-inst-borde rounded-lg hover:border-inst-azul-osc hover:bg-inst-azul/5 transition-colors bg-white"
+                        className="text-left text-sm p-3 border border-inst-borde rounded-lg hover:border-inst-azul hover:bg-inst-azul/5 transition-colors bg-inst-surface"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="font-medium text-inst-texto">{comp.nombre || comp.descripcion}</span>
@@ -851,7 +851,7 @@ export default function ProponerCompromisos() {
 
           {/* OBSERVACIONES */}
           <div className="edl-card mb-4">
-            <h3 className="font-semibold text-inst-azul-osc mb-3 flex items-center gap-2">
+            <h3 className="font-semibold text-inst-azul mb-3 flex items-center gap-2">
               <span className="material-icons">note</span>
               Observaciones para el Jefe de Dependencia
             </h3>

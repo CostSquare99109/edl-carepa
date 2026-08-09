@@ -45,8 +45,8 @@ export default function CargoManualCard({ usuarioId, denominacionActual }: Props
   }, [usuarioId]);
 
   return (
-    <div className="lg:col-span-3 bg-white border rounded-lg p-5">
-      <h3 className="text-sm font-semibold text-inst-azul-osc mb-3 flex items-center gap-2">
+    <div className="lg:col-span-3 bg-inst-surface border rounded-lg p-5">
+      <h3 className="text-sm font-semibold text-inst-azul mb-3 flex items-center gap-2">
         <span className="material-icons text-base">menu_book</span>
         Mi Cargo del Manual de Funciones
         <span className="text-xs text-gray-500 font-normal">(Decreto 159/2024)</span>
@@ -104,7 +104,7 @@ export default function CargoManualCard({ usuarioId, denominacionActual }: Props
             </div>
             <Link
               to={`/dashboard/manual-funciones/${cargo.cargo_manual_id}`}
-              className="text-inst-azul hover:text-inst-azul-osc text-sm font-medium"
+              className="text-inst-azul hover:text-inst-azul text-sm font-medium"
             >
               Ver ficha completa
             </Link>

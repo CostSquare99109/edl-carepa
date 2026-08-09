@@ -11,7 +11,7 @@ const variantClass: Record<CardVariant, string> = {
   default: 'edl-card',
   elevated: 'edl-card shadow-md hover:shadow-lg transition-shadow',
   interactive:
-    'edl-card hover:shadow-md hover:border-inst-azul-osc/40 hover:-translate-y-0.5 transition-all duration-150 cursor-pointer',
+    'edl-card hover:shadow-md hover:border-inst-azul/40 hover:-translate-y-0.5 transition-all duration-150 cursor-pointer',
 };
 
 export function Card({ variant = 'default', className = '', children, ...rest }: CardProps) {
@@ -32,11 +32,11 @@ interface KpiCardProps {
 }
 
 const toneClasses: Record<NonNullable<KpiCardProps['tone']>, string> = {
-  neutral: 'text-inst-azul-osc',
-  success: 'text-inst-azul-osc',
+  neutral: 'text-inst-azul',
+  success: 'text-inst-azul',
   warning: 'text-amber-600',
   danger: 'text-inst-rojo',
-  info: 'text-sky-600',
+  info: 'text-inst-azul',
 };
 
 export function KpiCard({ label, value, hint, icon, tone = 'neutral', progress }: KpiCardProps) {
@@ -75,15 +75,15 @@ const badgeTone: Record<NonNullable<BadgeProps['tone']>, string> = {
   success: 'edl-badge-verde',
   warning: 'edl-badge-amarillo',
   danger: 'edl-badge-rojo',
-  info: 'bg-sky-50 text-sky-700',
+  info: 'bg-inst-azul-surface text-inst-texto-2',
 };
 
 const dotTone: Record<NonNullable<BadgeProps['tone']>, string> = {
   neutral: 'bg-slate-400',
-  success: 'bg-inst-azul-osc',
+  success: 'bg-inst-azul',
   warning: 'bg-amber-500',
   danger: 'bg-inst-rojo',
-  info: 'bg-sky-500',
+  info: 'bg-inst-azul',
 };
 
 export function Badge({ children, tone = 'neutral', dot = false, className = '' }: BadgeProps) {
@@ -105,8 +105,8 @@ interface AlertProps {
 }
 
 const alertTone: Record<NonNullable<AlertProps['tone']>, string> = {
-  info: 'bg-sky-50 border-sky-200 text-sky-900',
-  success: 'bg-inst-azul-osc-light border-green-200 text-inst-azul-osc',
+  info: 'bg-inst-azul-surface border-inst-borde text-inst-texto',
+  success: 'bg-inst-azul-light border-green-200 text-inst-azul',
   warning: 'bg-inst-amarillo-light border-amber-200 text-amber-800',
   danger: 'bg-red-50 border-red-200 text-inst-rojo',
 };

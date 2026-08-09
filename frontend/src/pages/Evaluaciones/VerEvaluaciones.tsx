@@ -413,7 +413,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
   return (
     <div className="space-y-6">
       {/* Header con info del evaluado */}
-      <Card className="border-l-4 border-l-inst-azul-osc">
+      <Card className="border-l-4 border-l-inst-azul">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="edl-section-title">Evaluaciones del Servidor</h2>
@@ -547,8 +547,8 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
 
           {!detalleLoading && detalleData && (
             <div className="space-y-5">
-              <Card className="border-l-4 border-l-inst-azul-osc">
-                <h3 className="font-heading font-semibold text-inst-azul-osc mb-3">
+              <Card className="border-l-4 border-l-inst-azul">
+                <h3 className="font-heading font-semibold text-inst-azul mb-3">
                   Información general
                 </h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -614,7 +614,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
                    </div>
                    <div>
                     <p className="text-xs text-inst-texto-claro uppercase">Definitiva</p>
-                    <p className="text-xl font-bold text-inst-azul-osc">
+                    <p className="text-xl font-bold text-inst-azul">
                       {formatearNota(detalleData.calificacion_definitiva, 2)}
                     </p>
                   </div>
@@ -675,7 +675,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
 
               {detalleFuncionales.length > 0 && (
                 <Card>
-                  <h3 className="font-heading font-semibold text-inst-azul-osc mb-3">
+                  <h3 className="font-heading font-semibold text-inst-azul mb-3">
                     Compromisos funcionales
                   </h3>
                   <div className="overflow-x-auto">
@@ -705,7 +705,7 @@ export default function VerEvaluaciones({ evaluacionIdParam, evaluadoIdParam }: 
 
               {detalleComportamentales.length > 0 && (
                 <Card>
-                  <h3 className="font-heading font-semibold text-inst-azul-osc mb-3">
+                  <h3 className="font-heading font-semibold text-inst-azul mb-3">
                     Compromisos comportamentales
                   </h3>
                   <div className="space-y-3">

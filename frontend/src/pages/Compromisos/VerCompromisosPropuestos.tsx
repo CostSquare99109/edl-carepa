@@ -215,7 +215,7 @@ export default function VerCompromisosPropuestos() {
                           )}
                           <span><strong>Peso:</strong> {Number(c.peso)}%</span>
                           {c.es_propuesto_evaluado ? (
-                            <span className="text-blue-700 font-medium">Propuesto por evaluado</span>
+                            <span className="text-inst-azul font-medium">Propuesto por evaluado</span>
                           ) : null}
                         </div>
                       </div>
@@ -245,7 +245,7 @@ export default function VerCompromisosPropuestos() {
                         </p>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-inst-texto-claro mt-1">
                           {c.es_propuesto_evaluado ? (
-                            <span className="text-blue-700 font-medium">Propuesto por evaluado</span>
+                            <span className="text-inst-azul font-medium">Propuesto por evaluado</span>
                           ) : null}
                         </div>
                       </div>
@@ -278,7 +278,7 @@ export default function VerCompromisosPropuestos() {
           {/* Modal rechazo masivo */}
           {rechazoModal && (
             <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-              <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+              <div className="bg-inst-surface rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
                 <h3 className="font-heading font-bold text-red-700 text-lg mb-2">Rechazar todos los compromisos</h3>
                 <p className="text-xs text-inst-texto-claro mb-4">
                   Los compromisos serán devueltos al evaluado para que ajuste su propuesta.

@@ -140,8 +140,8 @@ export default function ManualFuncionesFicha() {
       </div>
 
       {/* CARD PRINCIPAL: solo identidad + proposito */}
-      <div className="bg-white border rounded-lg p-6 mb-4 shadow-sm">
-        <h1 className="text-2xl font-bold text-inst-azul-osc mb-1">
+      <div className="bg-inst-surface border rounded-lg p-6 mb-4 shadow-sm">
+        <h1 className="text-2xl font-bold text-inst-azul mb-1">
           {cargo.denominacion}
         </h1>
         <p className="text-sm text-gray-600 mb-4">
@@ -162,7 +162,7 @@ export default function ManualFuncionesFicha() {
 
         {/* Proposito principal - sin truncar */}
         {cargo.proposito_principal && (
-          <div className="bg-blue-50 border-l-4 border-inst-azul px-4 py-3 rounded-r">
+          <div className="bg-inst-azul-surface border-l-4 border-inst-azul px-4 py-3 rounded-r">
             <div className="text-xs font-semibold text-inst-azul uppercase tracking-wide mb-1">
               Proposito principal
             </div>
@@ -176,7 +176,7 @@ export default function ManualFuncionesFicha() {
         <div className="flex items-center gap-3 mt-5 pt-4 border-t">
           <button
             onClick={abrirModal}
-            className="bg-inst-azul hover:bg-inst-azul-osc text-white text-sm px-4 py-2 rounded flex items-center gap-2"
+            className="bg-inst-azul hover:bg-inst-azul text-white text-sm px-4 py-2 rounded flex items-center gap-2"
           >
             <span className="material-icons text-base">menu_book</span>
             Ver detalles del cargo

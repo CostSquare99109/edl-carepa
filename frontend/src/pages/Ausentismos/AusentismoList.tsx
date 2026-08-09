@@ -221,7 +221,7 @@ export default function AusentismoList() {
     <div className="space-y-6">
       <div className="animate-fadeIn">
         <div className="flex items-center gap-2 mb-1">
-          <span className="material-icons text-inst-azul-osc text-xl">event_busy</span>
+          <span className="material-icons text-inst-azul text-xl">event_busy</span>
           <h2 className="edl-section-title">Ausentismos</h2>
         </div>
         <p className="text-sm text-inst-texto-claro ml-7">
@@ -270,7 +270,7 @@ export default function AusentismoList() {
         <Card>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="material-icons text-inst-azul-osc">account_circle</span>
+              <span className="material-icons text-inst-azul">account_circle</span>
               <span className="font-heading font-bold text-inst-texto">{selectedUser.nombre}</span>
               <span className="text-sm text-inst-texto-claro">&mdash; {selectedUser.documento}</span>
             </div>
@@ -303,7 +303,7 @@ export default function AusentismoList() {
       {showCreateModal && selectedUser && (
         <Modal open={true} onClose={() => setShowCreateModal(false)} title="Registro de ausentismo" size="lg">
           <div className="mb-4 p-3 bg-inst-gris rounded-lg flex items-center gap-2">
-            <span className="material-icons text-inst-azul-osc">account_circle</span>
+            <span className="material-icons text-inst-azul">account_circle</span>
             <span className="font-heading font-semibold text-inst-texto">{selectedUser.nombre}</span>
             <span className="text-sm text-inst-texto-claro">&mdash; {selectedUser.documento}</span>
           </div>

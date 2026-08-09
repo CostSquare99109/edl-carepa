@@ -38,7 +38,7 @@ const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   aceptado_evaluado: { label: 'Aceptado', color: 'bg-green-200 text-green-900' },
   rechazado_evaluado: { label: 'Rechazado', color: 'bg-red-200 text-red-900' },
   devuelto: { label: 'Rechazado', color: 'bg-red-100 text-red-800' },
-  en_progreso: { label: 'En progreso', color: 'bg-blue-100 text-blue-800' },
+  en_progreso: { label: 'En progreso', color: 'bg-inst-azul-light text-inst-azul' },
   cumplido: { label: 'Cumplido', color: 'bg-green-200 text-green-900' },
   incumplido: { label: 'Incumplido', color: 'bg-red-200 text-red-900' },
   vencido: { label: 'Vencido', color: 'bg-orange-100 text-orange-800' },
@@ -323,8 +323,8 @@ export default function MisCompromisos() {
             onClick={toggleVistaSolicitudes}
             className={`flex items-center gap-2 text-sm px-3 py-2 rounded transition-colors ${
               activeView === 'solicitudes'
-                ? 'bg-inst-azul-osc text-white'
-                : 'bg-white border border-inst-borde text-inst-texto hover:bg-inst-gris'
+                ? 'bg-inst-azul text-white'
+                : 'bg-inst-surface border border-inst-borde text-inst-texto hover:bg-inst-gris'
             }`}
             aria-pressed={activeView === 'solicitudes'}
           >
@@ -335,8 +335,8 @@ export default function MisCompromisos() {
             onClick={toggleVistaCambio}
             className={`flex items-center gap-2 text-sm px-3 py-2 rounded transition-colors ${
               activeView === 'cambio'
-                ? 'bg-inst-azul-osc text-white'
-                : 'bg-white border border-inst-borde text-inst-texto hover:bg-inst-gris'
+                ? 'bg-inst-azul text-white'
+                : 'bg-inst-surface border border-inst-borde text-inst-texto hover:bg-inst-gris'
             }`}
             aria-pressed={activeView === 'cambio'}
           >
@@ -402,8 +402,8 @@ export default function MisCompromisos() {
                           const allComportamentales = pkg.compromisos.filter(c => c.tipo === 'comportamental');
                           const getEstadoInfo = (estado: string) => ESTADO_LABELS[estado] || { label: estado, color: 'bg-gray-200 text-gray-700' };
                           const badgePropuesto = (c: Compromiso) => {
-                            if (c.es_propuesto_evaluado) return <span className="text-[10px] px-1 py-0.5 rounded bg-blue-100 text-blue-700">Evaluado</span>;
-                            if (c.propuesto_por_jefe_entidad) return <span className="text-[10px] px-1 py-0.5 rounded bg-purple-100 text-purple-700">Jefe</span>;
+                            if (c.es_propuesto_evaluado) return <span className="text-[10px] px-1 py-0.5 rounded bg-inst-azul-light text-inst-azul">Evaluado</span>;
+                            if (c.propuesto_por_jefe_entidad) return <span className="text-[10px] px-1 py-0.5 rounded bg-inst-gris-med text-inst-texto-2">Jefe</span>;
                             return <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 text-gray-500">Evaluador</span>;
                           };
                           const renderTabla = (items: Compromiso[], conPeso: boolean) => (

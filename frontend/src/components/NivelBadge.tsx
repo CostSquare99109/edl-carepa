@@ -18,9 +18,9 @@ interface Props {
 }
 
 const NIVEL_CONFIG: Record<NivelJerarquico, { label: string; color: string; textColor: string }> = {
-  directivo: { label: 'Directivo', color: 'bg-purple-100', textColor: 'text-purple-800' },
-  asesor: { label: 'Asesor', color: 'bg-indigo-100', textColor: 'text-indigo-800' },
-  profesional: { label: 'Profesional', color: 'bg-blue-100', textColor: 'text-blue-800' },
+  directivo: { label: 'Directivo', color: 'bg-inst-gris-med', textColor: 'text-inst-texto' },
+  asesor: { label: 'Asesor', color: 'bg-inst-azul-light', textColor: 'text-inst-azul' },
+  profesional: { label: 'Profesional', color: 'bg-inst-azul-light', textColor: 'text-inst-azul' },
   tecnico: { label: 'Tecnico', color: 'bg-amber-100', textColor: 'text-amber-800' },
   asistencial: { label: 'Asistencial', color: 'bg-gray-100', textColor: 'text-gray-800' },
 };

@@ -15,7 +15,7 @@ interface Evaluacion {
 
 const ESTADO_COLORS: Record<string, string> = {
   pendiente: 'bg-amber-100 text-amber-800',
-  en_progreso: 'bg-blue-100 text-blue-800',
+  en_progreso: 'bg-inst-azul-light text-inst-azul',
   completada: 'bg-green-100 text-green-800',
   cancelada: 'bg-gray-100 text-gray-600',
 };
@@ -63,19 +63,19 @@ export default function AdminEvaluaciones() {
 
       {/* Stats rápidos */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className={`bg-white rounded-lg shadow-sm p-3 border-l-4 ${COLORES_TAILWIND.azulBorder}`}>
+        <div className={`bg-inst-surface rounded-lg shadow-sm p-3 border-l-4 ${COLORES_TAILWIND.azulBorder}`}>
           <p className={`text-2xl font-bold ${COLORES_TAILWIND.azulText}`}>{stats.total}</p>
           <p className="text-xs text-inst-texto-claro">Total</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-amber-500">
+        <div className="bg-inst-surface rounded-lg shadow-sm p-3 border-l-4 border-amber-500">
           <p className="text-2xl font-bold text-amber-600">{stats.pendientes}</p>
           <p className="text-xs text-inst-texto-claro">Pendientes</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-blue-500">
-          <p className="text-2xl font-bold text-blue-600">{stats.enProgreso}</p>
+        <div className="bg-inst-surface rounded-lg shadow-sm p-3 border-l-4 border-inst-azul">
+          <p className="text-2xl font-bold text-inst-azul">{stats.enProgreso}</p>
           <p className="text-xs text-inst-texto-claro">En Progreso</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-green-500">
+        <div className="bg-inst-surface rounded-lg shadow-sm p-3 border-l-4 border-green-500">
           <p className="text-2xl font-bold text-green-600">{stats.completadas}</p>
           <p className="text-xs text-inst-texto-claro">Completadas</p>
         </div>
@@ -107,7 +107,7 @@ export default function AdminEvaluaciones() {
       {cargando ? (
         <div className="flex justify-center py-20"><div className={`animate-spin rounded-full h-10 w-10 border-b-2 ${COLORES_TAILWIND.azulBorder}`} /></div>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
+        <div className="bg-inst-surface rounded-lg shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="border-b bg-inst-gris">
               <th className="text-left px-4 py-3 font-semibold text-inst-texto-claro">Evaluado</th>
@@ -142,7 +142,7 @@ export default function AdminEvaluaciones() {
             <div className="flex items-center justify-center gap-2 p-3 border-t">
               {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, pagina - 3), pagina + 2).map(p => (
                 <button key={p} onClick={() => setPagina(p)}
-                  className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azul} text-white` : 'bg-white border hover:bg-gray-100'}`}>  {p}</button>
+                  className={`px-3 py-1 rounded text-sm ${p === pagina ? `${COLORES_TAILWIND.azul} text-white` : 'bg-inst-surface border hover:bg-gray-100'}`}>  {p}</button>
               ))}
             </div>
           )}
