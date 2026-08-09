@@ -114,40 +114,34 @@ class MenuController
  }
 
  private function menuAdminCarepa(): array
- {
-     return [
-         [
-             'label' => 'Inicio',
-             'icon' => 'dashboard',
-             'ruta' => '/',
-             'permisos' => ['dashboard.ver'],
-         ],
-         [
-             'label' => 'Dependencias',
-             'icon' => 'account_tree',
-             'ruta' => '/dependencias',
-             'permisos' => ['dependencias.listar'],
-         ],
-         [
-             'label' => 'Usuarios',
-             'icon' => 'people',
-             'ruta' => '/usuarios',
-             'permisos' => ['usuarios.listar'],
-         ],
-         [
-             'label' => 'Manual de Funciones',
-             'icon' => 'menu_book',
-             'ruta' => '/manual-funciones',
-             'permisos' => ['cargos_manual.ver'],
-         ],
-         [
-             'label' => 'Mis Evidencias',
-             'icon' => 'folder_open',
-             'ruta' => '/mis-evidencias',
-             'permisos' => ['evidencias.listar', 'evidencias.crear'],
-         ],
-     ];
- }
+     {
+         return [
+             [
+                 'label' => 'Inicio',
+                 'icon' => 'dashboard',
+                 'ruta' => '/',
+                 'permisos' => ['dashboard.ver'],
+             ],
+             [
+                 'label' => 'Dependencias',
+                 'icon' => 'account_tree',
+                 'ruta' => '/dependencias',
+                 'permisos' => ['dependencias.listar'],
+             ],
+             [
+                 'label' => 'Usuarios',
+                 'icon' => 'people',
+                 'ruta' => '/usuarios',
+                 'permisos' => ['usuarios.listar'],
+             ],
+             [
+                 'label' => 'Manual de Funciones',
+                 'icon' => 'menu_book',
+                 'ruta' => '/manual-funciones',
+                 'permisos' => ['cargos_manual.ver'],
+             ],
+         ];
+     }
 
  private function menuJefeDependencia(array $user): array
  {
@@ -241,40 +235,40 @@ class MenuController
 
 
   private function menuEvaluado(): array
- {
-  return [
-   [
-    'label' => 'Inicio',
-    'icon' => 'dashboard',
-    'ruta' => '/',
-    'permisos' => ['dashboard.ver'],
-   ],
-   [
-    'label' => 'Compromisos y Competencias',
-    'icon' => 'task_alt',
-    'ruta' => '/compromisos/mios',
-    'permisos' => ['compromisos.listar', 'compromisos.crear', 'compromisos.aceptar'],
-   ],
-   [
-    'label' => 'Proponer Compromisos',
-    'icon' => 'rate_review',
-    'ruta' => '/compromisos/proponer',
-    'permisos' => ['compromisos.crear'],
-   ],
-   [
-   'label' => 'Mis Evidencias',
-   'icon' => 'folder_open',
-   'ruta' => '/mis-evidencias',
-   'permisos' => ['evidencias.listar', 'evidencias.crear'],
-   ],
-[
-     'label' => 'Ver Evaluaciones',
-    'icon' => 'assessment',
-    'ruta' => '/evaluaciones/ver',
-    'permisos' => ['evaluaciones.listar'],
-   ],
-  ];
- }
+  {
+   return [
+    [
+      'label' => 'Inicio',
+      'icon' => 'dashboard',
+      'ruta' => '/',
+      'permisos' => ['dashboard.ver'],
+     ],
+     [
+      'label' => 'Compromisos y Competencias',
+      'icon' => 'task_alt',
+      'ruta' => '/compromisos/mios',
+      'permisos' => ['compromisos.listar', 'compromisos.crear', 'compromisos.aceptar'],
+     ],
+     [
+         'label' => 'Proponer Compromisos',
+         'icon' => 'rate_review',
+         'ruta' => '/compromisos/proponer',
+         'permisos' => ['compromisos.crear'],
+        ],
+        [
+         'label' => 'Mis Evidencias',
+         'icon' => 'attach_file',
+         'ruta' => '/mis-evidencias',
+         'permisos' => ['evidencias.crear'],
+        ],
+        [
+         'label' => 'Ver Evaluaciones',
+         'icon' => 'assessment',
+         'ruta' => '/evaluaciones/ver',
+         'permisos' => ['evaluaciones.listar'],
+        ],
+      ];
+     }
 
   private function menuPorPermisos(array $user): array
   {

@@ -28,7 +28,7 @@ php -S 0.0.0.0:8000 -t public/ public/router.php
 ```bash
 cd frontend
 npm install
-npm run dev      # Dev en :5173 con proxy /api -> :8000 (vite.config.ts)
+npm run dev      # Dev en :5174 con proxy /api -> :8000 (vite.config.ts)
 npm run build
 npm run preview
 ```

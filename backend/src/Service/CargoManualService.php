@@ -34,6 +34,7 @@ class CargoManualService
   }
   $cargo['detalle'] = $this->repo->detalle($id);
   $cargo['requisitos'] = $this->repo->requisitos($id);
+  $cargo['conocimientos'] = $this->repo->conocimientos($id);
   return $cargo;
  }
 

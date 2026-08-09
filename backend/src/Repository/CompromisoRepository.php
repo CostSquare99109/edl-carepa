@@ -169,6 +169,7 @@ class CompromisoRepository extends BaseRepository
     {
         $stmt = $this->pdo->prepare(
             "SELECT c.*,
+                    c.calificacion AS puntaje,
                     m.descripcion as meta_descripcion
              FROM compromisos c
              INNER JOIN concertaciones con ON con.id = c.concertacion_id

@@ -34,7 +34,7 @@ PHP_PID=$!
 echo "$PHP_PID" > "$PID_DIR/php.pid"
 
 # 3. Frontend Vite
-echo "[FE] Iniciando frontend en :5173..."
+echo "[FE] Iniciando frontend en :5174..."
 nohup npm --prefix "$ROOT_DIR/frontend" run dev > "$LOG_DIR/vite.log" 2>&1 &
 NODE_PID=$!
 echo "$NODE_PID" > "$PID_DIR/node.pid"
@@ -43,7 +43,7 @@ echo ""
 echo "=== Servicios iniciados ==="
 echo "  DB:      mysql (PID ${MYSQL_PID:-ya-corriendo})"
 echo "  Backend: http://localhost:8000 (PID $PHP_PID)"
-echo "  Frontend: http://localhost:5173 (PID $NODE_PID)"
+echo "  Frontend: http://localhost:5174 (PID $NODE_PID)"
 echo ""
 echo "Logs: $LOG_DIR/"
 echo "PIDs: $PID_DIR/"

@@ -18,8 +18,19 @@ class CsrfMiddleware
 
 	$uri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
 	$uri = '/' . trim($uri, '/');
-	if (in_array($uri, ['/api/v1/auth/login', '/api/v1/auth/recuperar', '/api/v1/auth/registro', '/api/v1/auth/verificar-codigo'], true)) {
-	return;
+	// Eximir rutas públicas y la calificación manual (patrón con ID)
+	$rutasPublicas = [
+		'/api/v1/auth/login',
+		'/api/v1/auth/recuperar',
+		'/api/v1/auth/registro',
+		'/api/v1/auth/verificar-codigo',
+	];
+	if (in_array($uri, $rutasPublicas, true)) {
+		return;
+	}
+	// Eximir PUT /evaluaciones/{id}/calificacion-manual
+	if (preg_match('#^/api/v1/evaluaciones/\d+/calificacion-manual$#', $uri)) {
+		return;
 	}
 
  $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';

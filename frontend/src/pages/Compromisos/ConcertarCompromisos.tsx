@@ -415,34 +415,42 @@ async function verCompromisosPropuestos() {
  setFuncionales(funcionales.filter((_, i) => i !== idx));
  }
 
- function toggleCompetencia(id: number) {
+function toggleCompetencia(id: string) {
  if (selectedCompetencias.includes(id)) {
- setSelectedCompetencias(selectedCompetencias.filter(c => c !== id));
+  setSelectedCompetencias(selectedCompetencias.filter(c => c !== id));
  } else {
- if (selectedCompetencias.length >= 5) return;
- setSelectedCompetencias([...selectedCompetencias, id]);
+  if (selectedCompetencias.length >= 5) return;
+  setSelectedCompetencias([...selectedCompetencias, id]);
  }
- }
+}
 
- function guardarComportamentales() {
+
+function guardarComportamentales() {
  if (selectedCompetencias.length < 3) {
- setMensaje({ tipo: 'error', texto: 'Debe seleccionar al menos 3 competencias comportamentales.' });
- return;
+  setMensaje({ tipo: 'error', texto: 'Debe seleccionar al menos 3 competencias comportamentales.' });
+  return;
  }
  if (selectedCompetencias.length > 5) {
- setMensaje({ tipo: 'error', texto: 'No puede seleccionar mas de 5 competencias comportamentales.' });
- return;
+  setMensaje({ tipo: 'error', texto: 'No puede seleccionar mas de 5 competencias comportamentales.' });
+  return;
  }
 
- const nuevos: CompromisoComportamental[] = selectedCompetencias.map(compId => {
- const comp = competencias.find(c => c.id === compId)!;
- return {
- competencia_id: comp.id,
- competencia_nombre: comp.nombre,
- decreto: comp.decreto,
- es_propuesto_jefe: propuestoJefeMap[comp.id] || false,
- };
- });
+ const nuevos: CompromisoComportamental[] = selectedCompetencias.map(compCodigo => {
+  // Buscar en competenciasPorNivel (agrupado por competencia_codigo)
+  let compData: any = null;
+  for (const c of competenciasPorNivel) {
+   if (c.competencia_codigo === compCodigo) {
+    compData = c;
+    break;
+   }
+  }
+  if (!compData) return null;
+  return {
+   competencia_codigo: compData.competencia_codigo,
+   competencia_nombre: compData.competencia_nombre,
+   es_propuesto_jefe: propuestoJefeMap[compData.competencia_codigo] || false,
+  };
+ }).filter(Boolean);
 
  setComportamentales(nuevos);
  setShowModalComportamental(false);
@@ -450,6 +458,7 @@ async function verCompromisosPropuestos() {
  setPropuestoJefeMap({});
  setMensaje(null);
  }
+
 
  async function eliminarComportamental(idx: number) {
  if (concertacionConfirmada) return;
@@ -860,7 +869,22 @@ async function handleConfirmar() {
  </div>
 
  {!concertacionConfirmada && (
- <button onClick={() => setShowModalComportamental(true)} className="edl-btn-primary flex items-center gap-2 mb-4" disabled={comportamentales.length >= 5}>
+ <button onClick={async () => {
+  setCargandoCompetenciasNivel(true);
+  try {
+   const nivelEvaluado = evaluado?.nivel?.toLowerCase() || "";
+   if (nivelEvaluado) {
+    const res = await api.get(`/competencias/por-nivel?nivel=${nivelEvaluado}`);
+    const data = res?.data || res || [];
+    setCompetenciasPorNivel(data);
+   }
+  } catch (err) {
+   console.error("Error cargando competencias por nivel:", err);
+  } finally {
+   setCargandoCompetenciasNivel(false);
+   setShowModalComportamental(true);
+  }
+ }} className="edl-btn-primary flex items-center gap-2 mb-4" disabled={comportamentales.length >= 5}>
  <span className="material-icons text-lg">add</span>
  Ingresar compromiso comportamental
  </button>
@@ -993,7 +1017,7 @@ async function handleConfirmar() {
  )}
 
  {/* ===== MODAL: Compromiso comportamental ===== */}
- {showModalComportamental && (
+{showModalComportamental && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
  <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
  <h3 className="font-heading font-bold text-inst-azul mb-4">
@@ -1003,57 +1027,102 @@ async function handleConfirmar() {
  Seleccione entre 3 y 5 competencias ({selectedCompetencias.length} seleccionadas)
  </p>
 
- <h4 className="text-sm font-bold text-inst-azul mb-2">Decreto 2539 de 2005</h4>
- <div className="space-y-2 mb-4">
- {competencias.filter(c => c.decreto === '2539/2005').map(c => (
- <label key={c.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-inst-gris">
- <input type="checkbox" checked={selectedCompetencias.includes(c.id)} onChange={() => toggleCompetencia(c.id)} className="w-4 h-4 accent-inst-azul" />
- <div className="flex-1">
- <span className="text-sm font-medium text-inst-texto">{c.nombre}</span>
- {c.descripcion && <p className="text-xs text-inst-texto-claro">{c.descripcion}</p>}
- </div>
- {selectedCompetencias.includes(c.id) && (
- <label className="flex items-center gap-1 text-xs text-inst-texto-claro">
- <input type="checkbox" checked={propuestoJefeMap[c.id] || false} onChange={e => setPropuestoJefeMap({ ...propuestoJefeMap, [c.id]: e.target.checked })} className="w-3 h-3 accent-inst-azul" />
- Propuesto por jefe
- </label>
+ {cargandoCompetenciasNivel && (
+  <div className="flex justify-center py-4">
+   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-inst-azul"></div>
+  </div>
  )}
- </label>
- ))}
- </div>
 
- <h4 className="text-sm font-bold text-inst-azul mb-2">Decreto 815 de 2018</h4>
- <div className="space-y-2 mb-4">
- {competencias.filter(c => c.decreto === '815/2018').map(c => (
- <label key={c.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-inst-gris">
- <input type="checkbox" checked={selectedCompetencias.includes(c.id)} onChange={() => toggleCompetencia(c.id)} className="w-4 h-4 accent-inst-azul" />
- <div className="flex-1">
- <span className="text-sm font-medium text-inst-texto">{c.nombre}</span>
- {c.descripcion && <p className="text-xs text-inst-texto-claro">{c.descripcion}</p>}
- </div>
- {selectedCompetencias.includes(c.id) && (
- <label className="flex items-center gap-1 text-xs text-inst-texto-claro">
- <input type="checkbox" checked={propuestoJefeMap[c.id] || false} onChange={e => setPropuestoJefeMap({ ...propuestoJefeMap, [c.id]: e.target.checked })} className="w-3 h-3 accent-inst-azul" />
- Propuesto por jefe
- </label>
+ {!cargandoCompetenciasNivel && competenciasPorNivel.length === 0 && (
+  <p className="text-xs text-inst-texto-claro text-center py-4">
+   No se cargaron competencias para el nivel {evaluado?.nivel}. 
+   <button onClick={() => setShowModalComportamental(false)} className="text-inst-azul underline ml-2">
+    Cerrar
+   </button>
+  </p>
  )}
- </label>
- ))}
- </div>
+
+ {!cargandoCompetenciasNivel && competenciasPorNivel.length > 0 && (
+  <div className="space-y-4">
+   {(() => {
+    const grouped = competenciasPorNivel.reduce((acc, c) => {
+     if (!acc[c.competencia_codigo]) {
+      acc[c.competencia_codigo] = {
+       competencia_codigo: c.competencia_codigo,
+       competencia_nombre: c.competencia_nombre,
+       nombre_json: c.nombre_json,
+       conductas: []
+      };
+     }
+     if (c.conducta_id) {
+      acc[c.competencia_codigo].conductas.push({
+       id: c.conducta_id,
+       texto: c.conducta_texto,
+       orden: c.conducta_orden
+      });
+     }
+     return acc;
+    }, {});
+    return Object.values(grouped).map(comp => (
+     <div key={comp.competencia_codigo} className="mb-4">
+      <h5 className="text-sm font-bold text-inst-azul mb-2">{comp.nombre_json} ({comp.competencia_nombre})</h5>
+      <div className="space-y-2">
+       {comp.conductas.map(cond => (
+        <label key={comp.competencia_codigo + "_" + cond.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-inst-gris">
+         <input
+          type="checkbox"
+          checked={selectedCompetencias.includes(comp.competencia_codigo)}
+          onChange={() => {
+           const nuevos = selectedCompetencias.includes(comp.competencia_codigo)
+            ? selectedCompetencias.filter(c => c !== comp.competencia_codigo)
+            : [...selectedCompetencias, comp.competencia_codigo];
+           setSelectedCompetencias(nuevos);
+          }}
+          className="w-4 h-4 accent-inst-azul"
+         />
+         <div className="flex-1">
+          <span className="text-sm font-medium text-inst-texto">{comp.nombre_json}</span>
+          <p className="text-xs text-inst-texto-claro">{comp.competencia_nombre}</p>
+          {comp.conductas.length > 0 && (
+           <details className="mt-1">
+            <summary className="text-xs text-inst-texto-claro cursor-pointer">Ver {comp.conductas.length} conductas</summary>
+            <ul className="ml-4 mt-1 text-xs text-inst-texto-claro">
+             {comp.conductas.map(c => <li key={c.id}>{c.texto}</li>)}
+            </ul>
+           </details>
+          )}
+         </div>
+         {selectedCompetencias.includes(comp.competencia_codigo) && (
+          <label className="flex items-center gap-1 text-xs text-inst-texto-claro">
+           <input
+            type="checkbox"
+            checked={propuestoJefeMap[comp.competencia_codigo] || false}
+            onChange={e => setPropuestoJefeMap({ ...propuestoJefeMap, [comp.competencia_codigo]: e.target.checked })}
+            className="w-3 h-3 accent-inst-azul"
+           />
+           Propuesto por jefe
+          </label>
+         )}
+        </label>
+       ))}
+      </div>
+     </div>
+    ));
+   })()}
+  </div>
+ )}
 
  <div className="flex gap-3 mt-4 pt-4 border-t">
  <button onClick={guardarComportamentales} disabled={selectedCompetencias.length < 3} className="edl-btn-primary">
- Guardar competencias seleccionadas
+  Guardar competencias seleccionadas
  </button>
- <button onClick={() => { setShowModalComportamental(false); setSelectedCompetencias([]); }} className="edl-btn-secondary">
- Cancelar
+ <button onClick={() => { setShowModalComportamental(false); setSelectedCompetencias([]); setPropuestoJefeMap({}); }} className="edl-btn-secondary">
+  Cancelar
  </button>
  </div>
  </div>
  </div>
- )}
-
-	{/* ===== MODAL: Confirmar concertacion ===== */}
+)}{/* ===== MODAL: Confirmar concertacion ===== */}
 	<Modal open={showConfirmModal} onClose={() => setShowConfirmModal(false)} title="Confirmar concertación" size="sm">
 	<p className="text-sm text-inst-texto">
 	Esta seguro de confirmar la concertacion? Una vez confirmada no podra editar los compromisos hasta que el evaluado acepte o rechace.

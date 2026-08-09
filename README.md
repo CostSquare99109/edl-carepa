@@ -226,7 +226,7 @@ npm install
 npm run dev
 ```
 
-Por defecto, el dev server se sirve en `http://localhost:5173` (Vite 6.3). El archivo `vite.config.ts` incluye un proxy que redirige todas las llamadas a `/api` hacia `http://localhost:8000`.
+Por defecto, el dev server se sirve en `http://localhost:5174` (Vite 6.3, puerto definido en `vite.config.ts`). El archivo `vite.config.ts` incluye un proxy que redirige todas las llamadas a `/api` hacia `http://localhost:8000`.
 
 ---
 
@@ -240,7 +240,7 @@ Por defecto, el dev server se sirve en `http://localhost:5173` (Vite 6.3). El ar
 | `APP_DEBUG` | Modo depuracion | `true` / `false` |
 | `APP_TIMEZONE` | Zona horaria | `America/Bogota` |
 | `APP_API_URL` | URL publica de la API | `http://localhost:8000` |
-| `APP_FRONTEND_URL` | URL del frontend (CORS) | `http://localhost:5173` |
+| `APP_FRONTEND_URL` | URL del frontend (CORS) | `http://localhost:5174` |
 | `UPLOAD_DIR` | Directorio de archivos subidos | ruta absoluta |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASS` | Conexion MariaDB/MySQL | `127.0.0.1` / `3306` / `edl_carepa` / `root` / vacio |
 | `DB_SOCKET` | Socket MySQL opcional | `/tmp/mysql.sock` |
@@ -248,7 +248,7 @@ Por defecto, el dev server se sirve en `http://localhost:5173` (Vite 6.3). El ar
 | `JWT_EXPIRACION_MINUTOS` | Vigencia del token | `120` |
 | `INTENTOS_LOGIN_MAXIMOS` | Bloqueo tras N intentos | `5` |
 | `PASSWORD_LONGITUD_MINIMA` | Longitud minima de password | `8` |
-| `CORS_ORIGIN` | Origen permitido | `http://localhost:5173` |
+| `CORS_ORIGIN` | Origen permitido | `http://localhost:5174` |
 | `MAIL_HOST` / `MAIL_PORT` / `MAIL_USER` / `MAIL_PASS` | Servidor SMTP | Gmail, SendGrid, SES, etc. |
 | `MAIL_FROM` / `MAIL_FROM_NAME` | Remitente | `noreply@carepa-antioquia.gov.co` / `EDL-Carepa` |
 

@@ -1044,6 +1044,37 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
     ResponseHelper::error('No se encontro un evaluador para la dependencia del evaluado', 422);
   }
 
+  // Buscar evaluacion soft-deleted con la misma combinacion (mismo patron que metodo crear)
+  $stmtDeleted = $pdo->prepare(
+    "SELECT id, concertacion_id FROM evaluaciones
+     WHERE evaluado_id = ? AND periodo_id = ? AND tipo = ? AND eliminado_en IS NOT NULL
+     LIMIT 1"
+  );
+  $stmtDeleted->execute([$evaluadoId, $periodoId, $tipo]);
+  $deletedEval = $stmtDeleted->fetch(\PDO::FETCH_ASSOC);
+
+  if ($deletedEval) {
+    // Reactivar evaluacion
+    $pdo->prepare(
+      "UPDATE evaluaciones SET eliminado_en = NULL, actualizado_en = NOW(), estado = 'pendiente', evaluador_id = :evid WHERE id = :id"
+    )->execute(['evid' => $evaluadorId, 'id' => $deletedEval['id']]);
+
+    // Reactivar concertacion asociada si existe
+    if (!empty($deletedEval['concertacion_id'])) {
+      $pdo->prepare(
+        "UPDATE concertaciones SET eliminado_en = NULL, actualizado_en = NOW() WHERE id = :id AND eliminado_en IS NOT NULL"
+      )->execute(['id' => $deletedEval['concertacion_id']]);
+    }
+
+    return [
+      'evaluacion_id' => (int) $deletedEval['id'],
+      'evaluador_id' => $evaluadorId,
+      'concertacion_id' => $deletedEval['concertacion_id'] ? (int) $deletedEval['concertacion_id'] : null,
+      'mensaje' => 'Evaluacion reactivada exitosamente',
+      'creada' => true,
+    ];
+  }
+
   // Crear evaluacion
   $crearDatos = [
     'periodo_id' => $periodoId,
@@ -1068,11 +1099,37 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
   ], true);
 
   return [
-    'evaluacion_id' => $evaluacionId,
-    'evaluador_id' => $evaluadorId,
-    'concertacion_id' => $concertacionId,
-    'mensaje' => 'Evaluacion creada exitosamente',
-    'creada' => true,
-  ];
- }
-}
+      'evaluacion_id' => $evaluacionId,
+      'evaluador_id' => $evaluadorId,
+      'concertacion_id' => $concertacionId,
+      'mensaje' => 'Evaluacion creada exitosamente',
+      'creada' => true,
+    ];
+  }
+
+    /**
+     * Guardar calificación manual de una evaluación.
+     */
+    public function calificacionManual(int $id, float $calificacion): void
+    {
+      $evaluacion = $this->evaluacionRepo->buscarPorId($id);
+      if (!$evaluacion) {
+        ResponseHelper::notFound('Evaluacion no encontrada');
+      }
+
+      // Solo permitir en estados no terminales
+      if (in_array($evaluacion['estado'], ['cerrada', 'aprobada_comision', 'anulada'], true)) {
+        ResponseHelper::error('La evaluacion ya se encuentra en firme y no puede modificarse', 409);
+      }
+
+      $this->evaluacionRepo->actualizar($id, [
+        'calificacion_definitiva' => round($calificacion, 2),
+        'estado' => 'calificada',
+        'fecha_calificacion' => date('Y-m-d'),
+      ]);
+
+      AuditoriaService::registrar('calificacion_manual', 'evaluaciones', $id, null, [
+        'calificacion_definitiva' => round($calificacion, 2),
+      ]);
+    }
+  }

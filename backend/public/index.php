@@ -216,6 +216,7 @@ $r->get('/evaluaciones/{id}/evaluaciones-previas', [\App\Controller\EvaluacionCo
  $r->put('/evaluaciones/{id}/solicitar-revision', [\App\Controller\EvaluacionController::class, 'solicitarRevision'], ['permiso:evaluaciones.evaluar']);
  $r->put('/evaluaciones/{id}/finalizar', [\App\Controller\EvaluacionController::class, 'finalizar'], ['permiso:evaluaciones.evaluar']);
  $r->put('/evaluaciones/{id}/anular', [\App\Controller\EvaluacionController::class, 'anular'], ['permiso:evaluaciones.evaluar']);
+$r->put('/evaluaciones/{id}/calificacion-manual', [\App\Controller\EvaluacionController::class, 'calificacionManual'], ['permiso:evaluaciones.evaluar']);
 
  $r->get('/compromisos', [\App\Controller\CompromisoController::class, 'listar'], ['permiso:compromisos.listar']);
  $r->get('/compromisos/buscar-evaluado', [\App\Controller\CompromisoController::class, 'buscarEvaluado'], ['permiso:compromisos.listar']);
@@ -314,6 +315,9 @@ $r->get('/evaluaciones/{id}/evaluaciones-previas', [\App\Controller\EvaluacionCo
 
  $r->get('/competencias', [\App\Controller\CompetenciaController::class, 'listar'], ['permiso:compromisos.listar']);
  $r->get('/competencias/decretos', [\App\Controller\CompetenciaController::class, 'decretos'], ['permiso:compromisos.listar']);
+ $r->get('/competencias/comunes', [\App\Controller\CompetenciaController::class, 'comunes'], ['permiso:compromisos.listar']);
+ $r->get('/competencias/por-nivel', [\App\Controller\CompetenciaController::class, 'porNivel'], ['permiso:compromisos.listar']);
+ $r->get('/niveles-jerarquicos', [\App\Controller\CompetenciaController::class, 'niveles'], ['permiso:compromisos.listar']);
 
  }, [AuthMiddleware::class, CsrfMiddleware::class]);
 }, [CorsMiddleware::class, SecurityHeadersMiddleware::class, RateLimitMiddleware::class]);
@@ -325,7 +329,7 @@ CorsMiddleware::handle();
 
 // SPA fallback: si la ruta no empieza con /api, sirve index.html del build
 if ($method !== 'OPTIONS' && strpos($uri, '/api') !== 0) {
-    $spaIndex = dirname(__DIR__) . '/frontend/dist/index.html';
+    $spaIndex = dirname(__DIR__, 2) . '/frontend/dist/index.html';
     if (file_exists($spaIndex)) {
         readfile($spaIndex);
         return;

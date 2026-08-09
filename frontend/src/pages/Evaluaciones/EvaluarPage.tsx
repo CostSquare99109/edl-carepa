@@ -29,6 +29,7 @@ interface EvaluadoPeriodo {
   evaluacion_estado: string | null;
   evaluacion_tipo: string | null;
   periodo_nombre: string;
+  calificacion_definitiva: number | null;
 }
 
 interface Compromiso {
@@ -212,6 +213,9 @@ export default function EvaluarPage() {
   const [showConfirmarEvaluacion, setShowConfirmarEvaluacion] = useState(false);
   const [confirmData, setConfirmData] = useState<{ notaFunc: number; notaComp: number; escala: string } | null>(null);
   const [showInstrucciones, setShowInstrucciones] = useState(false);
+
+  // Calificaciones manuales ingresadas desde la tabla de evaluados
+  const [calificacionesManuales, setCalificacionesManuales] = useState<Record<number, number>>({});
 
   function abrirInstrucciones() {
     setShowInstrucciones(true);
@@ -437,6 +441,28 @@ export default function EvaluarPage() {
       toast.success(`Compromiso funcional calificado (${puntaje} pts).`);
     } catch (err: any) {
       toast.error(err.message || 'Error al calificar compromiso funcional');
+    }
+  }
+
+  async function guardarCalificacionManual(evaluacionId: number, calificacion: number) {
+    if (calificacion < 0 || calificacion > 100) return;
+    try {
+      await api.put(`/evaluaciones/${evaluacionId}/calificacion-manual`, {
+        calificacion_definitiva: calificacion,
+      });
+      // Actualizar la calificación en la tabla local
+      setEvaluados(prev => prev.map(ev =>
+        ev.evaluacion_id === evaluacionId ? { ...ev, calificacion_definitiva: calificacion } : ev
+      ));
+      toast.success('Calificación guardada');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al guardar calificación');
+      // Revertir el input local si falla
+      setCalificacionesManuales(prev => {
+        const copy = { ...prev };
+        delete copy[evaluacionId];
+        return copy;
+      });
     }
   }
 
@@ -697,7 +723,7 @@ export default function EvaluarPage() {
     return null;
   }, [tipoEvaluacion, selectedEvaluado, compromisos, fechaInicio, fechaFin, motivoParcialEventual, noEsJefe, motivoNoJefe, impactoExcede, justificacionExcede]);
 
-  const columnas = ['Documento', 'Evaluado', 'Nivel', 'Denominación', 'Código', 'Grado', 'Validación', 'Opciones'];
+  const columnas = ['Documento', 'Evaluado', 'Nivel', 'Denominación', 'Código', 'Grado', 'Validación', 'Calificación', 'Opciones'];
 
   return (
     <div className="min-h-screen space-y-6">
@@ -829,6 +855,42 @@ export default function EvaluarPage() {
                             </Badge>
                           ) : (
                             <span className="text-inst-texto-claro text-xs">Sin calificar</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-center text-sm">
+                          {ev.evaluacion_id && ev.evaluacion_id > 0 && ev.calificacion_definitiva !== null ? (
+                            <span className="font-mono font-bold text-lg text-inst-azul-osc">{ev.calificacion_definitiva.toFixed(2)}%</span>
+                          ) : ev.evaluacion_id && ev.evaluacion_id > 0 ? (
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step={0.01}
+                              placeholder="0-100"
+                              value={calificacionesManuales[ev.id] ?? ''}
+                              onChange={e => {
+                                const val = e.target.value === '' ? undefined : Number(e.target.value);
+                                if (val !== undefined && (val < 0 || val > 100)) return;
+                                setCalificacionesManuales(prev => {
+                                  const next = { ...prev };
+                                  if (val !== undefined) {
+                                    next[ev.id] = val;
+                                  } else {
+                                    delete next[ev.id];
+                                  }
+                                  return next;
+                                });
+                              }}
+                              onBlur={() => {
+                                const val = calificacionesManuales[ev.id];
+                                if (val !== undefined && val !== null) {
+                                  guardarCalificacionManual(ev.evaluacion_id, val);
+                                }
+                              }}
+                              className="edl-input w-24 text-center text-sm mx-auto"
+                            />
+                          ) : (
+                            <span className="text-inst-texto-claro text-xs">—</span>
                           )}
                         </td>
                         <td className="py-3 px-3 text-sm">

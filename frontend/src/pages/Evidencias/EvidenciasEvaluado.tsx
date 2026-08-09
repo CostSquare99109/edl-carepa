@@ -386,34 +386,6 @@ export default function EvidenciasEvaluado() {
           Ha completado las {maxTotal} evidencias requeridas para este periodo
           ({maxFunc} funcionales + {maxComp} comportamentales).
         </p>
-        <div className="flex justify-center gap-2 flex-wrap">
-          {slotsFunc.map(i => {
-            const ev = getEvidenciaSlot('funcional', i);
-            return ev ? (
-              <button
-                key={`f${i}`}
-                onClick={() => descargar(ev)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-xs text-blue-700 hover:bg-blue-100"
-              >
-                <span className="material-icons text-xs">attach_file</span>
-                Func. #{i}
-              </button>
-            ) : null;
-          })}
-          {slotsComp.map(i => {
-            const ev = getEvidenciaSlot('comportamental', i);
-            return ev ? (
-              <button
-                key={`c${i}`}
-                onClick={() => descargar(ev)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700 hover:bg-purple-100"
-              >
-                <span className="material-icons text-xs">attach_file</span>
-                Comp. #{i}
-              </button>
-            ) : null;
-          })}
-        </div>
       </div>
     );
   }

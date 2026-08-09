@@ -56,7 +56,7 @@ PID files in `.pids/`, logs in `.logs/`.
 
 - JWT en `localStorage` (`edl_token`). `AuthContext` inyecta Bearer + CSRF en todos los requests.
 - Proxy Vite: `/api` -> `http://localhost:8000`. En produccion usar `VITE_API_URL` directo.
-- Dev server port: **5174** (definido en `vite.config.ts`, no 5173 como en `.env.example`).
+- Dev server port: **5174** (definido en `vite.config.ts`).
 
 ### Base de datos
 
@@ -81,7 +81,7 @@ PID files in `.pids/`, logs in `.logs/`.
 6. **CNSC literales**: usar `MensajesCNSC.php` y `mensajesCNSC.ts`. No inventar textos.
 7. **No es Laravel/Symfony**: MVC propio. Ningun archivo de vendor en repos.
 8. **Tests FE**: no hay framework de tests frontend. Verificaciones manuales contra la API.
-9. **Vite port**: `vite.config.ts` define puerto **5174**; `.env.example` y `start.sh` referencian 5173. El config es la fuente de verdad (el FE corre en 5174 aunque `start.sh` imprima 5173).
+9. **Vite port**: `vite.config.ts` define puerto **5174**; el config es la fuente de verdad.
 
 ## Convenciones
 

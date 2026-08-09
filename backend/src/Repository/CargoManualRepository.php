@@ -104,6 +104,19 @@ class CargoManualRepository extends BaseRepository
   return $stmt->fetchAll(PDO::FETCH_ASSOC);
  }
 
+ public function conocimientos(int $cargoManualId): array
+ {
+  $stmt = $this->pdo->prepare("
+   SELECT p.con_id, k.nombre, p.orden
+   FROM cargos_manual_conocimientos p
+   INNER JOIN conocimientos_catalogo k ON k.con_id = p.con_id
+   WHERE p.cargo_manual_id = ?
+   ORDER BY p.orden ASC
+  ");
+  $stmt->execute([$cargoManualId]);
+  return $stmt->fetchAll(PDO::FETCH_ASSOC);
+ }
+
  public function cargoDeUsuario(int $usuarioId): ?array
  {
   $stmt = $this->pdo->prepare("

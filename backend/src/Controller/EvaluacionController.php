@@ -255,4 +255,25 @@ public function pendientesCalificar(): void
 
     ResponseHelper::success($resultado);
   }
+
+  /**
+   * Guardar calificación manual de una evaluación.
+   * PUT /evaluaciones/{id}/calificacion-manual
+   */
+  public function calificacionManual(int $id): void
+  {
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $input = SanitizerHelper::sanitizeArray($input);
+
+    $calificacion = isset($input['calificacion_definitiva']) ? (float) $input['calificacion_definitiva'] : null;
+    if ($calificacion === null) {
+      ResponseHelper::error('calificacion_definitiva es requerido', 422);
+    }
+    if ($calificacion < 0 || $calificacion > 100) {
+      ResponseHelper::error('La calificación debe estar entre 0 y 100', 422);
+    }
+
+    $this->service->calificacionManual($id, $calificacion);
+    ResponseHelper::success(null, 'Calificación manual guardada');
+  }
 }

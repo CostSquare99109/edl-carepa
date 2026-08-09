@@ -45,13 +45,17 @@ const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 interface PackageGrupo {
-  evaluacionId: number;
-  evaluacion: Evaluacion | null;
-  compromisos: Compromiso[];
-  /** Etiqueta visible arriba del periodo (ej. "Pendiente de aceptación", "Rechazados", "Vigentes") */
-  etiqueta?: string;
-  /** Clave estable para React keys en listas y en Set<expandidos>. Una por cada (evaluacion, estado relevante). */
+  /** Clave única: periodo_nombre + '_' + tipo_evaluacion (ej. "2026-2027_parcial_primer_semestre") */
   grupoKey: string;
+  periodoNombre: string;
+  tipoEvaluacion: string;
+  evaluaciones: Evaluacion[];      // todas las evaluaciones de este periodo+tipo
+  compromisos: Compromiso[];       // TODOS los compromisos (funcionales + comportamentales, todos los estados)
+  // Sub-grupos por estado para renderizado interno
+  vigentes: Compromiso[];
+  rechazados: Compromiso[];
+  cerrados: Compromiso[];
+  rechazadosPorFecha: Map<string, Compromiso[]>;
 }
 
 export default function MisCompromisos() {
@@ -115,69 +119,78 @@ export default function MisCompromisos() {
     if (ev.concertacion_id) concertToEval.set(ev.concertacion_id, ev.id);
   }
 
-  // Agrupar compromisos por EVALUACIÓN (no por tipo).
-  // Cada evaluación genera 1 card por estado (vigentes/rechazados/cerrados).
-  // Dentro de cada card se muestran AMBOS tipos (funcionales + comportamentales).
+  // AGRUPAR POR PERÍODO + TIPO DE EVALUACIÓN (semestre)
+  // Clave: periodo_nombre + '_' + tipo (ej. "2026-2027_parcial_primer_semestre")
+  // Dentro de cada grupo, separar por estado: vigentes, rechazados (por fecha), cerrados
   const paquetes: PackageGrupo[] = [];
-  const evalMap = new Map(evaluaciones.map(e => [e.id, e]));
-  const agrupados = new Map<number, { ev: any, comps: Compromiso[] }>();
+  
+  // Mapear evaluaciones por período+tipo
+  const evalsPorPeriodoTipo = new Map<string, Evaluacion[]>();
+  for (const ev of evaluaciones) {
+    const key = `${ev.periodo_nombre}_${ev.tipo}`;
+    if (!evalsPorPeriodoTipo.has(key)) evalsPorPeriodoTipo.set(key, []);
+    evalsPorPeriodoTipo.get(key)!.push(ev);
+  }
+
+  // Mapear todos los compromisos a su período+tipo usando concertacion_id
+  const compsPorPeriodoTipo = new Map<string, Compromiso[]>();
   for (const c of compromisos) {
     const eid = concertToEval.get(c.concertacion_id) || c.evaluacion_id || 0;
     if (!eid) continue;
-    const ev = evalMap.get(eid);
-    if (!agrupados.has(eid)) {
-      agrupados.set(eid, { ev: ev || null, comps: [] });
-    }
-    agrupados.get(eid)!.comps.push(c);
+    const ev = evaluaciones.find(e => e.id === eid);
+    if (!ev) continue;
+    const key = `${ev.periodo_nombre}_${ev.tipo}`;
+    if (!compsPorPeriodoTipo.has(key)) compsPorPeriodoTipo.set(key, []);
+    compsPorPeriodoTipo.get(key)!.push(c);
   }
 
-  for (const [eid, { ev, comps }] of agrupados) {
-    // Estados terminales: NO requieren accion del evaluado.
+  // Para cada período+tipo, crear UN solo grupo con TODOS los compromisos
+  // y sub-grupos internos por estado
+  for (const [periodoTipoKey, evals] of evalsPorPeriodoTipo) {
+    const comps = compsPorPeriodoTipo.get(periodoTipoKey) || [];
+    const [periodoNombre, tipoEvaluacion] = periodoTipoKey.split('_');
+    
+    // Estados terminales: NO requieren acción del evaluado
     const terminales = ['cumplido', 'incumplido', 'rechazado_evaluado'];
     const vigentes = comps.filter(c => c.estado === 'propuesto' || c.estado === 'pendiente_aprobacion' || c.estado === 'aprobado');
     const rechazados = comps.filter(c => c.estado === 'devuelto');
-    const cerradas = comps.filter(c => terminales.includes(c.estado));
+    const cerrados = comps.filter(c => terminales.includes(c.estado));
 
-    // Card VIGENTES: propuesta activa del evaluado (estado propuesto)
-    if (vigentes.length > 0) {
-      paquetes.push({
-        evaluacionId: eid,
-        evaluacion: ev,
-        compromisos: vigentes,
-        grupoKey: `${eid}-vigentes`,
-        etiqueta: 'Pendiente de aceptación',
-      });
+    // Agrupar rechazados por fecha de creación (rondas de rechazo)
+    const rechazadosPorFecha = new Map<string, Compromiso[]>();
+    for (const c of rechazados) {
+      const fecha = c.creado_en.split(' ')[0]; // "YYYY-MM-DD" local, evita timezone
+      if (!rechazadosPorFecha.has(fecha)) rechazadosPorFecha.set(fecha, []);
+      rechazadosPorFecha.get(fecha)!.push(c);
     }
-    // Card RECHAZADOS: agrupar por fecha de creación (rondas de rechazo).
-    if (rechazados.length > 0) {
-      const rondas = new Map<string, Compromiso[]>();
-      for (const c of rechazados) {
-        const fecha = c.creado_en.split(' ')[0]; // "YYYY-MM-DD" local, evita timezone
-        if (!rondas.has(fecha)) rondas.set(fecha, []);
-        rondas.get(fecha)!.push(c);
-      }
-      // Ordenar fechas descendente (más reciente primero)
-      for (const [fecha, items] of Array.from(rondas.entries()).sort((a, b) => b[0].localeCompare(a[0]))) {
-        paquetes.push({
-          evaluacionId: eid,
-          evaluacion: ev,
-          compromisos: items,
-          grupoKey: `${eid}-rechazados-${fecha}`,
-          etiqueta: `Rechazados (${fecha})`,
-        });
-      }
-    }
-    // Card CERRADOS: compromisos terminales (cumplido / incumplido).
-    if (cerradas.length > 0) {
-      paquetes.push({
-        evaluacionId: eid,
-        evaluacion: ev,
-        compromisos: cerradas,
-        grupoKey: `${eid}-cerrados`,
-        etiqueta: 'Cerrados',
-      });
-    }
+
+    // UN solo paquete por periodo+tipo, con todos los compromisos
+    paquetes.push({
+      grupoKey: periodoTipoKey, // clave única: "2026-2027_parcial_primer_semestre"
+      periodoNombre,
+      tipoEvaluacion,
+      evaluaciones: evals,
+      compromisos: comps, // TODOS los compromisos
+      vigentes,
+      rechazados,
+      cerrados,
+      rechazadosPorFecha,
+    });
   }
+
+  // Ordenar paquetes: primero por período (más reciente primero), luego por tipo (1er semestre antes que 2do)
+  // Ya no ordenamos por estado porque ahora es un solo paquete por periodo+tipo
+  paquetes.sort((a, b) => {
+    // Ordenar por período (asumiendo formato "2026-2027")
+    const periodoCompare = b.periodoNombre.localeCompare(a.periodoNombre);
+    if (periodoCompare !== 0) return periodoCompare;
+    
+    // Ordenar por tipo: 1er semestre antes que 2do semestre
+    const tipoOrder = { 'parcial_primer_semestre': 1, 'parcial_segundo_semestre': 2, 'parcial_eventual': 3, 'calificacion_definitiva': 4, 'calificacion_extraordinaria': 5 };
+    const tipoA = tipoOrder[a.tipoEvaluacion as keyof typeof tipoOrder] ?? 99;
+    const tipoB = tipoOrder[b.tipoEvaluacion as keyof typeof tipoOrder] ?? 99;
+    return tipoA - tipoB;
+  });
 
   function limpiarFormularioCambio() {
     setCambioEvaluadorId(0);
@@ -345,14 +358,11 @@ export default function MisCompromisos() {
           ) : (
             <div className="space-y-4">
               {paquetes.map(pkg => {
-                const ev = pkg.evaluacion;
-                const pendiente = tienePendientes(pkg.compromisos);
+                const ev = pkg.evaluaciones[0]; // tomar la primera evaluación como referencia
+                const tienePendientesAceptacion = pkg.vigentes.some(c => c.estado === 'propuesto' || c.estado === 'pendiente_aprobacion');
                 const expandido = expandidos.has(pkg.grupoKey);
-                const esRechazados = pkg.grupoKey.includes('-rechazados');
-                const esCerrados = pkg.grupoKey.includes('-cerrados');
-                const esVigentes = pkg.grupoKey.endsWith('-vigentes');
                 return (
-                  <div key={pkg.grupoKey} className={`edl-card ${esVigentes && pendiente ? 'border-l-4 border-amber-500 bg-amber-50' : ''} ${esRechazados ? 'border-l-4 border-red-400 bg-red-50/30' : ''} ${esCerrados ? 'border-l-4 border-gray-400' : ''}`}>
+                  <div key={pkg.grupoKey} className={`edl-card ${tienePendientesAceptacion ? 'border-l-4 border-amber-500 bg-amber-50' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
                         <button
@@ -365,24 +375,14 @@ export default function MisCompromisos() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-heading font-bold text-inst-azul text-sm">
-                              {ev?.periodo_nombre || `Evaluación #${pkg.evaluacionId}`}
+                              {ev?.periodo_nombre || `Evaluación #${pkg.evaluaciones[0]?.id}`}
                             </h3>
                             <span className="text-xs text-inst-texto-claro">
                               ({pkg.compromisos.length} compromisos)
                             </span>
-                            {esVigentes && pendiente && (
+                            {tienePendientesAceptacion && (
                               <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">
                                 Pendiente de aceptación
-                              </span>
-                            )}
-                            {esRechazados && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium">
-                                {pkg.etiqueta || 'Rechazados'}
-                              </span>
-                            )}
-                            {esCerrados && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 font-medium">
-                                Cerrados
                               </span>
                             )}
                           </div>
@@ -398,8 +398,6 @@ export default function MisCompromisos() {
                     {expandido && (
                       <div className="mt-4 border-t border-inst-borde pt-4">
                         {(() => {
-                          // Cada paquete ya viene con sus compromisos filtrados por estado
-                          // (vigentes / rechazados / cerrados). Solo renderizamos lo que tenga.
                           const allFuncionales = pkg.compromisos.filter(c => c.tipo === 'funcional');
                           const allComportamentales = pkg.compromisos.filter(c => c.tipo === 'comportamental');
                           const getEstadoInfo = (estado: string) => ESTADO_LABELS[estado] || { label: estado, color: 'bg-gray-200 text-gray-700' };
@@ -438,27 +436,113 @@ export default function MisCompromisos() {
                           );
                           return (
                             <div className="space-y-4">
-                              {allFuncionales.length > 0 && (
+                              {/* Sección: Vigentes (Pendientes de aceptación) */}
+                              {pkg.vigentes.length > 0 && (
                                 <div>
                                   <h4 className="text-xs uppercase font-bold text-inst-azul mb-2 flex items-center gap-1">
-                                    <span className="material-icons text-sm">task_alt</span> Compromisos Funcionales
+                                    <span className="material-icons text-sm">pending_actions</span> Pendientes de aceptación
                                   </h4>
-                                  {renderTabla(allFuncionales, true)}
-                                  {pkg.grupoKey.endsWith('-vigentes') && (
+                                  {(() => {
+                                    const vigFunc = pkg.vigentes.filter(c => c.tipo === 'funcional');
+                                    const vigComp = pkg.vigentes.filter(c => c.tipo === 'comportamental');
+                                    return (
+                                      <div className="space-y-3">
+                                        {vigFunc.length > 0 && (
+                                          <div>
+                                            <h5 className="text-xs font-semibold text-inst-texto mb-1 flex items-center gap-1">
+                                              <span className="material-icons text-xs">task_alt</span> Compromisos Funcionales
+                                            </h5>
+                                            {renderTabla(vigFunc, true)}
+                                          </div>
+                                        )}
+                                        {vigComp.length > 0 && (
+                                          <div>
+                                            <h5 className="text-xs font-semibold text-inst-texto mb-1 flex items-center gap-1">
+                                              <span className="material-icons text-xs">psychology</span> Competencias Comportamentales
+                                            </h5>
+                                            {renderTabla(vigComp, false)}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
+                                  {pkg.vigentes.filter(c => c.tipo === 'funcional').length > 0 && (
                                     <div className="flex justify-end px-3 py-1 text-xs text-inst-texto-claro">
-                                      Total pesos: <span className="font-bold text-inst-azul ml-1">{allFuncionales.reduce((s, c) => s + (parseFloat(String(c.peso)) || 0), 0).toFixed(2)}%</span>
+                                      Total pesos funcionales: <span className="font-bold text-inst-azul ml-1">{pkg.vigentes.filter(c => c.tipo === 'funcional').reduce((s, c) => s + (parseFloat(String(c.peso)) || 0), 0).toFixed(2)}%</span>
                                     </div>
                                   )}
                                 </div>
                               )}
-                              {allComportamentales.length > 0 && (
-                                <div>
-                                  <h4 className="text-xs uppercase font-bold text-inst-azul mb-2 flex items-center gap-1">
-                                    <span className="material-icons text-sm">psychology</span> Competencias Comportamentales
+                              
+                              {/* Sección: Rechazados (agrupados por fecha) */}
+                              {pkg.rechazados.length > 0 && (
+                                <div className="border-t border-inst-borde pt-4">
+                                  <h4 className="text-xs uppercase font-bold text-red-700 mb-2 flex items-center gap-1">
+                                    <span className="material-icons text-sm">block</span> Rechazados
                                   </h4>
-                                  {renderTabla(allComportamentales, false)}
+                                  {Array.from(pkg.rechazadosPorFecha.entries())
+                                    .sort((a, b) => b[0].localeCompare(a[0])) // más reciente primero
+                                    .map(([fecha, items]) => (
+                                      <div key={fecha} className="mb-4">
+                                        <h5 className="text-xs font-semibold text-red-600 mb-2">Ronda de rechazo: {fecha}</h5>
+                                        {(() => {
+                                          const rejFunc = items.filter(c => c.tipo === 'funcional');
+                                          const rejComp = items.filter(c => c.tipo === 'comportamental');
+                                          return (
+                                            <div className="space-y-3">
+                                              {rejFunc.length > 0 && (
+                                                <div>
+                                                  <h6 className="text-xs font-medium text-inst-texto-claro mb-1">Compromisos Funcionales</h6>
+                                                  {renderTabla(rejFunc, true)}
+                                                </div>
+                                              )}
+                                              {rejComp.length > 0 && (
+                                                <div>
+                                                  <h6 className="text-xs font-medium text-inst-texto-claro mb-1">Competencias Comportamentales</h6>
+                                                  {renderTabla(rejComp, false)}
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
+                                    ))}
                                 </div>
                               )}
+                              
+                              {/* Sección: Cerrados (Cumplidos/Incumplidos) */}
+                              {pkg.cerrados.length > 0 && (
+                                <div className="border-t border-inst-borde pt-4">
+                                  <h4 className="text-xs uppercase font-bold text-gray-600 mb-2 flex items-center gap-1">
+                                    <span className="material-icons text-sm">check_circle_outline</span> Cerrados
+                                  </h4>
+                                  {(() => {
+                                    const cerFunc = pkg.cerrados.filter(c => c.tipo === 'funcional');
+                                    const cerComp = pkg.cerrados.filter(c => c.tipo === 'comportamental');
+                                    return (
+                                      <div className="space-y-3">
+                                        {cerFunc.length > 0 && (
+                                          <div>
+                                            <h5 className="text-xs font-semibold text-inst-texto mb-1 flex items-center gap-1">
+                                              <span className="material-icons text-xs">task_alt</span> Compromisos Funcionales
+                                            </h5>
+                                            {renderTabla(cerFunc, true)}
+                                          </div>
+                                        )}
+                                        {cerComp.length > 0 && (
+                                          <div>
+                                            <h5 className="text-xs font-semibold text-inst-texto mb-1 flex items-center gap-1">
+                                              <span className="material-icons text-xs">psychology</span> Competencias Comportamentales
+                                            </h5>
+                                            {renderTabla(cerComp, false)}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              )}
+                              
                               {pkg.compromisos.length === 0 && (
                                 <p className="text-sm text-inst-texto-claro text-center py-4">No hay compromisos registrados.</p>
                               )}
@@ -468,9 +552,9 @@ export default function MisCompromisos() {
                       </div>
                     )}
 
-                    {pendiente && pkg.compromisos.some(c => c.propuesto_por_jefe_entidad === 1) && (
+                    {tienePendientesAceptacion && pkg.compromisos.some(c => c.propuesto_por_jefe_entidad === 1) && (
                       <div className="mt-4 border-t border-inst-borde pt-4">
-                        {rechazandoId === pkg.evaluacionId ? (
+                        {rechazandoId === pkg.evaluaciones[0]?.id ? (
                           <div className="space-y-3 p-4 bg-red-50 rounded-lg border border-red-200">
                             <h4 className="font-heading font-bold text-red-700 text-sm">Rechazar Concertación</h4>
                             <p className="text-xs text-red-600">
@@ -487,7 +571,7 @@ export default function MisCompromisos() {
                             </div>
                             <div className="flex gap-3">
                               <button
-                                onClick={() => rechazarConcertacion(pkg.evaluacionId)}
+                                onClick={() => rechazarConcertacion(pkg.evaluaciones[0].id)}
                                 disabled={saving || !obsRechazar.trim()}
                                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 flex items-center gap-1 text-sm disabled:opacity-50"
                               >
@@ -505,7 +589,7 @@ export default function MisCompromisos() {
                         ) : (
                           <div className="flex gap-3">
                             <button
-                              onClick={() => aceptarConcertacion(pkg.evaluacionId)}
+                              onClick={() => aceptarConcertacion(pkg.evaluaciones[0].id)}
                               disabled={saving}
                               className="edl-btn-primary flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700"
                             >
@@ -513,7 +597,7 @@ export default function MisCompromisos() {
                               {saving ? 'Aceptando...' : 'Aceptar Concertación'}
                             </button>
                             <button
-                              onClick={() => setRechazandoId(pkg.evaluacionId)}
+                              onClick={() => setRechazandoId(pkg.evaluaciones[0].id)}
                               className="edl-btn-secondary text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-2"
                             >
                               <span className="material-icons text-lg">cancel</span>
