@@ -75,7 +75,7 @@ const badgeTone: Record<NonNullable<BadgeProps['tone']>, string> = {
   success: 'edl-badge-verde',
   warning: 'edl-badge-amarillo',
   danger: 'edl-badge-rojo',
-  info: 'bg-inst-azul-surface text-inst-texto-2',
+  info: 'edl-badge bg-inst-azul-surface text-inst-texto-2',
 };
 
 const dotTone: Record<NonNullable<BadgeProps['tone']>, string> = {

@@ -15,7 +15,7 @@ interface RolConfig {
  jefe_personal: {
   icon: 'shield',
   descripcion: 'Superadministrador global del sistema. Gestión de usuarios, dependencias, periodos, evaluaciones, reportes y configuración general.',
-  colorBarra: 'border-l-red-600',
+  colorBarra: 'bg-red-600',
   colorFondo: 'bg-red-100',
   colorTexto: 'text-red-800',
   badge: 'danger',
@@ -23,7 +23,7 @@ interface RolConfig {
  admin: {
   icon: 'shield',
   descripcion: 'Administrador del sistema. Gestión de usuarios, dependencias, evaluaciones, reportes, parámetros y configuración general.',
-  colorBarra: 'border-l-red-600',
+  colorBarra: 'bg-red-600',
   colorFondo: 'bg-red-100',
   colorTexto: 'text-red-800',
   badge: 'danger',
@@ -31,7 +31,7 @@ interface RolConfig {
  jefe_dependencia: {
   icon: 'supervisor_account',
   descripcion: 'Jefe de dependencia. Administra los usuarios de su dependencia, restablece contraseñas y realiza seguimiento.',
-  colorBarra: 'border-l-inst-azul',
+  colorBarra: 'bg-inst-azul',
   colorFondo: 'bg-inst-gris-med',
   colorTexto: 'text-inst-texto',
   badge: 'danger',
@@ -39,7 +39,7 @@ interface RolConfig {
  evaluador: {
   icon: 'rate_review',
   descripcion: 'Evalúe el desempeño de los funcionarios a su cargo. Concierte compromisos, registre evidencias y califique resultados.',
-  colorBarra: 'border-l-green-600',
+  colorBarra: 'bg-green-600',
   colorFondo: 'bg-green-100',
   colorTexto: 'text-green-800',
   badge: 'success',
@@ -47,7 +47,7 @@ interface RolConfig {
  evaluado: {
   icon: 'person',
   descripcion: 'Consulte sus compromisos, evidencias y resultados de evaluación. Proponga compromisos funcionales y comportamentales.',
-  colorBarra: 'border-l-blue-600',
+  colorBarra: 'bg-blue-600',
   colorFondo: 'bg-inst-azul-light',
   colorTexto: 'text-inst-azul',
   badge: 'info',
@@ -55,7 +55,7 @@ interface RolConfig {
  comision_evaluadora: {
   icon: 'groups',
   descripcion: 'Órgano evaluador colegiado. Realiza evaluaciones conjuntas y aprueba calificaciones definitivas.',
-  colorBarra: 'border-l-amber-600',
+  colorBarra: 'bg-amber-600',
   colorFondo: 'bg-amber-100',
   colorTexto: 'text-amber-800',
   badge: 'info',
@@ -65,7 +65,7 @@ interface RolConfig {
 const ROL_DEFAULT: RolConfig = {
  icon: 'account_circle',
  descripcion: 'Rol del sistema.',
- colorBarra: 'border-l-gray-500',
+ colorBarra: 'bg-gray-500',
  colorFondo: 'bg-gray-100',
  colorTexto: 'text-gray-800',
  badge: 'info',
@@ -151,17 +151,17 @@ export default function SelectRolePage() {
         onClick={() => handleSelect(rol)}
         disabled={!!cargando}
         aria-busy={isLoading || undefined}
-        className={`
-         group relative w-full text-left
-         border border-inst-borde rounded-lg bg-inst-surface
-         border-l-4 ${cfg.colorBarra}
-         hover:shadow-lg hover:-translate-y-0.5
-         transition-all duration-200 ease-out
-         p-5
-         disabled:opacity-60 disabled:cursor-not-allowed
-         focus:outline-none focus:ring-2 focus:ring-inst-azul/30
-        `}
-       >
+         className={`
+          group relative w-full text-left overflow-hidden
+          border border-inst-borde rounded-md bg-inst-surface
+          hover:shadow-elegant-lg hover:-translate-y-0.5
+          transition-all duration-base ease-standard
+          py-5 pl-5 pr-12
+          disabled:opacity-60 disabled:cursor-not-allowed
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-inst-azul/30
+         `}
+        >
+         <span aria-hidden="true" className={`absolute left-0 top-0 h-full w-1 ${cfg.colorBarra}`} />
         <div className="flex items-start gap-4">
          <div
           className={`
@@ -179,11 +179,13 @@ export default function SelectRolePage() {
          </div>
 
          <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-           <h3 className={`text-base font-heading font-semibold ${cfg.colorTexto}`}>
+          <div className="min-w-0 flex items-center gap-2 mb-1">
+           <h3 className={`min-w-0 truncate text-base font-heading font-semibold ${cfg.colorTexto}`}>
             {rol.nombre}
            </h3>
-           <Badge tone={cfg.badge}>{rol.codigo.toUpperCase()}</Badge>
+           <Badge tone={cfg.badge} className="shrink-0 max-w-full">
+            {rol.codigo.toUpperCase()}
+           </Badge>
           </div>
           <p className="text-xs text-inst-texto-claro leading-relaxed">{cfg.descripcion}</p>
          </div>
