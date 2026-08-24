@@ -275,6 +275,8 @@ Ver backlog §25 (P0-1…P2-2). Resumen: corregir datos maestros (niveles, grado
 
 ## 25. Backlog priorizado
 
+> **NOTA (fase de validación)**: este backlog fue posteriormente clasificado en las secciones **§33 (aprobado)** y **§34 (bloqueado)** tras resolver los puntos de §24. En caso de duda, prevalecen §33/§34.
+
 | ID | Título | Prio | Fuente | Estado actual | Esperado | Archivos/BD | Complejidad | Riesgo |
 |---|---|---|---|---|---|---|---|---|
 | P0-1 | Corregir nivel jerárquico en ~20 empleos | P0 | Manual §7.2 | nivel erróneo | nivel según manual | BD cargos_manual | Baja | Medio (reglas por nivel) |
@@ -368,3 +370,83 @@ El sistema implementa correctamente la **arquitectura** del dominio (planta glob
 - `aux/modelo_planta_temporal.md` — ídem Temporal (908 líneas)
 - `aux/auditoria_codigo.md` — inventario de endpoints, reglas con archivo:línea, tablas
 - `aux/auditoria_bd.md` — esquema, catálogos, duplicados, integridad
+
+---
+
+## 32. Validación pre-implementación
+
+> Fase ejecutada tras aprobar el diagnóstico. Resuelve con evidencia de los DOCX los puntos de §24. La extracción DOCX no conserva paginación del Word; las citas se referencian por tabla/ficha (ubicación exacta en los anexos). No se ejecutó ningún UPDATE/INSERT/DELETE ni migración.
+
+### 32.1 Hallazgo de seguridad — INDEPENDIENTE Y URGENTE (fuera del alcance normativo)
+
+`parametros.jwt_secret` contiene el placeholder «cambiar_esto_por_un_secret_seguro…» y es legible vía API de parámetros. **No proviene de los manuales ni lo afectan**: es un defecto de configuración. Acción recomendada inmediata (P3-1, aprobado en §33): rotar el secreto en el servidor y excluirlo del endpoint. No se modificó nada en esta fase.
+
+### 32.2 Resolución de los puntos de §24
+
+| ID | Punto | Evidencia DOCX | Estado BD/Código | Decisión | ¿Requiere aprobación? | Impacto |
+|---|---|---|---|---|---|---|
+| V-01a | Naturaleza Gerente de Control Interno | FICHA 02: «Naturaleza del cargo: **Periodo Fijo**», Jefe: Alcalde municipal | `periodo_fijo` | **RESUELTO: BD correcta.** No modificar | No | Ninguno |
+| V-01b | Naturaleza/dependencia/grado Gerente PDET | FICHA 61: «Naturaleza: **Libre Nombramiento y Remoción**», «Dependencia: **Secretaría de Planeación, Ordenamiento Territorial y Vivienda**», «Grado: 00» (errata; tabla de planta §1 dice G=1) | `periodo_fijo`, dependencia **Despacho del Alcalde**, grado 01 | **RESUELTO:** naturaleza → `libre_nombramiento_remocion`; dependencia → Planeación; grado se mantiene 01 (la ficha «00» contradice la tabla agregada del propio manual y 00 no es grado de la serie) | No (resuelto documentalmente) | M001 (ampliar): 1 UPDATE naturaleza + 1 UPDATE dependencia |
+| V-02 | Grados PU código 219 | **El manual se contradice**: tabla agregada §1 = 4 g2 / 21 g1; tabla discriminada §1.1 = 10 g2 / 15 g1 (ambas suman 25) | 4 g2 / 21 g1 (coincide con la agregada) | **NO RESOLUBLE DOCUMENTALMENTE** (autocontradicción) | **SÍ** | Bloquea corrección de grados en M001 para 219 |
+| V-03 | Grados TA código 367 | Ídem: agregada §1 = 4 g4 / 1 g3 / 33 g2; discriminada §1.1 = 1 g4 / 1 g3 / 36 g2 (ambas suman 38) | 4 g4 / 1 g3 / 33 g2 (coincide con la agregada) | **NO RESOLUBLE DOCUMENTALMENTE** | **SÍ** | Bloquea M001 para 367 |
+| V-04 | Grados Aux código 407 | Agregada §1 = **25 g2**; discriminada §1.1 = 23 g2 + 2 con grado «0» (Salud) — el «0» no existe en la serie de grados usada | 25 g2 | **RESUELTO: BD correcta.** El «0» de la discriminada es errata (la tabla agregada y el total aritmético la desmienten). Documentar errata; no «corregir» el manual | No | Ninguno (cierra el «FALTA» 407/00 de §7.3) |
+| V-05 | Ubicación Inspector de Policía (303) | FICHA 10: «Dependencia: **Secretaría de Gobierno y Participación Ciudadana**», «Jefe: Secretario de Gobierno…» | dependencia **DEP-005 Inspección** | **RESUELTO:** reasignar el cargo 303 a la dependencia Secretaría de Gobierno (la ficha y la tabla discriminada coinciden; la fila «Inspección» de la BD carece de respaldo para este cargo) | No (resuelto) | M001: 1 UPDATE dependencia. La dependencia «Inspección» NO se elimina (ver V-09) |
+| V-06 | Denominaciones 1:1 | 107 denominaciones únicas en fichas; cotejo automatizado: **119 exactas**, 6 truncadas en BD con texto completo en ficha (ids 3→«Jefe oficina de Prensa y Comunicaciones», 16→«PU – Gestión de Talento Humano», 17→«PU – Seguridad y Salud en el Trabajo (SST)», 43→«PU – Cobro Coactivo y Persuasivo», 44→«PU – Manejo de Datos» (FICHA 51), 47→«Auxiliar Administrativo – Asistente Tesorería», 64→«PU – Infraestructura Física - OOPPMM»), 1 variante respaldada por tabla de planta (id 108 «Inspector de Policía 3a a 6a Categoría» = §1 agregada) | 126/127 con respaldo; 7 truncadas | **RESUELTO:** corregir las 7 truncadas con el texto literal de la ficha; id 108 se mantiene | No | M002 (lista cerrada de 7 UPDATE) |
+| V-07 | Ponderación 85/15 y umbrales 90/65 | **AUSENTE en ambos DOCX** (búsqueda de «pondera/porcentaje/peso/85» sin resultados normativos) | ENV (`EvaluacionService.php:300-301`) + duplicado en `EvaluarPage.tsx`; `parametros.peso_*` muertos | **NO RESOLUBLE CON LOS MANUALES** (es metodología CNSC, no del manual). La unificación técnica de fuente (P2-2) SÍ puede ejecutarse **sin alterar valores**; el valor 85/15 queda congelado | **SÍ** (solo el valor; no la unificación) | P2-2 aprobado con restricción |
+| V-08 | Naturaleza de la planta temporal | Título/acto: «temporal»; pero 20/21 fichas dicen «Carrera Administrativa» (solo Monitores «Temporal») | 9 filas `temporal` + 2 `carrera` | **NO RESOLUBLE** (autocontradicción del manual; requiere acto administrativo) | **SÍ** | Bloquea cualquier UPDATE de naturaleza en temporal |
+| V-09 | Dependencias «extra» de la BD (Comisaria, Comunicaciones, Control Interno, Inspección, Jurídica, Sisbén, Tesorería; 18 vs 10 del manual) | El manual describe funciones por dependencia, **no es un organigrama cerrado**; no prohíbe unidades adicionales | 18 dependencias activas | **NO RESOLUBLE DOCUMENTALMENTE** (requiere organigrama/acto vigente). No crear ni eliminar dependencias | **SÍ** | Bloquea P0-4 (merge Planeación) y retiro de dependencias; P1-5 parcial |
+| V-10 | Competencias funcionales | Declaradas en el marco conceptual («…conforman las competencias laborales») pero **ninguna ficha las define** | No existen en el sistema | **MANTENER VACÍO.** No inventar competencias funcionales; documentado como vacío normativo compartido | SÍ (decisión de negocio futura) | Ninguno (no-action) |
+
+### 32.3 Resumen de resoluciones
+
+- **Resueltos documentalmente (6)**: V-01a, V-01b, V-04, V-05, V-06, y el componente técnico de V-07 (unificación sin cambio de valor).
+- **Siguen bloqueados (4)**: V-02, V-03 (autocontradicción de grados en el manual), V-08 (naturaleza temporal), V-09 (organigrama) + V-10 (no-action).
+- **Datos que NO deben modificarse hasta aprobación humana**: grados de cargos 219 y 367 (`cargos_manual.grado`); campo `naturaleza` de los 11 cargos temporales; creación/eliminación/fusión de dependencias; valores de ponderación 85/15 y umbrales 90/65.
+
+## 33. Backlog aprobado para implementación
+
+Ítems que pueden ejecutarse **sin ninguna decisión pendiente** (la evidencia DOCX o la naturaleza técnica los respalda por completo):
+
+| ID | Título | Categoría | Clase (§32) | Notas de ejecución |
+|---|---|---|---|---|
+| P0-1 | Corregir nivel jerárquico en ~20 empleos (312, 340 g1/g2, 367/03, temporal 314/01 y 340/01) | Datos maestros | A | Respaldo: tablas de planta N=3 + fichas (p. ej. FICHA 10 «Nivel: Técnico»). Precede a P1-3 |
+| P0-2 | Crear 4 objetos BD inexistentes o refactor de repositorios | Bug técnico / Arquitectura | A | `competencias_comunes_map`, `v_competencias_por_nivel`, `conocimientos_catalogo`, `cargos_manual_conocimientos` |
+| P0-3 | Corregir 7 denominaciones truncadas con texto literal de fichas | Datos maestros | A | Lista cerrada en V-06 (absorbe P3-3) |
+| P1-7 (nuevo) | Gerente PDET: naturaleza → `libre_nombramiento_remocion` y dependencia → Planeación; Inspector de Policía → Secretaría de Gobierno | Datos maestros | A | Resuelto por V-01b y V-05 |
+| P1-1 | Agregar *Transparencia* + 12 competencias comportamentales con conductas | Normativo | A | Respaldo: §2-3 de ambos manuales |
+| P1-2 | Reemplazar conductas de las 4 comunes por literales del manual | Normativo | A | Con versionado (no borrar) |
+| P1-3 | Matriz nivel jerárquico → competencias comportamentales | Normativo | A | Después de P0-1 y P1-1 |
+| P1-6 | Eliminar hardcode de niveles/naturalezas en `AdminUsuarios.tsx` | Bug técnico | A | Usar catálogos BD |
+| P2-1 | Modelo relacional de requisitos (título, NBC, experiencia) | Arquitectura/BD | A | Fuente: secciones requisitos de las 121 fichas |
+| P2-2 | Unificar cálculo 85/15 en backend (fuente única) | Arquitectura | A **con restricción** | NO alterar valores (V-07); solo eliminar duplicación FE/BE |
+| P2-3 | Validación CNSC min-3/max-5 en backend | Bug técnico | A | |
+| P2-4 | Normalizar tildes/erratas de catálogos («Adaptacion», «Orientacion», «Secretaria, de Hacienda», «Transito», «Juridica») | Datos maestros | A | Textos correctos según manuales |
+| P2-5 | Limpiar datos TEST y asignación a cargo eliminado (BD-02/03) | Datos maestros | A | Verificar dependencias antes del soft-delete |
+| P3-1 | **SEGURIDAD**: rotar `jwt_secret` y excluirlo del API de parámetros | Seguridad | A | **Urgente e independiente de los manuales** |
+
+## 34. Backlog bloqueado por validación
+
+| ID | Título | Bloqueado por | Qué se necesita para desbloquear |
+|---|---|---|---|
+| P1-4 | Corregir grados 219 y 367 | V-02, V-03 (autocontradicción del manual: agregada vs discriminada) | Acto administrativo o aclaración de Talentos Humanos: ¿cuál tabla prevalece? |
+| P0-4 | Resolver duplicidad Planeación DEP-012/013 | V-09 (organigrama) | Confirmar cuál estructura es la vigente y a dónde se reasignan FKs (cargos, usuarios, evaluaciones) |
+| P1-5 | Asignar jefes de las 17 dependencias | V-09 + datos orgánicos | Las fichas dan el «Cargo del Jefe Inmediato» (derivable), pero la asignación a usuarios reales requiere validación; 37 usuarios sin cargo agravan el riesgo |
+| P3-2 | Retiro del esquema legacy | Investigación | Verificar que ningún proceso externo (reportes, ETL, respaldos) consuma `funcionarios/responsables/tbl_cargo*` |
+| — | Naturaleza de los 11 cargos temporales | V-08 | Acto administrativo que resuelva la contradicción «temporal vs Carrera Administrativa» |
+| — | Valor de ponderación 85/15 y umbrales | V-07 | Confirmación contra metodología CNSC vigente (no está en los manuales) |
+| — | Competencias funcionales | V-10 | Decisión de negocio: definir o dejar vacío permanentemente |
+
+### Clasificación completa de los 18 ítems originales
+
+- **A (implementable ya)**: P0-1, P0-2, P0-3, P1-1, P1-2, P1-3, P1-6, P2-1, P2-2*, P2-3, P2-4, P2-5, P3-1, P3-3 (absorbido en P0-3) + nuevo P1-7.
+- **B (depende de §32/§24)**: P1-4 (V-02/V-03), P0-4 (V-09).
+- **C (investigación adicional)**: P1-5 (organigrama + usuarios), P3-2 (consumidores legacy).
+- **D (contradice DOCX, no implementar)**: ninguno como ítem; aplican las prohibiciones de §23 (no equiparar PEN_EST≡Pensamiento Sistémico, no replicar set técnico a otros niveles, no usar conductas genéricas como norma).
+
+### Categorización de problemas
+
+- **Normativos/funcionales**: competencias faltantes (13), conductas no conformes, matriz por nivel inexistente, ponderación sin fuente normativa, naturaleza temporal ambigua.
+- **Datos maestros**: niveles (~20 empleos), grados 219/367 (bloqueados), 7 denominaciones truncadas, duplicidad Planeación, erratas de catálogos, datos TEST, jefes de dependencia.
+- **Arquitectura/BD**: 4 objetos inexistentes, requisitos en texto libre (EAV), esquema legacy, cálculo duplicado FE/BE, `parametros.peso_*` muertos.
+- **Bugs técnicos**: `GET /competencias/por-nivel` y `GET /cargos-manual/{id}` fallan por objetos ausentes; regla CNSC solo en FE; hardcode de catálogos en AdminUsuarios.
+- **Seguridad (independiente)**: `jwt_secret` placeholder expuesto — rotación urgente, sin relación con los manuales.
