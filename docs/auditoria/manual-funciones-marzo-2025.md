@@ -754,3 +754,126 @@ Todos los artefactos de staging y dev creados para la regresión fueron **soft-d
 **Backlog técnico previo a producción (recomendado)**: R-2 EAV corrupto de competencias en `cargos_manual_detalle` (determinar si es histórico o de migración; afecta datos de fichas) · P3 reproducibilidad de dumps · P3 respuesta de `PUT /compromisos/{id}` ya corregida.
 
 **Veredicto**: **STAGING APROBADO**. Producción NO declarada. La conformidad normativa 100 % sigue sujeta a §34. Cadena requerida: STAGING OK ✓ → E2E OK ✓ → JWT producción rotado ⏳ → revisión final de seguridad ⏳ → decisiones humanas §34 ⏳ → auditoría final ⏳.
+
+---
+
+## 49. Hardening de seguridad
+
+Clasificación global Fase H: **🟡 PASS CON OBSERVACIONES** — ninguna vulnerabilidad de inyección ni bypass de la regla de inmutabilidad; 2 hallazgos de diseño que requieren decisión humana (H-02, H-05); configuración de desarrollo que debe cambiarse en producción.
+
+### 49.1 Configuración (H1)
+
+| Ítem | Estado | Acción para producción |
+|---|---|---|
+| `JWT_SECRET` | OK — 52 chars reales en `.env` (gitignored, verificado con `git check-ignore`) | Rotar (§50) |
+| `DB_PASS` | ⚠ VACÍO (aceptable solo en dev local) | Credenciales dedicadas con password |
+| `APP_DEBUG` / `APP_ENV` | ⚠ `1` / `development` | `0` / `production` |
+| `display_errors` / `log_errors` | ⚠ runtime `1` / `0` | Invertir en producción (php.ini) |
+| `CORS_ORIGIN` | ✓ allowlist sin wildcard (el middleware soporta `*` si se configura — no hacerlo) | Mantener allowlist estricta |
+| SecurityHeaders | ✓ CSP, X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, no-store | Mantener |
+| Manejador global de errores | ✓ nunca expone trazas/SQL; mensaje institucional + HTTP 500; detalle solo a log | Mantener |
+| Logs vía HTTP | ✓ NO accesibles: `backend/backend.log` está fuera de `public/`; `/backend.log` sirve el SPA; path traversal bloqueado (router sanitiza `..`) | Mantener |
+| Secretos hardcodeados en código | ✓ ninguno (grep limpio) | Mantener |
+| `.env.example` | ✓ sin secretos reales | Mantener |
+| Frontend | ⚠ `VITE_API_URL=/api/v1` (proxy dev) | URL real en el build de producción |
+
+## 50. Auditoría JWT
+
+- **Configuración**: `backend/.env` → `Env::require('JWT_SECRET')` (`JwtHelper.php:16`). Fail-fast si falta.
+- **Inyección en producción**: variable de entorno del servicio PHP (php-fpm env / unit file). Nunca en Git ni en BD (M002 + blacklist).
+- **Reload**: reiniciar el servicio PHP tras el cambio; `getenv` se lee por proceso, sin caché persistente.
+- **Tokens antiguos**: quedan inválidos inmediatamente (JWT stateless, sin revocación) → todos los usuarios re-inician sesión; coordinar ventana.
+- **Procedimiento de rotación (NO ejecutado)**:
+  1. ANTES: backup del `.env` (`cp .env .env.bak-fecha`, permisos 600); ventana de mantenimiento.
+  2. CAMBIO: generar secreto fuera de Git (`php -r 'echo bin2hex(random_bytes(32));'`) e inyectarlo en el entorno del servicio; nunca vía API (blacklist lo impide) ni en el repo.
+  3. DESPUÉS: restart + health check (login + `/auth/csrf`).
+  4. VALIDACIÓN: login nuevo OK; token anterior rechazado; E2E mínimo.
+  5. ROLLBACK: restaurar `.env.bak-fecha` y reiniciar (tokens del secreto nuevo quedan inválidos → re-login).
+
+## 51. Auditoría de autenticación/autorización
+
+Pruebas controladas contra staging (:8001):
+
+| Prueba | Resultado |
+|---|---|
+| Endpoint sin JWT | ✅ «Token de autenticacion requerido» |
+| JWT inválido | ✅ «Token invalido o expirado» |
+| Token de dev en staging | ✅ rechazado (aislamiento por secreto) |
+| `parametros.editar` sin permiso | ✅ 403 (incluso admin_carepa en este despliegue) |
+| Blacklist sensibles (12 casos unit: jwt_secret/JWT_SECRET/token_secret/auth_secret/secret/api_key/mail_password/db_password…) | ✅ todas BLOQUEADAS; legítimas (peso_*, umbral_*, intentos_*) permitidas |
+| Anti-IDOR por propiedad | ✅ `CompromisoController:479` filtra `evaluador_id = :uid` para no-admin |
+| Guardia inmutabilidad (control positivo) | ✅ DELETE sobre compromiso de evaluación calificada → 400 «La evaluacion esta calificada.» |
+
+### 51.1 HALLAZGO H-02 (ALTO — decisión de diseño, NO corregido)
+
+**El login asigna automáticamente el rol de mayor privilegio como `rolActivo`** (`AuthService.php:63-72`: prioridad `jefe_personal > admin_carepa > comision_evaluadora > jefe_dependencia > evaluador > evaluado`). Un usuario multi-rol (p. ej. `evaluado` + `admin_carepa`) obtiene poder de superadministrador en cada request sin selección explícita: la UI pide elegir rol, la API no lo exige.
+
+- Reproducción: login de usuario con `admin_carepa` → token con `rolActivo=admin_carepa` → `GET /usuarios`, `GET /parametros`, calificar, eliminar compromisos: permitidos (verificado en staging).
+- Impacto: el compromiso de credenciales de un usuario multi-rol expone el rol máximo sin fricción; el mínimo privilegio no aplica por defecto.
+- Nota: la guardia de inmutabilidad NO fue burlada — el DELETE de prueba ocurrió sobre una evaluación previamente reabierta a `en_proceso` por `/guardar` (excepción de diseño). Control positivo posterior: DELETE sobre evaluación `calificada` → 400.
+- Recomendación (decisión humana): exigir `rolActivo=null` en login para multi-rol (403 «Sin rol activo» hasta `PUT /auth/rol`), o documentar formalmente el riesgo aceptado.
+
+### 51.2 HALLAZGO H-05 (MEDIO — decisión de diseño, NO corregido)
+
+`calificarDefinitiva` no valida estado previo: una evaluación `calificada` puede **recalcularse** (`PUT /evaluaciones/{id}/definitiva`; verificado: recalificó la eval 10 con resultado idéntico 88.98 — sin daño porque los compromisos no cambiaron). La inmutabilidad protege los compromisos, no la recalificación. Puede ser intencional (recalificación CNSC tras comisión). Recomendación: definir estado/permiso requerido para recalificar.
+
+## 52. Auditoría SQL e input
+
+| Patrón SQL dinámico | Ubicaciones | Veredicto |
+|---|---|---|
+| `LIMIT {$porPagina} OFFSET {$offset}` | UsuarioController, MovilidadRepository, CargoManualRepository, BaseRepository | ✅ `(int)` cast + clamp 1-50, o parámetros tipados `int` |
+| `ORDER BY {$var}` | 0 ocurrencias | ✅ |
+| LIKE con input | siempre `bindValue`/parametrizado | ✅ |
+| WHERE condicional propietario/admin | CompromisoController:479 | ✅ placeholders `:uid1/:uid2` |
+
+**Sin inyección SQL identificada.** Input: `SanitizerHelper::sanitizeArray` en controllers; rangos validados en servicio (`puntaje` 0-100, `calificacion` 4-15, `peso` 0-100, `por_pagina` 1-50, enums con `in_array`, `motivo_ajuste` lista cerrada).
+
+## 53. Preparación de producción
+
+Cambios requeridos SOLO en el entorno de despliegue (no en el repo): `APP_DEBUG=0`, `APP_ENV=production`, `display_errors=0`/`log_errors=1`, `DB_PASS` dedicado, `CORS_ORIGIN` dominio real, `VITE_API_URL` real en build FE, rotación `JWT_SECRET` (§50). Checklist completo en §55.
+
+## 54. R-2 EAV corrupto (documentado, NO corregido)
+
+- **Ubicación**: `cargos_manual_detalle`, sección `competencias`.
+- **Afectados**: **74 de 75** filas con `comunes[0]` conteniendo las 6 competencias **concatenadas en un solo string** (JSON sintácticamente válido, semánticamente corrupto). Ejemplo literal: «Aprendizaje continúo Orientación a resultados Orientación al usuario y al ciudadano Compro…». 1 fila correcta.
+- **Naturaleza**: defecto del seed original (no de migración); heredado por staging.
+- **Impacto**: la sección «competencias» de la ficha (UI ManualFunciones) no puede separar competencias en esas 74 fichas. **NO afecta el flujo de evaluación** (usa `competencias`, `competencias_por_nivel`, `conductas`).
+- **Clasificación**: P2 — datos maestros, independiente de §34.
+- **Estrategia de reparación propuesta (futura, requiere aprobación)**: re-poblar la sección desde los modelos normativos de `docs/auditoria/aux/` (que tienen las listas correctas por ficha) con validación humana por muestra; no parsear el texto corrupto.
+
+## 55. Checklist de despliegue y rollback
+
+### PRE-DEPLOY
+- [ ] Backup completo de BD de producción (`mysqldump`, verificar legibilidad cargando en BD desechable)
+- [ ] Backup del `.env` de producción (permisos 600, fuera del repo)
+- [ ] Verificar estado de migraciones en producción (esperado: C — sin migrar) y aplicar M001→M005 en orden
+- [ ] Variables: `APP_DEBUG=0`, `APP_ENV=production`, `DB_*` dedicadas con password, `CORS_ORIGIN` dominio real, `UPLOAD_DIR` fuera de `public/`
+- [ ] php.ini: `display_errors=0`, `log_errors=1`
+- [ ] `JWT_SECRET` nuevo generado fuera de Git e inyectado en el entorno (§50)
+- [ ] Build FE con `VITE_API_URL` de producción
+- [ ] Permisos de BD: usuario dedicado sin DDL tras migrar
+
+### DEPLOY
+- [ ] Código exacto: commit `07d0b91` (rama `audit/manual-funciones-marzo-2025`) — o el commit aprobado al momento
+- [ ] Migraciones M001-M005 ejecutadas y verificadas (objetos, conteos §47.2)
+- [ ] Restart del servicio PHP
+
+### POST-DEPLOY
+- [ ] Health check: login + `GET /auth/csrf`
+- [ ] JWT: token nuevo válido; token previo rechazado
+- [ ] E2E mínimo: concertación → fijar → calificar → definitiva en una evaluación de prueba
+- [ ] Inmutabilidad: crear compromiso sobre evaluación calificada → 400
+- [ ] `GET /parametros` sin claves sensibles
+- [ ] Logs sin errores fatales; BD sin huérfanos; conteos de planta (167 empleos)
+
+### ROLLBACK
+- [ ] Código: volver al commit/versión previa y reiniciar
+- [ ] BD: restaurar backup pre-deploy (o ejecutar las secciones REVERSIBILIDAD de M001-M005 si solo se revierten objetos)
+- [ ] Configuración: restaurar `.env.bak-fecha`
+- [ ] JWT: restaurar secreto anterior y reiniciar (re-login general)
+
+### Cadena hacia producción
+H OK ✓ → revisión humana de seguridad ⏳ → rotación JWT_SECRET ⏳ → resolución §34 por Talento Humano ⏳ → decisión final de despliegue ⏳ → auditoría post-producción ⏳.
+
+### §34 — confirmación
+Permanece 🔒 BLOQUEADO e intacto: grados 219 (21/4) y 367 (33/1/4) · DEP-012/DEP-013 sin fusionar · organigrama (18 dependencias) · jefaturas pendientes · naturaleza temporal (9+2) · 85/15 · 90/65 · competencias funcionales vacías · P2-1 sin poblar · APR_TEC/815 REQUIERE VALIDACIÓN.
