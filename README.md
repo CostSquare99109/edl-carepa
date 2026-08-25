@@ -303,8 +303,6 @@ Todos los usuarios sembrados por el dump usan contrasena `12345678`.
 | Documento | Nombre | Rol principal |
 | --- | --- | --- |
 | `admin` | Admin | `admin_carepa` |
-| `43141896` | LUSELY OREJUELA | `evaluador`, `jefe_dependencia` |
-| `1040353165` | YEISON ROMANA | `evaluado`, `admin_carepa` |
 
 > Usuarios adicionales de prueba (mas de 200)estan disponibles en el dump consolidado. Cualquier usuario puede cambiar de rol activo sin cerrar sesion mediante `POST /api/v1/auth/rol`.
 
