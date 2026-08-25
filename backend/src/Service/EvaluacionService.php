@@ -296,6 +296,10 @@ if ($rolActivo !== 'evaluador') {
  ResponseHelper::notFound('Evaluacion no encontrada');
  }
 
+ // H-05: una evaluacion ya calificada no se recalifica por el endpoint normal.
+ // La via administrativa explicita es calificacionManual (auditada).
+ \App\Helper\EvaluacionInmutabilidad::asegurarMutable($id, 'recalificar');
+
  $concertacionId = (int) $evaluacion['concertacion_id'];
  $pesoFunc = \App\Helper\ParametroHelper::int('peso_funcionales', 'PESO_FUNCIONALES', 85);
  $pesoComp = \App\Helper\ParametroHelper::int('peso_comportamentales', 'PESO_COMPORTAMENTALES', 15);

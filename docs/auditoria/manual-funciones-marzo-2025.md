@@ -877,3 +877,65 @@ H OK ✓ → revisión humana de seguridad ⏳ → rotación JWT_SECRET ⏳ → 
 
 ### §34 — confirmación
 Permanece 🔒 BLOQUEADO e intacto: grados 219 (21/4) y 367 (33/1/4) · DEP-012/DEP-013 sin fusionar · organigrama (18 dependencias) · jefaturas pendientes · naturaleza temporal (9+2) · 85/15 · 90/65 · competencias funcionales vacías · P2-1 sin poblar · APR_TEC/815 REQUIERE VALIDACIÓN.
+
+---
+
+## 56. Corrección H-02 — Selección de rol con mínimo privilegio
+
+**Causa raíz**: `AuthService::login` auto-asignaba el rol de mayor privilegio (`jefe_personal > admin_carepa > …`) como `rolActivo` para usuarios multi-rol. Además, **dos fallbacks** convertían `null` en un rol real: `JwtHelper.php:40` (`$rolActivo ?? ($roles[0] ?? null)`) y `AuthMiddleware.php:65` (idéntico) — por eso el claim del JWT siempre terminaba con un rol activo.
+
+**Solución (3 archivos)**:
+
+| Archivo | Cambio |
+|---|---|
+| `AuthService.php` | Login: 1 rol → se activa automáticamente; multi-rol → `rolActivo = null` (selección explícita exigida) |
+| `JwtHelper.php` | Eliminado fallback `roles[0]`: el claim `rol_activo` respeta `null` |
+| `AuthMiddleware.php` | Eliminado fallback `roles[0]`: `rol_activo` null permanece null → `PermissionMiddleware` responde 403 «Sin rol activo» hasta selección |
+
+**Autoridad del backend**: `cambiarRolActivo` ya validaba pertenencia (`in_array` contra roles de BD → 403 «El usuario no tiene asignado el rol X») — no se puede fabricar rol desde el frontend. Sin roles nuevos, sin estados nuevos.
+
+**Frontend sin cambios**: `Login.tsx` ya enruta multi-rol a `/seleccionar-rol` por `roles.length > 1` (independiente del backend); `SelectRolePage` → `PUT /auth/rol` establece el rol real. El rol local de `AuthContext` (localStorage) es solo display; la autoridad es el claim del token.
+
+**Pruebas H-02 (dev y staging)**:
+
+| Caso | dev | staging |
+|---|---|---|
+| A. Un rol → login correcto con rol activo | ✅ | ✅ (admin_carepa en staging) |
+| B. Multi-rol → `rolActivo` null (respuesta y claim JWT) | ✅ null/null | ✅ null/null |
+| C. Seleccionar rol permitido → OK + token nuevo | ✅ | ✅ |
+| D. Seleccionar rol ajeno → 403 «El usuario no tiene asignado el rol…» | ✅ | ✅ (demostrado: `admin_carepa` rechazado a LUSELY) |
+| E. Fabricar rol por payload | ✅ imposible (backend valida contra BD) | ✅ |
+| F. `evaluado+admin_carepa` NO entra como admin | ✅ (rolActivo null; `GET /usuarios` → denegado) | ✅ |
+| G. Endpoint administrativo sin rol activo → denegado | ✅ | ✅ |
+
+## 57. Corrección H-05 — Recalificación bloqueada
+
+**Investigación de callers**: `calificarDefinitiva` tiene 2 invocadores: el endpoint `PUT /evaluaciones/{id}/definitiva` (permiso `evaluaciones.evaluar`) y el método interno `finalizar()` — que **ya exige estado `en_proceso`** antes de llamarlo, por lo que la guardia no lo afecta. **No existe flujo administrativo legítimo de recalificación por este endpoint**; la vía administrativa explícita y auditada es `calificacionManual` (exenta de CSRF por diseño, bloquea estados en firme `cerrada/aprobada_comision/anulada`, registra en `AuditoriaService`) — se mantiene como única vía.
+
+**Solución**: guardia centralizada reutilizada (sin duplicar lógica): `\App\Helper\EvaluacionInmutabilidad::asegurarMutable($id, 'recalificar')` al inicio de `calificarDefinitiva` + nuevo mensaje `'recalificar' => 'No se puede recalificar la evaluacion. La evaluacion esta %s.'` en el helper. Primer pase (pendiente/en_proceso) → permitido; re-invocación sobre `calificada`/terminales → 400.
+
+**Pruebas H-05**:
+
+| Caso | dev | staging |
+|---|---|---|
+| Recalificar evaluación `calificada` → 400 «No se puede recalificar la evaluacion. La evaluacion esta calificada.» | ✅ (eval 10) | ✅ (eval 24) |
+| `finalizar` (caller interno) intacto | ✅ (suites) | ✅ (E2E mínimo) |
+| `calificacionManual` (vía administrativa) sin cambio | ✅ (suites) | — |
+
+## 58. Regresión final
+
+| Suite / prueba | Resultado |
+|---|---|
+| `php tests/run_tests.php` | **35 OK / 0 FAIL** (34 previos + 1 nuevo «Selección de rol»; adaptación justificada: el test operaba sin rol seleccionado confiando en el auto-asignado que H-02 elimina — ahora selecciona `admin_carepa` explícitamente vía `PUT /auth/rol`, igual que el frontend real; se amplió `api()` para enviar `X-CSRF-Token`) |
+| `bash tests/run_all.sh` | **9/9 PASS** |
+| `tests/test_inmutabilidad.py` (dev) | **13/13** |
+| `tests/test_inmutabilidad.py` (staging) | **13/13** |
+| `tsc --noEmit` / `npm run build` | Sin archivos FE modificados (errores preexistentes del baseline) / **build OK** (32s) |
+| H-02 A-G (dev + staging) | ✅ tabla §56 |
+| H-05 (dev + staging) | ✅ tabla §57 |
+| JWT / parámetros / IDOR / SQL / CORS / headers | ✅ controles de Fase H re-ejecutados sin cambios |
+| Fixtures | **0 activos** en dev y staging (soft-deleted y verificados) |
+| Evaluaciones originales | 10 y 24 `calificada` en ambos entornos, intactas |
+| Bloqueados | §34, R-2, 219/367, DEP-012/013, organigrama, jefaturas, naturaleza temporal, 85/15, 90/65, competencias funcionales, P2-1, APR_TEC/815 — **sin cambios** |
+
+**Nota de compatibilidad**: los tokens emitidos antes de H-02 conservan su `rol_activo` original (claim presente); el cambio solo afecta a **nuevos logins** multi-rol, que deberán seleccionar rol — exactamente el flujo que la UI ya implementa.

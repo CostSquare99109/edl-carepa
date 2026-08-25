@@ -37,7 +37,7 @@ class JwtHelper
  'roles' => $roles,
  'entidad_id' => $entidadId,
  'dependencia_id' => $dependenciaId,
- 'rol_activo' => $rolActivo ?? ($roles[0] ?? null),
+ 'rol_activo' => $rolActivo,
  ];
 
  return JWT::encode($payload, self::getSecret(), self::getAlgorithm());

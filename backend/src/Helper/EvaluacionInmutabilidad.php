@@ -28,6 +28,7 @@ final class EvaluacionInmutabilidad
         'eliminar'   => 'No se puede eliminar el compromiso. La evaluacion esta %s.',
         'calificar'  => 'No se puede calificar el compromiso. La evaluacion esta %s.',
         'gestionar'  => 'No se puede gestionar el compromiso. La evaluacion esta %s.',
+        'recalificar' => 'No se puede recalificar la evaluacion. La evaluacion esta %s.',
     ];
 
     public static function esTerminal(?string $estado): bool

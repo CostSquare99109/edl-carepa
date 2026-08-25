@@ -57,19 +57,10 @@ class AuthService
   $entidadId = $usuario['entidad_id'];
   $dependenciaId = $usuario['dependencia_id'];
 
-  // Prioridad del rol por defecto al iniciar sesion.
-   // El sistema CNSC opera con jefe_personal (superadmin), admin, comision_evaluadora,
-  // jefe_dependencia, evaluador y evaluado. Si el usuario tiene varios roles se
-  // elige el de mayor privilegio siguiendo esta lista.
-  $prioridad = ['jefe_personal', 'admin_carepa', 'comision_evaluadora', 'jefe_dependencia', 'evaluador', 'evaluado'];
-  $rolActivo = null;
-  foreach ($prioridad as $p) {
-   if (in_array($p, $rolCodigos)) {
-    $rolActivo = $p;
-    break;
-   }
-  }
-  $rolActivo = $rolActivo ?? ($rolCodigos[0] ?? null);
+  // H-02 (minimo privilegio): un solo rol -> se activa automaticamente;
+  // multiples roles -> rolActivo null y el usuario debe seleccionarlo
+  // explicitamente via PUT /auth/rol (el backend valida la pertenencia).
+  $rolActivo = count($rolCodigos) === 1 ? $rolCodigos[0] : null;
 
   $token = JwtHelper::generate($usuario['id'], $usuario['documento'], $rolCodigos, $entidadId, $rolActivo, $dependenciaId);
   $tokenHash = hash('sha256', $token);

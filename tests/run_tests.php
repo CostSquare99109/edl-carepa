@@ -3,7 +3,7 @@ $base = 'http://localhost:8000';
 $pass = 0;
 $fail = 0;
 
-function api(string $method, string $path, array $data = [], ?string $token = null): array
+function api(string $method, string $path, array $data = [], ?string $token = null, ?string $csrf = null): array
 {
     global $base;
     $opts = [
@@ -18,6 +18,9 @@ function api(string $method, string $path, array $data = [], ?string $token = nu
     }
     if ($token) {
         $opts['http']['header'] .= "\r\nAuthorization: Bearer $token";
+    }
+    if ($csrf) {
+        $opts['http']['header'] .= "\r\nX-CSRF-Token: $csrf";
     }
     $ctx = stream_context_create($opts);
     $body = @file_get_contents($base . $path, false, $ctx);
@@ -53,6 +56,19 @@ if ($resp['code'] === '01' && $token) {
     echo "  [FAIL] Login: " . ($resp['message'] ?? 'unknown error') . "\n";
     $fail++;
     exit(1);
+}
+
+// 1b. Seleccion de rol explicita (H-02: multi-rol ya no auto-asigna rol).
+// El usuario 1040353165 es evaluado + admin_carepa; el backend exige elegir rol.
+$resp = api('GET', '/api/v1/auth/csrf', [], $token);
+$resp = api('PUT', '/api/v1/auth/rol', ['rol_codigo' => 'admin_carepa'], $token, $resp['data']['csrf_token'] ?? '');
+if (($resp['data']['token'] ?? '') !== '') {
+    $token = $resp['data']['token'];
+    echo "  [OK] Seleccion de rol (admin_carepa)\n";
+    $pass++;
+} else {
+    echo "  [FAIL] Seleccion de rol: " . ($resp['message'] ?? 'unknown error') . "\n";
+    $fail++;
 }
 
 // 2. Perfil

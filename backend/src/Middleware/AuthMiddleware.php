@@ -62,7 +62,7 @@ class AuthMiddleware
  'roles' => $payload['roles'] ?? [],
  'entidad_id' => $payload['entidad_id'] ?? null,
  'dependencia_id' => $payload['dependencia_id'] ?? null,
- 'rol_activo' => $payload['rol_activo'] ?? ($payload['roles'][0] ?? null),
+ 'rol_activo' => $payload['rol_activo'] ?? null,
  ];
  }
 
