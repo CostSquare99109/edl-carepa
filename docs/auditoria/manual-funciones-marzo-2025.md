@@ -939,3 +939,98 @@ Permanece 🔒 BLOQUEADO e intacto: grados 219 (21/4) y 367 (33/1/4) · DEP-012/
 | Bloqueados | §34, R-2, 219/367, DEP-012/013, organigrama, jefaturas, naturaleza temporal, 85/15, 90/65, competencias funcionales, P2-1, APR_TEC/815 — **sin cambios** |
 
 **Nota de compatibilidad**: los tokens emitidos antes de H-02 conservan su `rol_activo` original (claim presente); el cambio solo afecta a **nuevos logins** multi-rol, que deberán seleccionar rol — exactamente el flujo que la UI ya implementa.
+
+---
+
+## 59. Pre-Producción Final
+
+**Fecha**: cierre de la fase J. **Commit candidato a producción: `c42d357`** (HEAD de `audit/manual-funciones-marzo-2025`).
+
+### 59.1 GIT (J1)
+
+- Working tree: sin cambios en código (solo `.pids/*.pid` de runtime y archivos untracked preexistentes ajenos al proyecto, nunca tocados).
+- HEAD = `c42d357` — candidato exacto ✓.
+- Diff `07d0b91 → c42d357`: 8 archivos — exclusivamente H-02/H-05 (`AuthService`, `AuthMiddleware`, `JwtHelper`, `EvaluacionService`, `EvaluacionInmutabilidad`), tests (`run_tests.php` adaptación justificada, `test_inmutabilidad.py` parametrización `API_BASE`) y documentación. Sin secretos, sin cambios no documentados.
+- **Sin push** (la rama `audit/manual-funciones-marzo-2025` no existe en el remoto; 9 commits locales) · sin reset · historial lineal intacto.
+
+### 59.2 Tests finales (J2) — ejecución de cierre
+
+| Suite | Resultado |
+|---|---|
+| `php tests/run_tests.php` | **35 OK / 0 FAIL** |
+| `bash tests/run_all.sh` | **9/9 PASS** |
+| `tests/test_inmutabilidad.py` (dev) | **13 OK / 0 FAIL** |
+| `tests/test_inmutabilidad.py` (staging) | **13 OK / 0 FAIL** |
+| `npm run build` | ✅ (48.9s) |
+| `tsc --noEmit` | Solo errores preexistentes del baseline (9 archivos: tests FE y páginas nunca modificadas en Fases A-J) |
+
+Errores baseline: declarados, no ocultos.
+
+### 59.3 Staging (J3)
+
+Código servido desde el árbol del candidato. Spot-check de cierre: H-02 B (`rolActivo` null/claim null) ✓ · endpoint admin sin rol → denegado ✓ · cambio de rol → OK ✓ · H-05 recalificación → 400 ✓ · **fixtures activos: 0** ✓ · evaluaciones originales 10/24 `calificada` ✓.
+
+### 59.4 Migraciones para producción (J4) — secuencia preparada, NO ejecutada
+
+Estado esperado de producción: C (sin migrar, baseline `5871949`-equivalente). Secuencia exacta:
+
+```
+1. mysqldump <prod> > backup_pre_deploy_<fecha>.sql          # backup
+2. mysql <prod> < database/migrations/M001_p0_2_objetos_faltantes.sql
+3. mysql <prod> < database/migrations/M002_p3_1_jwt_parametro.sql
+4. mysql <prod> < database/migrations/M003_p0_1_p0_3_p1_7_datos_maestros.sql
+5. mysql <prod> < database/migrations/M004_p1_1_p1_2_p1_3_competencias.sql
+6. mysql <prod> < database/migrations/M005_p2_4_p2_5_normalizacion.sql
+7. Verificación: 5 objetos · matriz 24 · competencias 27 · conductas 73/15 ·
+   jwt_secret=0 · 6 niveles · 7 denominaciones · PDET/Inspector · 0 huérfanos · 167 empleos
+```
+
+Reproducibilidad demostrada en staging (§47.2): estado final idéntico. Rollback documentado dentro de cada archivo M* y en §55.
+
+### 59.5 Backup de producción (J5) — procedimiento, NO ejecutado
+
+- **Comando**: `mariadb-dump --single-transaction --routines --triggers <BD_PROD> > backup_pre_deploy_<fecha>.sql`
+- **Ubicación**: fuera del docroot, permisos 600, retención según política municipal.
+- **Tamaño esperado**: orden de magnitud del dataset actual ≈ 2 MB comprimible (el de staging: 1.95 MB); medir el real al ejecutar.
+- **Legibilidad**: cargar en BD desechable y contar tablas (método validado en G2/G5: 43/43).
+- **Restauración**: `mysql <BD_PROD> < backup.sql` tras `CREATE DATABASE`; tiempo estimado: segundos-minutos según tamaño (en staging: < 5 s).
+- **Nota P3**: si el dump de producción se genera con `mysqldump` reciente puede incluir la directiva sandbox `/*M!999999*/` — al restaurar, neutralizar esa línea (hallazgo documentado en §47.1).
+
+### 59.6 JWT producción (J6) — NO rotado
+
+Ubicación, inyección, reload, invalidación de tokens, validación y rollback: procedimiento completo en **§50**. El secreto actual de producción debe tratarse como comprometido-hasta-rotar (placeholder histórico documentado). Nunca imprimir valores.
+
+### 59.7 R-2 y §34 (J6)
+
+- **R-2**: documentado (§54), P2, 74/75 filas EAV, **no afecta el flujo E2E validado** (usa tablas relacionales, no el EAV). Separado de §34. Reparación futura con aprobación.
+- **§34 verificado intacto al cierre** (staging): 219 = 21/4 · 367 = 33/1/4 · DEP-012/013 presentes sin fusionar · 17 dependencias sin jefatura (sin cambio) · naturaleza temporal 2+9 · competencias funcionales vacías · pesos 85 · umbrales 90/65 · APR_TEC/815 intacto.
+
+## 60. Go/No-Go
+
+| Área | Veredicto | Condición / evidencia |
+|---|---|---|
+| Código (candidato `c42d357`) | 🟢 GO | Working tree limpio; diff = H-02/H-05 + tests + docs |
+| Tests | 🟢 GO | 35/0 · 9/9 · 13/13 · 13/13 · build OK · tsc solo baseline |
+| Staging | 🟢 GO | Aprobado (G), re-validado (I) y spot-check de cierre (J) |
+| Migraciones | 🟢 GO | M001-M005 reproducibles desde baseline; secuencia §59.4 |
+| Backup | 🟢 GO | Procedimiento + verificación de legibilidad validados (§59.5) |
+| Rollback | 🟢 GO | Documentado (§55): código, BD, config, JWT |
+| Seguridad | 🟡 CONDITIONAL | H-02/H-05 resueltos; **rotación JWT_SECRET de producción pendiente** (§50); revisión humana de seguridad final pendiente |
+| R-2 | 🟡 CONDITIONAL | P2 documentado; no bloquea el flujo validado; reparación futura aprobable |
+| §34 | 🟡 CONDITIONAL | 🔒 Bloqueado e intacto; **requiere decisión de Talento Humano** (grados 219/367, organigrama, jefaturas, naturaleza temporal, ponderación normativa, competencias funcionales, APR_TEC/815) |
+| Producción | ❌ NO ejecutada | Ningún comando contra producción fue emitido |
+
+## Veredicto final
+
+**READY FOR PRODUCTION — CONDITIONAL** ✅
+
+Todos los requisitos **técnicos** están verdes: código candidato probado, suites completas en verde, staging aprobado, migraciones reproducibles, backup/rollback definidos, seguridad hardenizada (H-02/H-05/P1/P3 resueltos y verificados).
+
+Las **condiciones explícitas** antes del despliegue real son externas al código:
+1. **Rotación de `JWT_SECRET`** de producción (procedimiento §50, operación de infraestructura).
+2. **Revisión humana de seguridad** final sobre este informe.
+3. **Resolución de §34** por Talento Humano (no bloquea el deploy técnico, pero define la conformidad normativa).
+4. Ejecución del checklist §55 en la ventana de despliegue.
+5. Auditoría post-producción.
+
+**NO se declara «producción aprobada» ni «conformidad normativa 100 %».**
