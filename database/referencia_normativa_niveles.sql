@@ -1,0 +1,43 @@
+-- referencia_normativa_nivel.sql — GENERADO por parser de manuales
+-- Fuente: modelo_planta_global.md §1.1 + modelo_planta_temporal.md §2
+-- Solo dimension NIVEL. Precedencia: MANUALES > CODIGO > BD > SUPUESTOS.
+-- Grados 219/367 congelados por V-02/V-03: esta tabla NO autoriza cambios de grado.
+-- MATERIALIZACION PENDIENTE DE GO (no ejecutar aun en edl_carepa).
+-- CREATE TABLE IF NOT EXISTS referencia_normativa_niveles (
+--   planta ENUM('global','temporal') NOT NULL,
+--   codigo VARCHAR(10) NOT NULL,
+--   grado VARCHAR(10) NOT NULL,
+--   nivel_esperado VARCHAR(20) NOT NULL,
+--   fuente VARCHAR(60) NOT NULL DEFAULT 'manuales_marzo_2025',
+--   creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--   PRIMARY KEY (planta, codigo, grado)
+-- ) ENGINE=InnoDB CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','005','03','directivo');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','009','01','directivo');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','020','02','directivo');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','039','01','directivo');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','039','02','directivo');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','091','01','directivo');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','115','01','asesor');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','202','02','profesional');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','219','01','profesional');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','219','02','profesional');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','303','04','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','312','03','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','314','02','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','340','01','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','340','02','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','367','02','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','367','03','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','367','04','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','407','00','asistencial');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','407','02','asistencial');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','438','02','asistencial');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','470','01','asistencial');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('global','477','01','asistencial');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('temporal','219','00','profesional');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('temporal','314','01','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('temporal','340','01','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('temporal','367','01','tecnico');
+-- INSERT IGNORE INTO referencia_normativa_niveles (planta,codigo,grado,nivel_esperado) VALUES ('temporal','407','00','asistencial');
+-- Total claves: 28
