@@ -1,4 +1,3 @@
-mysqldump: Deprecated program name. It will be removed in a future release, use '/data/data/com.termux/files/usr/bin/mariadb-dump' instead
 /*M!999999\- enable the sandbox mode */ 
 -- MariaDB dump 10.19-12.3.2-MariaDB, for Android (aarch64)
 --
@@ -40,7 +39,7 @@ CREATE TABLE `auditoria` (
   KEY `idx_accion` (`accion`),
   KEY `idx_entidad_registro` (`entidad`,`registro_id`),
   KEY `idx_fecha` (`creado_en`)
-) ENGINE=InnoDB AUTO_INCREMENT=2775 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2827 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -2823,7 +2822,59 @@ INSERT INTO `auditoria` VALUES
 (2771,NULL,'login','usuarios',6,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:40:49'),
 (2772,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-07-18 10:41:05'),
 (2773,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:41:39'),
-(2774,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:43:49');
+(2774,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:43:49'),
+(2775,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:54:12'),
+(2776,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:55:02'),
+(2777,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:55:34'),
+(2778,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:55:53'),
+(2779,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:56:36'),
+(2780,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:56:54'),
+(2781,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:57:18'),
+(2782,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 06:57:35'),
+(2783,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 06:58:02'),
+(2784,12,'logout','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 06:58:04'),
+(2785,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 06:58:08'),
+(2786,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 06:58:13'),
+(2787,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-08-14 07:02:53'),
+(2788,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"admin_carepa\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-08-14 07:03:02'),
+(2789,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"evaluado\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-08-14 07:03:27'),
+(2790,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 07:21:57'),
+(2791,12,'logout','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 07:22:01'),
+(2792,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 07:22:09'),
+(2793,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 07:22:15'),
+(2794,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 07:22:25'),
+(2795,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 07:25:10'),
+(2796,12,'logout','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 07:25:12'),
+(2797,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 07:25:16'),
+(2798,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 07:25:19'),
+(2799,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 07:25:56'),
+(2800,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 07:26:08'),
+(2801,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 07:26:20'),
+(2802,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-14 07:26:28'),
+(2803,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 07:26:55'),
+(2804,12,'logout','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-14 07:26:57'),
+(2805,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 07:27:03'),
+(2806,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-14 07:27:07'),
+(2807,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:38:27'),
+(2808,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"admin_carepa\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:47:01'),
+(2809,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-08-24 17:53:23'),
+(2810,12,'logout','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:54:57'),
+(2811,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:55:00'),
+(2812,12,'cambiar_rol','usuarios',12,NULL,'{\"rol_activo\":\"admin_carepa\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:55:55'),
+(2813,12,'actualizar','usuarios',2,'{\"id\":2,\"documento\":\"52987634\",\"tipo_documento\":\"CC\",\"genero\":null,\"primer_nombre\":\"Maria\",\"segundo_nombre\":null,\"primer_apellido\":\"Rodriguez Perez\",\"segundo_apellido\":null,\"email\":\"maria.rodriguez@carepa.gov.co\",\"email_confirmado\":0,\"telefono1\":\"3101234567\",\"telefono2\":null,\"password_hash\":\"$2y$12$eOad\\/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG\",\"estado\":\"activo\",\"intentos_fallidos\":1,\"bloqueado_hasta\":null,\"ultimo_acceso\":\"2026-06-26 09:20:33\",\"entidad_id\":1,\"dependencia_id\":null,\"es_contratista\":0,\"nivel\":null,\"naturaleza\":null,\"tipo_nombramiento\":\"hecho_en_carrera\",\"denominacion_empleo\":\"Evaluador Senior\",\"codigo_empleo\":null,\"grado_empleo\":\"20\",\"es_evaluador_y_evaluado\":0,\"dependencia_evaluacion_id\":null,\"en_periodo_prueba\":0,\"fecha_posesion\":\"2018-03-15\",\"proposito_principal_empleo\":null,\"evaluacion_inicio_febrero\":1,\"debe_cambiar_password\":0,\"fecha_inicio_evaluacion\":null,\"motivo_fecha_inicio_diferente\":null,\"creado_en\":\"2026-06-26 08:44:10\",\"actualizado_en\":\"2026-06-30 09:58:22\",\"eliminado_en\":null}','{\"tipo_documento\":\"CC\",\"primer_nombre\":\"Maria\",\"segundo_nombre\":null,\"primer_apellido\":\"Rodriguez Perez\",\"segundo_apellido\":null,\"email\":\"maria.rodriguez@carepa.gov.co\",\"telefono1\":\"3101234567\",\"denominacion_empleo\":\"Evaluador Senior\",\"grado_empleo\":\"20\",\"estado\":\"activo\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:56:38'),
+(2814,12,'asignar_roles','usuarios',2,NULL,'{\"roles\":[\"evaluado\"]}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:56:38'),
+(2815,12,'actualizar','usuarios',12,'{\"id\":12,\"documento\":\"1040353165\",\"tipo_documento\":\"CC\",\"genero\":\"masculino\",\"primer_nombre\":\"YEISON\",\"segundo_nombre\":null,\"primer_apellido\":\"ROMA\\u00d1A\",\"segundo_apellido\":\"CORDOBA\",\"email\":\"maiayevir@hotmail.com\",\"email_confirmado\":0,\"telefono1\":\"2147483647\",\"telefono2\":null,\"password_hash\":\"$2y$12$1vnmrEzaw2YHMsgV.fbuZeIwLONpshGe8xYCRE8Yynzqj.EZeY8Tu\",\"estado\":\"activo\",\"intentos_fallidos\":0,\"bloqueado_hasta\":null,\"ultimo_acceso\":\"2026-08-24 17:55:00\",\"entidad_id\":1,\"dependencia_id\":14,\"es_contratista\":0,\"nivel\":\"profesional\",\"naturaleza\":\"carrera_administrativa\",\"tipo_nombramiento\":null,\"denominacion_empleo\":\"Funcionario\",\"codigo_empleo\":\"219\",\"grado_empleo\":\"02\",\"es_evaluador_y_evaluado\":0,\"dependencia_evaluacion_id\":null,\"en_periodo_prueba\":0,\"fecha_posesion\":\"2026-02-03\",\"proposito_principal_empleo\":null,\"evaluacion_inicio_febrero\":1,\"debe_cambiar_password\":0,\"fecha_inicio_evaluacion\":null,\"motivo_fecha_inicio_diferente\":null,\"creado_en\":\"2026-06-26 10:08:17\",\"actualizado_en\":\"2026-08-24 17:55:00\",\"eliminado_en\":null}','{\"tipo_documento\":\"CC\",\"primer_nombre\":\"YEISON\",\"segundo_nombre\":null,\"primer_apellido\":\"ROMA\\u00d1A\",\"segundo_apellido\":\"CORDOBA\",\"email\":\"maiayevir@hotmail.com\",\"telefono1\":\"2147483647\",\"denominacion_empleo\":\"Funcionario\",\"grado_empleo\":\"02\",\"estado\":\"activo\"}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:56:52'),
+(2816,12,'asignar_roles','usuarios',12,NULL,'{\"roles\":[\"evaluado\",\"admin_carepa\"]}','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 17:56:53'),
+(2817,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-08-24 17:59:11'),
+(2818,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-24 19:06:15'),
+(2819,NULL,'login','usuarios',11,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-24 19:08:25'),
+(2820,NULL,'login','usuarios',13,NULL,NULL,'127.0.0.1','curl/8.20.0','2026-08-24 19:09:11'),
+(2821,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-24 19:24:07'),
+(2822,12,'logout','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-24 19:24:09'),
+(2823,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-24 19:24:32'),
+(2824,12,'logout','usuarios',12,NULL,NULL,'127.0.0.1','','2026-08-24 19:24:34'),
+(2825,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-24 19:24:38'),
+(2826,NULL,'login','usuarios',12,NULL,NULL,'127.0.0.1','Python-urllib/3.14','2026-08-24 19:24:43');
 /*!40000 ALTER TABLE `auditoria` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -2955,7 +3006,7 @@ LOCK TABLES `cargos_manual` WRITE;
 INSERT INTO `cargos_manual` VALUES
 (1,'global',9,'directivo','005','03','Alcalde Municipal',1,'periodo_fijo','','Administrar eficientemente el municipio, ejerciendo las funciones que le asigna la Constitución, la Ley, las Ordenanzas, los Acuerdos y las que le fueren delegadas por el presidente de la República o Gobernador respectivo, para garantizar la prestación de los servicios y mejorar las necesidades básicas insatisfechas.','decreto_159_2024','2026-07-17 15:14:09','2026-07-17 15:14:09',NULL),
 (2,'global',9,'directivo','039','02','Gerente de Control Interno',1,'periodo_fijo','Alcalde municipal','Asesorar, promover, coordinar y evaluar el desarrollo del Modelo Estándar de Control Interno en la entidad, recomendando las acciones de mejoramiento continuo, para el logro de la misión y objetivos institucionales, con eficiencia, eficacia y efectividad. Verificar que los controles asociados con todas y cada una de las actividades de la organización, estén adecuadamente definidos y que sean apropiados y se mejoren permanentemente, de acuerdo con la evolución de la entidad para garantizar la eficiencia, la eficacia y economía en todas las operaciones y corregir las desviaciones detectadas en la medición de los indicadores. Velar por el cumplimiento de las leyes, normas, políticas, procedimientos, planes, programas, proyectos y metas de la organización y recomendar los ajustes, necesarios, para asegurar que las actuaciones administrativas se ajusten en todo a la ley.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(3,'global',9,'asesor','115','01','Comunicaciones',1,'libre_nombramiento_remocion','Alcalde municipal','Establecer estrategias de comunicación, información, divulgación, relaciones públicas y campañas promocionales para dar a conocer los diferentes programas y proyectos adelantados por la Administración Municipal.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
+(3,'global',9,'asesor','115','01','Jefe oficina de Prensa y Comunicaciones',1,'libre_nombramiento_remocion','Alcalde municipal','Establecer estrategias de comunicación, información, divulgación, relaciones públicas y campañas promocionales para dar a conocer los diferentes programas y proyectos adelantados por la Administración Municipal.','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
 (4,'global',9,'asistencial','314','02','Técnico Operativo - Conductor',1,'libre_nombramiento_remocion','Alcalde Municipal','Realizar labores de conducción del vehículo oficial en la jurisdicción del municipio y fuera de él.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (5,'global',9,'asistencial','438','02','Secretaria ejecutiva – Asistente',1,'libre_nombramiento_remocion','Alcalde Municipal','Asistir al Alcalde en eventos y coordinarle la agenda de trabajo para facilitar las gestiones necesarias y servir de vínculo entre la comunidad y la Administración Municipal.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (6,'global',9,'directivo','020','02','Secretario de Despacho – Gobierno',2,'libre_nombramiento_remocion','Alcalde Municipal','Orientar en la formulación, fijación, ejecución y coordinación de políticas y programas relacionados con el orden, el espacio y los establecimientos abiertos al público para garantizar el mantenimiento de la convivencia pacífica y el respeto de los derechos fundamentales. Diseño e implementación de las políticas municipales para población desplazada y víctimas.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:01:42',NULL),
@@ -2968,13 +3019,13 @@ INSERT INTO `cargos_manual` VALUES
 (13,'global',15,'asistencial','407','02','Auxiliar Administrativo – Apoyo Comisaría',1,'carrera_administrativa','Secretaria y Gobierno y Participación y','Garantizar el apoyo administrativo eficiente y oportuno en la Comisaría de Familia, mediante la organización, gestión documental, atención al público, y colaboración logística, contribuyendo al cumplimiento de los procesos operativos y administrativos que facilitan la protección y restablecimiento de los derechos de las familias, niños, niñas, adolescentes, y población vulnerable, conforme a la normatividad vigente y los lineamientos establecidos por las autoridades competentes.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:00:53',NULL),
 (14,'global',9,'directivo','020','02','Secretario(a) de Despacho – General y de',1,'libre_nombramiento_remocion','Alcalde Municipal','Administrar los procesos de recursos humanos, adquisición y suministro de los recursos materiales, organización y consecución de los bienes muebles e inmuebles del municipio, manejo de la información y el archivo; así como mantener las líneas de comunicación al interior de la administración para garantizar una eficiente prestación de los servicios. Administrar el proceso de apoyo jurídico de la administración municipal.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (15,'global',14,'profesional','219','02','Profesional Universitario – Jurídico',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Servir de apoyo en el desarrollo de los diferentes procesos entregados a la Secretaría GENERAL en materia jurídica. De igual manera, prestar asesoría y apoyo en lo relacionado con la emisión de conceptos, proyección de actos administrativos, contestación de demandas, acciones populares o de grupos, acciones de tutelas, derechos de petición y demás situaciones en la cual se haga necesario la intervención de profesional en el área del derecho','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(16,'global',14,'profesional','219','02','Talento Humano',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Asistir al jefe de la dependencia en todo lo relacionado con la liquidación y pago de las prestaciones sociales y demás derechos laborales del personal adscrito a la administración municipal, interventoría, supervisión y seguimiento de contratación estatal','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(17,'global',14,'profesional','219','01','Salud en el Trabajo (SST)',1,'carrera_administrativa','Secretario general y Servicios Adtivos','Gestionar los recursos para cumplir con el plan de seguridad y salud en el trabajo y hacer seguimiento a los indicadores. Coordinar las necesidades de capacitación en materia de prevención según los riesgos prioritarios y los niveles de la organización. Apoyar la investigación de los accidentes e incidentes de trabajo. Identificar, prever y evaluar los peligros y los riesgos existentes o posibles en materia de seguridad y salud que guarden relación con el medio ambiente de trabajo o la organización del trabajo; determinar si los controles previstos o existentes son adecuados para eliminar los peligros o controlar los riesgos','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
+(16,'global',14,'profesional','219','02','Profesional Universitario – Gestión de Talento Humano',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Asistir al jefe de la dependencia en todo lo relacionado con la liquidación y pago de las prestaciones sociales y demás derechos laborales del personal adscrito a la administración municipal, interventoría, supervisión y seguimiento de contratación estatal','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
+(17,'global',14,'profesional','219','01','Profesional Universitario –Seguridad y Salud en el Trabajo (SST)',1,'carrera_administrativa','Secretario general y Servicios Adtivos','Gestionar los recursos para cumplir con el plan de seguridad y salud en el trabajo y hacer seguimiento a los indicadores. Coordinar las necesidades de capacitación en materia de prevención según los riesgos prioritarios y los niveles de la organización. Apoyar la investigación de los accidentes e incidentes de trabajo. Identificar, prever y evaluar los peligros y los riesgos existentes o posibles en materia de seguridad y salud que guarden relación con el medio ambiente de trabajo o la organización del trabajo; determinar si los controles previstos o existentes son adecuados para eliminar los peligros o controlar los riesgos','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
 (18,'global',14,'profesional','219','01','Profesional Universitario – Procesos y',1,'carrera_administrativa','Secretario General y servicios Adtivos','Coordinar, los procesos y procedimientos de los Sistemas de Gestión de Calidad para que sean aplicados en todas las dependencias de la administración municipal. De acuerdo al Modelo Integrado de Planeación y Gestión y demás normas vigentes.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (19,'global',14,'profesional','219','01','Profesional Universitario - SIF',1,'carrera_administrativa','Secretaría general y servicios Adtivos','Garantizar, el buen funcionamiento de los sistemas informáticos de la Administración para el cumplimiento de las funciones de cada uno de los puestos de trabajo.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (20,'global',14,'asistencial','367','04','Técnico Administrativo – Almacén',1,'carrera_administrativa','Secretaria General y Servicios Adtivos','Apoyar el Plan General de Adquisiciones de acuerdo a las necesidades de las dependencias, para garantizar optimización de costos y ahorro de recursos financieros.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:01:42',NULL),
 (21,'global',14,'asistencial','367','02','Técnico Administrativo – Servicios y Apoyo',1,'carrera_administrativa','Secretario General y Servicios adtivos','Realizar apoyo técnico y administrativo en los diferentes servicios, programas y proyectos y supervisar la implementación al interior de los procesos de la Secretaría General y Servicios Administrativos.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:01:42',NULL),
-(22,'global',14,'asistencial','367','03','Técnico Administrativo – Gestión Documental',1,'carrera_administrativa','Secretaría General y de Servicios','Establecer políticas administrativas sobre gestión documental de acuerdo con la normatividad vigente para brindar un servicio eficiente a los usuarios.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
+(22,'global',14,'tecnico','367','03','Técnico Administrativo – Gestión Documental',1,'carrera_administrativa','Secretaría General y de Servicios','Establecer políticas administrativas sobre gestión documental de acuerdo con la normatividad vigente para brindar un servicio eficiente a los usuarios.','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
 (23,'global',14,'asistencial','367','02','Técnico Administrativo – Gestión Trasparente y',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Liderar con los asesores jurídicos del municipio y los secretarios de despacho, el proceso de Compras y Contratación y rendición de cuentas en las plataformas de la CGA.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:01:42',NULL),
 (24,'global',14,'asistencial','407','02','Auxiliar Administrativo - Asistente',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Administrar, la información de la Secretaría para personal interno y externo de conformidad con los procesos establecidos.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:00:53',NULL),
 (25,'global',14,'asistencial','407','02','Auxiliar Administrativo -',1,'carrera_administrativa','Secretario General y Servicios Adtivos','Apoyar los procesos administrativos de la Oficina Jurídica mediante la gestión eficiente de la documentación, garantizando el adecuado manejo, organización, registro, conservación y seguimiento de los expedientes jurídicos y demás documentos de la dependencia, conforme a las normas vigentes en materia de archivo, gestión documental y procedimientos legales, contribuyendo al cumplimiento de los objetivos institucionales.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
@@ -2985,19 +3036,19 @@ INSERT INTO `cargos_manual` VALUES
 (30,'global',14,'asistencial','470','01','Auxiliar Servicios Generales – Aseo',1,'carrera_administrativa','Secretaría General y de Servicios','Realizar labores de mantenimiento general de las instalaciones e inmuebles de propiedad del municipio.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (31,'global',14,'asistencial','477','01','Celador',1,'carrera_administrativa','Secretaría General y de Servicios Adtivos','Velar por la seguridad y el orden en las instalaciones asignadas, evitando el ingreso de personas no autorizadas, reportando incidentes y asegurando que se cumplan las normas de convivencia.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (32,'global',9,'directivo','020','02','Secretario de Despacho – Transito y',1,'libre_nombramiento_remocion','Alcalde Municipal','Orientar y liderar la formulación de las políticas del sistema de movilidad para atender los requerimientos de desplazamiento de pasajeros y de carga en la zona urbana, tanto vehicular como peatonal y de su expansión en el sector rural del municipio.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(33,'global',20,'asistencial','312','03','Técnico Operativo – Inspector de Transito',1,'carrera_administrativa','Secretario de Tránsito y Transporte','Velar, por el cumplimiento de las normas de tránsito y transporte para garantizar la seguridad, comodidad de los habitantes y preservación de un ambiente sano y protección del uso común del espacio público.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(34,'global',20,'asistencial','340','02','Técnico - Agente de Tránsito',1,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
+(33,'global',20,'tecnico','312','03','Técnico Operativo – Inspector de Transito',1,'carrera_administrativa','Secretario de Tránsito y Transporte','Velar, por el cumplimiento de las normas de tránsito y transporte para garantizar la seguridad, comodidad de los habitantes y preservación de un ambiente sano y protección del uso común del espacio público.','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
+(34,'global',20,'tecnico','340','02','Técnico - Agente de Tránsito',1,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
 (35,'global',20,'asistencial','367','02','Técnico Administrativo – Gestión',1,'carrera_administrativa','Secretario de Tránsito y Transporte','Establecer políticas administrativas sobre gestión documental al interior de la secretaria de tránsito de acuerdo a la normatividad vigente para brindar un servicio eficiente a los usuarios.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:01:42',NULL),
-(36,'global',20,'asistencial','340','01','Técnico - Agente de Tránsito',7,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:10','2026-07-18 09:05:00',NULL),
+(36,'global',20,'tecnico','340','01','Técnico - Agente de Tránsito',7,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
 (37,'global',20,'asistencial','314','02','Técnico Operativo – Supervisión y Control',1,'carrera_administrativa','Secretario de Tránsito y Transporte','Realizar inspección, vigilancia y control a las actividades que realiza la dependencia en la implementación del Plan de Movilidad Municipal – PMM','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (38,'global',9,'directivo','020','02','Secretario de Despacho – Hacienda',1,'libre_nombramiento_remocion','Alcalde Municipal','Administrar los recursos financieros necesarios para la ejecución de los diferentes planes, programas y proyectos del municipio consagrados en el PDM.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (39,'global',21,'directivo','009','01','Director Financiero y Contable',1,'libre_nombramiento_remocion','Secretario de Hacienda','Realizar manejo de la información contable del municipio, velando por que la misma se ajuste a las normas del Plan General de contabilidad Pública y las demás disposiciones legales vigentes, para fortalecer la calidad de la información contable que sirva de base para la toma de decisiones administrativas. De igual manera, velar porque el manejo financiero al interior de la Entidad, se ajuste a los procedimientos técnicos y legales previamente establecidos.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (40,'global',21,'directivo','091','01','Tesorero –Tesorero General',1,'libre_nombramiento_remocion','Secretario de Hacienda','Coordinar el recaudo y consecución de los recursos financieros para la atención de las diferentes obligaciones y compromisos del municipio de acuerdo con la programación establecida en la prestación de los servicios. Realizar los recaudos de acuerdo con los impuestos generados por la Administración Municipal para proyectar las obligaciones financieras y compromisos adquiridos en la prestación de los servicios.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (41,'global',21,'profesional','219','02','Profesional Universitario – Coordinador',1,'carrera_administrativa','Secretario de Hacienda','Coordinar la elaboración y actualización del estado de cuentas de todos los contribuyentes del Impuesto Predial Unificado, Industria y Comercio y Complementarios de avisos, tableros y valorización para propender por la liquidación, facturación, discusión, control, fiscalización y recaudo de los impuestos de la entidad para contribuir al logro de los objetivos de la misma.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
 (42,'global',21,'profesional','219','01','Profesional Universitario – Fiscalización',1,'carrera_administrativa','Secretario de Hacienda','Velar por el fortalecimiento de las distintas rentas a cargo de la administración municipal propendiendo por un recaudo oportuno de las mismas y su cobro efectivo por parte de la entidad, así como seguimiento y control de todos y cada uno de los procesos de cobro de ingresos propios en la localidad.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(43,'global',21,'profesional','219','01','y Persuasivo.',1,'carrera_administrativa','Secretario (a) de Hacienda','Velar por el fortalecimiento de las distintas rentas a cargo de la administración municipal propendiendo por un recaudo oportuno de las mismas y su cobro efectivo por parte de la entidad, así como seguimiento y control de todos y cada uno de los procesos de cobro de ingresos propios en la localidad. Lo anterior mediante el diseño e implementación de procesos de cobro coactivo y persuasivo al interior de la Secretaría de hacienda.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(44,'global',21,'profesional','219','01','Datos',1,'carrera_administrativa','Secretario(a) de Hacienda','Manejo de la información estadística a nivel contable, financiera y de presupuesto de la Secretaría de Hacienda de manera que contribuya a la toma de decisiones oportunas y ajustadas a la realidad económica del municipio y al reporte con calidad y de manera oportuna a los diferentes entes de control.','decreto_159_2024','2026-07-17 15:14:10','2026-07-17 15:14:10',NULL),
-(47,'global',21,'asistencial','407','02','Tesorería',1,'carrera_administrativa','Secretario(a) Hacienda','Brindar apoyo en las actividades operativas y administrativas de la Tesorería Municipal, garantizando el adecuado manejo de los recursos financieros, el control de pagos y la actualización de la información contable, en cumplimiento de la normatividad vigente y bajo la supervisión del Tesorero General.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
+(43,'global',21,'profesional','219','01','Profesional Universitario – Cobro Coactivo y Persuasivo.',1,'carrera_administrativa','Secretario (a) de Hacienda','Velar por el fortalecimiento de las distintas rentas a cargo de la administración municipal propendiendo por un recaudo oportuno de las mismas y su cobro efectivo por parte de la entidad, así como seguimiento y control de todos y cada uno de los procesos de cobro de ingresos propios en la localidad. Lo anterior mediante el diseño e implementación de procesos de cobro coactivo y persuasivo al interior de la Secretaría de hacienda.','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
+(44,'global',21,'profesional','219','01','Profesional Universitario – Manejo de Datos',1,'carrera_administrativa','Secretario(a) de Hacienda','Manejo de la información estadística a nivel contable, financiera y de presupuesto de la Secretaría de Hacienda de manera que contribuya a la toma de decisiones oportunas y ajustadas a la realidad económica del municipio y al reporte con calidad y de manera oportuna a los diferentes entes de control.','decreto_159_2024','2026-07-17 15:14:10','2026-08-24 19:11:02',NULL),
+(47,'global',21,'asistencial','407','02','Auxiliar Administrativo – Asistente Tesorería',1,'carrera_administrativa','Secretario(a) Hacienda','Brindar apoyo en las actividades operativas y administrativas de la Tesorería Municipal, garantizando el adecuado manejo de los recursos financieros, el control de pagos y la actualización de la información contable, en cumplimiento de la normatividad vigente y bajo la supervisión del Tesorero General.','decreto_159_2024','2026-07-17 15:14:11','2026-08-24 19:11:02',NULL),
 (48,'global',21,'asistencial','407','02','Auxiliar Administrativo – Impuestos',1,'carrera_administrativa','Secretario de Hacienda','Facturar en forma oportuna la liquidación de los distintos Impuestos para asegurar el ingreso de los recursos proyectados en el presupuesto, velar por el recaudo efectivo de los ingresos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 08:58:38',NULL),
 (49,'global',21,'asistencial','407','02','Auxiliar Administrativo – Asistente',1,'carrera_administrativa','Secretario de Hacienda','Realizar actividades administrativas y operativas de apoyo a las funciones del superior inmediato de acuerdo con los procesos y procedimientos establecidos por la entidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 08:58:38',NULL),
 (50,'global',21,'asistencial','407','02','Auxiliar Administrativo – Impuestos y',1,'carrera_administrativa','Secretario(a) de Hacienda','Apoyo en los procesos de cobro persuasivo y coactivo que se adelanten por pate de la administración municipal.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 08:58:38',NULL),
@@ -3014,7 +3065,7 @@ INSERT INTO `cargos_manual` VALUES
 (61,'global',17,'asistencial','407','02','Auxiliar Administrativo - SISBEN',1,'carrera_administrativa','Secretaría de Planeación, Ordenamiento','Apoyo para lograr un manejo adecuado de la información estadística que se genera y requiere en cada una de las dependencias de la administración especialmente en la oficina del SISBEN.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
 (62,'global',17,'asistencial','407','02','Auxiliar Administrativo - Asistente',1,'carrera_administrativa','Secretaría de Planeación,','Coordinar y ejecutar actividades administrativas y operativas que permitan la correcta gestión documental y contractual de la Secretaría, garantizando la adecuada atención a las solicitudes del público y otras entidades gubernamentales, y el cumplimiento de los planes, programas y proyectos asignados, con el fin de contribuir al cumplimiento de los objetivos de la Secretaría y asegurar la eficiencia en los procesos internos, la atención de los servicios solicitados, y el control de calidad y gestión interna.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 08:58:38',NULL),
 (63,'global',9,'directivo','020','02','Secretario de Infraestructura Física',1,'libre_nombramiento_remocion','Alcalde Municipal','','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(64,'global',16,'profesional','219','01','Profesional Universitario– Infraestructura',1,'carrera_administrativa','Secretaría de Infraestructura Física','Realizar gerencia, programación y ejecución de los diferentes proyectos de obra pública adelantados directamente por la administración municipal o a través de las entidades de cofinanciación de la nación, el departamento o la región.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:03:15',NULL),
+(64,'global',16,'profesional','219','01','Profesional Universitario– Infraestructura Física - OOPPMM',1,'carrera_administrativa','Secretaría de Infraestructura Física','Realizar gerencia, programación y ejecución de los diferentes proyectos de obra pública adelantados directamente por la administración municipal o a través de las entidades de cofinanciación de la nación, el departamento o la región.','decreto_159_2024','2026-07-17 15:14:11','2026-08-24 19:11:02',NULL),
 (65,'global',16,'asistencial','367','02','Técnico Administrativo – Control de OOPPMM',1,'carrera_administrativa','Secretaría de Infraestructura Física','Apoyo en la ejecución de las políticas adoptadas por la Administración Municipal tendientes a la construcción, expansión de redes eléctricas, mantenimiento y conservación de obras y edificios públicos para garantizar el desarrollo local y mejoramiento de la calidad de vida de la comunidad en general, acorde al Plan de Desarrollo y Misión Institucional.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 09:01:42',NULL),
 (66,'global',16,'asistencial','407','02','Auxiliar Administrativo – Asistente',1,'carrera_administrativa','Secretaría de Infraestructura Física','Realizar actividades administrativas y operativas de apoyo a las funciones del superior inmediato de acuerdo con los procesos y procedimientos establecidos por la entidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 08:58:38',NULL),
 (67,'global',12,'profesional','219','01','Profesional Universitario - Médico Veterinario',1,'carrera_administrativa','Secretario de Agricultura y Medio Ambiente','Ejecutar los planes, programas y proyectos de la dependencia en relación con la sanidad y protección y bienestar animal del municipio de conformidad con la normatividad, políticas y lineamientos vigentes.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
@@ -3041,9 +3092,9 @@ INSERT INTO `cargos_manual` VALUES
 (89,'temporal',19,'asistencial','367','01','Técnico Administrativo – Programas',1,'carrera_administrativa','Secretario de Salud y Protección Social','Apoyar las acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 23:58:30','2026-07-18 04:58:30'),
 (90,'temporal',19,'asistencial','407','00','Auxiliar Administrativo – Programas',5,'carrera_administrativa','Secretario de Salud y Protección Social','Apoyar las acciones de promoción de la salud, prevención de riesgos, y atención a las poblaciones especiales, con un enfoque en la participación comunitaria en salud. Colaborar con la ejecución y seguimiento de los programas de salud pública, asegurando la inclusión de grupos vulnerables como la población en situación de desplazamiento, discapacitados, adultos mayores, mujeres gestantes, niños, adolescentes, jóvenes, negritudes renta ciudadana.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 23:58:30','2026-07-18 04:58:30'),
 (91,'temporal',15,'profesional','219','00','Profesional Universitario – Abogado Comisaria de',1,'carrera_administrativa','Secretaría de Gobierno y Participación Ciudadana Naturaleza del cargo Carrera administrativa','Brindar apoyo profesional en el análisis, gestión y acompañamiento de los procesos jurídicos adelantados desde la Comisaría de Familia del Municipio de Carepa, Antioquia, con el fin de garantizar la protección integral de los derechos de los miembros del grupo familiar, en el marco de la normatividad vigente, contribuyendo al fortalecimiento institucional de la Secretaría de Gobierno y Participación Ciudadana y al cumplimiento de sus funciones en materia de protección y restitución de derechos.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 23:58:30','2026-07-18 04:58:30'),
-(92,'temporal',13,'asistencial','314','01','Técnico Operativo – Monitores',8,'carrera_administrativa','Secretario de Educación y Cultura','Contribuir al fortalecimiento de los procesos artísticos y culturales del municipio de Carepa mediante el diseño, desarrollo y acompañamiento de actividades formativas, creativas y comunitarias en los distintos programas culturales adscritos a la Secretaría de Educación y Cultura, como son danza bullerengue, danza baile moderno, danza urbana, música folclórica, danza folclórica, artes plásticas y pinturas, música vallenata, teatro y títeres, promoviendo la participación y la convivencia ciudadana, y el desarrollo del talento local.','decreto_159_2024','2026-07-17 15:14:11','2026-07-18 00:06:11',NULL),
-(95,'temporal',20,'asistencial','340','01','Técnico - Agente de Tránsito',2,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:11','2026-07-17 15:14:11',NULL),
-(96,'global',9,'directivo','039','01','Gerente PDET',1,'periodo_fijo',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
+(92,'temporal',13,'tecnico','314','01','Técnico Operativo – Monitores',8,'carrera_administrativa','Secretario de Educación y Cultura','Contribuir al fortalecimiento de los procesos artísticos y culturales del municipio de Carepa mediante el diseño, desarrollo y acompañamiento de actividades formativas, creativas y comunitarias en los distintos programas culturales adscritos a la Secretaría de Educación y Cultura, como son danza bullerengue, danza baile moderno, danza urbana, música folclórica, danza folclórica, artes plásticas y pinturas, música vallenata, teatro y títeres, promoviendo la participación y la convivencia ciudadana, y el desarrollo del talento local.','decreto_159_2024','2026-07-17 15:14:11','2026-08-24 19:11:02',NULL),
+(95,'temporal',20,'tecnico','340','01','Técnico - Agente de Tránsito',2,'carrera_administrativa','Secretario de Tránsito y Transporte','Desarrollar, las actividades tendientes al cumplimiento de las normas vigentes en materia de tránsito en el territorio de su jurisdicción con el fin de disminuir el índice de accidentalidad.','decreto_159_2024','2026-07-17 15:14:11','2026-08-24 19:11:02',NULL),
+(96,'global',17,'directivo','039','01','Gerente PDET',1,'libre_nombramiento_remocion',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-08-24 19:11:02',NULL),
 (97,'global',9,'directivo','020','02','Secretario de Despacho – Salud',1,'libre_nombramiento_remocion',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16','2026-07-18 05:02:16'),
 (98,'global',19,'directivo','020','02','Secretario de Despacho – Salud',1,'libre_nombramiento_remocion',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 08:58:38',NULL),
 (99,'global',19,'profesional','219','01','Profesional Universitario – Epidemiología',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
@@ -3055,7 +3106,7 @@ INSERT INTO `cargos_manual` VALUES
 (105,'global',12,'tecnico','314','02','Técnico Operativo – Piscicultura',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-17 23:53:54',NULL),
 (106,'global',12,'tecnico','314','02','Técnico Operativo – Suelos',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
 (107,'global',16,'profesional','219','01','Profesional Universitario – Obras Civiles',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-18 00:02:16',NULL),
-(108,'global',10,'tecnico','303','04','Inspector de Policía 3a a 6a Categoría',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-17 23:53:54',NULL),
+(108,'global',15,'tecnico','303','04','Inspector de Policía 3a a 6a Categoría',1,'carrera_administrativa','Secretario de Gobierno y Participación Ciudadana',NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-08-24 19:11:02',NULL),
 (109,'global',17,'profesional','219','01','Profesional Universitario – Catastro',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:53:54','2026-07-17 23:53:54',NULL),
 (111,'global',19,'profesional','219','01','Profesional Universitario – Epidemiología',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
 (112,'global',19,'tecnico','367','02','Técnico Administrativo – Vacunación',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-17 23:54:34','2026-07-17 23:59:14','2026-07-18 04:59:14'),
@@ -3096,6 +3147,38 @@ INSERT INTO `cargos_manual` VALUES
 (150,'global',19,'asistencial','407','02','Auxiliar Administrativo – Admisiones',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL),
 (151,'global',13,'asistencial','407','02','Auxiliar Administrativo – Biblioteca',1,'carrera_administrativa',NULL,NULL,'decreto_159_2024','2026-07-18 00:07:10','2026-07-18 00:07:10',NULL);
 /*!40000 ALTER TABLE `cargos_manual` ENABLE KEYS */;
+UNLOCK TABLES;
+COMMIT;
+SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `cargos_manual_conocimientos`
+--
+
+DROP TABLE IF EXISTS `cargos_manual_conocimientos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cargos_manual_conocimientos` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cargo_manual_id` bigint(20) unsigned NOT NULL,
+  `con_id` int(10) unsigned NOT NULL,
+  `orden` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cmc_cargo_con` (`cargo_manual_id`,`con_id`),
+  KEY `fk_cmc_conocimiento` (`con_id`),
+  CONSTRAINT `fk_cmc_cargo` FOREIGN KEY (`cargo_manual_id`) REFERENCES `cargos_manual` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_cmc_conocimiento` FOREIGN KEY (`con_id`) REFERENCES `conocimientos_catalogo` (`con_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cargos_manual_conocimientos`
+--
+
+SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
+LOCK TABLES `cargos_manual_conocimientos` WRITE;
+/*!40000 ALTER TABLE `cargos_manual_conocimientos` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cargos_manual_conocimientos` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
@@ -3759,21 +3842,133 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `competencias` WRITE;
 /*!40000 ALTER TABLE `competencias` DISABLE KEYS */;
 INSERT INTO `competencias` VALUES
-('ADP_CAM','Adaptacion al cambio','Capacidad para ajustarse a nuevas condiciones y transformaciones','815/2018'),
+('ADP_CAM','Adaptación al cambio','Capacidad para ajustarse a nuevas condiciones y transformaciones','815/2018'),
 ('APR_CONT','Aprendizaje continuo','Capacidad para adquirir y aplicar nuevos conocimientos de forma permanente','815/2018'),
-('APR_TEC','Aporte tecnico profesional','Contribucion especializada al desarrollo de los procesos de la entidad','815/2018'),
+('APR_TEC','Aporte técnico-profesional','Contribucion especializada al desarrollo de los procesos de la entidad','815/2018'),
 ('CMP_ORG','Compromiso con la organización','Identificacion y alineacion con los objetivos institucionales','815/2018'),
+('COLAB','Colaboración',NULL,'2539'),
 ('COM_EFEC','Comunicación efectiva','Capacidad para transmitir ideas e información de forma clara, oportuna y asertiva','2539/2005'),
 ('CON_ENT','Conocimiento del entorno','Capacidad para comprender el contexto interno y externo de la entidad','2539/2005'),
+('CONFI','Confiabilidad',NULL,'2539'),
+('DISC','Disciplina',NULL,'2539'),
+('GEST_DES_PER','Gestión del desarrollo de las personas',NULL,'2539'),
+('GEST_PRO','Gestión de procedimientos',NULL,'2539'),
 ('INICIAT','Iniciativa','Capacidad para proponer mejoras, anticiparse a situaciones y actuar de manera proactiva','2539/2005'),
+('INS_DEC','Instrumentación de decisiones',NULL,'2539'),
 ('LIDER','Liderazgo','Capacidad para orientar y guiar equipos hacia el logro de los objetivos institucionales','2539/2005'),
-('ORI_RES','Orientacion a resultados','Capacidad para alcanzar los objetivos propuestos con calidad y oportunidad','815/2018'),
-('ORI_USU','Orientacion al usuario y al ciudadano','Compromiso con la satisfaccion de las necesidades de usuarios y ciudadanos','815/2018'),
+('MAN_INF','Manejo de la información',NULL,'2539'),
+('ORI_RES','Orientación a resultados','Capacidad para alcanzar los objetivos propuestos con calidad y oportunidad','815/2018'),
+('ORI_USU','Orientación al usuario y al ciudadano','Compromiso con la satisfaccion de las necesidades de usuarios y ciudadanos','815/2018'),
 ('PEN_EST','Pensamiento estratégico','Capacidad para analizar el entorno y formular planes y estrategias institucionales','2539/2005'),
+('PEN_SIS','Pensamiento Sistémico',NULL,'2539'),
 ('PLANE','Planeación y organización','Capacidad para planificar, organizar y priorizar tareas y recursos','2539/2005'),
+('REL_INT','Relaciones interpersonales',NULL,'2539'),
+('RES_CON','Resolución de conflictos',NULL,'2539'),
+('RESP','Responsabilidad',NULL,'2539'),
 ('TOM_DEC','Toma de decisiones','Capacidad para elegir la mejor alternativa entre varias opciones basándose en criterios objetivos','2539/2005'),
-('TRB_EQP','Trabajo en equipo','Capacidad para colaborar y coordinar con otros para el logro de metas comunes','815/2018');
+('TRANSP','Transparencia','Hacer uso claro y responsable de los recursos públicos, eliminando cualquier discrecionalidad indebida en su utilización y garantizar el acceso a la información gubernamental','815'),
+('TRB_EQP','Trabajo en equipo','Capacidad para colaborar y coordinar con otros para el logro de metas comunes','815/2018'),
+('VIS_EST','Visión estratégica',NULL,'2539');
 /*!40000 ALTER TABLE `competencias` ENABLE KEYS */;
+UNLOCK TABLES;
+COMMIT;
+SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `competencias_comunes_map`
+--
+
+DROP TABLE IF EXISTS `competencias_comunes_map`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `competencias_comunes_map` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `com_json` varchar(200) NOT NULL COMMENT 'Clave/nombre tal como aparece en fichas del manual',
+  `com_bd` varchar(60) NOT NULL COMMENT 'FK a competencias.codigo',
+  `nombre` varchar(200) NOT NULL,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_ccm_com_json` (`com_json`),
+  KEY `fk_ccm_competencia` (`com_bd`),
+  CONSTRAINT `fk_ccm_competencia` FOREIGN KEY (`com_bd`) REFERENCES `competencias` (`codigo`) ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `competencias_comunes_map`
+--
+
+SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
+LOCK TABLES `competencias_comunes_map` WRITE;
+/*!40000 ALTER TABLE `competencias_comunes_map` DISABLE KEYS */;
+INSERT INTO `competencias_comunes_map` VALUES
+(1,'Aprendizaje continuo','APR_CONT','Aprendizaje continuo','2026-08-24 19:05:03'),
+(2,'Orientación a resultados','ORI_RES','Orientación a resultados','2026-08-24 19:05:03'),
+(3,'Orientación al usuario y al ciudadano','ORI_USU','Orientación al usuario y al ciudadano','2026-08-24 19:05:03'),
+(4,'Compromiso con la organización','CMP_ORG','Compromiso con la organización','2026-08-24 19:05:03'),
+(5,'Trabajo en equipo','TRB_EQP','Trabajo en equipo','2026-08-24 19:05:03'),
+(6,'Adaptación al cambio','ADP_CAM','Adaptación al cambio','2026-08-24 19:05:03');
+/*!40000 ALTER TABLE `competencias_comunes_map` ENABLE KEYS */;
+UNLOCK TABLES;
+COMMIT;
+SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `competencias_por_nivel`
+--
+
+DROP TABLE IF EXISTS `competencias_por_nivel`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `competencias_por_nivel` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nivel_codigo` varchar(20) NOT NULL,
+  `competencia_codigo` varchar(60) NOT NULL,
+  `nombre_json` varchar(200) DEFAULT NULL COMMENT 'Nombre literal del manual si difiere del catálogo',
+  `orden` tinyint(3) unsigned NOT NULL DEFAULT 1,
+  `fuente` varchar(50) NOT NULL DEFAULT 'manual_marzo_2025',
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_cpn_nivel_comp` (`nivel_codigo`,`competencia_codigo`),
+  KEY `fk_cpn_comp` (`competencia_codigo`),
+  CONSTRAINT `fk_cpn_comp` FOREIGN KEY (`competencia_codigo`) REFERENCES `competencias` (`codigo`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_cpn_nivel` FOREIGN KEY (`nivel_codigo`) REFERENCES `niveles_jerarquicos` (`codigo`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `competencias_por_nivel`
+--
+
+SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
+LOCK TABLES `competencias_por_nivel` WRITE;
+/*!40000 ALTER TABLE `competencias_por_nivel` DISABLE KEYS */;
+INSERT INTO `competencias_por_nivel` VALUES
+(1,'directivo','VIS_EST','Visión estratégica',1,'manual_marzo_2025','2026-08-24 19:13:30'),
+(2,'directivo','LIDER','Liderazgo efectivo',2,'manual_marzo_2025','2026-08-24 19:13:30'),
+(3,'directivo','PLANE','Planeación',3,'manual_marzo_2025','2026-08-24 19:13:30'),
+(4,'directivo','TOM_DEC','Toma de decisiones',4,'manual_marzo_2025','2026-08-24 19:13:30'),
+(5,'directivo','GEST_DES_PER','Gestión del desarrollo de las personas',5,'manual_marzo_2025','2026-08-24 19:13:30'),
+(6,'directivo','PEN_SIS','Pensamiento Sistémico',6,'manual_marzo_2025','2026-08-24 19:13:30'),
+(7,'directivo','RES_CON','Resolución de conflictos',7,'manual_marzo_2025','2026-08-24 19:13:30'),
+(8,'asesor','VIS_EST','Visión estratégica',1,'manual_marzo_2025','2026-08-24 19:13:30'),
+(9,'asesor','LIDER','Liderazgo efectivo',2,'manual_marzo_2025','2026-08-24 19:13:30'),
+(10,'asesor','PLANE','Planeación',3,'manual_marzo_2025','2026-08-24 19:13:30'),
+(11,'asesor','TOM_DEC','Toma de decisiones',4,'manual_marzo_2025','2026-08-24 19:13:30'),
+(12,'asesor','GEST_DES_PER','Gestión del desarrollo de las personas',5,'manual_marzo_2025','2026-08-24 19:13:30'),
+(13,'asesor','PEN_SIS','Pensamiento Sistémico',6,'manual_marzo_2025','2026-08-24 19:13:30'),
+(14,'asesor','RES_CON','Resolución de conflictos',7,'manual_marzo_2025','2026-08-24 19:13:30'),
+(15,'profesional','APR_TEC','Aporte técnico-profesional',1,'manual_marzo_2025','2026-08-24 19:13:30'),
+(16,'profesional','COM_EFEC','Comunicación efectiva',2,'manual_marzo_2025','2026-08-24 19:13:30'),
+(17,'profesional','GEST_PRO','Gestión de procedimientos',3,'manual_marzo_2025','2026-08-24 19:13:30'),
+(18,'profesional','INS_DEC','Instrumentación de decisiones',4,'manual_marzo_2025','2026-08-24 19:13:30'),
+(19,'tecnico','CONFI','Confiabilidad',1,'manual_marzo_2025','2026-08-24 19:13:30'),
+(20,'tecnico','DISC','Disciplina',2,'manual_marzo_2025','2026-08-24 19:13:30'),
+(21,'tecnico','RESP','Responsabilidad',3,'manual_marzo_2025','2026-08-24 19:13:30'),
+(22,'asistencial','MAN_INF','Manejo de la información',1,'manual_marzo_2025','2026-08-24 19:13:30'),
+(23,'asistencial','REL_INT','Relaciones interpersonales',2,'manual_marzo_2025','2026-08-24 19:13:30'),
+(24,'asistencial','COLAB','Colaboración',3,'manual_marzo_2025','2026-08-24 19:13:30');
+/*!40000 ALTER TABLE `competencias_por_nivel` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
@@ -3900,8 +4095,6 @@ INSERT INTO `compromisos` VALUES
 (29,6,'comportamental',NULL,'Aprendizaje continuo',1.00,'APR_CONT',0,0,1,'cumplido',12.90,NULL,'alto',12.90,'no','no',NULL,NULL,'Presento a su consideración la propuesta de Compromisos Funcionales para el presente período de evaluación, los cuales han sido estructurados de manera equilibrada para responder con eficiencia a las necesidades operativas del área y a las directrices de la entidad.\nLa justificación de la distribución y selección de estos compromisos es la siguiente:\nGestión de requerimientos y PQRSD (40%): Se asigna el mayor peso a la atención y respuesta oportuna de solicitudes, asegurando el cumplimiento riguroso de los términos de ley y la calidad en el servicio al ciudadano.\nGeneración de informes de gestión (30%): Garantiza que la consolidación y entrega de datos del área se realice bajo criterios de oportunidad y veracidad, facilitando el seguimiento de metas y la toma de decisiones estratégicas.\nControl y organización documental (30%): Apunta a mantener el archivo y los sistemas de información debidamente depurados, actualizados y organizados, en cumplimiento de las tablas de retención documental vigentes.\nQuedo a su entera disposición para revisar, ajustar o concertar estos compromisos según sus consideraciones, con el fin de proceder con la formalización y envío definitivo en el sistema EDL-Carepa.','[{\"conducta_id\":26,\"valoracion\":\"siempre\",\"impacto_aporta_compromisos\":\"no\",\"impacto_excede_estipulado\":\"no\",\"justificacion_excede\":null},{\"conducta_id\":27,\"valoracion\":\"siempre\",\"impacto_aporta_compromisos\":\"no\",\"impacto_excede_estipulado\":\"no\",\"justificacion_excede\":null},{\"conducta_id\":28,\"valoracion\":\"siempre\",\"impacto_aporta_compromisos\":\"no\",\"impacto_excede_estipulado\":\"no\",\"justificacion_excede\":null},{\"conducta_id\":29,\"valoracion\":\"siempre\",\"impacto_aporta_compromisos\":\"no\",\"impacto_excede_estipulado\":\"no\",\"justificacion_excede\":null},{\"conducta_id\":30,\"valoracion\":\"siempre\",\"impacto_aporta_compromisos\":\"no\",\"impacto_excede_estipulado\":\"no\",\"justificacion_excede\":null}]',NULL,NULL,'2026-07-15 20:00:47','2026-07-16 17:39:49',NULL,NULL,NULL),
 (30,3,'funcional',NULL,'Elaborar informes mensuales de gestion administrativa segun el cronograma institucional',60.00,NULL,0,0,1,'propuesto',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-17 21:24:46','2026-07-17 21:24:46',NULL,NULL,NULL),
 (31,3,'funcional',NULL,'Brindar atencion oportuna a las solicitudes internas de los funcionarios en un plazo maximo de 48 horas',40.00,NULL,0,0,1,'propuesto',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-17 21:24:48','2026-07-17 21:24:48',NULL,NULL,NULL),
-(32,3,'funcional',NULL,'Elaborar informes mensuales de gestion administrativa segun el cronograma institucional',60.00,NULL,0,0,1,'propuesto',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-17 21:24:58','2026-07-17 21:24:58',NULL,NULL,NULL),
-(33,3,'funcional',NULL,'Brindar atencion oportuna a las solicitudes internas de los funcionarios en un plazo maximo de 48 horas',40.00,NULL,0,0,1,'propuesto',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-17 21:24:59','2026-07-17 21:24:59',NULL,NULL,NULL),
 (34,3,'comportamental',NULL,'COM_EFEC',1.00,'COM_EFEC',0,0,1,'propuesto',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-17 21:28:21','2026-07-17 21:28:21',NULL,NULL,NULL),
 (35,3,'comportamental',NULL,'LIDER',1.00,'LIDER',0,0,1,'propuesto',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-17 21:28:37','2026-07-17 21:28:37',NULL,NULL,NULL),
 (36,3,'comportamental',NULL,'TRB_EQP',1.00,'TRB_EQP',0,0,1,'propuesto',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'2026-07-17 21:28:39','2026-07-17 21:28:39',NULL,NULL,NULL);
@@ -4025,7 +4218,7 @@ CREATE TABLE `conductas` (
   KEY `idx_competencia` (`competencia_codigo`),
   KEY `idx_orden` (`orden`),
   CONSTRAINT `fk_conducta_competencia` FOREIGN KEY (`competencia_codigo`) REFERENCES `competencias` (`codigo`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=71 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=89 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4036,26 +4229,26 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `conductas` WRITE;
 /*!40000 ALTER TABLE `conductas` DISABLE KEYS */;
 INSERT INTO `conductas` VALUES
-(1,'ORI_USU','Atiende con respeto, cortesía y diligencia a los usuarios y ciudadanos',1,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(2,'ORI_USU','Responde oportunamente las solicitudes, peticiones, quejas y reclamos',2,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(3,'ORI_USU','Brinda información clara, precisa y completa sobre trámites y servicios',3,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(4,'ORI_USU','Identifica necesidades de los usuarios y propone mejoras en la atención',4,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(5,'ORI_USU','Mantiene canales de comunicación accesibles y efectivos',5,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(6,'CMP_ORG','Cumple con los objetivos, metas y valores institucionales',1,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(7,'CMP_ORG','Participa activamente en la construcción de la cultura organizacional',2,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(8,'CMP_ORG','Defiende la imagen y reputación de la entidad',3,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(9,'CMP_ORG','Alinea su desempeño individual con el plan estratégico institucional',4,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(10,'CMP_ORG','Promueve el sentido de pertenencia entre sus compañeros',5,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
+(1,'ORI_USU','Atiende con respeto, cortesía y diligencia a los usuarios y ciudadanos',1,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(2,'ORI_USU','Responde oportunamente las solicitudes, peticiones, quejas y reclamos',2,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(3,'ORI_USU','Brinda información clara, precisa y completa sobre trámites y servicios',3,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(4,'ORI_USU','Identifica necesidades de los usuarios y propone mejoras en la atención',4,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(5,'ORI_USU','Mantiene canales de comunicación accesibles y efectivos',5,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(6,'CMP_ORG','Cumple con los objetivos, metas y valores institucionales',1,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(7,'CMP_ORG','Participa activamente en la construcción de la cultura organizacional',2,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(8,'CMP_ORG','Defiende la imagen y reputación de la entidad',3,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(9,'CMP_ORG','Alinea su desempeño individual con el plan estratégico institucional',4,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(10,'CMP_ORG','Promueve el sentido de pertenencia entre sus compañeros',5,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
 (11,'TRB_EQP','Colabora eficazmente con sus compañeros para alcanzar metas comunes',1,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
 (12,'TRB_EQP','Comparte información y conocimientos de forma proactiva',2,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
 (13,'TRB_EQP','Resuelve conflictos de manera constructiva y respetuosa',3,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
 (14,'TRB_EQP','Apoya a sus compañeros en situaciones de alta carga laboral',4,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
 (15,'TRB_EQP','Fomenta un ambiente de confianza y respeto mutuo',5,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(16,'ORI_RES','Alcanza los objetivos propuestos con calidad y en los tiempos establecidos',1,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(17,'ORI_RES','Prioriza actividades según su impacto en los resultados institucionales',2,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(18,'ORI_RES','Monitorea el avance de sus compromisos y toma acciones correctivas',3,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(19,'ORI_RES','Busca la mejora continua en los procesos de su responsabilidad',4,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
-(20,'ORI_RES','Entrega productos y servicios que superan las expectativas mínimas',5,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
+(16,'ORI_RES','Alcanza los objetivos propuestos con calidad y en los tiempos establecidos',1,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(17,'ORI_RES','Prioriza actividades según su impacto en los resultados institucionales',2,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(18,'ORI_RES','Monitorea el avance de sus compromisos y toma acciones correctivas',3,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(19,'ORI_RES','Busca la mejora continua en los procesos de su responsabilidad',4,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
+(20,'ORI_RES','Entrega productos y servicios que superan las expectativas mínimas',5,0,'2026-06-26 09:15:48','2026-08-24 19:13:30'),
 (21,'ADP_CAM','Se ajusta rápidamente a nuevas condiciones, normas o procedimientos',1,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
 (22,'ADP_CAM','Propone soluciones innovadoras ante situaciones imprevistas',2,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
 (23,'ADP_CAM','Mantiene la productividad durante períodos de transición organizacional',3,1,'2026-06-26 09:15:48','2026-06-26 09:15:48'),
@@ -4105,8 +4298,56 @@ INSERT INTO `conductas` VALUES
 (67,'TOM_DEC','Evalúa las consecuencias y riesgos de cada alternativa',2,1,'2026-06-30 08:00:00','2026-06-30 08:00:00'),
 (68,'TOM_DEC','Toma decisiones oportunas aun en condiciones de incertidumbre',3,1,'2026-06-30 08:00:00','2026-06-30 08:00:00'),
 (69,'TOM_DEC','Asume la responsabilidad de sus decisiones y sus resultados',4,1,'2026-06-30 08:00:00','2026-06-30 08:00:00'),
-(70,'TOM_DEC','Consulta a las personas adecuadas antes de decidir',5,1,'2026-06-30 08:00:00','2026-06-30 08:00:00');
+(70,'TOM_DEC','Consulta a las personas adecuadas antes de decidir',5,1,'2026-06-30 08:00:00','2026-06-30 08:00:00'),
+(71,'ORI_RES','Cumple con oportunidad en función de estándares, objetivos y metas establecidas por la entidad, las funciones que le son asignadas.',1,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(72,'ORI_RES','Asume la responsabilidad por su resultado.',2,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(73,'ORI_RES','Compromete recursos y tiempos para mejorar la productividad, tomando las medidas necesarias para minimizar los riesgos.',3,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(74,'ORI_RES','Realiza todas las acciones necesarias para alcanzar los objetivos propuestos enfrentando los obstáculos que se presentan.',4,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(75,'ORI_USU','Atiende y valora las necesidades de los usuarios y de ciudadanos en general.',1,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(76,'ORI_USU','Considera las necesidades de los usuarios al diseñar proyectos o servicios.',2,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(77,'ORI_USU','Da respuesta oportuna a las necesidades de los usuarios de conformidad con el servicio que ofrece la entidad.',3,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(78,'ORI_USU','Establece diferentes canales de comunicación con el usuario para conocer sus necesidades y propuestas y responde a las mismas.',4,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(79,'ORI_USU','Reconoce la interdependencia de su trabajo y el de los otros.',5,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(80,'TRANSP','Proporciona información veraz, objetiva y basada en hechos.',1,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(81,'TRANSP','Facilita el acceso a la información relacionada con sus responsabilidades y con el servicio a cargo con la entidad en que labora.',2,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(82,'TRANSP','Demuestra imparcialidad en sus decisiones.',3,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(83,'TRANSP','Ejecuta sus funciones con base en las normas y criterios aplicables.',4,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(84,'TRANSP','Utiliza los recursos de la entidad para el desarrollo de las labores y la prestación del servicio.',5,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(85,'CMP_ORG','Promueve las metas de la organización y respeta sus normas.',1,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(86,'CMP_ORG','Antepone las necesidades de la organización a sus propias necesidades.',2,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(87,'CMP_ORG','Apoya a la organización en situaciones difíciles.',3,1,'2026-08-24 19:13:30','2026-08-24 19:13:30'),
+(88,'CMP_ORG','Demuestra sentido de pertenencia en todas sus actuaciones.',4,1,'2026-08-24 19:13:30','2026-08-24 19:13:30');
 /*!40000 ALTER TABLE `conductas` ENABLE KEYS */;
+UNLOCK TABLES;
+COMMIT;
+SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
+
+--
+-- Table structure for table `conocimientos_catalogo`
+--
+
+DROP TABLE IF EXISTS `conocimientos_catalogo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `conocimientos_catalogo` (
+  `con_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(200) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT 1,
+  `creado_en` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`con_id`),
+  UNIQUE KEY `uq_cc_nombre` (`nombre`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `conocimientos_catalogo`
+--
+
+SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
+LOCK TABLES `conocimientos_catalogo` WRITE;
+/*!40000 ALTER TABLE `conocimientos_catalogo` DISABLE KEYS */;
+/*!40000 ALTER TABLE `conocimientos_catalogo` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
@@ -4128,7 +4369,7 @@ CREATE TABLE `csrf_tokens` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_token` (`token`),
   KEY `idx_expiracion` (`expiracion`)
-) ENGINE=InnoDB AUTO_INCREMENT=601 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=670 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -4738,7 +4979,76 @@ INSERT INTO `csrf_tokens` VALUES
 (597,'76734e00e9f30576df8ddc8fcc30a8f9ca01e2c2f0be26b76f042cd668480caa','2026-07-18 11:12:50',0,'2026-07-18 10:12:50',NULL),
 (598,'49ba98625806d524f73de731bad59865ba635e5a4578df68574e07b2338118b6','2026-07-18 11:14:12',0,'2026-07-18 10:14:12',NULL),
 (599,'86e6ae37ca7bc877a89c1bc6451cb93e2a612edfd859b8402dcf2960936948ec','2026-07-18 11:41:39',0,'2026-07-18 10:41:39',NULL),
-(600,'904092311b3330b978ef61c6666d84c78a6a615f389f50d5a1ef06bc15894b39','2026-07-18 11:43:50',0,'2026-07-18 10:43:50',NULL);
+(600,'904092311b3330b978ef61c6666d84c78a6a615f389f50d5a1ef06bc15894b39','2026-07-18 11:43:50',0,'2026-07-18 10:43:50',NULL),
+(601,'72050ccf6655512b8fe58929d260e7f953e0650595ac192e7a6c1fbea5ef9cf7','2026-08-14 07:58:02',0,'2026-08-14 06:58:02',NULL),
+(602,'2d312f004b6b49417ef1262d9403d078131f02a7ebc5b49b3edf4b42f2e930cd','2026-08-14 07:58:04',1,'2026-08-14 06:58:04','2026-08-14 06:58:04'),
+(603,'d52823124a7f350035fbf85a9a8ad39a831f332026d6e0e36494fa0a533c734a','2026-08-14 07:58:10',1,'2026-08-14 06:58:10','2026-08-14 06:58:10'),
+(604,'2c3448f22daa34f58ba5a0c09e0c8bb5fce8f9b3c124d41407ce395fd12d763e','2026-08-14 07:58:13',1,'2026-08-14 06:58:13','2026-08-14 06:58:13'),
+(605,'57228416d13b32bdabd32fd28da0cdcbc1b05520649d3b255f10adfc5abf973c','2026-08-14 07:58:14',1,'2026-08-14 06:58:14','2026-08-14 06:58:14'),
+(606,'365b703fbf2bcbe7107e0773c08af1f1eccd2e04db8d6a41104fce7db7f138ef','2026-08-14 07:58:14',1,'2026-08-14 06:58:14','2026-08-14 06:58:14'),
+(607,'18a1f08d079856c23b3fbc3293da974fb852929025fa43c6a77a671ff61d1949','2026-08-14 07:58:14',1,'2026-08-14 06:58:14','2026-08-14 06:58:14'),
+(608,'c891b005d94749a15efb453341de4151e52c5c7a3c22d99547737068b97bdd85','2026-08-14 07:58:14',1,'2026-08-14 06:58:14','2026-08-14 06:58:14'),
+(609,'81d18bf941500d326321e6c7a8eaf8e81e7526f7b3a21d10f90c204c357763cd','2026-08-14 07:58:14',1,'2026-08-14 06:58:14','2026-08-14 06:58:14'),
+(610,'b76e6903e777028f9887c123710b37e9cc2a92fab2edadefbe4bf3b84ffd2c5a','2026-08-14 08:02:53',1,'2026-08-14 07:02:53','2026-08-14 07:03:02'),
+(611,'64ffab34d40c216640af3903192f390ee0688b96f9e7e2382ddd80de5df9e193','2026-08-14 08:03:02',0,'2026-08-14 07:03:02',NULL),
+(612,'6e991df230bcda89aa8f98eb053b4d52dc53bdbb749ca4b43662c13f0d3681b4','2026-08-14 08:03:02',1,'2026-08-14 07:03:02','2026-08-14 07:03:27'),
+(613,'057a7edb043799fde3f771b7f4a1e60b9ce1c1ee63cc12cbfdc72822caf7f205','2026-08-14 08:03:27',0,'2026-08-14 07:03:27',NULL),
+(614,'2f3bb25b1bac38cc4d4236723636571a6f85bb1be9c3401d9fe6dce5414ad2d2','2026-08-14 08:03:27',0,'2026-08-14 07:03:27',NULL),
+(615,'f6fc26f40e1c6a783ad728f9bfa46b73643a786dd5f4d548e1ba140c6fc0fa47','2026-08-14 08:21:57',0,'2026-08-14 07:21:57',NULL),
+(616,'d564c9a35ac17fab6f204c572f351c7cb4d229d071621b33a79477ab033c6267','2026-08-14 08:22:01',1,'2026-08-14 07:22:01','2026-08-14 07:22:01'),
+(617,'44c984e0c39e43e911e41ffe18058619636f2503cbdd0639b4f4dfb60d251631','2026-08-14 08:22:11',1,'2026-08-14 07:22:11','2026-08-14 07:22:11'),
+(618,'5f79670a50435c83c8a9caa2e0c7802bb639b66cbd3d863781823040f6162e33','2026-08-14 08:22:15',1,'2026-08-14 07:22:15','2026-08-14 07:22:15'),
+(619,'2a8fbc790ed5594d2c466e1715cd852d829fccef313ced8ea43c5a38115bc8b4','2026-08-14 08:22:15',1,'2026-08-14 07:22:15','2026-08-14 07:22:15'),
+(620,'2f24f6ceb4fbfc39d949f78424c24b4de7870d696f57339ce04a8deb20122dd4','2026-08-14 08:22:16',1,'2026-08-14 07:22:16','2026-08-14 07:22:16'),
+(621,'4d96d2521eca434b7669462656f1b6f7eaf2765634464688e2253f09b6f55bd4','2026-08-14 08:22:16',1,'2026-08-14 07:22:16','2026-08-14 07:22:16'),
+(622,'1f64acee4e28aab233e43d73029b75268949f0bfe3cac5697dd92bb3706f7cff','2026-08-14 08:22:16',1,'2026-08-14 07:22:16','2026-08-14 07:22:16'),
+(623,'26648e5cf9594bb1046f28186d4e514de1ceeb37be9d5748a3cd833d4274bd04','2026-08-14 08:22:16',1,'2026-08-14 07:22:16','2026-08-14 07:22:16'),
+(624,'95401f0d4f274793977f8d0c56d484810c53f9f657793cad691d35eb63fcc68a','2026-08-14 08:23:03',0,'2026-08-14 07:23:03',NULL),
+(625,'be62f0787bd8acbbd45fdf54cf7d5534cd2a684b31281d6fc2f1ed2282200337','2026-08-14 08:23:08',0,'2026-08-14 07:23:08',NULL),
+(626,'f055ee425fb0af2b72a112239da8e0453479db807f15d99bc3e4a88238a158cc','2026-08-14 08:23:26',1,'2026-08-14 07:23:26','2026-08-14 07:23:26'),
+(627,'36cd5846eb56d165e7708c14969e46c27dfc4763274e9b4045c821dffd8d4485','2026-08-14 08:23:43',1,'2026-08-14 07:23:43','2026-08-14 07:23:44'),
+(628,'a7ea757165c3b5f5d673abb9bd14fdde493d82493f1600be24393fc27b727427','2026-08-14 08:24:35',1,'2026-08-14 07:24:35','2026-08-14 07:24:36'),
+(629,'875b646ad8a5adfeea5141581dac00a1b2032cbf54d533576a5ee7b7e3092f18','2026-08-14 08:25:10',0,'2026-08-14 07:25:10',NULL),
+(630,'3930df360a916e202a062275cbbdc1815c42f4e0e970526c787a3a799d2fb7d9','2026-08-14 08:25:12',1,'2026-08-14 07:25:12','2026-08-14 07:25:12'),
+(631,'72f36a8d31e8b33632e7348f1f78d972d31021d36cb0a490ce2bf07ba66d9f36','2026-08-14 08:25:17',1,'2026-08-14 07:25:17','2026-08-14 07:25:17'),
+(632,'fbb1d54da39bdeb6bdc93bd1e4c369d12c968aaafc361f3ebdf37f1d0c542fef','2026-08-14 08:25:20',1,'2026-08-14 07:25:20','2026-08-14 07:25:20'),
+(633,'85852a9c41ded863b8b67e071110a3c90e8583c10ddacbd1a634df5b64316bae','2026-08-14 08:25:20',1,'2026-08-14 07:25:20','2026-08-14 07:25:20'),
+(634,'404743f54304d2851665bd3a326454f9a693d609919c0dbd651e699a5583667f','2026-08-14 08:25:20',1,'2026-08-14 07:25:20','2026-08-14 07:25:20'),
+(635,'27b5473e5dd6cf5640058d6d0269857e355467169b45ff2aba905b57020c8015','2026-08-14 08:25:20',1,'2026-08-14 07:25:20','2026-08-14 07:25:20'),
+(636,'29f6a4ca6444c700a399cfa8e85036dde0291213b591f43d19056c773dfc3d1c','2026-08-14 08:25:20',1,'2026-08-14 07:25:20','2026-08-14 07:25:20'),
+(637,'18e7b81453d90c6aeb56eb2245313e7d8f835d4f2478050b9da6cdde9b837e8f','2026-08-14 08:25:21',1,'2026-08-14 07:25:21','2026-08-14 07:25:21'),
+(638,'23745d9c9964cf672ebcfc2967602f159bb9cb902d10befa63b5ca9aa7d5f7f7','2026-08-14 08:26:55',0,'2026-08-14 07:26:55',NULL),
+(639,'aaff516752693ee7b90267a485ea7d5d6f5195689dc7ce6ec7638979b2c42645','2026-08-14 08:26:57',1,'2026-08-14 07:26:57','2026-08-14 07:26:57'),
+(640,'db407e0064d79efe9bd2677d52caf45cd2a45aa4550831d0d3d4612c996e926b','2026-08-14 08:27:04',1,'2026-08-14 07:27:04','2026-08-14 07:27:05'),
+(641,'62b96f4548c05a2af3440fc27378a6d00c10cf5342b34266705f4ea123d34aa2','2026-08-14 08:27:08',1,'2026-08-14 07:27:08','2026-08-14 07:27:08'),
+(642,'96e4b80aa9440932b875cb91bd555af128ce19701026fd4fae92a6e22054d9da','2026-08-14 08:27:08',1,'2026-08-14 07:27:08','2026-08-14 07:27:08'),
+(643,'cd04660c086072fa4ba265c1c60796a119baeee0ba6d1119d599f6fba0b8419e','2026-08-14 08:27:09',1,'2026-08-14 07:27:09','2026-08-14 07:27:09'),
+(644,'9d7715f44ce06540d95c49f8078e4fed2576be4a3c39fea3a146ded5db303650','2026-08-14 08:27:09',1,'2026-08-14 07:27:09','2026-08-14 07:27:09'),
+(645,'8d8fb0d3a148947afe59e7216844c55476119c4eba48c979fba6c1bb99e9c90a','2026-08-14 08:27:09',1,'2026-08-14 07:27:09','2026-08-14 07:27:09'),
+(646,'4beaa4aabc7c211b23dcd7f39d34f07c4ee14b5b32d1a9279fcf986986ef4535','2026-08-14 08:27:09',1,'2026-08-14 07:27:09','2026-08-14 07:27:09'),
+(647,'28081071f8e750e039304a4283dfffba17588bc43edb5a052bd32301696ba3ec','2026-08-24 18:38:28',1,'2026-08-24 17:38:28','2026-08-24 17:47:01'),
+(648,'9b6d0162f600dc1ccace19115f100bd950cfcf9e736d44f1db30ef3205336f95','2026-08-24 18:47:01',0,'2026-08-24 17:47:01',NULL),
+(649,'0f9f22a99b1e12278e895c7236a2a6c52d3db13e1e7530fd09d4d089f374ebdf','2026-08-24 18:47:01',1,'2026-08-24 17:47:01','2026-08-24 17:54:57'),
+(650,'ee21a2ff9b9d436660b05f9e120cb849ae75dcfcc46dc499ab3bd7f6009a27d8','2026-08-24 18:53:23',0,'2026-08-24 17:53:23',NULL),
+(651,'015ad604896ede5d197fd6709bf59ca2f80cc662f49e0eed02b29c6711ec1a4a','2026-08-24 18:55:01',1,'2026-08-24 17:55:01','2026-08-24 17:55:55'),
+(652,'fe0742d569e8343380a484652e8441182377ff952201f5189d5791da228aa175','2026-08-24 18:55:55',0,'2026-08-24 17:55:55',NULL),
+(653,'e933df436127f0585699ba0d7d460b18a1fc60a6f6067ff4e8de3892f6e1ea56','2026-08-24 18:55:55',1,'2026-08-24 17:55:55','2026-08-24 17:56:37'),
+(654,'8a2b7c2e450875c4fd50f3b48302001e4ed659c1dee69a73b98891d1bfa0794b','2026-08-24 18:56:38',0,'2026-08-24 17:56:38',NULL),
+(655,'39eddaf2ee33bc18ea58719ffdd34652ba23518f9976cf6c5d6935a267460510','2026-08-24 18:56:38',1,'2026-08-24 17:56:38','2026-08-24 17:56:38'),
+(656,'58d32de79210a19d2cdfd98e90d42d304ac7e63dfdc830df1501bfbeec875d1b','2026-08-24 18:56:52',1,'2026-08-24 17:56:52','2026-08-24 17:56:52'),
+(657,'858b3e70b57c7304cb3ce05bc26256412a0a75ad9d6e17bfc164b66bb0fb9b6a','2026-08-24 18:56:52',1,'2026-08-24 17:56:52','2026-08-24 17:56:53'),
+(658,'92534e8e3687830764c2d1c01455f6590ab4bca94b41945fd1458e63755e1f49','2026-08-24 18:59:11',0,'2026-08-24 17:59:11',NULL),
+(659,'f1ae0897ca4d17d26d56471bee29b256d1bf50064eb0121e486a76c39d961483','2026-08-24 20:24:07',0,'2026-08-24 19:24:07',NULL),
+(660,'fdcbcfa007a80a8710fa3b18c6073fa33bc1af7707351e63aef7544561e247cc','2026-08-24 20:24:09',1,'2026-08-24 19:24:09','2026-08-24 19:24:09'),
+(661,'bfe2718bb49f08d2637980eb9d4427ea5852ed641cfe024e24631f68c987bdfb','2026-08-24 20:24:32',0,'2026-08-24 19:24:32',NULL),
+(662,'bda998383edfd21504e4bd58b4bf604ae35407f38b1dbcf2f1a681b99da7a982','2026-08-24 20:24:34',1,'2026-08-24 19:24:34','2026-08-24 19:24:34'),
+(663,'220392236ff8b78779fc25f9bdff476d5a1558ef92b4130afe496b9524ca9ac8','2026-08-24 20:24:41',1,'2026-08-24 19:24:41','2026-08-24 19:24:41'),
+(664,'2f37e27deb25d377dfcff4ca3f40beafd9ca2b344fe4761f646bcaf5debdf5ba','2026-08-24 20:24:44',1,'2026-08-24 19:24:44','2026-08-24 19:24:44'),
+(665,'652cab90b63e8832b3498dccbc005261e341104b3d70cf05cbe71ea0d413cb8d','2026-08-24 20:24:44',1,'2026-08-24 19:24:44','2026-08-24 19:24:44'),
+(666,'4dc2dc5e0fe56536c7464fd9ab885e08faf8a11f0018c543404e3ca64a9a899a','2026-08-24 20:24:45',1,'2026-08-24 19:24:45','2026-08-24 19:24:45'),
+(667,'e3b8b094f0e777274df558a7cad08182ee931be50a1e0883335b9a7b9f79a3da','2026-08-24 20:24:45',1,'2026-08-24 19:24:45','2026-08-24 19:24:45'),
+(668,'4c59712f8bc19e6a9f10b84266b75e075a0ea0ac3084d8debdabae7e20aae78b','2026-08-24 20:24:45',1,'2026-08-24 19:24:45','2026-08-24 19:24:45'),
+(669,'21b6a0d18895eeb3543ac112150d7909b02498a2cc21ad953e04a3788474cad5','2026-08-24 20:24:45',1,'2026-08-24 19:24:45','2026-08-24 19:24:45');
 /*!40000 ALTER TABLE `csrf_tokens` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -4783,7 +5093,7 @@ INSERT INTO `dependencias` VALUES
 (8,1,'DEP-003','Control Interno',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:19',NULL),
 (9,1,'DEP-004','Despacho del Alcalde',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:19',NULL),
 (10,1,'DEP-005','Inspección',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:19',NULL),
-(11,1,'DEP-006','Oficina de Juridica',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:19',NULL),
+(11,1,'DEP-006','Oficina Jurídica',NULL,'activa','2026-06-26 10:28:50','2026-08-24 19:23:36',NULL),
 (12,1,'DEP-007','Secretaría de Agricultura y Medio Ambiente',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:19',NULL),
 (13,1,'DEP-008','Secretaría de Educación',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:20',NULL),
 (14,1,'DEP-009','Secretaría General y Servicios Administrativos',13,'activa','2026-06-26 10:28:50','2026-07-17 08:59:20',NULL),
@@ -4792,8 +5102,8 @@ INSERT INTO `dependencias` VALUES
 (17,1,'DEP-012','Secretaria de Planeación, OOPPMM, Vivienda y Ordenamiento Territorial - Proceso Ordenamiento territo',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:20',NULL),
 (18,1,'DEP-013','Secretaría de Planeación, Vivienda y Ordenamiento Territorial',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:20',NULL),
 (19,1,'DEP-014','Secretaría de Salud y Protección Social',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:20',NULL),
-(20,1,'DEP-015','Secretaría de Transito y Transporte',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:20',NULL),
-(21,1,'DEP-016','Secretaria, de Hacienda',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:21',NULL),
+(20,1,'DEP-015','Secretaría de Tránsito y Transporte',NULL,'activa','2026-06-26 10:28:50','2026-08-24 19:23:36',NULL),
+(21,1,'DEP-016','Secretaría de Hacienda',NULL,'activa','2026-06-26 10:28:50','2026-08-24 19:23:36',NULL),
 (22,1,'DEP-017','Sisbén',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:21',NULL),
 (23,1,'DEP-018','Tesorería',NULL,'activa','2026-06-26 10:28:50','2026-07-17 08:59:21',NULL);
 /*!40000 ALTER TABLE `dependencias` ENABLE KEYS */;
@@ -5762,7 +6072,6 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `parametros` WRITE;
 /*!40000 ALTER TABLE `parametros` DISABLE KEYS */;
 INSERT INTO `parametros` VALUES
-(1,'jwt_secret','cambiar_esto_por_un_secret_seguro_openssl_rand_hex_32','texto','Clave secreta para JWT','2026-06-26 08:43:37','2026-06-26 08:43:37'),
 (2,'jwt_expiracion_minutos','120','numero','Tiempo de expiracion del token JWT en minutos','2026-06-26 08:43:37','2026-06-26 08:43:37'),
 (3,'intentos_login_maximos','5','numero','Maximo de intentos de login antes de bloquear cuenta','2026-06-26 08:43:37','2026-06-26 08:43:37'),
 (4,'password_longitud_minima','8','numero','Longitud minima de contraseña','2026-06-26 08:43:37','2026-06-26 08:43:37'),
@@ -6528,7 +6837,7 @@ CREATE TABLE `sesiones` (
   KEY `idx_token` (`token_hash`(64)),
   KEY `idx_expiracion` (`fecha_expiracion`),
   CONSTRAINT `fk_ses_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1884 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1925 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -8316,31 +8625,31 @@ INSERT INTO `sesiones` VALUES
 (1775,12,'2095bc1898ddcd18b1d2aa1977ca1e9b9684e3e06aee9f6817b1a34259de08a8','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:54:17',1,'2026-07-17 16:54:17'),
 (1776,13,'833470c4741747fab58828735232e9422ef59d1e6909b110728203d23d94674b','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:55:18',0,'2026-07-17 16:55:18'),
 (1777,13,'dd0ad432fcc3bc9cb48e6886e9071d3e7a1ce17c34e27cb875a58d3558711d12','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:55:20',0,'2026-07-17 16:55:20'),
-(1778,12,'65e8ddcd94f6825c92383e2e77857bad3eb4c34ac71d17d19d17bff2d3e25007','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:58:52',0,'2026-07-17 16:58:52'),
-(1779,12,'3b2b3b734dd1a9991c6656f9daa4e723e73eeb4b53d2071d9e6b3d34582a64f4','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:58:53',0,'2026-07-17 16:58:53'),
-(1780,12,'eeb24e2a9e53d3bbfc5ebd3daecf73b1a8f976396d75749eead658dc1a3b57a7','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:58:55',0,'2026-07-17 16:58:55'),
-(1781,12,'97b4ff7496a35f3b0617cfbcf79a4e50328384483fab4db40ba4b8190e258b19','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 19:29:16',0,'2026-07-17 17:29:16'),
-(1782,12,'16c23f38862113913ff700bb8cc1b2a1adb69e112920c33349ca1302136cedf8','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 19:29:28',0,'2026-07-17 17:29:28'),
-(1783,12,'8d4d29673672fedf284609f2c1f99aa8c4ed0e3d9b076b499b0c19af220ca2e6','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:31:52',0,'2026-07-17 17:31:52'),
-(1784,12,'38ce616b80000fbe8424f04f89b05be56e40de37a2349ede2d7e3852a6936075','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:31:55',0,'2026-07-17 17:31:55'),
-(1785,12,'e991829ac74752258dac77923a555b157973b5431c1ea8b5722eb9b32a83e9a1','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:56:47',0,'2026-07-17 17:56:47'),
-(1786,12,'d9b4e3c1b8b71db4bd1970e8b1fb69ed53755d442d0f48abdf90a0ac43466734','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:56:49',0,'2026-07-17 17:56:49'),
-(1787,12,'d3a652ae9a46c98ddda585e3b32c677d4bebc75d5ff5d3a6f356a935cbed3c8c','192.168.1.43','curl/8.20.0','2026-07-17 20:05:46',0,'2026-07-17 18:05:46'),
-(1788,12,'80eac2c15258556211d13930b660af36bb5f6aecbf06916b0fea59831c553019','192.168.1.43','curl/8.20.0','2026-07-17 20:06:14',0,'2026-07-17 18:06:14'),
-(1789,12,'f782a645dc15d6b22a6d9dbaa3e9c1ed6399345cf266a837a752eda2c0adaf6a','192.168.1.43','curl/8.20.0','2026-07-17 20:06:34',0,'2026-07-17 18:06:34'),
-(1790,12,'a01e74c13cffffba2ee562a7b7861f8cb5612bc7ff3016d01b66422420a7b531','192.168.1.43','curl/8.20.0','2026-07-17 20:06:45',0,'2026-07-17 18:06:45'),
-(1791,12,'d9227dd9221d2d3180d7f446bfe86e3a1c34b09cc80a847240f9d6851e6fec20','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 20:24:36',0,'2026-07-17 18:24:36'),
-(1792,12,'26ecbb11ad5af025a2486a0419b7975ce22bd458927df699147fbcae3bcb0b62','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 20:27:24',0,'2026-07-17 18:27:24'),
-(1793,12,'90613dac8448f20c812af310e2223a29b958ebc2c98f98c41be7d5d14258ac65','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 20:27:34',0,'2026-07-17 18:27:34'),
-(1794,12,'0d7317985e1f89e0e56e6b41d9305ec2004afdd90f905cb476919519cb53d67c','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 21:02:11',0,'2026-07-17 19:02:12'),
-(1795,12,'9138b5c06dda16c8cb6a182ea77244acd3c0ade33ca127c30fa03f7f56eef62e','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 21:02:14',0,'2026-07-17 19:02:14'),
+(1778,12,'65e8ddcd94f6825c92383e2e77857bad3eb4c34ac71d17d19d17bff2d3e25007','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:58:52',1,'2026-07-17 16:58:52'),
+(1779,12,'3b2b3b734dd1a9991c6656f9daa4e723e73eeb4b53d2071d9e6b3d34582a64f4','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:58:53',1,'2026-07-17 16:58:53'),
+(1780,12,'eeb24e2a9e53d3bbfc5ebd3daecf73b1a8f976396d75749eead658dc1a3b57a7','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 18:58:55',1,'2026-07-17 16:58:55'),
+(1781,12,'97b4ff7496a35f3b0617cfbcf79a4e50328384483fab4db40ba4b8190e258b19','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 19:29:16',1,'2026-07-17 17:29:16'),
+(1782,12,'16c23f38862113913ff700bb8cc1b2a1adb69e112920c33349ca1302136cedf8','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 19:29:28',1,'2026-07-17 17:29:28'),
+(1783,12,'8d4d29673672fedf284609f2c1f99aa8c4ed0e3d9b076b499b0c19af220ca2e6','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:31:52',1,'2026-07-17 17:31:52'),
+(1784,12,'38ce616b80000fbe8424f04f89b05be56e40de37a2349ede2d7e3852a6936075','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:31:55',1,'2026-07-17 17:31:55'),
+(1785,12,'e991829ac74752258dac77923a555b157973b5431c1ea8b5722eb9b32a83e9a1','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:56:47',1,'2026-07-17 17:56:47'),
+(1786,12,'d9b4e3c1b8b71db4bd1970e8b1fb69ed53755d442d0f48abdf90a0ac43466734','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 19:56:49',1,'2026-07-17 17:56:49'),
+(1787,12,'d3a652ae9a46c98ddda585e3b32c677d4bebc75d5ff5d3a6f356a935cbed3c8c','192.168.1.43','curl/8.20.0','2026-07-17 20:05:46',1,'2026-07-17 18:05:46'),
+(1788,12,'80eac2c15258556211d13930b660af36bb5f6aecbf06916b0fea59831c553019','192.168.1.43','curl/8.20.0','2026-07-17 20:06:14',1,'2026-07-17 18:06:14'),
+(1789,12,'f782a645dc15d6b22a6d9dbaa3e9c1ed6399345cf266a837a752eda2c0adaf6a','192.168.1.43','curl/8.20.0','2026-07-17 20:06:34',1,'2026-07-17 18:06:34'),
+(1790,12,'a01e74c13cffffba2ee562a7b7861f8cb5612bc7ff3016d01b66422420a7b531','192.168.1.43','curl/8.20.0','2026-07-17 20:06:45',1,'2026-07-17 18:06:45'),
+(1791,12,'d9227dd9221d2d3180d7f446bfe86e3a1c34b09cc80a847240f9d6851e6fec20','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 20:24:36',1,'2026-07-17 18:24:36'),
+(1792,12,'26ecbb11ad5af025a2486a0419b7975ce22bd458927df699147fbcae3bcb0b62','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 20:27:24',1,'2026-07-17 18:27:24'),
+(1793,12,'90613dac8448f20c812af310e2223a29b958ebc2c98f98c41be7d5d14258ac65','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 20:27:34',1,'2026-07-17 18:27:34'),
+(1794,12,'0d7317985e1f89e0e56e6b41d9305ec2004afdd90f905cb476919519cb53d67c','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 21:02:11',1,'2026-07-17 19:02:12'),
+(1795,12,'9138b5c06dda16c8cb6a182ea77244acd3c0ade33ca127c30fa03f7f56eef62e','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 21:02:14',1,'2026-07-17 19:02:14'),
 (1796,11,'d45448c1ad308503a05f1d11f50966f376e5b64b7343c5b7784c3a7829b9e04c','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 21:56:47',0,'2026-07-17 19:56:47'),
-(1797,12,'efc86c5753776de1f7440c3c2e35db090abcb18eb717d79b5ec254c8edd52036','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 21:58:23',0,'2026-07-17 19:58:23'),
-(1798,12,'ea8cc42b91eab299b28766f69b91b8f1e82f742f510414f1b1d2c4cedfd7d12f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 21:58:51',0,'2026-07-17 19:58:51'),
-(1799,12,'e8623c6937c0257c1ba8bd253a019816f00c102e3793bb06043416926bf4b985','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:11:46',0,'2026-07-17 20:11:46'),
-(1800,12,'ea5be3d93be1e61ff27ae756c78e0c0265ed07eee26f28633519002092fc5a0b','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:11:54',0,'2026-07-17 20:11:54'),
-(1801,12,'4d03157ca85551019866e708617e6dac158733172fea9310548b1cb6d232283a','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 22:12:57',0,'2026-07-17 20:12:57'),
-(1802,12,'77333b62ffff29cbf235e6ba34ec2f48009ae0fe8ba2bd48387e7c994fecd834','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 22:13:00',0,'2026-07-17 20:13:00'),
+(1797,12,'efc86c5753776de1f7440c3c2e35db090abcb18eb717d79b5ec254c8edd52036','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 21:58:23',1,'2026-07-17 19:58:23'),
+(1798,12,'ea8cc42b91eab299b28766f69b91b8f1e82f742f510414f1b1d2c4cedfd7d12f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 21:58:51',1,'2026-07-17 19:58:51'),
+(1799,12,'e8623c6937c0257c1ba8bd253a019816f00c102e3793bb06043416926bf4b985','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:11:46',1,'2026-07-17 20:11:46'),
+(1800,12,'ea5be3d93be1e61ff27ae756c78e0c0265ed07eee26f28633519002092fc5a0b','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:11:54',1,'2026-07-17 20:11:54'),
+(1801,12,'4d03157ca85551019866e708617e6dac158733172fea9310548b1cb6d232283a','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 22:12:57',1,'2026-07-17 20:12:57'),
+(1802,12,'77333b62ffff29cbf235e6ba34ec2f48009ae0fe8ba2bd48387e7c994fecd834','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-17 22:13:00',1,'2026-07-17 20:13:00'),
 (1803,13,'60471cbafbcd30adc70bf29b6bac640580755b10ff60682a7d2b9597ccad6da7','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:19:10',0,'2026-07-17 20:19:10'),
 (1804,13,'ef030854171782333983bd8e90f6f21fb5c3feda56d021f184c262989dd8c3fb','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:19:32',0,'2026-07-17 20:19:32'),
 (1805,13,'5f3a6478321b43621186f6a6bd9815c8643f227ae61c94cac6442eb914d63e83','127.0.0.1','curl/8.20.0','2026-07-17 22:21:02',0,'2026-07-17 20:21:02'),
@@ -8358,26 +8667,26 @@ INSERT INTO `sesiones` VALUES
 (1817,13,'274160403c6085cde4d5bd4436d3272d8ebfa31c1b3223a0bf397197bfc74dc2','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:41:40',0,'2026-07-17 20:41:40'),
 (1818,13,'1beb0de40fcbbb36686bcfeef27dea41629030da6e85d1d68306e5d62f1c9f52','127.0.0.1','curl/8.20.0','2026-07-17 22:45:07',0,'2026-07-17 20:45:07'),
 (1819,13,'c94bb71ea511f7216598d31ce904c3fa9271909f8d7691c8eb174424e989f831','127.0.0.1','curl/8.20.0','2026-07-17 22:48:38',0,'2026-07-17 20:48:38'),
-(1820,12,'c9a6b23271f4176afaeeed96c9497f5bfd6d5d3d088b840ece3dfcfa42807590','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:54:36',0,'2026-07-17 20:54:36'),
-(1821,12,'45fb2ff1e7fe24b4b7b7a2a98ccb6d30b21532a9ed62e386dfe72eb51cf60ae2','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:54:51',0,'2026-07-17 20:54:51'),
-(1822,12,'e167c4368077252b4e4ce662e4bd3205a1c6a7504f74a51c487c11ff3a42db44','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:02:42',0,'2026-07-17 21:02:42'),
-(1823,12,'be2b83c8e9d425d51bdbdc1292efc637079149d22eae513bfab841e9a8a7ebe1','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:02:54',0,'2026-07-17 21:02:54'),
-(1824,12,'e0209b1bc2e6ef2abaa7903a905249461e5994953ec2b9d09045033d6a0e5df7','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:03:00',0,'2026-07-17 21:03:00'),
-(1825,12,'212b8061d06773f5024cfbd33cc69389460af4c3a0aca1a560c6caa557805d8f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:03:13',0,'2026-07-17 21:03:13'),
-(1826,12,'e4f9565a31807fe015d208de60812fe7e90b02b566a589f5e97d1a1bb810a77b','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:03:34',0,'2026-07-17 21:03:34'),
-(1827,12,'db7b2d1d0c7c5707f311fa0d51b65affc479684f296dddc9e207f2d5e47ce70e','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:10:00',0,'2026-07-17 21:10:00'),
+(1820,12,'c9a6b23271f4176afaeeed96c9497f5bfd6d5d3d088b840ece3dfcfa42807590','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:54:36',1,'2026-07-17 20:54:36'),
+(1821,12,'45fb2ff1e7fe24b4b7b7a2a98ccb6d30b21532a9ed62e386dfe72eb51cf60ae2','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 22:54:51',1,'2026-07-17 20:54:51'),
+(1822,12,'e167c4368077252b4e4ce662e4bd3205a1c6a7504f74a51c487c11ff3a42db44','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:02:42',1,'2026-07-17 21:02:42'),
+(1823,12,'be2b83c8e9d425d51bdbdc1292efc637079149d22eae513bfab841e9a8a7ebe1','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:02:54',1,'2026-07-17 21:02:54'),
+(1824,12,'e0209b1bc2e6ef2abaa7903a905249461e5994953ec2b9d09045033d6a0e5df7','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:03:00',1,'2026-07-17 21:03:00'),
+(1825,12,'212b8061d06773f5024cfbd33cc69389460af4c3a0aca1a560c6caa557805d8f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:03:13',1,'2026-07-17 21:03:13'),
+(1826,12,'e4f9565a31807fe015d208de60812fe7e90b02b566a589f5e97d1a1bb810a77b','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:03:34',1,'2026-07-17 21:03:34'),
+(1827,12,'db7b2d1d0c7c5707f311fa0d51b65affc479684f296dddc9e207f2d5e47ce70e','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-17 23:10:00',1,'2026-07-17 21:10:00'),
 (1828,11,'b3cf9987e09d1263627336484451a37002647253163a7cfb445eb42a9f6a45e2','127.0.0.1','curl/8.20.0','2026-07-17 23:10:36',0,'2026-07-17 21:10:36'),
 (1829,13,'c575f17cb4bd95769baf7bd9e8e06649429211e5f51c90efc4a211a23953649b','127.0.0.1','curl/8.20.0','2026-07-17 23:10:49',0,'2026-07-17 21:10:49'),
 (1830,13,'32e91121992bbc101c9acd0eadc183ecb07ae81020a02d55fe74f11f07ab0ab5','127.0.0.1','curl/8.20.0','2026-07-17 23:11:06',0,'2026-07-17 21:11:06'),
 (1831,13,'3e30e43f0edfd685d0a1b69cd3a18837d1f2186fde1524136f8f663364b538f3','127.0.0.1','curl/8.20.0','2026-07-17 23:11:07',0,'2026-07-17 21:11:07'),
 (1832,13,'5eb261de4ee3722100842dfd8a1fa18229f3e0f219c0e54f446ce01e7033c05c','127.0.0.1','curl/8.20.0','2026-07-17 23:14:07',0,'2026-07-17 21:14:07'),
 (1833,13,'1dddf40c434202e1f4788864549c86c0f52dd53dc6a08afb33ce5f5f917fd4ee','127.0.0.1','curl/8.20.0','2026-07-17 23:14:09',0,'2026-07-17 21:14:09'),
-(1834,12,'3e6b2fe422bfd5374dfa04b6d9c5409dbfa005f7823be5d3cf0e9c40bfb9f1dc','127.0.0.1','curl/8.20.0','2026-07-17 23:14:30',0,'2026-07-17 21:14:30'),
-(1835,12,'17dceca3cc8bbae4043b92370ff6ca6c2c20e5f4f8da5061a07a9c51c8257110','127.0.0.1','curl/8.20.0','2026-07-17 23:20:38',0,'2026-07-17 21:20:38'),
-(1836,12,'5cc112802a51a3788a04802d8332c19c8e480178f262ef1b59cc06cceec1e1d5','127.0.0.1','curl/8.20.0','2026-07-17 23:26:41',0,'2026-07-17 21:26:41'),
-(1837,12,'c64928aee020e18f88c395c7b859b4ea18921e0c05db8dc89745f97121eb9bd6','127.0.0.1','curl/8.20.0','2026-07-17 23:27:59',0,'2026-07-17 21:27:59'),
-(1838,12,'7c93daa61a781ead91c3621c8235e3cdde2616fb59d1841fc2b3e8aa3e80e8ef','127.0.0.1','curl/8.20.0','2026-07-17 23:28:20',0,'2026-07-17 21:28:20'),
-(1839,12,'87651a0bebeb7768d5e3073632fdb3b615c501e1847bc84337fda19cbaa2da32','127.0.0.1','curl/8.20.0','2026-07-17 23:28:36',0,'2026-07-17 21:28:36'),
+(1834,12,'3e6b2fe422bfd5374dfa04b6d9c5409dbfa005f7823be5d3cf0e9c40bfb9f1dc','127.0.0.1','curl/8.20.0','2026-07-17 23:14:30',1,'2026-07-17 21:14:30'),
+(1835,12,'17dceca3cc8bbae4043b92370ff6ca6c2c20e5f4f8da5061a07a9c51c8257110','127.0.0.1','curl/8.20.0','2026-07-17 23:20:38',1,'2026-07-17 21:20:38'),
+(1836,12,'5cc112802a51a3788a04802d8332c19c8e480178f262ef1b59cc06cceec1e1d5','127.0.0.1','curl/8.20.0','2026-07-17 23:26:41',1,'2026-07-17 21:26:41'),
+(1837,12,'c64928aee020e18f88c395c7b859b4ea18921e0c05db8dc89745f97121eb9bd6','127.0.0.1','curl/8.20.0','2026-07-17 23:27:59',1,'2026-07-17 21:27:59'),
+(1838,12,'7c93daa61a781ead91c3621c8235e3cdde2616fb59d1841fc2b3e8aa3e80e8ef','127.0.0.1','curl/8.20.0','2026-07-17 23:28:20',1,'2026-07-17 21:28:20'),
+(1839,12,'87651a0bebeb7768d5e3073632fdb3b615c501e1847bc84337fda19cbaa2da32','127.0.0.1','curl/8.20.0','2026-07-17 23:28:36',1,'2026-07-17 21:28:36'),
 (1840,11,'baa976e735fc89e68d88f8ef117232b6efebaf53de8c24dd574478ae98f5e501','127.0.0.1','curl/8.20.0','2026-07-18 00:45:44',0,'2026-07-17 22:45:44'),
 (1841,11,'5205047d8127b8d87792af1ba494a00769b23f60410b2917589da36f3202386a','127.0.0.1','curl/8.20.0','2026-07-18 00:45:54',0,'2026-07-17 22:45:54'),
 (1842,11,'cc909a709bcc900d50f651fd5cfa1242e255aea7475386f45b11acd899a5f639','127.0.0.1','curl/8.20.0','2026-07-18 00:47:22',0,'2026-07-17 22:47:22'),
@@ -8385,43 +8694,84 @@ INSERT INTO `sesiones` VALUES
 (1844,11,'e7778f4e73070b06d15dccf64c29f61a3ca54ebbb6e05570a618e91309e4f112','127.0.0.1','curl/8.20.0','2026-07-18 00:49:45',0,'2026-07-17 22:49:45'),
 (1845,11,'5e87fc96dfe86ffc7248ebc95e768c7863b583588a6934b30099ef503504e933','127.0.0.1','curl/8.20.0','2026-07-18 00:50:15',0,'2026-07-17 22:50:15'),
 (1846,11,'4405678ef0da723626d0f8fc1d9a179c51dd91d20a47baeca34072c0b91a810a','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 00:59:08',0,'2026-07-17 22:59:08'),
-(1847,12,'4b95ce8b589cfe4ed3d1ef49d1423cfb7649bc2eb11199b561721d322a843394','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 01:01:22',0,'2026-07-17 23:01:22'),
-(1848,12,'ddbbf6f9bfd3f86f5e493eba738af1e17ba0269160e35597315000bfcc81994a','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:01:43',0,'2026-07-17 23:01:43'),
-(1849,12,'760663db7d809671c4b5516d233eaf1ea8821ad618c0fa3a40e2ba1eca728d2f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:01:47',0,'2026-07-17 23:01:47'),
-(1850,12,'760663db7d809671c4b5516d233eaf1ea8821ad618c0fa3a40e2ba1eca728d2f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 01:01:47',0,'2026-07-17 23:01:47'),
-(1851,12,'f94ddb05245cf8ea566dab3f09b58ab1d47d49ebee570bb90f26f5b4746b7609','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:02:57',0,'2026-07-17 23:02:57'),
-(1852,12,'c8220458c9efada1340d52b3c526177e6d4492cd3a16b7ca3a6bc12b49b1a008','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:03:00',0,'2026-07-17 23:03:00'),
-(1853,12,'4d576822ead5ca5064b1575a2f47da67663b7ca51632e957a401dadcd90f5357','127.0.0.1','curl/8.20.0','2026-07-18 01:06:25',0,'2026-07-17 23:06:25'),
-(1854,12,'b6e5ef925cdb258c8afde37cda74d6111885486d0d00691232a52c8b7ecb30f5','127.0.0.1','curl/8.20.0','2026-07-18 02:09:33',0,'2026-07-18 00:09:33'),
-(1855,12,'693322c3c09728ff0bf062d34a319448ae78c4cbaccbdb06bbf379a950b3dc47','127.0.0.1','curl/8.20.0','2026-07-18 02:10:59',0,'2026-07-18 00:10:59'),
-(1856,12,'a11210099df7831db4cbc13d411e6ebf3cf2a83d1ccfe790b7c798693d108f10','127.0.0.1','curl/8.20.0','2026-07-18 02:11:28',0,'2026-07-18 00:11:28'),
-(1857,12,'a8a9944d8e5f38498990f89be943e12d8701c0a92d929f8602357e8cc3905596','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 10:47:37',0,'2026-07-18 08:47:37'),
-(1858,12,'d196b9dfc1fb7ff510e16fc41f472468c34e391c4ea07b8aab6552096fcb0e77','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 10:47:41',0,'2026-07-18 08:47:41'),
-(1859,12,'ab7d2a39c78ca373233b290c08669388d47e7dc023c592496d6e0d2ba15c1742','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:47:56',0,'2026-07-18 08:47:56'),
-(1860,12,'f12f9fa01f0ad31d6c3095370b343ccaa9d8d5993a74d9812fdfda1472d05075','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:48:20',0,'2026-07-18 08:48:20'),
-(1861,12,'2fa8ad7e94b601bc7646f37bd037828e1ccda816ecc399e914642ade396d9f8d','127.0.0.1','curl/8.20.0','2026-07-18 11:07:26',0,'2026-07-18 09:07:26'),
-(1862,12,'ead4d7ae2fbcc0347cf189f9b32b3a2f0162175bca38d21047fedb0e89ce4b06','127.0.0.1','curl/8.20.0','2026-07-18 11:07:36',0,'2026-07-18 09:07:36'),
-(1863,12,'5eb0c69624e626e3e1f717ba8697a20b9775fce8394092f3d221ec409fc1b2db','127.0.0.1','curl/8.20.0','2026-07-18 11:08:22',0,'2026-07-18 09:08:22'),
-(1864,12,'2b9c91f0e667a02094070074fc74b247b34362f6794a2bc3b1a58a91f2d4d5ce','127.0.0.1','curl/8.20.0','2026-07-18 11:09:04',0,'2026-07-18 09:09:04'),
-(1865,12,'2c35727fef5bc744246189af9cae6b56f2057e64198a99874a17ee6c6d78d922','127.0.0.1','curl/8.20.0','2026-07-18 11:09:35',0,'2026-07-18 09:09:35'),
-(1866,12,'97e30aa68eda8860723da3ae0168556d6fc11076d80ce04ba8c84d1ec0f284a8','127.0.0.1','curl/8.20.0','2026-07-18 11:14:50',0,'2026-07-18 09:14:50'),
-(1867,12,'b3984695f3c49473875f8a015a56ad138f0fbea1c4419413affd71d331c43a3e','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 11:42:33',0,'2026-07-18 09:42:33'),
-(1868,12,'348efbc1600d3c7242e9774f6526c8cf19ff8b1d6bc30107e9aee7f00d8a7320','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 11:42:45',0,'2026-07-18 09:42:45'),
-(1869,12,'bce76f0a7d71e2ea330bc7c5fc116608c92b4f92b7bdf31ee052d5e58436252f','127.0.0.1','curl/8.20.0','2026-07-18 11:47:27',0,'2026-07-18 09:47:27'),
-(1870,12,'886082fcc5c5208fc0c173a6d302028a1371338efd52a128b0767e84d8922fb1','127.0.0.1','curl/8.20.0','2026-07-18 12:03:20',0,'2026-07-18 10:03:20'),
+(1847,12,'4b95ce8b589cfe4ed3d1ef49d1423cfb7649bc2eb11199b561721d322a843394','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 01:01:22',1,'2026-07-17 23:01:22'),
+(1848,12,'ddbbf6f9bfd3f86f5e493eba738af1e17ba0269160e35597315000bfcc81994a','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:01:43',1,'2026-07-17 23:01:43'),
+(1849,12,'760663db7d809671c4b5516d233eaf1ea8821ad618c0fa3a40e2ba1eca728d2f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:01:47',1,'2026-07-17 23:01:47'),
+(1850,12,'760663db7d809671c4b5516d233eaf1ea8821ad618c0fa3a40e2ba1eca728d2f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 01:01:47',1,'2026-07-17 23:01:47'),
+(1851,12,'f94ddb05245cf8ea566dab3f09b58ab1d47d49ebee570bb90f26f5b4746b7609','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:02:57',1,'2026-07-17 23:02:57'),
+(1852,12,'c8220458c9efada1340d52b3c526177e6d4492cd3a16b7ca3a6bc12b49b1a008','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 01:03:00',1,'2026-07-17 23:03:00'),
+(1853,12,'4d576822ead5ca5064b1575a2f47da67663b7ca51632e957a401dadcd90f5357','127.0.0.1','curl/8.20.0','2026-07-18 01:06:25',1,'2026-07-17 23:06:25'),
+(1854,12,'b6e5ef925cdb258c8afde37cda74d6111885486d0d00691232a52c8b7ecb30f5','127.0.0.1','curl/8.20.0','2026-07-18 02:09:33',1,'2026-07-18 00:09:33'),
+(1855,12,'693322c3c09728ff0bf062d34a319448ae78c4cbaccbdb06bbf379a950b3dc47','127.0.0.1','curl/8.20.0','2026-07-18 02:10:59',1,'2026-07-18 00:10:59'),
+(1856,12,'a11210099df7831db4cbc13d411e6ebf3cf2a83d1ccfe790b7c798693d108f10','127.0.0.1','curl/8.20.0','2026-07-18 02:11:28',1,'2026-07-18 00:11:28'),
+(1857,12,'a8a9944d8e5f38498990f89be943e12d8701c0a92d929f8602357e8cc3905596','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 10:47:37',1,'2026-07-18 08:47:37'),
+(1858,12,'d196b9dfc1fb7ff510e16fc41f472468c34e391c4ea07b8aab6552096fcb0e77','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 10:47:41',1,'2026-07-18 08:47:41'),
+(1859,12,'ab7d2a39c78ca373233b290c08669388d47e7dc023c592496d6e0d2ba15c1742','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:47:56',1,'2026-07-18 08:47:56'),
+(1860,12,'f12f9fa01f0ad31d6c3095370b343ccaa9d8d5993a74d9812fdfda1472d05075','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 10:48:20',1,'2026-07-18 08:48:20'),
+(1861,12,'2fa8ad7e94b601bc7646f37bd037828e1ccda816ecc399e914642ade396d9f8d','127.0.0.1','curl/8.20.0','2026-07-18 11:07:26',1,'2026-07-18 09:07:26'),
+(1862,12,'ead4d7ae2fbcc0347cf189f9b32b3a2f0162175bca38d21047fedb0e89ce4b06','127.0.0.1','curl/8.20.0','2026-07-18 11:07:36',1,'2026-07-18 09:07:36'),
+(1863,12,'5eb0c69624e626e3e1f717ba8697a20b9775fce8394092f3d221ec409fc1b2db','127.0.0.1','curl/8.20.0','2026-07-18 11:08:22',1,'2026-07-18 09:08:22'),
+(1864,12,'2b9c91f0e667a02094070074fc74b247b34362f6794a2bc3b1a58a91f2d4d5ce','127.0.0.1','curl/8.20.0','2026-07-18 11:09:04',1,'2026-07-18 09:09:04'),
+(1865,12,'2c35727fef5bc744246189af9cae6b56f2057e64198a99874a17ee6c6d78d922','127.0.0.1','curl/8.20.0','2026-07-18 11:09:35',1,'2026-07-18 09:09:35'),
+(1866,12,'97e30aa68eda8860723da3ae0168556d6fc11076d80ce04ba8c84d1ec0f284a8','127.0.0.1','curl/8.20.0','2026-07-18 11:14:50',1,'2026-07-18 09:14:50'),
+(1867,12,'b3984695f3c49473875f8a015a56ad138f0fbea1c4419413affd71d331c43a3e','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 11:42:33',1,'2026-07-18 09:42:33'),
+(1868,12,'348efbc1600d3c7242e9774f6526c8cf19ff8b1d6bc30107e9aee7f00d8a7320','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 11:42:45',1,'2026-07-18 09:42:45'),
+(1869,12,'bce76f0a7d71e2ea330bc7c5fc116608c92b4f92b7bdf31ee052d5e58436252f','127.0.0.1','curl/8.20.0','2026-07-18 11:47:27',1,'2026-07-18 09:47:27'),
+(1870,12,'886082fcc5c5208fc0c173a6d302028a1371338efd52a128b0767e84d8922fb1','127.0.0.1','curl/8.20.0','2026-07-18 12:03:20',1,'2026-07-18 10:03:20'),
 (1871,13,'13b5f175e88f6380c8f1dd23b0e44fb3ff71fe74f5ae73ea863447b6062e924f','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:09:47',0,'2026-07-18 10:09:47'),
 (1872,13,'18beafb9215d7ef0e336a77210d616f71355b96ffddf7eafcc4f15bad71e06e9','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:09:59',0,'2026-07-18 10:09:59'),
 (1873,13,'db8b1736eedb7c7628e1f2c1ad336b90f774becc32e75da1bbaf35c604092e96','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:11:09',0,'2026-07-18 10:11:09'),
-(1874,12,'d0eb9c1b75e70257a79fce0b9de5f59a51bf2153b765ce29192224cf414838f6','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 12:11:28',0,'2026-07-18 10:11:28'),
+(1874,12,'d0eb9c1b75e70257a79fce0b9de5f59a51bf2153b765ce29192224cf414838f6','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-07-18 12:11:28',1,'2026-07-18 10:11:28'),
 (1875,13,'8e69b4f9691609432839b7ca7c5e05d05d79468c9759311b63113845f632dfd2','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:12:49',0,'2026-07-18 10:12:49'),
-(1876,12,'e53fccd3d562ea6f1d4a6ab9aadf334334df1badb8442207fd0e82b6f6961ef3','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:14:10',0,'2026-07-18 10:14:10'),
-(1877,12,'78e9da15fa8236b6d51727b67d90c088cf397db01dedf3803f32b834984a3c1a','127.0.0.1','curl/8.20.0','2026-07-18 12:16:02',0,'2026-07-18 10:16:02'),
-(1878,12,'1588fe85bf45483c65bdb47b3e27743b6888c873ad5ce6d93f62ddba38853c71','127.0.0.1','curl/8.20.0','2026-07-18 12:18:09',0,'2026-07-18 10:18:09'),
+(1876,12,'e53fccd3d562ea6f1d4a6ab9aadf334334df1badb8442207fd0e82b6f6961ef3','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:14:10',1,'2026-07-18 10:14:10'),
+(1877,12,'78e9da15fa8236b6d51727b67d90c088cf397db01dedf3803f32b834984a3c1a','127.0.0.1','curl/8.20.0','2026-07-18 12:16:02',1,'2026-07-18 10:16:02'),
+(1878,12,'1588fe85bf45483c65bdb47b3e27743b6888c873ad5ce6d93f62ddba38853c71','127.0.0.1','curl/8.20.0','2026-07-18 12:18:09',1,'2026-07-18 10:18:09'),
 (1879,13,'f1b520e9d16a44a8608a3cc6643a3e9a22fd948fa34c7089116132b60692fe3c','127.0.0.1','curl/8.20.0','2026-07-18 12:39:17',0,'2026-07-18 10:39:17'),
 (1880,6,'66845c6d7ade15077c0b0e1fd87885c3060e40b04aa3bee5ba98424a04a80d30','127.0.0.1','curl/8.20.0','2026-07-18 12:40:49',0,'2026-07-18 10:40:49'),
 (1881,13,'41bb82b1c0108bdfff181fcd71983d2e068efc196281bc6e6cb8f5984ce94c4a','127.0.0.1','curl/8.20.0','2026-07-18 12:41:05',0,'2026-07-18 10:41:05'),
 (1882,13,'4f2b767fcf08529fc20a4ee958c069134458bc24bc4cab36315a0b1993c43140','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:41:39',0,'2026-07-18 10:41:39'),
-(1883,13,'288d0972b89316c4195eb1b1f89e3de2a080dd313238529ee91533cdcc9705d0','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:43:49',0,'2026-07-18 10:43:49');
+(1883,13,'288d0972b89316c4195eb1b1f89e3de2a080dd313238529ee91533cdcc9705d0','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-07-18 12:43:49',0,'2026-07-18 10:43:49'),
+(1884,11,'e05dc7e66fdba751ba60df1f8c2c7a40d0a71c813f48435988b724d4369a53c7','127.0.0.1','curl/8.20.0','2026-08-14 08:54:12',0,'2026-08-14 06:54:12'),
+(1885,13,'0a711023755ccbbbfe27b64da1a4071a48314c7a2089e999048bba44d62198f5','127.0.0.1','curl/8.20.0','2026-08-14 08:55:02',0,'2026-08-14 06:55:02'),
+(1886,12,'80758c64b1a82f4f4c9b0034490a418d28c98c947b264acde78b500c5ba3ca6b','127.0.0.1','curl/8.20.0','2026-08-14 08:55:34',1,'2026-08-14 06:55:34'),
+(1887,11,'700e92100a58611e9ee6f390f2f82cb898d1f4e2cf3c1038e6a67e6e49a6e987','127.0.0.1','curl/8.20.0','2026-08-14 08:55:53',0,'2026-08-14 06:55:53'),
+(1888,11,'0f989b1d81f837da599ab60dfe8462e0da7b8e5cde71964470b3caf8a0f26a06','127.0.0.1','curl/8.20.0','2026-08-14 08:56:36',0,'2026-08-14 06:56:36'),
+(1889,12,'3c7b5d6560d9ccb73a5ed6f04d380f4015898e097e09c52c9c0b56978f7a41e5','127.0.0.1','curl/8.20.0','2026-08-14 08:56:54',1,'2026-08-14 06:56:54'),
+(1890,12,'71d0c41501b6896bbe5796feccb61e0dab2b6c2fac6ea8535175bd91372b1b81','127.0.0.1','curl/8.20.0','2026-08-14 08:57:18',1,'2026-08-14 06:57:18'),
+(1891,11,'0526fac4e9c99ed4092c98bf4f228e4ea754bb19c5dbeb836ee06b962e87166d','127.0.0.1','curl/8.20.0','2026-08-14 08:57:35',0,'2026-08-14 06:57:35'),
+(1892,12,'a36099e00ae0afe301c53db9d146ebc62476697e7d11fa6136729d6f8a975f00','127.0.0.1','','2026-08-14 08:58:02',1,'2026-08-14 06:58:02'),
+(1893,12,'d425b0d64d1cf25ef3706969fcd27b8e179d2a8a5bfeaddc801ae504eb824d63','127.0.0.1','Python-urllib/3.14','2026-08-14 08:58:08',1,'2026-08-14 06:58:08'),
+(1894,12,'d3ae1c3ee610dbd74ad1e5682d4a973f79c36fc5352a84ee2d1e972b40671a67','127.0.0.1','Python-urllib/3.14','2026-08-14 08:58:13',1,'2026-08-14 06:58:13'),
+(1895,12,'81b406d27f030cf2d467fdf6aac576ad9d60c03dabcf0d0b56f3717c973cd823','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-08-14 09:02:53',1,'2026-08-14 07:02:53'),
+(1896,12,'b056f6c6168c213d97e69001aaa9ed0636aadf31bc568601483eeb999ff64d7b','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-08-14 09:03:02',1,'2026-08-14 07:03:02'),
+(1897,12,'ba9cb17a879e207d1cc7ffd2703721dac645a1f7ad8ce095b2db41873e72f80b','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36','2026-08-14 09:03:27',1,'2026-08-14 07:03:27'),
+(1898,12,'a50129e7178a1146564c5356b530400a908ba327b3b92f68598c4be8ac20c5de','127.0.0.1','','2026-08-14 09:21:57',1,'2026-08-14 07:21:57'),
+(1899,12,'18142c22f85c832f00dcb76016157c6a64b6815260b68b0c438838e32944ccf0','127.0.0.1','Python-urllib/3.14','2026-08-14 09:22:09',1,'2026-08-14 07:22:09'),
+(1900,12,'a53fee28ca8498825e5d013dd64d3f91e091a6f440aa6b9b4865339640af067e','127.0.0.1','Python-urllib/3.14','2026-08-14 09:22:15',1,'2026-08-14 07:22:15'),
+(1901,11,'8f5704c12bf4366485dabf231f46fe26f5bbd05ceaf645caf8a03cc5912e7554','127.0.0.1','curl/8.20.0','2026-08-14 09:22:25',0,'2026-08-14 07:22:25'),
+(1902,12,'5046f61ace187dfbd3b3d1fa302222825d4172e574c3ead8dab8ca257cb4228e','127.0.0.1','','2026-08-14 09:25:10',1,'2026-08-14 07:25:10'),
+(1903,12,'9f28b91c7786d50b8c4ddab765bdc9b136c033cd28c445dd98140201997a1d54','127.0.0.1','Python-urllib/3.14','2026-08-14 09:25:16',1,'2026-08-14 07:25:16'),
+(1904,12,'9449e9f198995701f8615ee0aa1b91f5c2db407516019c13624fb0f8a240ed2e','127.0.0.1','Python-urllib/3.14','2026-08-14 09:25:19',1,'2026-08-14 07:25:19'),
+(1905,12,'54437f81c1f430518410f27654c157a2439bd7c0d33622054fe011203b54da4c','127.0.0.1','curl/8.20.0','2026-08-14 09:25:56',1,'2026-08-14 07:25:56'),
+(1906,12,'4eb11b7e7d776008f19900a5832c79a85d87716ce20d91e9ef11020c8384719a','127.0.0.1','curl/8.20.0','2026-08-14 09:26:08',1,'2026-08-14 07:26:08'),
+(1907,12,'ad42bc480ff4f87754bc38f9fa70866e24cb22e527a2dc347632b8ac20252097','127.0.0.1','curl/8.20.0','2026-08-14 09:26:20',1,'2026-08-14 07:26:20'),
+(1908,12,'383b2ebad5efd5b78899f9c5791af2c8ed6bc88076f063fefd5c4cb4bb226716','127.0.0.1','curl/8.20.0','2026-08-14 09:26:28',1,'2026-08-14 07:26:28'),
+(1909,12,'b46b410163fb370af034ae3158d7857a5c32939b941bed01616179a36d880157','127.0.0.1','','2026-08-14 09:26:55',1,'2026-08-14 07:26:55'),
+(1910,12,'5a7a71df893f9f6c7f2b178fb0f3a4c1411bd8a8ae16e2bf93d9d065808cf3f0','127.0.0.1','Python-urllib/3.14','2026-08-14 09:27:03',1,'2026-08-14 07:27:03'),
+(1911,12,'d47b76b589387d077a49e4330fe2509d9ec2cef72c70d490623355a64bb0cfad','127.0.0.1','Python-urllib/3.14','2026-08-14 09:27:07',1,'2026-08-14 07:27:07'),
+(1912,12,'5d2263de025a4845b7a5e196fea7cb10968ca1f05c2692fcc4289531a07e7e78','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 19:38:27',1,'2026-08-24 17:38:27'),
+(1913,12,'beff0b92de19d218b424ad7f10b779dd3d574a88197d4b55abf9e7f6c870a766','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 19:47:01',1,'2026-08-24 17:47:01'),
+(1914,12,'f3b9d6204e67d378872c6b51a4a2c7ee4cf65c0794c131e715d40ae0ab683ead','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-08-24 19:53:23',1,'2026-08-24 17:53:23'),
+(1915,12,'3724a07a87ab0ef75cbaec2208b49fac2a3cbe84fd59c26e06a63e7a67012585','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 19:55:00',1,'2026-08-24 17:55:00'),
+(1916,12,'5a0d1edc4067dd7229b26285145f14a2169054fe06b3592c5ca0deb433d19dd8','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36','2026-08-24 19:55:55',1,'2026-08-24 17:55:55'),
+(1917,12,'22c092875e29657d99f2f10ecd1971addccb7cfe4acd26d3277ed8a65f2a4535','127.0.0.1','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.0.0 Safari/537.36','2026-08-24 19:59:11',1,'2026-08-24 17:59:11'),
+(1918,11,'bd67d042d06b137aa1ad95a583811c87ba0d15325a151b5d1dc20b534365ee52','127.0.0.1','curl/8.20.0','2026-08-24 21:06:15',0,'2026-08-24 19:06:15'),
+(1919,11,'ca57f40eb6ba751cad142a382e5a4a69c0443b61ec1c708529f398c36f0ab988','127.0.0.1','curl/8.20.0','2026-08-24 21:08:25',0,'2026-08-24 19:08:25'),
+(1920,13,'d9101ede9e79ff7ec9f6e2d4bc681b4daa9a26d67c649ab40bc13cfd8b9bd7cc','127.0.0.1','curl/8.20.0','2026-08-24 21:09:11',0,'2026-08-24 19:09:11'),
+(1921,12,'ee912604cfd003ab35013f17a6b454bc675167fc98a3600a5d4e1d3e16173448','127.0.0.1','','2026-08-24 21:24:07',1,'2026-08-24 19:24:07'),
+(1922,12,'db8b4f1ccc8a2bd32a4d88779d20e2254c3e4da71fa974be6aecb3c16da18a39','127.0.0.1','','2026-08-24 21:24:32',1,'2026-08-24 19:24:32'),
+(1923,12,'e9ba293c4919ca39a9dafdece68b981b16591acdb23bfc6a8181a12459a8b1a6','127.0.0.1','Python-urllib/3.14','2026-08-24 21:24:38',0,'2026-08-24 19:24:38'),
+(1924,12,'98191170076413566ac4c5d58a0f13ce5968fa7a842bcbfbc7727e8dad1c1c79','127.0.0.1','Python-urllib/3.14','2026-08-24 21:24:43',0,'2026-08-24 19:24:43');
 /*!40000 ALTER TABLE `sesiones` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;
@@ -8755,7 +9105,7 @@ INSERT INTO `usuario_cargo_manual` VALUES
 (17,151,15,'2026-07-17',1,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-07-17 15:16:46'),
 (18,158,24,'2026-07-17',1,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-07-17 15:16:46'),
 (19,171,10,'2026-07-17',1,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-07-17 15:16:46'),
-(20,186,91,'2026-07-17',1,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-07-17 15:16:46'),
+(20,186,91,'2026-07-17',0,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-08-24 19:23:36'),
 (21,188,10,'2026-07-17',1,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-07-17 15:16:46'),
 (22,194,10,'2026-07-17',1,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-07-17 15:16:46'),
 (23,206,10,'2026-07-17',1,NULL,'Sincronizacion inicial manual funciones 2026-07-17','2026-07-17 15:16:46','2026-07-17 15:16:46'),
@@ -8957,7 +9307,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `usuario_rol` WRITE;
 /*!40000 ALTER TABLE `usuario_rol` DISABLE KEYS */;
 INSERT INTO `usuario_rol` VALUES
-(2,3,1,'2026-07-17 20:13:09'),
+(2,3,1,'2026-08-24 17:56:38'),
 (3,2,NULL,'2026-06-26 08:44:10'),
 (4,3,1,'2026-07-04 11:36:11'),
 (5,3,1,'2026-07-04 11:36:01'),
@@ -8967,8 +9317,8 @@ INSERT INTO `usuario_rol` VALUES
 (9,3,NULL,'2026-06-26 08:44:10'),
 (10,3,NULL,'2026-06-26 08:44:10'),
 (11,3,1,'2026-07-17 20:12:18'),
-(12,3,1,'2026-06-30 08:25:11'),
-(12,4,1,'2026-06-30 08:25:11'),
+(12,3,1,'2026-08-24 17:56:53'),
+(12,4,1,'2026-08-24 17:56:53'),
 (13,2,1,'2026-07-17 10:42:59'),
 (13,5,1,'2026-07-17 10:42:59'),
 (14,3,1,'2026-07-17 09:59:39'),
@@ -9296,9 +9646,9 @@ INSERT INTO `usuarios` VALUES
 (8,'1067890123','CC',NULL,'Fernando',NULL,'Torres Nino',NULL,'fernando.torres@carepa.gov.co',0,'3117890123',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,NULL,NULL,'hecho_en_carrera','Profesional Especializado',NULL,'17',0,NULL,0,'2017-11-01',NULL,1,0,NULL,NULL,'2026-06-26 08:44:10','2026-06-26 10:09:37',NULL),
 (9,'1078901234','CC',NULL,'Lucia',NULL,'Castro Rojas',NULL,'lucia.castro@carepa.gov.co',0,'3118901234',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,'asistencial','carrera_administrativa','provisional','Auxiliar Administrativo','407','08',0,NULL,0,'2023-01-10','Administrar, la información de la Secretaría para personal interno y externo de conformidad con los procesos establecidos.',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-17 15:16:46',NULL),
 (10,'1089012345','CC',NULL,'Roberto',NULL,'Munoz Silva',NULL,'roberto.munoz@carepa.gov.co',0,'3119012345',NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,NULL,1,NULL,0,'profesional','carrera_administrativa','hecho_en_carrera','Profesional Universitario','219','15',0,NULL,0,'2021-07-01','Servir de apoyo en el desarrollo de los diferentes procesos entregados a la Secretaría GENERAL en materia jurídica. De igual manera, prestar asesoría y apoyo en lo relacionado con la emisión de conceptos, proyección de actos administrativos, contestación de demandas, acciones populares o de grupos, acciones de tutelas, derechos de petición y demás situaciones en la cual se haga necesario la intervención de profesional en el área del derecho',1,0,NULL,NULL,'2026-06-26 08:44:10','2026-07-17 15:16:46',NULL),
-(11,'admin','CC',NULL,'Admin',NULL,'Principal',NULL,'admin@carepa.gov.co',0,NULL,NULL,'$2y$12$j0e5LsIrBgyeiodR5OsqxORemB155dkOUX/7Tp22mcys12OJrCV0C','activo',0,NULL,'2026-07-17 22:59:08',1,NULL,0,NULL,NULL,'hecho_en_carrera','Administrador',NULL,'25',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 08:49:40','2026-07-17 22:59:08',NULL),
-(12,'1040353165','CC','masculino','YEISON',NULL,'ROMAÑA','CORDOBA','maiayevir@hotmail.com',0,'2147483647',NULL,'$2y$12$1vnmrEzaw2YHMsgV.fbuZeIwLONpshGe8xYCRE8Yynzqj.EZeY8Tu','activo',0,NULL,'2026-07-18 10:18:09',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,'2026-02-03',NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-18 10:18:09',NULL),
-(13,'43141896','CC','femenino','LUSELY',NULL,'OREJUELA',NULL,'user80@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-07-18 10:43:49',1,14,0,'directivo','libre_nombramiento_gerencia_publica','hecho_en_carrera','Secretario de despacho','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-18 10:43:49',NULL),
+(11,'admin','CC',NULL,'Admin',NULL,'Principal',NULL,'admin@carepa.gov.co',0,NULL,NULL,'$2y$12$j0e5LsIrBgyeiodR5OsqxORemB155dkOUX/7Tp22mcys12OJrCV0C','activo',1,NULL,'2026-08-24 19:08:25',1,NULL,0,NULL,NULL,'hecho_en_carrera','Administrador',NULL,'25',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 08:49:40','2026-08-24 19:24:39',NULL),
+(12,'1040353165','CC','masculino','YEISON',NULL,'ROMAÑA','CORDOBA','maiayevir@hotmail.com',0,'2147483647',NULL,'$2y$12$1vnmrEzaw2YHMsgV.fbuZeIwLONpshGe8xYCRE8Yynzqj.EZeY8Tu','activo',0,NULL,'2026-08-24 19:24:43',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,'2026-02-03',NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-08-24 19:24:43',NULL),
+(13,'43141896','CC','femenino','LUSELY',NULL,'OREJUELA',NULL,'user80@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-08-24 19:09:11',1,14,0,'directivo','libre_nombramiento_gerencia_publica','hecho_en_carrera','Secretario de despacho','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-08-24 19:09:11',NULL),
 (14,'32290307','CC',NULL,'RUBITH','ELISA','CARVAJAL','VILLADA','rubith.carvajal@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$eOad/yQpHRHBiy1Wmglmx.wezTgTOlumGNMRhm7PInJqzDEi0D3yG','activo',0,NULL,'2026-06-30 16:16:10',1,14,0,'profesional','carrera_administrativa',NULL,'Funcionario','219','02',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:08:17','2026-07-17 15:18:03',NULL),
 (15,'39425357','CC',NULL,'ALBA','NELLY','GUERRA','MONTOYA','user1@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$bKQTlKgEnfSlrd6fV3d2Xu8QzN5nKH7mYJ0wR4ePvT1bHcDgFsW2a','activo',0,NULL,NULL,1,12,0,'profesional','carrera_administrativa',NULL,'Profesional Universitario - Médico Veterinario','219','01',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:13:26','2026-07-17 15:18:03',NULL),
 (16,'1040375031','CC',NULL,'ALDAIR','','ROMERO','LOPEZ','user2@carepa-antioquia.gov.co',0,NULL,NULL,'$2y$12$bKQTlKgEnfSlrd6fV3d2Xu8QzN5nKH7mYJ0wR4ePvT1bHcDgFsW2a','activo',0,NULL,NULL,1,21,0,'directivo','libre_nombramiento_remocion',NULL,'Director Financiero y Contable','009','01',0,NULL,0,NULL,NULL,1,0,NULL,NULL,'2026-06-26 10:13:26','2026-07-17 15:18:03',NULL),
@@ -9521,8 +9871,41 @@ COMMIT;
 SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 
 --
--- Dumping routines for database 'edl_carepa'
+-- Temporary table structure for view `v_competencias_por_nivel`
 --
+
+DROP TABLE IF EXISTS `v_competencias_por_nivel`;
+/*!50001 DROP VIEW IF EXISTS `v_competencias_por_nivel`*/;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8mb4;
+/*!50001 CREATE VIEW `v_competencias_por_nivel` AS SELECT
+ NULL AS `nivel_codigo`,
+ NULL AS `competencia_codigo`,
+ NULL AS `competencia_nombre`,
+ NULL AS `nombre_json`,
+ NULL AS `decreto`,
+ NULL AS `conducta_id`,
+ NULL AS `conducta_texto`,
+ NULL AS `conducta_orden` */;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Final view structure for view `v_competencias_por_nivel`
+--
+
+/*!50001 DROP VIEW IF EXISTS `v_competencias_por_nivel`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_uca1400_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `v_competencias_por_nivel` AS select `cpn`.`nivel_codigo` AS `nivel_codigo`,`cpn`.`competencia_codigo` AS `competencia_codigo`,`c`.`nombre` AS `competencia_nombre`,coalesce(`cpn`.`nombre_json`,`c`.`nombre`) AS `nombre_json`,case `c`.`decreto` when '2539' then '2539/2005' when '815' then '815/2018' else `c`.`decreto` end AS `decreto`,`cd`.`id` AS `conducta_id`,`cd`.`texto` AS `conducta_texto`,`cd`.`orden` AS `conducta_orden` from ((`competencias_por_nivel` `cpn` join `competencias` `c` on(`c`.`codigo` = `cpn`.`competencia_codigo`)) left join `conductas` `cd` on(`cd`.`competencia_codigo` = `c`.`codigo` and `cd`.`activo` = 1)) order by `cpn`.`nivel_codigo`,`cpn`.`orden`,`cd`.`orden` */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -9533,4 +9916,4 @@ SET AUTOCOMMIT=@OLD_AUTOCOMMIT;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
--- Dump completed on 2026-07-18 10:57:36
+-- Dump completed on 2026-08-24 19:29:36

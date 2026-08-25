@@ -82,7 +82,7 @@ const DEPARTAMENTOS = [
   'Sucre', 'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada',
 ];
 
-const NIVELES = [
+const NIVELES_FALLBACK = [
   { value: 'directivo', label: 'Directivo' },
   { value: 'asesor', label: 'Asesor' },
   { value: 'profesional', label: 'Profesional' },
@@ -90,10 +90,13 @@ const NIVELES = [
   { value: 'asistencial', label: 'Asistencial' },
 ];
 
-const NATURALEZAS = [
+const NATURALEZAS_FALLBACK = [
   { value: 'carrera_administrativa', label: 'Carrera Administrativa' },
   { value: 'libre_nombramiento', label: 'Libre Nombramiento' },
   { value: 'libre_nombramiento_gerencia_publica', label: 'Libre Nombramiento — Gerencia Pública' },
+  { value: 'libre_nombramiento_remocion', label: 'Libre Nombramiento — Remoción' },
+  { value: 'periodo_fijo', label: 'Periodo Fijo' },
+  { value: 'temporal', label: 'Temporal' },
 ];
 
 const TIPOS_NOMBRAMIENTO = [
@@ -133,6 +136,8 @@ export default function AdminUsuarios() {
   const [editando, setEditando] = useState<Usuario | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [dependencias, setDependencias] = useState<Dependencia[]>([]);
+  const [niveles, setNiveles] = useState(NIVELES_FALLBACK);
+  const [naturalezas, setNaturalezas] = useState(NATURALEZAS_FALLBACK);
 
   // Estado del formulario completo según CNSC
   const [form, setForm] = useState({
@@ -206,6 +211,24 @@ export default function AdminUsuarios() {
   // Carga forzada al montar (garantiza carga inicial aunque falle useEffect anterior)
   useEffect(() => { cargar(); }, []);
   useEffect(() => { if (modalAbierto) cargarDependencias(); }, [modalAbierto, cargarDependencias]);
+
+  // Catálogos normativos desde BD (fuente: niveles_jerarquicos / naturalezas_cargo), con fallback local
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await api.get<Array<{ codigo: string; nombre: string }>>('/catalogos/niveles');
+        if (Array.isArray(res) && res.length > 0) {
+          setNiveles(res.map(n => ({ value: n.codigo, label: n.nombre })));
+        }
+      } catch { /* fallback local */ }
+      try {
+        const res = await api.get<Array<{ codigo: string; nombre: string }>>('/catalogos/naturalezas');
+        if (Array.isArray(res) && res.length > 0) {
+          setNaturalezas(res.map(n => ({ value: n.codigo, label: n.nombre })));
+        }
+      } catch { /* fallback local */ }
+    })();
+  }, []);
 
   const resetForm = () => ({
     documento: '',
@@ -792,14 +815,14 @@ export default function AdminUsuarios() {
                     value={form.nivel}
                     onChange={e => setForm({ ...form, nivel: e.target.value })}
                     placeholder="Seleccionar..."
-                    options={NIVELES}
+                    options={niveles}
                   />
                   <Select
                     label="Naturaleza *"
                     value={form.naturaleza}
                     onChange={e => setForm({ ...form, naturaleza: e.target.value })}
                     placeholder="Seleccionar..."
-                    options={NATURALEZAS}
+                    options={naturalezas}
                   />
                   <Select
                     label="Tipo de nombramiento *"

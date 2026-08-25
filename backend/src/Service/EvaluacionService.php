@@ -297,8 +297,8 @@ if ($rolActivo !== 'evaluador') {
  }
 
  $concertacionId = (int) $evaluacion['concertacion_id'];
- $pesoFunc = (int) Env::get('PESO_FUNCIONALES', 85);
- $pesoComp = (int) Env::get('PESO_COMPORTAMENTALES', 15);
+ $pesoFunc = \App\Helper\ParametroHelper::int('peso_funcionales', 'PESO_FUNCIONALES', 85);
+ $pesoComp = \App\Helper\ParametroHelper::int('peso_comportamentales', 'PESO_COMPORTAMENTALES', 15);
 
  // Paquete 1: leer SOLO de la tabla compromisos (que tras la migración solo
  // contiene tipo='funcional'). Mantiene la lógica 0-100 original.
@@ -349,8 +349,8 @@ if ($rolActivo !== 'evaluador') {
   $califDefinitiva = $notaFunc + $notaComp;
 
  // Escala final: Sobresaliente >= 90%, Satisfactorio > 65% y < 90%, No Satisfactorio <= 65%
- $umbralSobresaliente = (float) Env::get('UMBRAL_SOBRESALIENTE', 90);
- $umbralSatisfactorio = (float) Env::get('UMBRAL_SATISFACTORIO', 65);
+ $umbralSobresaliente = \App\Helper\ParametroHelper::float('umbral_sobresaliente', 'UMBRAL_SOBRESALIENTE', 90);
+ $umbralSatisfactorio = \App\Helper\ParametroHelper::float('umbral_satisfactorio', 'UMBRAL_SATISFACTORIO', 65);
 
  $nivel = $califDefinitiva >= $umbralSobresaliente ? 'sobresaliente' : ($califDefinitiva > $umbralSatisfactorio ? 'satisfactorio' : 'no_satisfactorio');
 

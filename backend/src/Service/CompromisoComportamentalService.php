@@ -469,7 +469,7 @@ class CompromisoComportamentalService
     private function validarLimites(int $concertacionId): void
     {
         $count = $this->repo->contarPorConcertacion($concertacionId);
-        $max = (int) Env::get('MAX_COMPROMISOS_COMPORTAMENTALES', 5);
+        $max = \App\Helper\ParametroHelper::int('max_compromisos_comportamentales', 'MAX_COMPROMISOS_COMPORTAMENTALES', 5);
 
         if ($count >= $max) {
             ResponseHelper::error(
@@ -526,8 +526,8 @@ class CompromisoComportamentalService
     public function validarCompromisosAntesDeFirmar(int $concertacionId, int $evaluadoId): array
     {
         $count = $this->repo->contarPorConcertacion($concertacionId);
-        $min = (int) Env::get('MIN_COMPROMISOS_COMPORTAMENTALES', 3);
-        $max = (int) Env::get('MAX_COMPROMISOS_COMPORTAMENTALES', 5);
+        $min = \App\Helper\ParametroHelper::int('min_compromisos_comportamentales', 'MIN_COMPROMISOS_COMPORTAMENTALES', 3);
+        $max = \App\Helper\ParametroHelper::int('max_compromisos_comportamentales', 'MAX_COMPROMISOS_COMPORTAMENTALES', 5);
 
         $errores = [];
         if ($count < $min) {

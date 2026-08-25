@@ -355,8 +355,8 @@ class CompromisoService
         $esPrueba = !empty($pruebaVal) && (bool) $pruebaVal;
 
         $max = $esPrueba
-                    ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
-                    : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 3);
+                    ? \App\Helper\ParametroHelper::int('max_compromisos_funcionales_prueba', 'MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
+                    : \App\Helper\ParametroHelper::int('max_compromisos_funcionales', 'MAX_COMPROMISOS_FUNCIONALES', 3);
 
         if ($count >= $max) {
             $periodoLabel = $esPrueba ? 'periodo de prueba' : 'evaluacion anual';
@@ -451,12 +451,12 @@ class CompromisoService
         $count = $this->repo->contarPorConcertacion($concertacionId);
 
         $max = $esPrueba
-                    ? (int) Env::get('MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
-                    : (int) Env::get('MAX_COMPROMISOS_FUNCIONALES', 3);
+                    ? \App\Helper\ParametroHelper::int('max_compromisos_funcionales_prueba', 'MAX_COMPROMISOS_FUNCIONALES_PRUEBA', 3)
+                    : \App\Helper\ParametroHelper::int('max_compromisos_funcionales', 'MAX_COMPROMISOS_FUNCIONALES', 3);
 
         $min = $esPrueba
-            ? (int) Env::get('MIN_COMPROMISOS_FUNCIONALES_PRUEBA', 1)
-            : (int) Env::get('MIN_COMPROMISOS_FUNCIONALES', 1);
+            ? \App\Helper\ParametroHelper::int('min_compromisos_funcionales_prueba', 'MIN_COMPROMISOS_FUNCIONALES_PRUEBA', 1)
+            : \App\Helper\ParametroHelper::int('min_compromisos_funcionales', 'MIN_COMPROMISOS_FUNCIONALES', 1);
 
         $errores = [];
         if ($count < $min) {

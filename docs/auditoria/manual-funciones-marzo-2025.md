@@ -450,3 +450,49 @@ El sistema implementa correctamente la **arquitectura** del dominio (planta glob
 - **Arquitectura/BD**: 4 objetos inexistentes, requisitos en texto libre (EAV), esquema legacy, cálculo duplicado FE/BE, `parametros.peso_*` muertos.
 - **Bugs técnicos**: `GET /competencias/por-nivel` y `GET /cargos-manual/{id}` fallan por objetos ausentes; regla CNSC solo en FE; hardcode de catálogos en AdminUsuarios.
 - **Seguridad (independiente)**: `jwt_secret` placeholder expuesto — rotación urgente, sin relación con los manuales.
+
+---
+
+## 35. Implementación Fase A-D
+
+> Ejecución controlada del backlog aprobado en §33. Migraciones en `database/migrations/`, aplicadas al servidor local y consolidadas en `database/full_dump.sql` regenerado. Backup previo: `/tmp/backup_pre_faseABCD_20260824.sql` (1.97 MB).
+
+| Ítem | Cambio realizado | Evidencia | Archivos | BD | Migración | Pruebas | Resultado |
+|---|---|---|---|---|---|---|---|
+| P0-2 | Creados `competencias_comunes_map` (seed 6 comunes de fichas), `conocimientos_catalogo`, `cargos_manual_conocimientos` (vacíos — sin inventar datos), tabla base `competencias_por_nivel` y vista `v_competencias_por_nivel` (columnas exactas que consume `ConcertarCompromisos.tsx`) | `CompetenciaRepository.php:36-59`, `CargoManualRepository.php:95-118` | — | 4 objetos nuevos + 6 filas seed map | M001 | GET `/competencias/por-nivel`, `/comunes`, `/cargos-manual/1` → 200 sin error SQL | ✅ |
+| P3-1 | Eliminada fila muerta `parametros.jwt_secret` (placeholder); blacklist de claves sensibles en `ParametroController` (listar/ver/upsert/masivo); JWT real sigue en `.env` (52 chars, gitignored, sin cambio → sin ruptura de sesiones) | `JwtHelper.php:16` usa ENV, no BD | `ParametroController.php` | parametros −1 fila | M002 | Login OK; `/parametros` sin jwt_secret; `/parametros/jwt_secret` → 403 protegido | ✅ |
+| P0-1 | Nivel `asistencial`→`tecnico` en 6 filas (ids 22, 33, 34, 36, 92, 95): Inspector de Tránsito, Agentes de Tránsito g1/g2 global y temporal, Téc. Adm. Gestión Documental, Monitores (~20 empleos) | Tablas de planta N=3 + FICHAS 10/36 y ficha Monitores | — | cargos_manual 6 UPDATE con guardas | M003 | Verificación por id; conteos de planta inalterados (167 empleos) | ✅ |
+| P0-3 | 7 denominaciones truncadas → texto literal de ficha (ids 3, 16, 17, 43, 44, 47, 64; lista cerrada V-06, incluido el punto final literal de «…Persuasivo.») | Fichas del Global (líneas 324-3954 del modelo) | — | cargos_manual 7 UPDATE con guardas | M003 | Verificación por id | ✅ |
+| P1-7 | Gerente PDET (id 96): naturaleza→`libre_nombramiento_remocion`, dependencia→Planeación DEP-012 (id 17, la que ya aloja 15 cargos; DEP-013 intacta). Inspector de Policía (id 108): dependencia→Gobierno (id 15) + jefe_inmediato literal de FICHA 10 | FICHA 61 y FICHA 10 | — | cargos_manual 2 UPDATE con guardas | M003 | DEP-013 existe aún; naturaleza temporal sin cambios | ✅ |
+| P1-1 | 13 competencias nuevas: TRANSP (con definición literal del manual) + 12 comportamentales SIN conductas (el manual no las transcribe; no se inventaron) | Global §2 y §3 | — | competencias +13 (27 total) | M004 | COUNT y SELECT de verificación | ✅ |
+| P1-2 | Conductas de las 4 comunes reemplazadas por literales del manual con versionado: 15 genéricas `activo=0` (no borradas), 18 literales insertadas (4+5+5+4) | Global §2 (tabla de comunes) | — | conductas | M004 | 73 activas; compromisos históricos usan snapshot `conductas_json` (sin FK) — sin impacto | ✅ |
+| P1-3 | Matriz nivel→comportamentales: directivo=7, asesor=7, profesional=4, técnico=3, asistencial=3. `nombre_json` preserva el literal del manual cuando difiere del catálogo (p. ej. «Liderazgo efectivo», «Aporte técnico-profesional»); NO se equipó Pensamiento estratégico≡Sistémico | Global §3.1-3.5 | — | competencias_por_nivel 24 filas | M004 | `/competencias/por-nivel?nivel=tecnico` → [Confiabilidad, Disciplina, Responsabilidad]; `profesional` → 4 | ✅ |
+| P1-6 | Catálogos de niveles/naturalezas en AdminUsuarios ahora se cargan de `/catalogos/niveles` y `/catalogos/naturalezas` con fallback local completo (6 naturalezas vs 3 anteriores) | `AdminUsuarios.tsx:85-97` (hardcode) | `AdminUsuarios.tsx` | — (usa endpoints existentes) | — | `tsc` 0 errores en el archivo; build OK | ✅ |
+| P2-2 | Fuente única de lectura: 7 puntos ahora leen `parametros` → ENV → default vía `ParametroHelper` (pesos 85/15, umbrales 90/65, min/max compromisos). **Valores sin cambio** (V-07 respetado). Efecto configurado: `max_compromisos_funcionales` pasa de ENV-default 3 al valor administrado 5 | `EvaluacionService.php:300-301,352-353`; `CompromisoService.php:342+`; `CompromisoComportamentalService.php:472,529` | `ParametroHelper.php` (nuevo), 3 servicios | — (lectura) | — | php -l OK; suites 9/9 PASS | ✅ |
+| P2-3 | Regla CNSC min/max ahora efectiva en backend desde `parametros` (min_func=1 configurado, max=5, min_comp=3, max_comp=5) en crear/limites/firmar | `validarLimites`/`validarCompromisosAntesDeFirmar` | 2 servicios | — | — | Suites de validación PASS (23 OK) | ✅ |
+| P2-4 | Tildes/erratas: 4 competencias («Adaptación al cambio», «Orientación a resultados», «Orientación al usuario y al ciudadano», «Aporte técnico-profesional») + 3 dependencias («Secretaría de Hacienda», «Oficina Jurídica», «Secretaría de Tránsito y Transporte») | Manuales + regla ortográfica; sin renombrados estructurales | — | competencias, dependencias | M005 | SELECT de verificación | ✅ |
+| P2-5 | BD-02: asignación vigente (id 20, usuario 186) hacia cargo 91 soft-deleted desactivada (`vigente=0`, sin borrar). Los datos TEST/«XD» reportados ya no existen en la BD actual (verificado) | Auditoría BD §BD-02/03 | — | usuario_cargo_manual 1 UPDATE | M005 | 0 asignaciones vigentes a cargos borrados | ✅ |
+| P2-1 | **Estructura verificada completa** (tabla `cargos_manual_requisitos` + repo + service + endpoint exponen `requisitos: []`). El poblamiento desde texto libre del EAV se difiere: parsear 121 fichas sin inventar datos exige validación humana ficha a ficha | `CargoManualService.php:36` | — | — (ya existía) | — | `/cargos-manual/1` retorna requisitos/conocimientos sin error | ✅ (parcial declarado) |
+
+**Pruebas globales**: `php tests/run_tests.php` 34 OK/0 FAIL · `bash tests/run_all.sh` 9/9 suites PASS · `tsc --noEmit` 0 errores en archivos modificados (errores preexistentes en tests FE del baseline, no relacionados) · `npm run build` OK (39.6s) · Integridad BD: 0 huérfanos (cargos→dependencia, matriz→nivel, matriz→competencia, conductas→competencia) · `full_dump.sql` regenerado (1.99 MB, incluye los 4 objetos y datos corregidos).
+
+## 36. Elementos bloqueados y preservados (NO modificados)
+
+Verificado por consulta directa tras la implementación:
+
+| Elemento bloqueado | Estado preservado |
+|---|---|
+| Grados 219 (V-02) | 21 empleos g01 + 4 g02 — intactos |
+| Grados 367 (V-03) | 33 g02 + 1 g03 + 4 g04 (empleos) — intactos (solo cambió NIVEL de 1 fila 367/03, aprobado en P0-1; grado sin cambio) |
+| Merge Planeación DEP-012/013 (P0-4, V-09) | Ambas dependencias existen; DEP-013 con 0 cargos; no se fusionó ni eliminó nada |
+| Organigrama / dependencias extra (V-09) | Las 18 dependencias permanecen; no se crearon ni eliminaron |
+| Jefes de las 17 dependencias (P1-5) | Sin cambios (solo se fijó `jefe_inmediato` del cargo 303 según FICHA 10, aprobado en P1-7) |
+| Naturaleza de los 11 cargos temporales (V-08) | 9 `temporal` + 2 `carrera_administrativa` — intactos |
+| Ponderación 85/15 y umbrales 90/65 (V-07) | Valores idénticos; solo cambió la fuente de lectura (parametros→ENV→default) |
+| Competencias funcionales (V-10) | Siguen sin definirse; no se creó ninguna |
+| Competencias sin respaldo (CON_ENT, INICIAT, PEN_EST) | Presentes, sin uso normativo nuevo |
+| Esquema legacy (`funcionarios`, `responsables`, `tbl_cargo*`) | Intacto |
+| Filas soft-deleted de `cargos_manual` (15) | Intactas |
+| Módulos CNSC de evaluación | Intactos y operativos |
+
+**Declaración de conformidad**: el sistema NO es «100 % conforme» a los manuales. Quedan pendientes los elementos de §34 (grados 219/367, organigrama, jefaturas, naturaleza temporal, ponderación normativa, competencias funcionales) que requieren decisión humana fuera del alcance documental, además de la regresión completa en ambiente de pruebas.
