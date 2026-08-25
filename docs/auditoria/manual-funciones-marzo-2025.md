@@ -1075,3 +1075,16 @@ P2: `Constants.php` (roles como constantes, paginación unificada) · enums de e
 ### 61.5 Pruebas tras los cambios
 
 `run_tests.php` **35 OK/0 FAIL** · `run_all.sh` **9/9** · `test_inmutabilidad.py` **13/13** (fixtures limpiados) · `php -l` en los 5 archivos tocados · CSRF con lifetime configurable verificado en vivo · login/lockout sin regresión.
+
+---
+
+## 62. Investigación forense del hallazgo de niveles (post-verificación usuario)
+
+**Veredicto: AMARILLO** — informe completo en `aux/forense_veredicto_niveles.md` (con 3 subinformes de subagentes).
+
+1. **Los 24 empleos (23 filas) están confirmados incorrectos con evidencia triple**: tabla agregada (N=3), fichas individuales (23/23 dicen «Técnico», 0 dicen «Asistencial») y el **propio EAV de cada cargo** (cita el conjunto técnico Confiabilidad/Disciplina/Responsabilidad). Solo la columna `nivel` difiere. El manual NO se autocontradice en nivel (a diferencia de los grados 219/367 de §34).
+2. **Las presuntas colisiones de IDs (37, 78) eran un error de transcripción del agente** (listas sin columna `codigo`); verificado: ID 37 = 314/02, ID 78 = 367/04. Sin duplicados reales.
+3. **Defecto del auditor identificado y corregido conceptualmente**: `comparar_cargos.py:115` usaba `all(any(...))` — un grupo mixto (1 técnico + N asistencial) pasaba como válido. Diseño robusto propuesto: `set(niveles_actuales) == {nivel_esperado}` con tabla canónica código→nivel esperado (§8 del informe forense). Re-ejecutado sobre la BD actual: solo los 3 grupos mixtos fallan — no hay más falsos negativos de este patrón.
+4. **Causa raíz doble**: seed del 17-jul insertó masivamente asistencial para 367/314; el parche parcial de esa misma noche y el chequeo débil de la Fase D permitieron que sobrevivieran. M003 (P0-1) corrigió solo 6 ids y sus verificaciones post no revisaban nivel.
+5. **Hallazgos adyacentes NUEVOS** (enumerados, no corregidos, van a backlog separado): id 76 `num_cargos=2` vs FICHA 88 (=1) · filas ausentes («Gestión de Tramites» TA y AA, FICHAS 41/43) · EAV sin cargar para 40 cargos (ids ≥96) · denominaciones fantasma/duplicadas en el lote técnico (parcialmente substantiado — el adversarial sobregeneralizó: Riego/Suelos/RIPS/Catastro sí aparecen en el manual) · 3 duplicados por guion.
+6. **Recomendación**: modificar primero el auditor (test canónico) → M006 con 23 IDs cerrados y postcondición obligatoria → hallazgos adyacentes a backlog. **M006 NO ejecutada** — pendiente de aprobación.
