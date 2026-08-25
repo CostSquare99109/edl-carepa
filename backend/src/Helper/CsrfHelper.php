@@ -9,10 +9,15 @@ class CsrfHelper
 {
  private static int $tokenLifetime = 3600;
 
+ private static function tokenLifetime(): int
+ {
+ return (int) (\App\Config\Env::get('CSRF_TOKEN_LIFETIME_SECONDS') ?? self::$tokenLifetime);
+ }
+
  public static function generar(): string
  {
  $token = bin2hex(random_bytes(32));
- $expiracion = time() + self::$tokenLifetime;
+ $expiracion = time() + self::tokenLifetime();
 
  $pdo = \App\Config\Database::getInstance();
  $stmt = $pdo->prepare("INSERT INTO csrf_tokens (token, expiracion, creado_en) VALUES (?, ?, NOW())");

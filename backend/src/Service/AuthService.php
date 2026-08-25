@@ -47,7 +47,8 @@ class AuthService
    $maxIntentos = (int) Env::get('INTENTOS_LOGIN_MAXIMOS', 5);
    $bloqueado = $this->usuarioRepo->bloquearSiExcedeIntentos($usuario['id'], $maxIntentos);
    if ($bloqueado) {
-    ResponseHelper::error('Por favor espere 10 minutos para volver a intentar', 429);
+    $minutosLockout = (int) (\App\Config\Env::get('LOGIN_LOCKOUT_MINUTES') ?? 10);
+    ResponseHelper::error("Por favor espere {$minutosLockout} minutos para volver a intentar", 429);
    }
    ResponseHelper::error('Credenciales invalidas', 401);
   }
@@ -178,7 +179,8 @@ class AuthService
    $codigo .= $chars[random_int(0, strlen($chars) - 1)];
   }
 
-  $expiracion = date('Y-m-d H:i:s', time() + 3600);
+  $horasReset = (int) (\App\Config\Env::get('PASSWORD_RESET_TOKEN_HOURS') ?? 1);
+  $expiracion = date('Y-m-d H:i:s', time() + $horasReset * 3600);
 
   $pdo = Database::getInstance();
   $stmt = $pdo->prepare("INSERT INTO recuperaciones (usuario_id, token, fecha_expiracion) VALUES (?, ?, ?)");

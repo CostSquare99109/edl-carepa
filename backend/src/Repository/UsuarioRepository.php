@@ -55,7 +55,8 @@ class UsuarioRepository extends BaseRepository
   $intentos = (int) $stmt->fetchColumn();
 
   if ($intentos >= $maxIntentos) {
-  $stmt = $this->pdo->prepare("UPDATE usuarios SET bloqueado_hasta = DATE_ADD(NOW(), INTERVAL 10 MINUTE) WHERE id = ?");
+  $minutos = (int) (\App\Config\Env::get('LOGIN_LOCKOUT_MINUTES') ?? 10);
+  $stmt = $this->pdo->prepare("UPDATE usuarios SET bloqueado_hasta = DATE_ADD(NOW(), INTERVAL {$minutos} MINUTE) WHERE id = ?");
   $stmt->execute([$id]);
   return true;
   }

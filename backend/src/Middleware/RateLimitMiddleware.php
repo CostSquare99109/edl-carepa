@@ -35,11 +35,21 @@ class RateLimitMiddleware
  private static int $maxAttempts = 200;
  private static int $windowSeconds = 60;
 
+ private static function maxAttempts(): int
+ {
+  return (int) \App\Config\Env::get('RATE_LIMIT_MAX_ATTEMPTS', self::$maxAttempts);
+ }
+
+ private static function windowSeconds(): int
+ {
+  return (int) \App\Config\Env::get('RATE_LIMIT_WINDOW_SECONDS', self::$windowSeconds);
+ }
+
  public static function handle(): void
  {
  $key = self::bucketKey();
 
- $tempDir = sys_get_temp_dir() . '/edl_rate_limit';
+ $tempDir = \App\Config\Env::get('RATE_LIMIT_STORAGE_PATH', sys_get_temp_dir() . '/edl_rate_limit');
  if (!is_dir($tempDir)) {
  @mkdir($tempDir, 0700, true);
  }
@@ -54,7 +64,7 @@ class RateLimitMiddleware
 
  flock($fp, LOCK_EX);
 
- $data = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
+ $data = ['count' => 0, 'reset_at' => $now + self::windowSeconds()];
  $filesize = filesize($file);
  if ($filesize > 0) {
  $raw = fread($fp, $filesize);
@@ -65,7 +75,7 @@ class RateLimitMiddleware
  }
 
  if ($now > ($data['reset_at'] ?? 0)) {
- $data = ['count' => 0, 'reset_at' => $now + self::$windowSeconds];
+ $data = ['count' => 0, 'reset_at' => $now + self::windowSeconds()];
  }
 
  $data['count']++;
@@ -78,11 +88,11 @@ class RateLimitMiddleware
  flock($fp, LOCK_UN);
  fclose($fp);
 
- $remaining = self::$maxAttempts - $data['count'];
- header("X-RateLimit-Limit: " . self::$maxAttempts);
+ $remaining = self::maxAttempts() - $data['count'];
+ header("X-RateLimit-Limit: " . self::maxAttempts());
  header("X-RateLimit-Remaining: " . max(0, $remaining));
 
- if ($data['count'] > self::$maxAttempts) {
+ if ($data['count'] > self::maxAttempts()) {
  header('Retry-After: ' . ($data['reset_at'] - $now));
  ResponseHelper::error('Demasiadas solicitudes. Intente nuevamente mas tarde.', 429);
  }

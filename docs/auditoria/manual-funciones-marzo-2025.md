@@ -1034,3 +1034,44 @@ Las **condiciones explícitas** antes del despliegue real son externas al códig
 5. Auditoría post-producción.
 
 **NO se declara «producción aprobada» ni «conformidad normativa 100 %».**
+
+---
+
+## 61. Hardening de secretos y configuración (informe externo `edl_hardcode.md`)
+
+**Entrada**: informe externo `/storage/emulated/0/edl_hardcode.md` auditado contra el código real. Veredicto del triage: parcialmente desactualizado (varios ítems ya resueltos en Fases D-F), con **2 hallazgos nuevos confirmados** y 1 corrección a nuestra propia Fase H.
+
+### 61.1 Acciones P0 ejecutadas
+
+| Acción | Detalle | Estado |
+|---|---|---|
+| Redacción del informe compartido | `/storage/emulated/0/edl_hardcode.md` contenía la `MAIL_PASS` real (App Password de Gmail) y el valor del `JWT_SECRET` de dev en texto plano → ambos valores sustituidos por marcadores `[REDACTADO]`; verificado 0 secretos restantes en el archivo | ✅ Hecho |
+| Rotación de la App Password de Gmail | **Acción manual del titular** de la cuenta (myaccount.google.com → Contraseñas de aplicación): revocar la App Password expuesta y generar una nueva; actualizar solo `MAIL_PASS` en el `.env` del servidor | ⏳ Pendiente humana |
+| `importar_funcionarios.php` | Password `Edl2026!` hardcodeada (y **impresa por pantalla**, línea 104) → ahora `IMPORT_DEFAULT_PASSWORD` de `.env`; si no está configurada, **password aleatoria por usuario** (`bin2hex(random_bytes(4))`); el echo ya no revela ningún valor | ✅ Hecho |
+| Corrección a nuestra Fase H | La verificación del `JWT_SECRET` de dev (§49.1) era superficial: la clave es literalmente `test_secret_key_minimo_32_caracteres_para_desarrollo` (52 chars, nombre de test). Sigue siendo dev-only/gitignored, pero **refuerza la rotación §50 como obligatoria antes de producción**. No se cambió el valor (rotación es operación de infraestructura) | ✅ Documentado |
+
+### 61.2 Acciones P1 ejecutadas (scope acotado: timeouts/límites → `.env`, defaults = comportamiento actual)
+
+| Archivo | Antes (hardcode) | Ahora |
+|---|---|---|
+| `RateLimitMiddleware.php` | `maxAttempts=200`, `windowSeconds=60`, `sys_get_temp_dir().'/edl_rate_limit'` | `RATE_LIMIT_MAX_ATTEMPTS`, `RATE_LIMIT_WINDOW_SECONDS`, `RATE_LIMIT_STORAGE_PATH` (defaults idénticos) |
+| `CsrfHelper.php` | `$tokenLifetime=3600` | `CSRF_TOKEN_LIFETIME_SECONDS` (default 3600) |
+| `AuthService.php` + `UsuarioRepository.php` | lockout «10 minutos» (mensaje y `INTERVAL 10 MINUTE`) | `LOGIN_LOCKOUT_MINUTES` (default 10; mensaje dinámico) |
+| `AuthService.php` | reset token `time()+3600` | `PASSWORD_RESET_TOKEN_HOURS` (default 1) |
+| `.env.example` | — | Nuevas variables documentadas + `IMPORT_DEFAULT_PASSWORD` |
+
+**Reglas CNSC NO tocadas** (decisión documentada): escala 4-15, fórmula `(p−4)/11`, días 120/180/15/2/30, mínimos de compromisos funcionales — son Acuerdo 617/2018; eventualmente irían a `parametros` con validación de Talento Humano, no a `.env`.
+
+### 61.3 Correcciones al informe externo
+
+- «Compromisos comportamentales 3-5 hardcodeados» (líneas 476/535): **desactualizado** — leen de `parametros` vía `ParametroHelper` desde la Fase D.
+- Ruta de `EvaluacionInmutabilidad`: es `backend/src/Helper/`, no `backend/src/Domain/`.
+- `ROLES_SISTEMA` en `colors.ts` sin `admin_carepa`/`comision_evaluadora`: confirmado (P2 pendiente).
+
+### 61.4 Backlog resultante (P2-P3, pendiente de aprobación)
+
+P2: `Constants.php` (roles como constantes, paginación unificada) · enums de estados por entidad · FE: importar labels de `evaluacionConstantes.ts`/`mensajesCNSC.ts`, `storageKeys.ts`, completar `ROLES_SISTEMA`. P3: Vite env (`VITE_DEV_PORT`, `VITE_PROXY_TARGET`), `BASE_URL` en tests restantes. Reglas CNSC a `parametros`: solo con validación TH.
+
+### 61.5 Pruebas tras los cambios
+
+`run_tests.php` **35 OK/0 FAIL** · `run_all.sh` **9/9** · `test_inmutabilidad.py` **13/13** (fixtures limpiados) · `php -l` en los 5 archivos tocados · CSRF con lifetime configurable verificado en vivo · login/lockout sin regresión.

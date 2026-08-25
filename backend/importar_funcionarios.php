@@ -48,8 +48,10 @@ foreach ($existingDocs as $d) {
 
 $insertados = 0;
 $saltados = 0;
-$passwd = 'Edl2026!';
-$hash = password_hash($passwd, PASSWORD_BCRYPT);
+// P0 hardening: la password por defecto ya no se hardcodea. Configurar
+// IMPORT_DEFAULT_PASSWORD en .env; si no existe, cada usuario recibe una
+// aleatoria (el admin debe usar el flujo de recuperacion de contraseña).
+$passwdFija = \App\Config\Env::get('IMPORT_DEFAULT_PASSWORD');
 
 $insertUsuario = $pdo->prepare("
   INSERT INTO usuarios (documento, tipo_documento, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, email, telefono1, password_hash, estado, intentos_fallidos, entidad_id, dependencia_id, denominacion_empleo, grado_empleo, tipo_nombramiento)
@@ -89,6 +91,9 @@ foreach ($funcionarios as $f) {
   $email = $f['correo'] ?: $cedula . '@carepa.gov.co';
   $telefono = $f['telefono'] ?: '';
 
+  $passwd = $passwdFija ?: bin2hex(random_bytes(4));
+  $hash = password_hash($passwd, PASSWORD_BCRYPT);
+
   $insertUsuario->execute([$cedula, $pn, $sn, $pa, $sa, $email, $telefono, $hash]);
   $uid = $pdo->lastInsertId();
   if ($uid) {
@@ -101,4 +106,6 @@ foreach ($funcionarios as $f) {
 echo "\nResumen:\n";
 echo "  Ya existian: {$saltados}\n";
 echo "  Insertados:  {$insertados}\n";
-echo "  Password:    {$passwd}\n";
+echo $passwdFija
+  ? "  Password:    (configurada en IMPORT_DEFAULT_PASSWORD — no se muestra)\n"
+  : "  Password:    aleatoria por usuario; asignela via recuperacion de contraseña\n";
