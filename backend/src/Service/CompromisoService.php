@@ -84,6 +84,8 @@ class CompromisoService
             ], true);
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable((int) $evaluacionId, 'proponer');
+
         $this->validarLimites($concertacionId);
 
         $crearDatos = [
@@ -143,6 +145,8 @@ class CompromisoService
         }
 
         $this->validarPropuestaPermitida((int) ($evaluacionId ?: 0), $concertacionId);
+
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable((int) $evaluacionId, 'proponer');
 
         $this->validarLimites($concertacionId);
 
@@ -240,6 +244,8 @@ class CompromisoService
             ResponseHelper::notFound('Compromiso funcional no encontrado');
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
+
         if ($compromiso['estado'] !== 'propuesto') {
             ResponseHelper::error('Solo se pueden aprobar compromisos en estado propuesto', 400);
         }
@@ -280,6 +286,8 @@ class CompromisoService
             ResponseHelper::notFound('Compromiso funcional no encontrado');
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
+
         if ($compromiso['estado'] !== 'propuesto') {
             ResponseHelper::error('Solo se pueden rechazar compromisos en estado propuesto', 400);
         }
@@ -299,6 +307,8 @@ class CompromisoService
             ResponseHelper::notFound('Compromiso funcional no encontrado');
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
+
         if ($compromiso['estado'] !== 'propuesto') {
             ResponseHelper::error('Solo se pueden devolver compromisos en estado propuesto', 400);
         }
@@ -313,6 +323,8 @@ class CompromisoService
 
     public function calificar(int $id, float $puntaje, string $observaciones, array $user = []): void
     {
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'calificar');
+
         $compromiso = $this->repo->buscarPorId($id);
         if (!$compromiso) {
             ResponseHelper::notFound('Compromiso funcional no encontrado');
@@ -371,15 +383,7 @@ class CompromisoService
     {
         $pdo = \App\Config\Database::getInstance();
 
-        if ($evaluacionId > 0) {
-            $stmt = $pdo->prepare("SELECT estado FROM evaluaciones WHERE id = ? AND eliminado_en IS NULL");
-            $stmt->execute([$evaluacionId]);
-            $estadoEval = $stmt->fetchColumn();
-            $terminales = ['calificada', 'cerrada', 'anulada', 'aprobada_comision', 'rechazada_comision'];
-            if ($estadoEval && in_array($estadoEval, $terminales, true)) {
-                ResponseHelper::error("No se pueden proponer compromisos. La evaluacion esta {$estadoEval}.", 400);
-            }
-        }
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable($evaluacionId > 0 ? $evaluacionId : null, 'proponer');
 
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND eliminado_en IS NULL AND (propuesto_por_jefe_entidad = 1 OR es_propuesto_evaluado = 0) AND estado IN ('propuesto', 'pendiente_aprobacion')");
         $stmt->execute([$concertacionId]);
@@ -412,6 +416,8 @@ class CompromisoService
             ResponseHelper::notFound('Compromiso funcional no encontrado');
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'modificar');
+
         $permitidos = [
             'descripcion', 'peso', 'meta_id', 'resultado_esperado',
             'medio_verificacion', 'plazo', 'observaciones_evaluador',
@@ -437,10 +443,11 @@ class CompromisoService
             $datosFiltrados['fecha_ajuste'] = $datosFiltrados['fecha_ajuste'] ?? date('Y-m-d H:i:s');
         }
 
-        if (!empty($datosFiltrados)) {
-            $this->repo->actualizar($id, $datosFiltrados);
-            AuditoriaService::registrar('actualizar_compromiso_funcional', 'compromisos', $id);
+        if (empty($datosFiltrados)) {
+            ResponseHelper::error('Sin campos validos para actualizar', 422);
         }
+        $this->repo->actualizar($id, $datosFiltrados);
+        AuditoriaService::registrar('actualizar_compromiso_funcional', 'compromisos', $id);
     }
 
     public function validarCompromisosAntesDeFirmar(int $concertacionId, int $evaluadoId): array
@@ -481,6 +488,8 @@ class CompromisoService
 
     public function eliminar(int $id, array $user = []): void
     {
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'eliminar');
+
         $compromiso = $this->repo->buscarPorId($id);
         if (!$compromiso) {
             ResponseHelper::notFound('Compromiso funcional no encontrado');

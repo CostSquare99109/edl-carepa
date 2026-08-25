@@ -376,6 +376,8 @@ if (empty($compromisos)) {
    ResponseHelper::forbidden('Solo el evaluador asignado puede aprobar compromisos pendientes');
   }
 
+  \App\Helper\EvaluacionInmutabilidad::asegurarConcertacionMutable($concertacionId, 'gestionar');
+
   $stmt = $pdo->prepare("
    UPDATE compromisos
    SET estado = 'aprobado',
@@ -417,6 +419,8 @@ if (empty($compromisos)) {
   if (!$concertacion) {
    ResponseHelper::notFound('Concertacion no encontrada');
   }
+
+  \App\Helper\EvaluacionInmutabilidad::asegurarConcertacionMutable($concertacionId, 'gestionar');
 
   $user = AuthMiddleware::user();
   $pdo = Database::getInstance();

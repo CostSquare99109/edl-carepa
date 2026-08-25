@@ -85,6 +85,8 @@ class CompromisoComportamentalService
             ], true);
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable((int) $evaluacionId, 'proponer');
+
         $this->validarLimites($concertacionId);
 
         // Resolver descripcion legible: si no vino en payload, usar nombre de la
@@ -138,6 +140,8 @@ class CompromisoComportamentalService
                 'evaluacion_id' => $evaluacionId,
             ], true);
         }
+
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable((int) $evaluacionId, 'proponer');
 
         $existingStmt = Database::getInstance()->prepare(
             "SELECT id FROM compromisos WHERE concertacion_id = ? AND tipo = 'comportamental' AND eliminado_en IS NULL AND estado = 'propuesto'"
@@ -277,6 +281,8 @@ class CompromisoComportamentalService
             ResponseHelper::notFound('Compromiso comportamental no encontrado');
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
+
         if ($compromiso['estado'] !== 'propuesto') {
             ResponseHelper::error('Solo se pueden aprobar compromisos en estado propuesto', 400);
         }
@@ -296,6 +302,8 @@ class CompromisoComportamentalService
             ResponseHelper::notFound('Compromiso comportamental no encontrado');
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
+
         if ($compromiso['estado'] !== 'propuesto') {
             ResponseHelper::error('Solo se pueden rechazar compromisos en estado propuesto', 400);
         }
@@ -314,6 +322,8 @@ class CompromisoComportamentalService
         if (!$compromiso) {
             ResponseHelper::notFound('Compromiso comportamental no encontrado');
         }
+
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
 
         if ($compromiso['estado'] !== 'propuesto') {
             ResponseHelper::error('Solo se pueden devolver compromisos en estado propuesto', 400);
@@ -347,6 +357,8 @@ class CompromisoComportamentalService
         if (!$compromiso) {
             ResponseHelper::notFound('Compromiso comportamental no encontrado');
         }
+
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'calificar');
 
         if (!in_array($compromiso['estado'], ['propuesto', 'pendiente_aprobacion', 'aprobado', 'en_progreso', 'cumplido', 'incumplido'], true)) {
             ResponseHelper::error('Solo se pueden calificar compromisos en estados habilitados', 400);
@@ -449,15 +461,7 @@ class CompromisoComportamentalService
     {
         $pdo = Database::getInstance();
 
-        if ($evaluacionId > 0) {
-            $stmt = $pdo->prepare("SELECT estado FROM evaluaciones WHERE id = ? AND eliminado_en IS NULL");
-            $stmt->execute([$evaluacionId]);
-            $estadoEval = $stmt->fetchColumn();
-            $terminales = ['calificada', 'cerrada', 'anulada', 'aprobada_comision', 'rechazada_comision'];
-            if ($estadoEval && in_array($estadoEval, $terminales, true)) {
-                ResponseHelper::error("No se pueden proponer compromisos. La evaluacion esta {$estadoEval}.", 400);
-            }
-        }
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable($evaluacionId > 0 ? $evaluacionId : null, 'proponer');
 
         $stmt = $pdo->prepare("SELECT COUNT(*) FROM compromisos WHERE concertacion_id = ? AND eliminado_en IS NULL AND (propuesto_por_jefe_entidad = 1 OR es_propuesto_evaluado = 0) AND estado IN ('propuesto', 'pendiente_aprobacion')");
         $stmt->execute([$concertacionId]);
@@ -508,6 +512,8 @@ class CompromisoComportamentalService
             ResponseHelper::notFound('Compromiso comportamental no encontrado');
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'modificar');
+
         $permitidos = [
             'descripcion', 'peso',
             'observaciones_evaluador', 'observaciones_evaluado',
@@ -550,6 +556,7 @@ class CompromisoComportamentalService
         if (!$compromiso) {
             ResponseHelper::notFound('Compromiso comportamental no encontrado');
         }
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'eliminar');
         $this->repo->eliminar($id);
         AuditoriaService::registrar('eliminar_compromiso_comportamental', 'compromisos', $id);
     }

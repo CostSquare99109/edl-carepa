@@ -231,6 +231,8 @@ class CompromisoController
             ResponseHelper::error('Solo puede aceptar compromisos en estado propuesto, pendiente_aprobacion o aprobado', 400);
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
+
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $input = SanitizerHelper::sanitizeArray($input);
 
@@ -259,6 +261,8 @@ class CompromisoController
             ResponseHelper::error('Solo puede rechazar compromisos en estado propuesto', 400);
         }
 
+        \App\Helper\EvaluacionInmutabilidad::asegurarCompromisoMutable($id, 'gestionar');
+
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $input = SanitizerHelper::sanitizeArray($input);
 
@@ -284,6 +288,8 @@ class CompromisoController
         if (!$eval || (int) $eval['evaluado_id'] !== (int) $user['id']) {
             ResponseHelper::error('Evaluación no encontrada o no tiene permiso', 404);
         }
+
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable((int) $evaluacionId, 'gestionar');
 
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $obs = isset($input['observaciones_evaluado']) ? trim($input['observaciones_evaluado']) : null;
@@ -367,6 +373,8 @@ class CompromisoController
         if (!$eval || (int) $eval['evaluado_id'] !== (int) $user['id']) {
             ResponseHelper::error('Evaluación no encontrada o no tiene permiso', 404);
         }
+
+        \App\Helper\EvaluacionInmutabilidad::asegurarMutable((int) $evaluacionId, 'gestionar');
 
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $obs = isset($input['observaciones_evaluado']) ? trim($input['observaciones_evaluado']) : '';
@@ -492,6 +500,8 @@ class CompromisoController
         if (!$validacion['valido']) {
             ResponseHelper::error(implode('; ', $validacion['errores']), 422);
         }
+
+        \App\Helper\EvaluacionInmutabilidad::asegurarConcertacionMutable($concertacionId, 'proponer');
 
         $sumaPesos = (new \App\Repository\CompromisoRepository($pdo))->sumPesosPorConcertacion($concertacionId);
         if (abs($sumaPesos - 100) > 0.01) {

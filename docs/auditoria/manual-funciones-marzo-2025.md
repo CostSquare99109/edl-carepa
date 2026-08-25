@@ -621,3 +621,48 @@ La evaluación 24 (evaluado 12, concertación 3) pasó de `pendiente` a `calific
 | Sin ninguna sección de requisitos | 42 (33 %) |
 | Filas en tabla estructurada `cargos_manual_requisitos` | 0 |
 | Parseables automáticamente con confianza | Parcial: patrones regulares presentes («NBC X. Título de…», «años»), pero formatos heterogéneos entre fichas → **se requiere revisión humana ficha a ficha**; el poblamiento automático masivo se rechaza por riesgo de inventar datos |
+
+---
+
+## 44. Corrección BUG P1 — Inmutabilidad de evaluaciones calificadas
+
+**Causa raíz**: `validarPropuestaPermitida()` (duplicada en `CompromisoService` y `CompromisoComportamentalService`) solo se invocaba en el flujo `enviar()`. Los flujos `crear()`, `actualizar()`, `eliminar()`, `calificar()`, `aprobar/rechazar/devolver()`, `guardar()` (bulk) y las escrituras SQL directas del `CompromisoController` operaban sin verificar el estado de la evaluación.
+
+**Solución — regla centralizada**: nuevo helper `backend/src/Helper/EvaluacionInmutabilidad.php` con la lista de estados terminales **idéntica a la preexistente** (`calificada, cerrada, anulada, aprobada_comision, rechazada_comision` — no se inventaron estados), resolución compromiso→concertación→evaluación (relación inversa: `evaluaciones.concertacion_id`), mensajes coherentes con el guard original y HTTP 400 (el mismo código que ya usaba la guardia).
+
+**24 puntos de aplicación** (todos los que mutan compromisos):
+
+| Archivo | Puntos protegidos |
+|---|---|
+| `CompromisoService.php` | crear, actualizar, eliminar, calificar, aprobar, rechazar, devolver + dedup de `validarPropuestaPermitida` |
+| `CompromisoComportamentalService.php` | crear, guardar (bulk), actualizar, eliminar, calificar, aprobar, rechazar, devolver + dedup |
+| `ConcertacionService.php` | aprobarPendientes, rechazarPendientes (bulk) |
+| `CompromisoController.php` | aceptarEvaluado, rechazarEvaluado, confirmarConcertacion (enviar), aceptarConcertacionEvaluado, rechazarConcertacionEvaluado (escrituras SQL directas detectadas en la auditoría de rutas alternativas) |
+
+**Excepciones intencionales documentadas** (no son bypass): `PUT /evaluaciones/{id}/guardar` permite re-apertura de evaluaciones finalizadas por diseño (comentario explícito en el código, no muta compromisos); `calificacion-manual` es la vía de anulación administrativa exenta de CSRF por diseño.
+
+**Pruebas** (`tests/test_inmutabilidad.py`, nuevo): **13/13 OK** — A (crear en mutable ✓), B (comportamental en mutable ✓), C/D (crear en calificada → rechazado 400 «La evaluacion esta calificada»), E (PUT en calificada → rechazado), F/F2 (DELETE en calificada → rechazado), G (PUT en mutable → éxito real), H1/H2 (calificar: permitido en mutable, bloqueado en calificada), más la **reproducción exacta del escenario de Fase E** (evaluación 10 calificada → ahora rechazado en ambos tipos). Fixtures autolimpiables (evaluación 25 y compromisos asociados soft-deleted; evaluaciones originales 10/24 intactas).
+
+## 45. Corrección BUG P3 — PUT compromisos
+
+- **Antes**: `PUT /compromisos/{id}` con `calificacion` (campo no permitido) filtraba todo, no actualizaba nada y respondía **«Compromiso funcional actualizado»** (éxito falso, HTTP 200).
+- **Ahora**: (1) si la evaluación está terminal → 400 con mensaje de inmutabilidad; (2) si no queda ningún campo válido tras el filtro → **422 «Sin campos validos para actualizar»** (nunca afirma éxito sin efecto). Mismo tratamiento en el comportamental.
+- HTTP 400/422: códigos ya empleados por el proyecto (guardias de estado y validación respectivamente); no se inventó un estándar nuevo.
+
+## 46. Matriz final de mutabilidad por estado (estados reales del sistema)
+
+Estados de evaluación observados en código/BD: `pendiente`, `en_proceso`, `calificada`, `cerrada`, `anulada`, `aprobada_comision`, `rechazada_comision`. Los 5 últimos son terminales (lista preexistente, ahora centralizada).
+
+| Operación | pendiente | en_proceso | calificada | cerrada/anulada/aprobada_comision/rechazada_comision |
+|---|---|---|---|---|
+| Crear compromiso (funcional/comportamental/bulk) | ✅ | ✅ | ❌ 400 | ❌ 400 |
+| Editar compromiso | ✅ | ✅ | ❌ 400 | ❌ 400 |
+| Eliminar compromiso | ✅ | ✅ | ❌ 400 | ❌ 400 |
+| Calificar compromiso | — (requiere concertada) | ✅ | ❌ 400 | ❌ 400 |
+| Aprobar/rechazar/devolver compromiso | ✅ (flujo concertación) | ✅ | ❌ 400 | ❌ 400 |
+| Enviar / Confirmar concertación | ✅ | ✅ | ❌ 400 | ❌ 400 |
+| Fijar | ✅ (con CNSC min/max) | — | — | — |
+| Calificar evaluación (PUT) | ✅ → en_proceso | ✅ | — | — |
+| Calificación definitiva | — (requiere concertada) | ✅ → calificada | — | — |
+| Re-apertura administrativa (`/guardar`) | ✅ | ✅ | ✅ (excepción intencional documentada) | ✅ |
+| Anular | ✅ | ✅ | ✅ | ❌ 409 (ya firme) |
