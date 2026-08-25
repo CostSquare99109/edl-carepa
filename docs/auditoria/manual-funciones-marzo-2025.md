@@ -496,3 +496,128 @@ Verificado por consulta directa tras la implementación:
 | Módulos CNSC de evaluación | Intactos y operativos |
 
 **Declaración de conformidad**: el sistema NO es «100 % conforme» a los manuales. Quedan pendientes los elementos de §34 (grados 219/367, organigrama, jefaturas, naturaleza temporal, ponderación normativa, competencias funcionales) que requieren decisión humana fuera del alcance documental, además de la regresión completa en ambiente de pruebas.
+
+---
+
+## 37. Auditoría post-implementación
+
+> Fase E (post-f351cec). Objetivo: verificar correspondencia con los DOCX y ausencia de regresiones. **Ninguna discrepancia nueva fue corregida automáticamente.**
+
+**Veredicto**: Fases A-D implementadas y verificadas; conformidad normativa final pendiente.
+
+### 37.1 Nuevo hallazgo — BUG P1: creación de compromisos sobre evaluaciones en estado terminal
+
+- **Evidencia**: `POST /compromisos-comportamentales` con `evaluacion_id=10` (estado `calificada`) creó el compromiso id 37; `POST /compromisos/funcional` con la misma evaluación creó el id 39. Ambos fueron soft-eliminados en la limpieza de la prueba.
+- **Causa**: `CompromisoService::validarPropuestaPermitida()` (línea 370) solo se invoca en el flujo `enviar()` (línea 145); los flujos `crear()` (funcional, línea 51) y `CompromisoComportamentalService::crear()` no la llaman.
+- **Impacto**: permite alterar el paquete de compromisos de una evaluación ya calificada (integridad del proceso CNSC).
+- **Clasificación**: P1 (funcional). **NO corregido en esta fase** (instrucción expresa: documentar primero). Artefactos de prueba eliminados (ids 37, 38, 39 con `eliminado_en`).
+
+### 37.2 Hallazgo menor — respuesta engañosa de `PUT /compromisos/{id}`
+
+El endpoint genérico `actualizar` respondió «Compromiso funcional actualizado» aunque ignoró el campo `calificacion` (requiere `PUT /compromisos/{id}/calificar` con `puntaje`). Clasificación: P3 (UX/API). Documentado, sin cambio.
+
+### 37.3 Efecto colateral legítimo de la regresión
+
+La evaluación 24 (evaluado 12, concertación 3) pasó de `pendiente` a `calificada` (82.31, satisfactorio) al completar el flujo E2E en la BD local de desarrollo. Es el resultado esperado de la prueba; los artefactos de prueba intermedios fueron limpiados.
+
+## 38. Auditoría de competencias nuevas (13, 1:1 contra DOCX)
+
+| # | Código BD | Nombre BD | Nombre exacto DOCX | Origen DOCX (ubicación en modelo) | Tipo | Nivel | Definición | Conductas | Veredicto |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | TRANSP | Transparencia | Transparencia | Global §2 tabla comunes (línea 136 del modelo; ídem Temporal §4) | Común | Todos | ✓ literal del manual | 5 literales ✓ | **MATCH EXACTO** |
+| 2 | VIS_EST | Visión estratégica | Visión estratégica | Global §3.1 (línea 154) y §3.2 (167) | Comportamental | Directivo/Asesor | ✗ (manual no define) | 0 (manual no trae) | **MATCH EXACTO** (nombre; sin definición por diseño) |
+| 3 | GEST_DES_PER | Gestión del desarrollo de las personas | ídem | Global §3.1 (158) / §3.2 (171) | Comportamental | Directivo/Asesor | ✗ | 0 | **MATCH EXACTO** |
+| 4 | PEN_SIS | Pensamiento Sistémico | Pensamiento Sistémico | Global §3.1 (159) | Comportamental | Directivo/Asesor | ✗ | 0 | **MATCH EXACTO** (no se equiparó con «Pensamiento estratégico» PEN_EST) |
+| 5 | RES_CON | Resolución de conflictos | ídem | Global §3.1 (160) | Comportamental | Directivo/Asesor | ✗ | 0 | **MATCH EXACTO** |
+| 6 | GEST_PRO | Gestión de procedimientos | ídem | Global §3.3 (182); fichas PU (605, 651) | Comportamental | Profesional | ✗ | 0 | **MATCH EXACTO** |
+| 7 | INS_DEC | Instrumentación de decisiones | ídem | Global §3.3 (183) | Comportamental | Profesional | ✗ | 0 | **MATCH EXACTO** |
+| 8 | CONFI | Confiabilidad | «Confiabilidad (Técnica)» | Global §3.4 (193) | Comportamental | Técnico | ✗ | 0 | **MATCH PARCIAL** (nombre: el manual añade el paréntesis «(Técnica)» en el consolidado; en fichas aparece «Confiabilidad Técnica») |
+| 9 | DISC | Disciplina | Disciplina | Global §3.4 (194) | Comportamental | Técnico | ✗ | 0 | **MATCH EXACTO** |
+| 10 | RESP | Responsabilidad | Responsabilidad | Global §3.4 (195) | Comportamental | Técnico | ✗ | 0 | **MATCH EXACTO** |
+| 11 | MAN_INF | Manejo de la información | ídem | Global §3.5 (201) | Comportamental | Asistencial | ✗ | 0 | **MATCH EXACTO** |
+| 12 | REL_INT | Relaciones interpersonales | ídem | Global §3.5 (202) | Comportamental | Asistencial | ✗ | 0 | **MATCH EXACTO** |
+| 13 | COLAB | Colaboración | ídem | Global §3.5 (203) | Comportamental | Asistencial | ✗ | 0 | **MATCH EXACTO** |
+
+**Resumen**: 12 MATCH EXACTO · 1 MATCH PARCIAL (CONFI, variante de nombre documentada) · **0 NO RESPALDADAS · 0 REQUIERE VALIDACIÓN**. Las 12 comportamentales se insertaron sin definición ni conductas porque el manual solo las enlista (no transcribe definiciones ni conductas por nivel): **no se inventó nada**. Migración: M004. Registro: tabla `competencias` (27 total). La matriz `competencias_por_nivel` (24 filas) replica exactamente los conjuntos §3.1-3.5.
+
+## 39. Explicación de cargos «127 vs endpoint 200»
+
+**No existen 200 registros.** El «200» es el **código de estado HTTP 200 (OK)** de `GET /cargos-manual/{id}`, no un conteo. Evidencia:
+
+- `curl -o /dev/null -w "%{http_code}" /cargos-manual/1` → `200` (HTTP estándar de éxito).
+- El propio endpoint de listado reporta `total: 127`; `/cargos-manual/conteos` reporta `total_cargos: 127` (116 global + 11 temporal).
+- Matemática de filas: 142 filas totales en `cargos_manual` − 15 soft-deleted (`eliminado_en IS NOT NULL`, filtrado por `listarManual`) = **127 vigentes**.
+- Empleos normativos: `SUM(num_cargos)` = 125 global + 42 temporal = **167** (los 127 filas agrupan plazas multi-cargo).
+- No hay JOIN que multiplique filas: `listarManual`/`buscarPorId` usan `LEFT JOIN dependencias` 1:1 (0 duplicados verificados).
+
+**Conclusión**: 127 filas = 167 empleos = 167 empleos normativos de los manuales. Sin hallazgo.
+
+## 40. Auditoría M001-M005
+
+| M | Objetivo | Tablas | Insertados | Modificados | Desactivados | Guards | Rollback | Evidencia DOCX | Riesgo residual |
+|---|---|---|---|---|---|---|---|---|---|
+| M001 | 4 objetos BD + vista | competencias_comunes_map, conocimientos_catalogo, cargos_manual_conocimientos, competencias_por_nivel, v_competencias_por_nivel | 6 (map) | 0 | 0 | IF NOT EXISTS / CREATE OR REPLACE; FKs RESTRICT | Sí (DROP documentado en el archivo; sin datos preexistentes tocados) | §2/§3 (set de 6 comunes de fichas) | Bajo: tablas de conocimientos vacías por diseño |
+| M002 | Retirar jwt_secret expuesto | parametros | 0 | 0 (1 DELETE acotado con LIKE placeholder) | — | WHERE clave+valor placeholder | Sí (INSERT inverso documentado) | — (seguridad, fuera de DOCX) | Bajo |
+| M003 | P0-1+P0-3+P1-7 | cargos_manual | 0 | 15 (6 nivel + 7 denominación + 2 P1-7) | 0 | Cada UPDATE con id+valores esperados (0 filas = alarma) | Sí (valores previos registrados en el informe §35) | Tablas de planta N=3; FICHAS 02/10/36/51/61 y literales de fichas | Bajo |
+| M004 | P1-1+P1-2+P1-3 | competencias, conductas, competencias_por_nivel | 13+18+24 | 0 | 15 conductas genéricas (activo=0, NO borradas) | INSERT limpios; UPDATE acotado por codigo+activo | Sí (desactivar nuevas, reactivar 15) | §2 (conductas literales) y §3.1-3.5 (conjuntos por nivel) | Medio: compromisos futuros usarán las literales (esperado) |
+| M005 | P2-4+P2-5 | competencias, dependencias, usuario_cargo_manual | 0 | 8 (4 nombres + 3 nombres dep + 1 vigente=0) | 0 (vigente=0 no es borrado) | WHERE id+valor exacto | Sí | Ortografía del manual («Secretaría de Hacienda», etc.) | Bajo |
+
+**Bloqueados intactos tras M001-M005** (verificado por consulta): grados 219 (21/4) y 367 (33/1/4) · DEP-012/DEP-013 sin fusionar · 18 dependencias · jefaturas · naturaleza temporal (9 temporal + 2 carrera) · pesos 85/15 · umbrales 90/65 · competencias funcionales vacías · legacy · soft-deleted (15).
+
+## 41. Regresión E2E (BD local de desarrollo)
+
+| # | Paso | Resultado |
+|---|---|---|
+| 1 | Login (documento+password) | ✅ token + csrf emitidos |
+| 2 | Multi-rol: `PUT /auth/rol` {rol_codigo} | ✅ nuevo token con rolActivo=evaluador (nota: el campo es `rol_codigo`, no `rol`) |
+| 3 | Evaluado con cargo/nivel | ✅ usuario 12 → cargo nivel `profesional` |
+| 4 | Periodo | ✅ periodo 1 activo (2026-2027, fase concertación) |
+| 5 | Concertación 3 (2 funcionales + 3 comportamentales) | ✅ existente, `pendiente` |
+| 6 | Competencias por nivel (matriz nueva) | ✅ profesional → [APR_TEC, COM_EFEC, GEST_PRO, INS_DEC]; técnico → [CONFI, DISC, RESP] |
+| 7 | Aprobación bilateral (`/concertaciones/3/aprobar-pendientes`) | ✅ 5 compromisos aprobados |
+| 8 | Fijación (`/concertaciones/3/fijar`) con CNSC desde `parametros` | ✅ estado `concertada` (2 func ≥ min 1 ≤ 5; 3 comp ≥ min 3 ≤ 5) |
+| 9 | Calificación funcionales (`/compromisos/{id}/calificar`, puntaje 0-100) | ✅ 80 y 90 persistidos |
+| 10 | Calificación comportamentales (`/compromisos-comportamentales/{id}/calificar`, escala 4-15) | ✅ 12, 10, 14 persistidos |
+| 11 | Definitiva (`/evaluaciones/24/definitiva`) | ✅ **notaFunc 71.40** = (80×60+90×40)/100 × 0.85 · **notaComp 10.91** = ((12−4)/11)×100 × 0.15 · **total 82.31 → satisfactorio** (>65, <90) |
+| 12 | Persistencia y consultas | ✅ evaluaciones, compromisos, concertaciones consistentes; 0 huérfanos |
+
+**Fórmula verificada contra código**: `EvaluacionService.php:346` implementa exactamente la subescala 4-15 → 0-100 y la ponderación 85/15 (Acuerdo 617/2018, comentario en línea 899). Umbrales 90/65 sin cambio.
+
+## 42. Riesgos residuales
+
+| ID | Riesgo | Clase | Estado |
+|---|---|---|---|
+| R-1 | BUG P1: crear compromisos (funcional y comportamental) sobre evaluaciones `calificada` — guardia `validarPropuestaPermitida` no invocada en `crear()` | Funcional | **Nuevo, documentado, sin corregir** (requiere fix en `CompromisoService::crear` + `CompromisoComportamentalService::crear`) |
+| R-2 | EAV seed corrupto: competencias concatenadas sin separador (p. ej. fila 262 del dump) — el modal FE no puede partirlas | Datos | Pendiente (fuera del backlog aprobado) |
+| R-3 | Labels `decreto='815'` sin respaldo DOCX (el manual nunca cita 815/2018) — ver §43.1 | Datos/validación | Requiere validación |
+| R-4 | 42/127 cargos vigentes (33 %) sin sección de requisitos en EAV | Datos | Poblamiento diferido (P2-1) |
+| R-5 | Rotación del JWT_SECRET real en producción | Seguridad/infra | Pendiente (operación de infraestructura) |
+| R-6 | `PUT /compromisos/{id}` responde «actualizado» ignorando `calificacion` | API/UX | P3 documentado |
+| R-7 | Elementos §34 bloqueados (grados 219/367, organigrama, jefaturas, naturaleza temporal, ponderación normativa, competencias funcionales) | Normativo | Esperan decisión humana |
+
+## 43. Recomendación para producción
+
+1. **NO desplegar aún**: corregir primero el BUG P1 (R-1) — es un fix pequeño (2 llamadas a `validarPropuestaPermitida`) pero debe pasar por el mismo control (propuesta → aprobación → implementación → prueba).
+2. Ejecutar las migraciones M001-M005 en orden contra una copia de producción y repetir la regresión §41 allí.
+3. Rotar `JWT_SECRET` en el servidor (operación de infraestructura; el código ya es seguro) y confirmar que `GET /parametros` no expone claves (verificado en código).
+4. Validar con Talentos Humanos los puntos §34 antes de cualquier migración de grados/organigrama.
+5. Reparar el EAV de competencias (R-2) como siguiente ítem de datos maestros.
+6. Después de eso, y solo con la regresión completa verde en staging, declarar conformidad operativa (la conformidad normativa 100 % sigue sujeta a §34).
+
+### 43.1 APR_TEC / decreto 815 (E8) — veredicto: REQUIERE VALIDACIÓN
+
+- **A. ¿El DOCX respalda 2539 inequívocamente?** Parcial: el manual cita el D.2539/2005 (arts. 6-8) como marco de las comportamentales por nivel y ubica «Aporte técnico-profesional» en el nivel Profesional; pero **nunca etiqueta competencias individuales con un decreto**.
+- **B. ¿El 815 proviene de fuente histórica válida?** Es metadata del seed original (verificado en el dump del commit base 5871949: `('APR_TEC','Aporte tecnico profesional','Contribución especializada…','815/2018')`). El D.815/2018 modifica formalmente el D.2539/2005, por lo que ambos pertenecen al mismo marco; pero **el DOCX no cita el 815 en ninguna parte** (0 menciones en ambos documentos).
+- **C/D. ¿Versiones distintas o validación?** La columna `decreto` es metadata informativa del catálogo (la FE la muestra como badge), no una regla del manual. **Decisión: NO cambiar el dato**; validar con el área normativa si la etiqueta debe unificarse a 2539 (marco citado por el manual) o conservarse como referencia al marco vigente modificado. Mientras tanto es solo display, sin efecto en reglas.
+
+### 43.2 Cobertura de requisitos (E9 / P2-1) — estadísticas
+
+| Métrica | Valor |
+|---|---|
+| Cargos vigentes | 127 |
+| Con `requisitos_estudio` en EAV | 80 (63 %) — Global 78/116 (67 %), Temporal 2/11 (18 %) |
+| Con `requisitos_experiencia` en EAV | 88 filas de detalle (todas mencionan años) |
+| Con NBC explícito en el texto | 39 |
+| Sin ninguna sección de requisitos | 42 (33 %) |
+| Filas en tabla estructurada `cargos_manual_requisitos` | 0 |
+| Parseables automáticamente con confianza | Parcial: patrones regulares presentes («NBC X. Título de…», «años»), pero formatos heterogéneos entre fichas → **se requiere revisión humana ficha a ficha**; el poblamiento automático masivo se rechaza por riesgo de inventar datos |
