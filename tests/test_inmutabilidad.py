@@ -4,9 +4,9 @@
 Cubre escenarios A-H y la reproducción exacta del BUG P1 de la Fase E.
 Requiere backend en :8000. Crea fixtures propios y los limpia al final.
 """
-import json, urllib.request, urllib.error, sys
+import json, urllib.request, urllib.error, sys, os
 
-BASE = 'http://localhost:8000'
+BASE = os.environ.get('API_BASE', 'http://localhost:8000')
 API = BASE + '/api/v1'
 PASS = 0
 FAIL = 0

@@ -666,3 +666,91 @@ Estados de evaluación observados en código/BD: `pendiente`, `en_proceso`, `cal
 | Calificación definitiva | — (requiere concertada) | ✅ → calificada | — | — |
 | Re-apertura administrativa (`/guardar`) | ✅ | ✅ | ✅ (excepción intencional documentada) | ✅ |
 | Anular | ✅ | ✅ | ✅ | ❌ 409 (ya firme) |
+
+---
+
+## 47. Staging
+
+**Commit desplegado**: `07d0b91` (candidato aprobado en Fase F). Sin push.
+
+**Entorno de staging simulado** (no existe servidor remoto de staging; se construyó uno aislado en la máquina local):
+
+| Componente | Valor |
+|---|---|
+| BD staging | `edl_carepa_staging` (MariaDB 12.3.2), creada desde el dump del commit base `5871949` = estado «producción sin migrar» (43 tablas, 142 filas cargos_manual, 14 competencias, 167 empleos) |
+| Servidor | `php -S localhost:8001` (PHP 8.5.1) con ENV sobrescritas: `DB_NAME=edl_carepa_staging`, `JWT_SECRET` propio de staging (64 hex, generado aleatorio, **distinto del de dev**, solo en el proceso, nunca en Git) |
+| Frontend | Sin cambios (build verificado) |
+| Node | v24.17.0 |
+
+### 47.1 Backup
+
+- Pre-carga: dump baseline `5871949` (1.95 MB) — se neutralizó la directiva sandbox `/*M!999999*/` de MariaDB y una línea de warning de deprecation capturada dentro del dump histórico (hallazgo menor de reproducibilidad: los dumps históricos no cargan sin esa limpieza).
+- Post-carga: `/tmp/backup_staging_postcarga_20260824_211024.sql` (1.95 MB) — **legibilidad verificada** cargándolo en una BD desechable (43/43 tablas).
+
+### 47.2 Migraciones (estado inicial: C — sin migrar)
+
+M001→M005 aplicadas en orden, todas limpias. Estado final verificado:
+
+| Verificación | Resultado |
+|---|---|
+| 4 tablas nuevas + vista | 5/5 |
+| `competencias_comunes_map` | 6 |
+| `competencias_por_nivel` | 24 (7/7/4/3/3) |
+| `competencias` / `conductas` | 27 · 73 activas / 15 históricas |
+| `parametros.jwt_secret` | 0 (eliminado por M002) |
+| Niveles corregidos (P0-1) | 6/6 |
+| Denominaciones (P0-3) | 7/7 |
+| Gerente PDET / Inspector (P1-7) | LN-Remoción+DEP-012 · Gobierno |
+| **Huérfanos** | **0** (cargos→dep, matriz→competencia) |
+| **Empleos** | **167** |
+
+**Conclusión**: las migraciones son **reproducibles desde baseline**: el estado final de staging es idéntico al de desarrollo.
+
+### 47.3 JWT staging
+
+Login emite token firmado con el secreto de staging ✓ · **token de dev (:8000) RECHAZADO en staging (:8001)** (aislamiento criptográfico real) ✓ · token inválido → rechazado ✓ · sin token → rechazado ✓ · fail-fast si falta la variable (verificado en Fase E) ✓. Ningún secreto en Git (`.env` ignorado; secreto staging solo en el proceso).
+
+### 47.4 Regresión E2E completa en staging
+
+login → multi-rol → aprobación bilateral c3 (5 compromisos) → fijación (CNSC min/max desde `parametros`) → calificación funcionales (80/90, escala 0-100) → calificación comportamentales (12/10/14, escala 4-15) → definitiva → **71.40 + 10.91 = 82.31 satisfactorio** — idéntico al esperado matemáticamente y al obtenido en dev. Matriz por nivel operativa (`asistencial` → [Colaboración, Manejo de la información, Relaciones interpersonales]).
+
+### 47.5 Regresión de inmutabilidad (A-I) en staging
+
+`API_BASE=http://localhost:8001 tests/test_inmutabilidad.py` → **13/13 OK**: A ✓, B ✓, C ✓ 400, D ✓ 400, E ✓ 400 (sin éxito falso), F/F2 ✓ 400, G ✓, H1 ✓, H2 ✓ 400, + reproducción del BUG P1 original rechazada. Ídem en dev (13/13).
+
+**Rutas alternativas**: `cargas_masivas` sin referencias en código (tabla muerta); no existen endpoints bulk/import que escriban compromisos fuera de los 24 puntos protegidos.
+
+**Excepciones de diseño verificadas en staging**: `PUT /evaluaciones/24/guardar` sobre calificada → permitido y **reabre a `en_proceso` preservando las notas** (71.40/10.91/82.31) — comportamiento de re-apertura documentado en código (`$actualizar['estado']='en_proceso'`). `calificacion-manual` exenta de CSRF por diseño, sin cambios.
+
+### 47.6 Pruebas automatizadas (baseline registrado)
+
+| Suite | Resultado |
+|---|---|
+| `tests/test_inmutabilidad.py` (dev) | **13 OK / 0 FAIL** |
+| `tests/test_inmutabilidad.py` (staging) | **13 OK / 0 FAIL** |
+| `php tests/run_tests.php` | **34 OK / 0 FAIL** |
+| `bash tests/run_all.sh` | **9/9 suites PASS** |
+| `npm run build` | OK (27.8s) |
+| `tsc --noEmit` | errores preexistentes del baseline sin cambios (archivos de test FE y páginas ajenas; ningún archivo FE modificado en Fases E-F) |
+
+### 47.7 Datos de prueba
+
+Todos los artefactos de staging y dev creados para la regresión fueron **soft-deleted y verificados en 0 activos**; las evaluaciones originales (10, 24) permanecen en su estado post-flujo legítimo. Ningún dato normativo contaminado.
+
+### 47.8 Observaciones
+
+1. **Umbrales 90/65**: existían ya como filas en `parametros` (ambas BD) con los mismos valores; `ParametroHelper` ahora los lee de allí **sin cambio de comportamiento** (corrige la imprecisión de fases anteriores que los describía como «solo ENV»).
+2. **Reproducibilidad de dumps**: los dumps históricos del repo incluyen una línea de warning y la directiva sandbox de MariaDB que impiden cargarlos directamente (documentado en 47.1) — P3 de infraestructura.
+3. **R-2 (EAV corrupto)**: confirmado también en staging (heredado del baseline); permanece en backlog de datos maestros, sin mezclar con §34.
+
+## 48. Estado de preparación para producción
+
+**Requisitos técnicos (cumplidos en staging)**: migraciones reproducibles ✓ · 0 huérfanos ✓ · E2E verde ✓ · suites 9/9 + 13/13 ✓ · build OK ✓ · cálculo 85/15 y subescala 4-15 verificados ✓.
+
+**Requisitos de seguridad (pendientes)**: rotar `JWT_SECRET` de producción (operación de infraestructura; el código ya es seguro) · verificar TLS/CORS del entorno real · confirmar que `GET /parametros` no expone claves en el despliegue real (blindado en código, verificado en staging).
+
+**Requisitos normativos (pendientes, §34 — bloqueados por decisión humana)**: grados 219/367 (autocontradicción del manual) · fusión DEP-012/013 · jefaturas de 17 dependencias · naturaleza de planta temporal · competencias funcionales (vacío normativo) · etiqueta de decreto de APR_TEC.
+
+**Backlog técnico previo a producción (recomendado)**: R-2 EAV corrupto de competencias en `cargos_manual_detalle` (determinar si es histórico o de migración; afecta datos de fichas) · P3 reproducibilidad de dumps · P3 respuesta de `PUT /compromisos/{id}` ya corregida.
+
+**Veredicto**: **STAGING APROBADO**. Producción NO declarada. La conformidad normativa 100 % sigue sujeta a §34. Cadena requerida: STAGING OK ✓ → E2E OK ✓ → JWT producción rotado ⏳ → revisión final de seguridad ⏳ → decisiones humanas §34 ⏳ → auditoría final ⏳.
