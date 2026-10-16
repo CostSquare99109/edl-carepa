@@ -839,7 +839,7 @@ Cambios requeridos SOLO en el entorno de despliegue (no en el repo): `APP_DEBUG=
 - **Naturaleza**: defecto del seed original (no de migración); heredado por staging.
 - **Impacto**: la sección «competencias» de la ficha (UI ManualFunciones) no puede separar competencias en esas 74 fichas. **NO afecta el flujo de evaluación** (usa `competencias`, `competencias_por_nivel`, `conductas`).
 - **Clasificación**: P2 — datos maestros, independiente de §34.
-- **Estrategia de reparación propuesta (futura, requiere aprobación)**: re-poblar la sección desde los modelos normativos de `docs/auditoria/aux/` (que tienen las listas correctas por ficha) con validación humana por muestra; no parsear el texto corrupto.
+- **Estrategia de reparación propuesta (futura, requiere aprobación)**: re-poblar la sección desde los modelos normativos de `docs/auditoria/extra/` (que tienen las listas correctas por ficha) con validación humana por muestra; no parsear el texto corrupto.
 
 ## 55. Checklist de despliegue y rollback
 

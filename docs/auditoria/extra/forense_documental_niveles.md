@@ -9,8 +9,8 @@
 
 | Fuente | Archivo | Uso |
 |---|---|---|
-| Modelo estructurado global | `docs/auditoria/aux/modelo_planta_global.md` (5.523 líneas) | §1 agregada, §1.1 discriminada, §4 fichas |
-| Modelo estructurado temporal | `docs/auditoria/aux/modelo_planta_temporal.md` | §6 fichas |
+| Modelo estructurado global | `docs/auditoria/extra/modelo_planta_global.md` (5.523 líneas) | §1 agregada, §1.1 discriminada, §4 fichas |
+| Modelo estructurado temporal | `docs/auditoria/extra/modelo_planta_temporal.md` | §6 fichas |
 | Texto crudo global | `/tmp/manual_global.txt` (1.996 líneas) | verificación independiente de cada campo `Nivel:` de ficha |
 | BD | `cargos_manual` (MariaDB, vigentes `eliminado_en IS NULL`) | estado a corregir |
 | Migraciones | `database/migrations/M003_p0_1_p0_3_p1_7_datos_maestros.sql`, `2026_07_18_fase4_cargos_faltantes_manual_funciones{,_v2}.sql` | trazabilidad del seed y parches previos |

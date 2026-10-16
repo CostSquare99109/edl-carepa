@@ -1,7 +1,7 @@
 -- ============================================================================
 -- M010_oleada1_eav_global.sql — GENERADO por tests/generar_eav_oleada1.py
 -- Poblacion EAV (cargos_manual_detalle) para cargos globales sin filas EAV.
--- Fuente literal: docs/auditoria/aux/modelo_planta_global.md (FICHAS 1-100).
+-- Fuente literal: docs/auditoria/extra/modelo_planta_global.md (FICHAS 1-100).
 -- Cargos objetivo: 22 · mapeados automaticamente: 2
 -- Filas a insertar: 14 · sin ficha (pendientes revision): 20
 -- Excluidos por decision TH: ids 147-151 (AA sin respaldo en el manual).

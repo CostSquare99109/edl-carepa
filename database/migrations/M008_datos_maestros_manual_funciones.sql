@@ -7,7 +7,7 @@
 -- APROBACION (usuario): Bloque A completo (12 renombres + 2 num_cargos +
 --   3 INSERT Tramites/Asistente Transito) y Bloque B (Secretario SAMA,
 --   dependencia_id=12, INSERT + num_cargos id 6). proposito_principal literal.
--- FUENTE NORMATIVA: docs/auditoria/aux/modelo_planta_global.md
+-- FUENTE NORMATIVA: docs/auditoria/extra/modelo_planta_global.md
 --   FICHAS 21,26,28,31,32,35,38,58,59,80,83,93 (renombres)
 --   FICHAS 41 (@2187), 42 (@2239), 43 (@2290), 78 (@4102) (INSERT)
 --   FICHA 88 (@4613) (num_cargos id 76); tabla agregada 020=9 (num_cargos id 6)

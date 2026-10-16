@@ -122,7 +122,7 @@ nivel_ok = all(any(NIVEL.get(r['nivel'], ...) == NIVEL.get(dd['nivel_db'], ...) 
 
 ### E1. ¿Qué tendría que ser falso para NO corregir? → Las fichas tendrían que decir Asistencial. No lo dicen.
 
-Mapeo ficha-a-ficha de los 23 ids residuales contra `docs/auditoria/aux/modelo_planta_global.md`
+Mapeo ficha-a-ficha de los 23 ids residuales contra `docs/auditoria/extra/modelo_planta_global.md`
 (extracción literal de las filas `| Nivel |`, `| Grado |`, `| No. de Cargos |`):
 
 | id(s) BD | Ficha | Denominación | Nivel ficha | Grado | Cargos ficha | BD num |

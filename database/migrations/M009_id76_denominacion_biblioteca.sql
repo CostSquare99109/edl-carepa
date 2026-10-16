@@ -1,7 +1,7 @@
 -- ============================================================================
 -- M009_id76_denominacion_biblioteca.sql
 -- Renombre con respaldo literal: FICHA 88 del Manual Global Marzo 2025
--- (docs/auditoria/aux/modelo_planta_global.md @4613).
+-- (docs/auditoria/extra/modelo_planta_global.md @4613).
 -- Aprobación pendiente→otorgada por usuario (conversación 2026-08-25, diff previo).
 --
 -- IMPORTANTE: este archivo NO contiene USE. Aplicar EXCLUSIVAMENTE vía:

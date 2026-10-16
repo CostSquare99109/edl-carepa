@@ -2,7 +2,7 @@
 """
 generar_eav_oleada1.py — Oleada 1 (Global): genera el SQL de poblacion EAV
 (cargos_manual_detalle) para los cargos globales SIN ninguna fila EAV, desde la
-transcripcion normativa docs/auditoria/aux/modelo_planta_global.md.
+transcripcion normativa docs/auditoria/extra/modelo_planta_global.md.
 
 Salidas:
   database/migrations/M010_oleada1_eav_global.sql      (aplicar SOLO via aplicar_migracion.sh)
@@ -212,7 +212,7 @@ lineas = [
     "-- ============================================================================",
     "-- M010_oleada1_eav_global.sql — GENERADO por tests/generar_eav_oleada1.py",
     "-- Poblacion EAV (cargos_manual_detalle) para cargos globales sin filas EAV.",
-    "-- Fuente literal: docs/auditoria/aux/modelo_planta_global.md (FICHAS 1-100).",
+    "-- Fuente literal: docs/auditoria/extra/modelo_planta_global.md (FICHAS 1-100).",
     f"-- Cargos objetivo: {len(objetivos)} · mapeados automaticamente: {len(reporte)}",
     f"-- Filas a insertar: {len(inserts)} · sin ficha (pendientes revision): {len(sin_ficha)}",
     "-- Excluidos por decision TH: ids 147-151 (AA sin respaldo en el manual).",
