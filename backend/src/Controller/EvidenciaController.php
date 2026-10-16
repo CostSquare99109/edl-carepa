@@ -85,7 +85,8 @@ public function compromisosEvaluado(): void
   $evaluacion = $stmtEval->fetch(\PDO::FETCH_ASSOC);
 
   $concertacionId = $evaluacion['concertacion_id'] ?? null;
-  if (!$concertacionId) {
+  if (!$concertacionId && $tipoValido === null) {
+  // Solo en vista anual se admite la concertacion del periodo sin evaluationsemestre
   $stmtCon = $pdo->prepare("SELECT id FROM concertaciones WHERE evaluado_id = ? AND periodo_id = ? AND eliminado_en IS NULL ORDER BY id LIMIT 1");
   $stmtCon->execute([$evaluadoId, $periodoId]);
   $concertacionId = $stmtCon->fetchColumn();
