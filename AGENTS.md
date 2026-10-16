@@ -82,6 +82,11 @@ PID files in `.pids/`, logs in `.logs/`.
 7. **No es Laravel/Symfony**: MVC propio. Ningun archivo de vendor en repos.
 8. **Tests FE**: no hay framework de tests frontend. Verificaciones manuales contra la API.
 9. **Vite port**: `vite.config.ts` define puerto **5174**; el config es la fuente de verdad.
+10. **Reglas de evaluabilidad / año laboral**: NUNCA hardcodear la secuencia de semestres. Toda la lógica vive en `backend/src/Service/ReglaEvaluabilidadService.php` (fuente de verdad) y se consume en el frontend vía `GET /evaluaciones/evaluado/{id}/reglas-evaluabilidad`. Quien ingresó en 2.º semestre no tiene 1.er semestre y su año laboral cruza dos períodos. Ver `cnsc/03-periodos-y-etapas.md` §8.
+11. **Semestre de ingreso**: `usuarios.semestre_ingreso` (enum, NULL = derivar de `fecha_posesion`). La fecha real de vinculación es `usuarios.fecha_posesion` — **no existe `fecha_vinculacion` en `usuarios`** (solo en la tabla legacy del dump).
+12. **Umbrales de calificación**: 85 % Sobresaliente / 65 % Satisfactorio, ambos parametrizados en `parametros`. Usar `ParametroHelper` (backend) y `UMBRAL_SOBRESALIENTE` de `frontend/src/lib/reglasEvaluabilidad.ts`. **Prohibido** escribir `>= 90` o `> 65` literales, ni en PHP ni en SQL de reportes.
+13. **CSRF de un solo uso**: `CsrfHelper::validar()` marca el token como `utilizado`. Cada request mutante necesita un token nuevo de `GET /auth/csrf`. En tests, pedirlo dentro del helper de cada POST/PUT.
+14. **`/evaluaciones/iniciar` usa el usuario autenticado**, ignora `evaluado_id` del body (`EvaluacionController.php:292`). Los tests deben iniciar sesión como el funcionario.
 
 ## Convenciones
 
@@ -110,6 +115,9 @@ Contrasena de todos: `12345678`.
 | Router | `backend/src/Router/Router.php` |
 | Auth middleware (acepta `?token=`) | `backend/src/Middleware/AuthMiddleware.php` |
 | Permisos | `backend/src/Middleware/PermissionMiddleware.php` |
+| Reglas evaluabilidad / año laboral | `backend/src/Service/ReglaEvaluabilidadService.php` |
+| UI reglas evaluabilidad | `frontend/src/lib/reglasEvaluabilidad.ts` |
+| Tests reglas año laboral | `tests/unit_reglas_evaluabilidad_test.php`, `tests/test_reglas_evaluabilidad.py` |
 | Generacion PDF | `backend/src/Helper/PdfHelper.php` |
 | Reportes PDF (datos + conductas) | `backend/src/Service/ReporteService.php` |
 | Cliente HTTP FE | `frontend/src/lib/api.ts` |
@@ -128,3 +136,4 @@ Contrasena de todos: `12345678`.
 - `cnsc/` — documentacion tecnica CNSC.
 - `cnsc/17-endpoints-api.md` — referencia completa de endpoints.
 - `cnsc/18-arquitectura.md` — arquitectura detallada.
+- `cnsc/03-periodos-y-etapas.md` §8 — año laboral, ingreso en 2.º semestre y umbrales 85/65.

@@ -98,21 +98,25 @@ class ReporteService
  $stmt->execute([$periodoId]);
  $porEstado = $stmt->fetchAll();
 
- $stmt = $pdo->prepare("
- SELECT
- CASE
- WHEN calificacion_definitiva >= 90 THEN 'sobresaliente'
- WHEN calificacion_definitiva >= 65 THEN 'satisfactorio'
- WHEN calificacion_definitiva > 0 THEN 'no_satisfactorio'
- ELSE 'sin_calificacion'
- END as categoria,
- COUNT(*) as total
- FROM evaluaciones
- WHERE periodo_id = ? AND eliminado_en IS NULL AND calificacion_definitiva IS NOT NULL
- GROUP BY categoria
- ORDER BY FIELD(categoria, 'sobresaliente', 'satisfactorio', 'no_satisfactorio', 'sin_calificacion')
- ");
- $stmt->execute([$periodoId]);
+$stmt = $pdo->prepare("
+  SELECT
+  CASE
+  WHEN calificacion_definitiva >= :umbralSobresaliente THEN 'sobresaliente'
+  WHEN calificacion_definitiva >= :umbralSatisfactorio THEN 'satisfactorio'
+  WHEN calificacion_definitiva > 0 THEN 'no_satisfactorio'
+  ELSE 'sin_calificacion'
+  END as categoria,
+  COUNT(*) as total
+  FROM evaluaciones
+  WHERE periodo_id = :periodoId AND eliminado_en IS NULL AND calificacion_definitiva IS NOT NULL
+  GROUP BY categoria
+  ORDER BY FIELD(categoria, 'sobresaliente', 'satisfactorio', 'no_satisfactorio', 'sin_calificacion')
+  ");
+  $stmt->execute([
+   'umbralSobresaliente' => \App\Helper\ParametroHelper::float('umbral_sobresaliente', 'UMBRAL_SOBRESALIENTE', 85),
+   'umbralSatisfactorio' => \App\Helper\ParametroHelper::float('umbral_satisfactorio', 'UMBRAL_SATISFACTORIO', 65),
+   'periodoId' => $periodoId,
+  ]);
  $porCalificacion = $stmt->fetchAll();
 
  return [
@@ -147,21 +151,26 @@ class ReporteService
  $stmt->execute([$periodoId, $periodoId, $entidadId]);
  $stats = $stmt->fetch();
 
- $stmt = $pdo->prepare("
- SELECT
- CASE
- WHEN ev.calificacion_definitiva >= 90 THEN 'sobresaliente'
- WHEN ev.calificacion_definitiva >= 65 THEN 'satisfactorio'
- WHEN ev.calificacion_definitiva > 0 THEN 'no_satisfactorio'
- ELSE 'sin_calificacion'
- END as categoria,
- COUNT(*) as total
- FROM evaluaciones ev
- INNER JOIN usuarios u ON u.id = ev.evaluado_id
- WHERE ev.periodo_id = ? AND u.entidad_id = ? AND ev.eliminado_en IS NULL AND ev.calificacion_definitiva IS NOT NULL
- GROUP BY categoria
- ");
- $stmt->execute([$periodoId, $entidadId]);
+$stmt = $pdo->prepare("
+  SELECT
+  CASE
+  WHEN ev.calificacion_definitiva >= :umbralSobresaliente THEN 'sobresaliente'
+  WHEN ev.calificacion_definitiva >= :umbralSatisfactorio THEN 'satisfactorio'
+  WHEN ev.calificacion_definitiva > 0 THEN 'no_satisfactorio'
+  ELSE 'sin_calificacion'
+  END as categoria,
+  COUNT(*) as total
+  FROM evaluaciones ev
+  INNER JOIN usuarios u ON u.id = ev.evaluado_id
+  WHERE ev.periodo_id = :periodoId AND u.entidad_id = :entidadId AND ev.eliminado_en IS NULL AND ev.calificacion_definitiva IS NOT NULL
+  GROUP BY categoria
+  ");
+  $stmt->execute([
+   'umbralSobresaliente' => \App\Helper\ParametroHelper::float('umbral_sobresaliente', 'UMBRAL_SOBRESALIENTE', 85),
+   'umbralSatisfactorio' => \App\Helper\ParametroHelper::float('umbral_satisfactorio', 'UMBRAL_SATISFACTORIO', 65),
+   'periodoId' => $periodoId,
+   'entidadId' => $entidadId,
+  ]);
  $porCalificacion = $stmt->fetchAll();
 
  return [

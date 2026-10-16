@@ -13,12 +13,42 @@ use App\Middleware\AuthMiddleware;
 
 class UsuarioService
 {
- private UsuarioRepository $repo;
+  /** Semestres de ingreso admitidos (ver ReglaEvaluabilidadService). */
+  public const SEMESTRES_INGRESO = ['primer_semestre', 'segundo_semestre'];
 
- public function __construct()
- {
- $this->repo = new UsuarioRepository();
- }
+  private UsuarioRepository $repo;
+
+  public function __construct()
+  {
+  $this->repo = new UsuarioRepository();
+  }
+
+  /**
+   * Valida `semestre_ingreso`. Cadena vacia o null significan "sin definir",
+   * caso en el que el motor de reglas lo deriva de `fecha_posesion`.
+   */
+  private function normalizarSemestreIngreso(array $datos): array
+  {
+    if (!array_key_exists('semestre_ingreso', $datos)) {
+     return $datos;
+    }
+
+    $valor = $datos['semestre_ingreso'];
+    if ($valor === '' || $valor === null) {
+     $datos['semestre_ingreso'] = null;
+     return $datos;
+    }
+
+    if (!in_array($valor, self::SEMESTRES_INGRESO, true)) {
+     ResponseHelper::error(
+      'semestre_ingreso invalido. Valores validos: ' . implode(', ', self::SEMESTRES_INGRESO) . ' o vacio para derivarlo de la fecha de posesion.',
+      422
+     );
+    }
+
+    $datos['semestre_ingreso'] = $valor;
+    return $datos;
+  }
 
  public function listar(array $filtros, int $pagina, int $porPagina): array
  {
@@ -56,6 +86,8 @@ class UsuarioService
 	 $datos['password_hash'] = password_hash($password, PASSWORD_BCRYPT);
 	 unset($datos['password']);
  $datos['estado'] = $datos['estado'] ?? 'activo';
+
+ $datos = $this->normalizarSemestreIngreso($datos);
 
   if (!empty($datos['es_contratista'])) {
   $datos['es_contratista'] = 1;
@@ -118,11 +150,12 @@ class UsuarioService
    'nivel', 'naturaleza', 'tipo_nombramiento',
    'entidad_id', 'dependencia_id',
    'estado', 'es_contratista',
-   'en_periodo_prueba', 'fecha_posesion', 'proposito_principal_empleo',
+   'en_periodo_prueba', 'fecha_posesion', 'semestre_ingreso', 'proposito_principal_empleo',
    'es_evaluador_y_evaluado',
    'fecha_inicio_evaluacion', 'motivo_fecha_inicio_diferente',
   ];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
+ $datosFiltrados = $this->normalizarSemestreIngreso($datosFiltrados);
 
  // Invariante R1 (auditoria usuarios.nivel): usuarios.nivel es una copia
  // materializada derivada del cargo vigente (cargos_manual, Decreto 159/2024).

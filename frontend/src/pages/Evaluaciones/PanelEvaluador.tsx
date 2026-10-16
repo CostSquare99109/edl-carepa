@@ -4,6 +4,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Card, Button, Input, Select, Alert, Badge, Modal, EmptyState, Tooltip, SkeletonText } from '../../components/ui';
 import CargoManualTooltip from '../../components/CargoManualTooltip';
 import { toast } from 'sonner';
+import { UMBRAL_SOBRESALIENTE, UMBRAL_SATISFACTORIO } from '../../lib/reglasEvaluabilidad';
+import type { ReglasEvaluabilidad } from '../../lib/reglasEvaluabilidad';
 
 interface Periodo {
   id: number;
@@ -147,8 +149,6 @@ const APORTE_OPTIONS = [
 
 const PESO_FUNCIONALES = 85;
 const PESO_COMPORTAMENTALES = 15;
-const UMBRAL_SOBRESALIENTE = 90;
-const UMBRAL_SATISFACTORIO = 65;
 const MIN_CARACTERES_EXCEDE = 40;
 
 // Extrae el anio de inicio de un nombre de periodo tipo "2026-2027"
@@ -183,7 +183,7 @@ function escalaComportamental(puntaje: number): string {
 
 function escalaFinal(puntaje: number): { label: string; color: string } {
   if (puntaje >= UMBRAL_SOBRESALIENTE) return { label: 'Sobresaliente', color: 'text-green-700 bg-green-50' };
-  if (puntaje > UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-inst-azul bg-inst-azul-surface' };
+  if (puntaje >= UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-inst-azul bg-inst-azul-surface' };
   return { label: 'No Satisfactorio', color: 'text-red-700 bg-red-50' };
 }
 
@@ -194,9 +194,9 @@ const ESCALA_FINAL_TONE: Record<string, 'success' | 'info' | 'danger'> = {
 };
 
 const ESCALA_FINAL_DESC: Record<string, string> = {
-  Sobresaliente: '≥ 90% — Desempeño destacado. Acceso a encargos, comisiones y derechos de carrera.',
-  Satisfactorio: '> 65% y < 90% — Desempeño adecuado. Permanencia en el servicio.',
-  'No Satisfactorio': '≤ 65% — Requiere suscripción de compromisos de mejoramiento. Posible separación.',
+  [`Sobresaliente`]: `≥ ${UMBRAL_SOBRESALIENTE}% — Desempeño destacado. Acceso a encargos, comisiones y derechos de carrera.`,
+  Satisfactorio: `${UMBRAL_SATISFACTORIO}% a ${UMBRAL_SOBRESALIENTE - 0.1}% — Desempeño adecuado. Permanencia en el servicio.`,
+  'No Satisfactorio': `< ${UMBRAL_SATISFACTORIO}% — Requiere suscripción de compromisos de mejoramiento. Posible separación.`,
 };
 
 const ESCALA_CONSECUENCIAS: Record<string, { titulo: string; items: string[]; tone: 'success' | 'info' | 'danger' }> = {
@@ -256,6 +256,9 @@ export default function PanelEvaluador() {
   const [motivoNoJefe, setMotivoNoJefe] = useState('');
   const [evaluacionIniciada, setEvaluacionIniciada] = useState(false);
 
+  // Reglas de evaluabilidad / ano laboral del evaluado seleccionado
+  const [reglas, setReglas] = useState<ReglasEvaluabilidad | null>(null);
+
   // Modal de calificación
   const [modalCompromiso, setModalCompromiso] = useState<Compromiso | null>(null);
   const [calificacion, setCalificacion] = useState<number>(50);
@@ -285,6 +288,31 @@ export default function PanelEvaluador() {
   }, [tipoEvaluacion, fechaInicio, fechaFin, periodoId, periodos]);
 
   useEffect(() => { cargarPeriodos(); }, []);
+
+ // Reglas de evaluabilidad: dependan del evaluado seleccionado y del periodo.
+ useEffect(() => {
+   const evaluadoId = evaluacionSel?.evaluado_id;
+   if (!evaluadoId || periodoId <= 0) { setReglas(null); return; }
+   let cancelado = false;
+   api.get<any>(`/evaluaciones/evaluado/${evaluadoId}/reglas-evaluabilidad?periodo_id=${periodoId}`)
+     .then((res: any) => {
+       if (cancelado) return;
+       const data = res && typeof res === 'object' && 'data' in res ? res.data : res;
+       setReglas(data && typeof data === 'object' ? data as ReglasEvaluabilidad : null);
+     })
+     .catch(() => { if (!cancelado) setReglas(null); });
+   return () => { cancelado = true; };
+ }, [evaluacionSel?.evaluado_id, periodoId]);
+
+ // Opciones de tipo segun las reglas: oculta el semestre que no corresponde.
+ const tiposDisponibles = useMemo(() => {
+   if (!reglas) return TIPOS_EVALUACION;
+   return TIPOS_EVALUACION.filter(t => {
+     if (t.backend === 'parcial_primer_semestre') return reglas.puede_iniciar_primer_semestre;
+     if (t.backend === 'parcial_segundo_semestre') return reglas.puede_iniciar_segundo_semestre;
+     return true;
+   });
+ }, [reglas]);
 
   async function cargarPeriodos() {
     try {
@@ -382,6 +410,7 @@ export default function PanelEvaluador() {
     setEvaluacionSel(ev);
     setEvaluacionIniciada(false);
     setTipoEvaluacion('');
+    setReglas(null);
     setMotivoEvaluacion('');
     setRazonEvaluacion('');
     setFechaInicio('');
@@ -785,9 +814,16 @@ export default function PanelEvaluador() {
                 className="edl-input"
               >
                 <option value="">Seleccione...</option>
-                {TIPOS_EVALUACION.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-            </div>
+                {tiposDisponibles.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+
+              {reglas?.exento_primer_semestre && (
+                <Alert tone="info" className="text-xs">
+                  Ingreso en el segundo semestre{reglas.fecha_posesion ? ` (${reglas.fecha_posesion})` : ''}: el primer semestre del período no le corresponde.
+                  Su año laboral se completa con la parcial del primer semestre del período siguiente.
+                </Alert>
+              )}
 
             {/* Panel especifico Evaluacion 2 Semestre (segun tarea_evaluador.md) */}
             {tipoEvaluacion === 'segundo_semestre' && (
@@ -797,7 +833,11 @@ export default function PanelEvaluador() {
                   <h4 className="font-heading font-bold text-inst-texto">Evaluacion 2 Semestre</h4>
                 </div>
                 <ol className="list-decimal ml-5 space-y-1 text-sm text-inst-texto">
-                  <li>Debe tener una evaluacion para el primer semestre.</li>
+                  <li>
+                    {reglas?.exento_primer_semestre
+                      ? 'No aplica: el funcionario ingreso en el segundo semestre, esta es la primera parcial de su ano laboral.'
+                      : 'Debe tener una evaluacion para el primer semestre.'}
+                  </li>
                   <li>
                     La fecha de evaluacion debe estar entre <b>01-08-Anio</b> y <b>31-01-Anio+1</b>.
                     {(() => {

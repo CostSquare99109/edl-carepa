@@ -17,7 +17,7 @@ class UsuarioRepository extends BaseRepository
   'es_contratista', 'nivel', 'naturaleza', 'tipo_nombramiento',
   'denominacion_empleo', 'codigo_empleo', 'grado_empleo',
   'es_evaluador_y_evaluado', 'dependencia_evaluacion_id',
-  'en_periodo_prueba', 'fecha_posesion', 'proposito_principal_empleo',
+  'en_periodo_prueba', 'fecha_posesion', 'semestre_ingreso', 'proposito_principal_empleo',
   'evaluacion_inicio_febrero', 'debe_cambiar_password',
   'fecha_inicio_evaluacion', 'motivo_fecha_inicio_diferente',
  ];

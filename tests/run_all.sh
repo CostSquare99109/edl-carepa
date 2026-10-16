@@ -61,7 +61,7 @@ echo ""
 echo "--- Python Integration Tests ---"
 
 if python3 -c "import urllib.request" 2>/dev/null; then
-    for f in tests/test_auth_security.py tests/test_validation.py; do
+    for f in tests/test_auth_security.py tests/test_validation.py tests/test_reglas_evaluabilidad.py; do
         [ -f "$f" ] || continue
         name=$(basename "$f")
         run_test "$name" "python3 $f" ".logs/${name%.py}.log"

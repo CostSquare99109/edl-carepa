@@ -34,6 +34,7 @@ interface Usuario {
   grado_empleo?: string;
   en_periodo_prueba: number;
   fecha_posesion?: string;
+  semestre_ingreso?: string;
   proposito_principal_empleo?: string;
   evaluacion_inicio_febrero: number;
   fecha_inicio_evaluacion?: string;
@@ -109,6 +110,23 @@ const TIPOS_NOMBRAMIENTO = [
   { value: 'encargo_vacancia_temporal', label: 'Encargo — Vacancia temporal' },
 ];
 
+// Semestre de ingreso: define si el primer semestre del periodo le
+// corresponde al funcionario. Un ingreso en el 2do semestre implies que el
+// 1er semestre ya cerro y no es evaluable (ano laboral cierra en julio).
+const SEMESTRES_INGRESO = [
+  { value: 'primer_semestre', label: 'Primer semestre (febrero - julio)' },
+  { value: 'segundo_semestre', label: 'Segundo semestre (agosto - enero)' },
+];
+
+/** Deriva el semestre de ingreso a partir de la fecha de posesion. */
+function semestreIngresoSugerido(fecha?: string): string {
+  if (!fecha) return '';
+  const mes = Number(fecha.slice(5, 7));
+  if (!mes) return '';
+  // Enero cierra el segundo semestre del periodo anterior.
+  return mes === 1 || mes >= 8 ? 'segundo_semestre' : 'primer_semestre';
+}
+
 const MOTIVOS_FECHA_INICIO = [
   { value: 'terminacion_periodo_prueba', label: 'Terminación Periodo de prueba' },
   { value: 'terminacion_vacancia_temporal', label: 'Terminación de la vacancia temporal' },
@@ -168,6 +186,7 @@ export default function AdminUsuarios() {
     dependencia_evaluacion_id: '',
     en_periodo_prueba: 0,
     fecha_posesion: '',
+    semestre_ingreso: '',
     proposito_principal_empleo: '',
     evaluacion_inicio_febrero: 1,
     fecha_inicio_evaluacion: '',
@@ -258,6 +277,7 @@ export default function AdminUsuarios() {
     dependencia_evaluacion_id: '',
     en_periodo_prueba: 0,
     fecha_posesion: '',
+    semestre_ingreso: '',
     proposito_principal_empleo: '',
     evaluacion_inicio_febrero: 1,
     fecha_inicio_evaluacion: '',
@@ -305,6 +325,7 @@ export default function AdminUsuarios() {
       dependencia_evaluacion_id: u.dependencia_evaluacion_id ? String(u.dependencia_evaluacion_id) : '',
       en_periodo_prueba: u.en_periodo_prueba,
       fecha_posesion: u.fecha_posesion || '',
+      semestre_ingreso: u.semestre_ingreso || semestreIngresoSugerido(u.fecha_posesion),
       proposito_principal_empleo: u.proposito_principal_empleo || '',
       evaluacion_inicio_febrero: u.evaluacion_inicio_febrero,
       fecha_inicio_evaluacion: u.fecha_inicio_evaluacion || '',
@@ -385,6 +406,7 @@ export default function AdminUsuarios() {
         dependencia_evaluacion_id: form.dependencia_evaluacion_id ? Number(form.dependencia_evaluacion_id) : null,
         en_periodo_prueba: form.en_periodo_prueba === -1 ? 0 : form.en_periodo_prueba,
         fecha_posesion: form.fecha_posesion || null,
+        semestre_ingreso: form.semestre_ingreso || null,
         proposito_principal_empleo: form.proposito_principal_empleo.trim() || null,
         evaluacion_inicio_febrero: form.evaluacion_inicio_febrero === -1 ? 1 : form.evaluacion_inicio_febrero,
       };
@@ -1070,10 +1092,37 @@ export default function AdminUsuarios() {
                         label="Fecha de posesión *"
                         type="date"
                         value={form.fecha_posesion}
-                        onChange={e => setForm({ ...form, fecha_posesion: e.target.value })}
+                        onChange={e => {
+                          const fecha = e.target.value;
+                          setForm({
+                            ...form,
+                            fecha_posesion: fecha,
+                            // Sugiere el semestre de ingreso segun el mes,
+                            // sin pisar una eleccion manual previa.
+                            semestre_ingreso: form.semestre_ingreso || semestreIngresoSugerido(fecha),
+                          });
+                        }}
                       />
                     </div>
                   )}
+
+                  {/* Semestre de ingreso: define si el primer semestre le
+                      corresponde. Se sugiere desde la fecha de posesión y el
+                      administrador puede ajustarlo. */}
+                  <div className="mt-4 space-y-2">
+                    <Select
+                      label="Semestre de ingreso"
+                      value={form.semestre_ingreso}
+                      onChange={e => setForm({ ...form, semestre_ingreso: e.target.value })}
+                      placeholder="Derivar de la fecha de posesión..."
+                      options={SEMESTRES_INGRESO}
+                    />
+                    <p className="text-xs text-inst-texto-claro">
+                      Si el funcionario ingresó en el segundo semestre, el primer semestre del
+                      período no le corresponde y su año laboral se completa con la parcial del
+                      primer semestre del período siguiente.
+                    </p>
+                  </div>
 
                   {/* Inicio de evaluación (CNSC video 8) */}
                   <div className="mt-4 space-y-3">

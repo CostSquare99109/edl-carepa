@@ -89,3 +89,62 @@ Adicionalmente, según el Acuerdo 561 de 2016 (que modificó el parágrafo del a
 | Calificación definitiva — recursos | Reposición ante el evaluador + Apelación ante el inmediato superior | Dentro de los **5 días hábiles** siguientes a la notificación. |
 
 > Contra las evaluaciones semestrales o parciales expresas o presuntas **no procede recurso alguno**.
+## 8. Año laboral del funcionario ingreso posterior al inicio del período
+
+> **Implementado en EDL Carepa** mediante `ReglaEvaluabilidadService`
+> (backend) y `frontend/src/lib/reglasEvaluabilidad.ts` (frontend).
+
+Un funcionario que se vincula **durante el segundo semestre** (1 de agosto – 31 de enero) no puede
+evaluarse el primer semestre de ese período: su ventana ya se cerró antes de su ingreso. Para esos
+casos la calificación se organiza por **año laboral**, no por período administrativo.
+
+### 8.1 Semestre de ingreso
+
+El módulo de Usuarios (rol administrador) permite registrar el **semestre de ingreso**
+(`usuarios.semestre_ingreso`) al crear o editar el funcionario. Fuentes, en orden de prioridad:
+
+1. `usuarios.semestre_ingreso` — elección explícita del administrador.
+2. `usuarios.fecha_posesion` — derivado: enero y agosto–diciembre son 2.º semestre; febrero–julio son 1.er semestre.
+3. `primer_semestre` — valor por defecto cuando no hay información.
+
+El formulario sugiere el semestre a partir de la fecha de posesión, pero el administrador puede ajustarlo.
+
+### 8.2 Composición del año laboral
+
+| Ingreso | Parcial 1 | Parcial 2 | Cierre del año laboral | Definitiva |
+|---|---|---|---|---|
+| **1.er semestre** (feb – jul) | 1.er semestre del período N | 2.º semestre del período N | **31 de julio** | **Enero** (ciclo alineado al período) |
+| **2.º semestre** (ago – ene) | 2.º semestre del período N | 2.º semestre del período **N+1** | **31 de enero** | **Julio** (ciclo desplazado) |
+
+Quien ingresa en el 2.º semestre **queda con ciclo desplazado de forma permanente**: sus definitivas
+se emiten siempre en julio, promediando el 2.º semestre de un período con el 1.er semestre del siguiente.
+
+### 8.3 Reglas aplicadas
+
+| Regla | Efecto |
+|---|---|
+| R1 | El 1.er semestre de un período no corresponde a quien ingresó en el 2.º semestre: se oculta en la interfaz y la API responde `422`. |
+| R2 | La segunda parcial del año laboral exige que exista la primera. Quien ingresó en el 2.º semestre no tiene este requisito para su 2.º semestre, que es su primera parcial. |
+| R3 | Cada parcial se calcula como **funcional 85 % + comportamental 15 %**. |
+| R4 | La definitiva del año laboral es el **promedio simple de sus dos parciales**, aunque pertenezcan a períodos distintos. Cada parcial cuenta una sola vez. |
+| R5 | El funcionario en período de prueba (≤ 120 días) no es sujeto de evaluación (art. 15, Resolución 1760 de 2010). |
+
+### 8.4 Escala de calificación
+
+| Rango | Nivel |
+|---|---|
+| **≥ 85 %** | Sobresaliente |
+| **65 % – 84,9 %** | Satisfactorio |
+| **< 65 %** | No satisfactorio |
+
+Los umbrales viven en la tabla `parametros` (`umbral_sobresaliente` = 85, `umbral_satisfactorio` = 65).
+**No se deben escribir literales 85/90/65 en el código**: usar `ParametroHelper` en el backend y
+`frontend/src/lib/reglasEvaluabilidad.ts` en el frontend.
+
+### 8.5 Emitir la definitiva del año laboral
+
+`POST /api/v1/evaluaciones/evaluado/{id}/definitiva-anio-laboral?periodo_id=N`
+
+- Exige que las **dos** parciales estén en estado `calificada` / `aprobada_comision` / `cerrada` con nota.
+- Crea una evaluación `tipo = calificacion_definitiva` en el período donde se cierra el año laboral.
+- No se puede emitir dos veces para el mismo período (`409`/mensaje de duplicidad).

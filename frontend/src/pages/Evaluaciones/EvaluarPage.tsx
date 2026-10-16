@@ -1,3 +1,5 @@
+import { UMBRAL_SOBRESALIENTE, UMBRAL_SATISFACTORIO } from '../../lib/reglasEvaluabilidad';
+import type { ReglasEvaluabilidad } from '../../lib/reglasEvaluabilidad';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { api } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -120,13 +122,11 @@ const TIPOS_EVALUACION = [
 
 const PESO_FUNCIONALES = 85;
 const PESO_COMPORTAMENTALES = 15;
-const UMBRAL_SOBRESALIENTE = 90;
-const UMBRAL_SATISFACTORIO = 65;
 const MIN_CARACTERES_EXCEDE = 40;
 
 function escalaFinal(puntaje: number): { label: string; color: string } {
   if (puntaje >= UMBRAL_SOBRESALIENTE) return { label: 'Sobresaliente', color: 'text-green-700 bg-green-50' };
-  if (puntaje > UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-inst-azul bg-inst-azul-surface' };
+  if (puntaje >= UMBRAL_SATISFACTORIO) return { label: 'Satisfactorio', color: 'text-inst-azul bg-inst-azul-surface' };
   return { label: 'No Satisfactorio', color: 'text-red-700 bg-red-50' };
 }
 
@@ -209,7 +209,7 @@ export default function EvaluarPage() {
   const [evaluandoComp, setEvaluandoComp] = useState<Compromiso | null>(null);
   const [saving, setSaving] = useState(false);
   const [showVerEvaluaciones, setShowVerEvaluaciones] = useState<EvaluadoPeriodo | null>(null);
-  const [primerSemestreExiste, setPrimerSemestreExiste] = useState<boolean | null>(null);
+  const [reglas, setReglas] = useState<ReglasEvaluabilidad | null>(null);
   const [showConfirmarEvaluacion, setShowConfirmarEvaluacion] = useState(false);
   const [confirmData, setConfirmData] = useState<{ notaFunc: number; notaComp: number; escala: string } | null>(null);
   const [showInstrucciones, setShowInstrucciones] = useState(false);
@@ -227,21 +227,30 @@ export default function EvaluarPage() {
 
   useEffect(() => { cargarPeriodos(); }, []);
 
+  // Reglas de evaluabilidad / ano laboral del evaluado en el periodo: define si
+  // el primer semestre le corresponde y si la segunda parcial esta habilitada.
   useEffect(() => {
-    if (tipoEvaluacion === 'parcial_segundo_semestre' && selectedEvaluado && periodoId > 0) {
-      let cancelado = false;
-      api.get<any>(`/evaluaciones/evaluado/${selectedEvaluado.id}/primer-semestre-existe?periodo_id=${periodoId}`)
-        .then((res: any) => {
-          if (cancelado) return;
-          const data = res && typeof res === 'object' && 'data' in res ? res.data : res;
-          setPrimerSemestreExiste(Boolean(data?.existe));
-        })
-        .catch(() => { if (!cancelado) setPrimerSemestreExiste(null); });
-      return () => { cancelado = true; };
-    } else {
-      setPrimerSemestreExiste(null);
-    }
-  }, [tipoEvaluacion, selectedEvaluado, periodoId]);
+    if (!selectedEvaluado || periodoId <= 0) { setReglas(null); return; }
+    let cancelado = false;
+    api.get<any>(`/evaluaciones/evaluado/${selectedEvaluado.id}/reglas-evaluabilidad?periodo_id=${periodoId}`)
+      .then((res: any) => {
+        if (cancelado) return;
+        const data = res && typeof res === 'object' && 'data' in res ? res.data : res;
+        setReglas(data && typeof data === 'object' ? data as ReglasEvaluabilidad : null);
+      })
+      .catch(() => { if (!cancelado) setReglas(null); });
+    return () => { cancelado = true; };
+  }, [selectedEvaluado, periodoId]);
+
+  // Solo se ofrecen los tipos de evaluacion que las reglas permiten.
+  const tiposDisponibles = useMemo(() => {
+    if (!reglas) return TIPOS_EVALUACION;
+    return TIPOS_EVALUACION.filter(t =>
+      t.value === 'parcial_primer_semestre' ? reglas.puede_iniciar_primer_semestre
+      : t.value === 'parcial_segundo_semestre' ? reglas.puede_iniciar_segundo_semestre
+      : true
+    );
+  }, [reglas]);
 
   const MOTIVOS_NO_JEFE = [
     { value: 'retiro_empleado_responsable', label: 'Retiro del empleado responsable de evaluar' },
@@ -385,8 +394,8 @@ export default function EvaluarPage() {
   }
 
   function getEscalaResultado(nota: number): string {
-    if (nota >= 90) return 'ALTO (Sobresaliente)';
-    if (nota > 65) return 'MEDIO (Satisfactorio)';
+    if (nota >= UMBRAL_SOBRESALIENTE) return 'ALTO (Sobresaliente)';
+    if (nota >= UMBRAL_SATISFACTORIO) return 'MEDIO (Satisfactorio)';
     return 'BAJO (No Satisfactorio)';
   }
 
@@ -934,11 +943,24 @@ export default function EvaluarPage() {
                   className="edl-input"
                 >
                   <option value="">Seleccione un tipo de evaluación...</option>
-                  {TIPOS_EVALUACION.map(t => (
+                  {tiposDisponibles.map(t => (
                     <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
               </div>
+
+              {reglas?.exento_primer_semestre && (
+                <Alert tone="info" className="text-xs">
+                  Este funcionario ingresó en el segundo semestre{reglas.fecha_posesion ? ` (${reglas.fecha_posesion})` : ''},
+                  por lo que el primer semestre del período no le corresponde. Su año laboral se completa
+                  con la parcial del primer semestre del período siguiente y su definitiva se emite en julio.
+                </Alert>
+              )}
+              {reglas && !reglas.exento_primer_semestre && !reglas.puede_iniciar_segundo_semestre && (
+                <Alert tone="warning" className="text-xs">
+                  La evaluación del segundo semestre se habilita cuando exista la evaluación del primer semestre.
+                </Alert>
+              )}
 
               {/* Flujo Evaluación parcial eventual (prompt.md): paso a paso */}
               {tipoEvaluacion === 'parcial_eventual' && (
@@ -1051,7 +1073,11 @@ export default function EvaluarPage() {
                     Evaluación 2 Semestre
                   </div>
                   <ul className="text-sm text-amber-700 space-y-1 ml-7 list-disc">
-                    <li>Debe tener una evaluación para el primer semestre.</li>
+                    <li>
+                      {reglas?.exento_primer_semestre
+                        ? 'No aplica: el funcionario ingresó en el segundo semestre, esta es la primera parcial de su año laboral.'
+                        : 'Debe tener una evaluación para el primer semestre.'}
+                    </li>
                     <li>La fecha de evaluación debe estar entre <strong>01-08-{getPeriodoSeleccionado()?.nombre.split('-')[0] || 'Año'}</strong> y <strong>31-01-{getPeriodoSeleccionado() ? String(Number(getPeriodoSeleccionado()?.nombre.split('-')[0]) + 1) : 'Año+1'}</strong>.</li>
                   </ul>
                   <div className="grid grid-cols-2 gap-4 mt-2">

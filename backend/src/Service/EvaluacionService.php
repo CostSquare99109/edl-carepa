@@ -15,21 +15,23 @@ use App\Middleware\AuthMiddleware;
 
 class EvaluacionService
 {
- private EvaluacionRepository $evaluacionRepo;
- private CompromisoRepository $compromisoRepo;
- private CompromisoComportamentalRepository $compromisoCompRepo;
- private ConcertacionRepository $concertacionRepo;
- private UsuarioRepository $usuarioRepo;
+  private EvaluacionRepository $evaluacionRepo;
+  private CompromisoRepository $compromisoRepo;
+  private CompromisoComportamentalRepository $compromisoCompRepo;
+  private ConcertacionRepository $concertacionRepo;
+  private UsuarioRepository $usuarioRepo;
+  private ReglaEvaluabilidadService $reglas;
 
- public function __construct()
- {
-  $pdo = Database::getInstance();
-  $this->evaluacionRepo = new EvaluacionRepository($pdo);
-  $this->compromisoRepo = new CompromisoRepository($pdo);
- $this->compromisoCompRepo = new CompromisoComportamentalRepository($pdo);
-  $this->concertacionRepo = new ConcertacionRepository($pdo);
-  $this->usuarioRepo = new UsuarioRepository($pdo);
- }
+  public function __construct()
+  {
+   $pdo = Database::getInstance();
+   $this->evaluacionRepo = new EvaluacionRepository($pdo);
+   $this->compromisoRepo = new CompromisoRepository($pdo);
+  $this->compromisoCompRepo = new CompromisoComportamentalRepository($pdo);
+   $this->concertacionRepo = new ConcertacionRepository($pdo);
+   $this->usuarioRepo = new UsuarioRepository($pdo);
+   $this->reglas = new ReglaEvaluabilidadService();
+  }
 
 	public function listar(array $filtros = [], int $pagina = 1, int $porPagina = 20): array
 	{
@@ -126,16 +128,16 @@ if ($rolActivo !== 'evaluador') {
    ResponseHelper::error('Tipo de evaluacion invalido. Valores validos: ' . implode(', ', $tiposValidos), 422);
   }
 
- $evaluado = $this->usuarioRepo->buscarPorId((int) $datos['evaluado_id']);
- if ($evaluado && !empty($evaluado['en_periodo_prueba']) && (bool) $evaluado['en_periodo_prueba']) {
- $fechaInicio = $evaluado['fecha_vinculacion'] ?? $evaluado['creado_en'] ?? null;
- if ($fechaInicio) {
+$evaluado = $this->usuarioRepo->buscarPorId((int) $datos['evaluado_id']);
+  if ($evaluado && !empty($evaluado['en_periodo_prueba']) && (bool) $evaluado['en_periodo_prueba']) {
+ $fechaInicio = $evaluado['fecha_posesion'] ?? $evaluado['creado_en'] ?? null;
+  if ($fechaInicio) {
  $dias = (int) ((time() - strtotime($fechaInicio)) / 86400);
- if ($dias <= 120) {
+  if ($dias <= 120) {
  ResponseHelper::error('El funcionario se encuentra en periodo de prueba. No es sujeto de evaluacion conforme al articulo 15 de la Resolucion 1760 de 2010.', 422);
- }
- }
- }
+  }
+  }
+  }
 
 	$periodoId = (int) ($datos['periodo_id'] ?? 0);
 	$evaluadoId = (int) ($datos['evaluado_id'] ?? 0);
@@ -152,6 +154,10 @@ if ($rolActivo !== 'evaluador') {
 			ResponseHelper::error('No hay un periodo activo. Debe especificar un periodo_id valido.', 400);
 		}
 	}
+
+	// Reglas de evaluabilidad y ano laboral: el semestre no puede no
+	// corresponder y la segunda parcial exige la primera.
+	$this->validarReglasEvaluabilidad($evaluado, $periodoId, $tipo);
 
 	if ($periodoId > 0 && $evaluadoId > 0) {
 	$pdo = Database::getInstance();
@@ -353,11 +359,15 @@ if ($rolActivo !== 'evaluador') {
   // Ponderacion: ambos valores ya incluyen su peso
   $califDefinitiva = $notaFunc + $notaComp;
 
- // Escala final: Sobresaliente >= 90%, Satisfactorio > 65% y < 90%, No Satisfactorio <= 65%
- $umbralSobresaliente = \App\Helper\ParametroHelper::float('umbral_sobresaliente', 'UMBRAL_SOBRESALIENTE', 90);
+ // Escala final: Sobresaliente >= 85%, Satisfactorio >= 65%, No Satisfactorio < 65%.
+ // Los umbrales son parametrizados (tabla `parametros`): 85 / 65 por defecto.
+ // El mismo criterio se aplica en toda la aplicacion via
+ // ReglaEvaluabilidadService::nivelPorUmbrales, incluida la definitiva del ano
+ // laboral (promedio de las dos parciales).
+ $umbralSobresaliente = \App\Helper\ParametroHelper::float('umbral_sobresaliente', 'UMBRAL_SOBRESALIENTE', 85);
  $umbralSatisfactorio = \App\Helper\ParametroHelper::float('umbral_satisfactorio', 'UMBRAL_SATISFACTORIO', 65);
 
- $nivel = $califDefinitiva >= $umbralSobresaliente ? 'sobresaliente' : ($califDefinitiva > $umbralSatisfactorio ? 'satisfactorio' : 'no_satisfactorio');
+ $nivel = ReglaEvaluabilidadService::nivelPorUmbrales($califDefinitiva, $umbralSobresaliente, $umbralSatisfactorio);
 
 $this->evaluacionRepo->actualizar($id, [
   'nota_funcionales' => round($notaFunc, 2),
@@ -905,31 +915,32 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
   * Tambien devuelve banda (ALTO/MEDIO/BAJO) y nivel (Sobresaliente/Satisfactorio/No satisfactorio).
   * @return array{nota_funcional_pond:float,nota_comportamental_pond:float,definitiva:float,banda:string,nivel:string}
   */
- public function calcularNotaDefinitiva(float $notaFuncionales, float $notaComportamentales): array
- {
-  $notaFuncionalPond = round($notaFuncionales * 0.85, 2);
-  $notaComportamentalPond = round($notaComportamentales * 0.15, 2);
-  $definitiva = round($notaFuncionalPond + $notaComportamentalPond, 2);
+public function calcularNotaDefinitiva(float $notaFuncionales, float $notaComportamentales): array
+  {
+   $pesoFunc = \App\Helper\ParametroHelper::int('peso_funcionales', 'PESO_FUNCIONALES', 85);
+   $pesoComp = \App\Helper\ParametroHelper::int('peso_comportamentales', 'PESO_COMPORTAMENTALES', 15);
 
-  if ($definitiva >= 90.0) {
-   $banda = 'ALTO';
-   $nivel = 'sobresaliente';
-  } elseif ($definitiva > 65.0) {
-   $banda = 'MEDIO';
-   $nivel = 'satisfactorio';
-  } else {
-   $banda = 'BAJO';
-   $nivel = 'no_satisfactorio';
+   $notaFuncionalPond = round($notaFuncionales * ($pesoFunc / 100), 2);
+   $notaComportamentalPond = round($notaComportamentales * ($pesoComp / 100), 2);
+   $definitiva = round($notaFuncionalPond + $notaComportamentalPond, 2);
+
+   $umbralSobresaliente = \App\Helper\ParametroHelper::float('umbral_sobresaliente', 'UMBRAL_SOBRESALIENTE', 85);
+   $umbralSatisfactorio = \App\Helper\ParametroHelper::float('umbral_satisfactorio', 'UMBRAL_SATISFACTORIO', 65);
+   $nivel = ReglaEvaluabilidadService::nivelPorUmbrales($definitiva, $umbralSobresaliente, $umbralSatisfactorio);
+   $banda = match ($nivel) {
+    'sobresaliente' => 'ALTO',
+    'satisfactorio' => 'MEDIO',
+    default => 'BAJO',
+   };
+
+   return [
+    'nota_funcional_pond' => $notaFuncionalPond,
+    'nota_comportamental_pond' => $notaComportamentalPond,
+    'definitiva' => $definitiva,
+    'banda' => $banda,
+    'nivel' => $nivel,
+   ];
   }
-
-  return [
-   'nota_funcional_pond' => $notaFuncionalPond,
-   'nota_comportamental_pond' => $notaComportamentalPond,
-   'definitiva' => $definitiva,
-   'banda' => $banda,
-   'nivel' => $nivel,
-  ];
- }
 
  /**
   * Verifica si existe una evaluacion de primer semestre activa
@@ -1016,6 +1027,7 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
   // Obtener datos del evaluado para saber su dependencia
   $stmtEval = $pdo->prepare("
     SELECT u.id, u.dependencia_id, u.primer_nombre, u.primer_apellido,
+           u.semestre_ingreso, u.fecha_posesion,
            d.jefe_id as evaluador_id
     FROM usuarios u
     LEFT JOIN dependencias d ON d.id = u.dependencia_id
@@ -1027,6 +1039,11 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
   if (!$evaluado) {
     ResponseHelper::notFound('Evaluado no encontrado');
   }
+
+  // Reglas de evaluabilidad / ano laboral: el 1er semestre no corresponde a
+  // quien ingreso en el 2do semestre de ese periodo, y la segunda parcial
+  // exige la primera.
+  $this->validarReglasEvaluabilidad($evaluado, $periodoId, $tipo);
 
   $evaluadorId = $evaluado['evaluador_id'] ?? null;
 
@@ -1133,8 +1150,90 @@ public function pendientesCalificar(array $filtros = [], int $pagina = 1, int $p
         'fecha_calificacion' => date('Y-m-d'),
       ]);
 
-      AuditoriaService::registrar('calificacion_manual', 'evaluaciones', $id, null, [
-        'calificacion_definitiva' => round($calificacion, 2),
-      ]);
-    }
+AuditoriaService::registrar('calificacion_manual', 'evaluaciones', $id, null, [
+   'calificacion_definitiva' => round($calificacion, 2),
+  ]);
+ }
+
+ /**
+  * Aplica las reglas de evaluabilidad / ano laboral antes de crear o
+  * calificar una evaluacion parcial. Responde 422 si el semestre no
+  * corresponde o si falta la primera parcial del ano laboral.
+  *
+  * @return array{permitido:bool,motivo:?string,requiere_parcial_previa:bool,semestre_ingreso:string,exento_primer_semestre:bool}
+  */
+ public function validarReglasEvaluabilidad(?array $evaluado, int $periodoId, string $tipo): array
+ {
+  $regla = $this->reglas->puedeIniciarEvaluacion($evaluado, $periodoId, $tipo);
+  if (!$regla['permitido']) {
+   ResponseHelper::error($regla['motivo'], 422);
+  }
+  return $regla;
+ }
+
+ /**
+  * Estado de las reglas de evaluabilidad y ano laboral de un evaluado.
+  * Devuelve null si el usuario no existe.
+  */
+ public function reglasEvaluabilidad(int $evaluadoId, int $periodoId): ?array
+ {
+  $evaluado = $this->usuarioRepo->buscarPorId($evaluadoId);
+  if (!$evaluado) {
+   return null;
+  }
+  return $this->reglas->reglasParaFrontend($evaluado, $periodoId);
+ }
+
+ /**
+  * Emite la calificacion definitiva del ano laboral: promedio de las dos
+  * parciales calificadas que lo componen, que pueden pertenecer a periodos
+  * administrativos distintos cuando el funcionario ingreso en el 2do semestre.
+  */
+ public function emitirDefinitivaAnioLaboral(int $evaluadoId, int $periodoId): array
+ {
+  $evaluado = $this->usuarioRepo->buscarPorId($evaluadoId);
+  if (!$evaluado) {
+   ResponseHelper::notFound('Evaluado no encontrado');
+  }
+
+  $reglas = $this->reglas;
+  $puede = $reglas->puedeEmitirDefinitiva($evaluado, $periodoId);
+  if (!$puede['puede_emitir']) {
+   ResponseHelper::error($puede['motivo'], 422);
+  }
+
+  $promedio = (float) $puede['nota_promedio'];
+  $nivel = $reglas->nivelPorPuntaje($promedio);
+  $usuario = AuthMiddleware::user();
+
+  $id = $this->evaluacionRepo->crear([
+   'periodo_id' => $periodoId,
+   'evaluado_id' => $evaluadoId,
+   'evaluador_id' => $usuario['id'] ?? null,
+   'tipo' => 'calificacion_definitiva',
+   'estado' => 'calificada',
+   'nota_funcionales' => $promedio,
+   'nota_comportamentales' => null,
+   'calificacion_definitiva' => $promedio,
+   'nivel_resultado' => $nivel,
+   'fecha_calificacion' => date('Y-m-d'),
+  ]);
+
+  AuditoriaService::registrar('emitir_definitiva_anio_laboral', 'evaluaciones', $id, null, [
+   'calificacion_definitiva' => $promedio,
+   'nivel_resultado' => $nivel,
+   'parciales' => array_map(
+    static fn(array $p): int => (int) ($p['evaluacion_id'] ?? 0),
+    array_filter($puede['parciales'], static fn(array $p): bool => ($p['evaluacion_id'] ?? null) !== null)
+   ),
+  ]);
+
+  return [
+   'evaluacion_id' => $id,
+   'periodo_id' => $periodoId,
+   'calificacion_definitiva' => $promedio,
+   'nivel' => $nivel,
+   'parciales' => $puede['parciales'],
+  ];
+ }
   }

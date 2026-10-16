@@ -31,6 +31,7 @@ class Usuario
 	public ?string $tipo_nombramiento = null;
 	public int $es_contratista = 0;
 	public ?string $fecha_posesion = null;
+ public ?string $semestre_ingreso = null;
 	public int $en_periodo_prueba = 0;
 	public ?int $es_evaluador_y_evaluado = null;
 	public ?string $proposito_principal_empleo = null;

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { api } from '../../lib/api'
 import { useAuth } from '../../contexts/AuthContext'
 import { toast } from 'sonner'
+import type { ReglasEvaluabilidad } from '../../lib/reglasEvaluabilidad'
 
 interface Periodo {
   id: number
@@ -70,6 +71,7 @@ export default function ProponerCompromisos() {
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState<number>(0)
   const [cargandoEvaluaciones, setCargandoEvaluaciones] = useState(false)
   const [iniciando, setIniciando] = useState(false)
+  const [reglas, setReglas] = useState<ReglasEvaluabilidad | null>(null)
 
   // Toast cuando no hay evaluaciones disponibles para el período
   useEffect(() => {
@@ -161,6 +163,22 @@ export default function ProponerCompromisos() {
       setEvaluacionSeleccionada(0)
       resetCompromisos()
     }
+  }, [periodoSeleccionado, usuario?.id])
+
+  // Reglas de evaluabilidad del propio funcionario: habilita solo el semestre
+  // que le corresponde (el ingreso en 2do semestre exime del 1er semestre).
+  useEffect(() => {
+    const evaluadoId = usuario?.id
+    if (!evaluadoId || periodoSeleccionado <= 0) { setReglas(null); return }
+    let cancelado = false
+    api.get<any>(`/evaluaciones/evaluado/${evaluadoId}/reglas-evaluabilidad?periodo_id=${periodoSeleccionado}`)
+      .then((res: any) => {
+        if (cancelado) return
+        const data = res && typeof res === 'object' && 'data' in res ? res.data : res
+        setReglas(data && typeof data === 'object' ? data as ReglasEvaluabilidad : null)
+      })
+      .catch(() => { if (!cancelado) setReglas(null) })
+    return () => { cancelado = true }
   }, [periodoSeleccionado, usuario?.id])
 
   // Cuando no hay evaluaciones, permitir iniciar una
@@ -552,9 +570,14 @@ export default function ProponerCompromisos() {
                   const tienePrimero = evaluaciones.some(e => e.tipo === 'parcial_primer_semestre')
                   const tieneSegundo = evaluaciones.some(e => e.tipo === 'parcial_segundo_semestre')
                   if (tienePrimero && tieneSegundo) return null
+                  // Las reglas determinan que semestre se ofrece: quien ingreso
+                  // en el 2do semestre no tiene 1er semestre que evaluar.
+                  const permitePrimero = !reglas || reglas.puede_iniciar_primer_semestre
+                  const permiteSegundo = !reglas || reglas.puede_iniciar_segundo_semestre
+                  if (!tienePrimero && !tieneSegundo && !permitePrimero && !permiteSegundo) return null
                   return (
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                      {!tienePrimero && (
+                      {!tienePrimero && permitePrimero && (
                         <button
                           type="button"
                           onClick={() => iniciarEvaluacion('parcial_primer_semestre')}
@@ -565,7 +588,7 @@ export default function ProponerCompromisos() {
                           {iniciando ? 'Iniciando...' : '1er Semestre'}
                         </button>
                       )}
-                      {!tieneSegundo && (
+                      {!tieneSegundo && permiteSegundo && (
                         <button
                           type="button"
                           onClick={() => iniciarEvaluacion('parcial_segundo_semestre')}

@@ -205,6 +205,8 @@ $router->group('/api/v1', function (Router $r) {
  $r->get('/evaluaciones/evaluador/evaluados', [\App\Controller\EvaluacionController::class, 'evaluadosPorDependencia'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/evaluado/{id}/previas', [\App\Controller\EvaluacionController::class, 'verEvaluacionesPorEvaluado'], ['permiso:evaluaciones.listar']);
  $r->get('/evaluaciones/evaluado/{id}/primer-semestre-existe', [\App\Controller\EvaluacionController::class, 'existePrimerSemestre'], ['permiso:evaluaciones.evaluar']);
+ $r->get('/evaluaciones/evaluado/{id}/reglas-evaluabilidad', [\App\Controller\EvaluacionController::class, 'reglasEvaluabilidad'], ['permiso:evaluaciones.evaluar']);
+ $r->post('/evaluaciones/evaluado/{id}/definitiva-anio-laboral', [\App\Controller\EvaluacionController::class, 'emitirDefinitivaAnioLaboral'], ['permiso:evaluaciones.evaluar']);
  $r->get('/evaluaciones/{id}', [\App\Controller\EvaluacionController::class, 'ver'], ['permiso:evaluaciones.listar']);
 $r->get('/evaluaciones/{id}/evaluaciones-previas', [\App\Controller\EvaluacionController::class, 'verEvaluacionesPrevias'], ['permiso:evaluaciones.listar']);
   $r->post('/evaluaciones/{id}/parcial', [\App\Controller\EvaluacionController::class, 'crearParcial'], ['permiso:evaluaciones.crear']);

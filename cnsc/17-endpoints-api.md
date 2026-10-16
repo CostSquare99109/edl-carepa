@@ -213,6 +213,9 @@
 | POST | `/evaluaciones/{id}/parcial` | `EvaluacionController::crearParcial` | `evaluaciones.crear` | Crea evaluación parcial eventual o calificación extraordinaria (Art. 6 Acuerdo 617/2018). Valida motivo obligatorio + ≤180 días. |
 | PUT | `/evaluaciones/{id}/definitiva` | `EvaluacionController::calificarDefinitiva` | `evaluaciones.evaluar` | Calificación definitiva. |
 | PUT | `/evaluaciones/{id}/comision` | `EvaluacionController::aprobarComision` | `evaluaciones.comision` | Aprobación por Comisión Evaluadora. |
+| GET | `/evaluaciones/evaluado/{id}/reglas-evaluabilidad?periodo_id=N` | `EvaluacionController::reglasEvaluabilidad` | `evaluaciones.evaluar` | Reglas de evaluabilidad y **año laboral**: semestre de ingreso, semestres permitidos, estado de las dos parciales y si procede definitiva. ⚠️ **Orden importante**: antes de `/evaluaciones/{id}`. |
+| POST | `/evaluaciones/evaluado/{id}/definitiva-anio-laboral?periodo_id=N` | `EvaluacionController::emitirDefinitivaAnioLaboral` | `evaluaciones.evaluar` | Emite la **definitiva del año laboral**: promedio de las dos parciales (pueden ser de períodos distintos). Exige ambas calificadas. |
+| GET | `/evaluaciones/evaluado/{id}/primer-semestre-existe?periodo_id=N` | `EvaluacionController::existePrimerSemestre` | `evaluaciones.evaluar` | ⚠️ **Deprecated**: usar `reglas-evaluabilidad` (no contempla la exención por ingreso en 2.º semestre). |
 
 ---
 

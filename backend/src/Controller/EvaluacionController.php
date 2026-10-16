@@ -120,18 +120,57 @@ public function pendientesCalificar(): void
   ResponseHelper::success(null, 'Evaluacion guardada correctamente');
  }
 
+/**
+   * Verifica si existe una evaluacion de primer semestre para el evaluado.
+   * GET /evaluaciones/evaluado/{evaluado_id}/primer-semestre-existe?periodo_id=N
+   *
+   * @deprecated Usar /evaluaciones/evaluado/{id}/reglas-evaluabilidad, que
+   *             ademas contempla la exencion por ingreso en 2do semestre.
+   */
+  public function existePrimerSemestre(int $evaluadoId): void
+  {
+   $periodoId = isset($_GET['periodo_id']) ? (int) $_GET['periodo_id'] : 0;
+   if ($evaluadoId <= 0 || $periodoId <= 0) {
+    ResponseHelper::error('Debe enviar evaluado_id y periodo_id', 422);
+   }
+  $existe = $this->service->existeEvaluacionPrimerSemestre($evaluadoId, $periodoId);
+   ResponseHelper::success(['existe' => $existe]);
+  }
+
  /**
-  * Verifica si existe una evaluacion de primer semestre para el evaluado.
-  * GET /evaluaciones/evaluado/{evaluado_id}/primer-semestre-existe?periodo_id=N
+  * Reglas de evaluabilidad y ano laboral del evaluado en el periodo.
+  * GET /evaluaciones/evaluado/{evaluado_id}/reglas-evaluabilidad?periodo_id=N
   */
- public function existePrimerSemestre(int $evaluadoId): void
+ public function reglasEvaluabilidad(int $evaluadoId): void
  {
   $periodoId = isset($_GET['periodo_id']) ? (int) $_GET['periodo_id'] : 0;
   if ($evaluadoId <= 0 || $periodoId <= 0) {
    ResponseHelper::error('Debe enviar evaluado_id y periodo_id', 422);
   }
-  $existe = $this->service->existeEvaluacionPrimerSemestre($evaluadoId, $periodoId);
-  ResponseHelper::success(['existe' => $existe]);
+  $reglas = $this->service->reglasEvaluabilidad($evaluadoId, $periodoId);
+  if ($reglas === null) {
+   ResponseHelper::notFound('Evaluado no encontrado');
+  }
+  ResponseHelper::success($reglas);
+ }
+
+ /**
+  * Emite la calificacion definitiva del ano laboral: promedio de las dos
+  * parciales que lo componen (pueden pertenecer a periodos distintos).
+  * POST /evaluaciones/evaluado/{evaluado_id}/definitiva-anio-laboral
+  */
+ public function emitirDefinitivaAnioLaboral(int $evaluadoId): void
+ {
+  $periodoId = isset($_GET['periodo_id']) ? (int) ($_GET['periodo_id'] ?? 0) : 0;
+  if ($periodoId <= 0) {
+   $input = json_decode(file_get_contents('php://input'), true) ?: [];
+   $periodoId = (int) ($input['periodo_id'] ?? 0);
+  }
+  if ($evaluadoId <= 0 || $periodoId <= 0) {
+   ResponseHelper::error('Debe enviar evaluado_id y periodo_id', 422);
+  }
+  $resultado = $this->service->emitirDefinitivaAnioLaboral($evaluadoId, $periodoId);
+  ResponseHelper::success($resultado, 'Calificacion definitiva del ano laboral emitida');
  }
 
  public function solicitarRevision(int $id): void
