@@ -240,7 +240,6 @@ export default function EvidenciasEvaluado() {
     if (!formCompromiso) { toast.error('Seleccione un compromiso o competencia.'); return; }
     if (!formDescripcion.trim()) { toast.error('La descripción es obligatoria.'); return; }
     if (!formUbicacion.trim()) { toast.error('La ubicación es obligatoria.'); return; }
-    if (!formArchivo) { toast.error('El archivo de soporte es obligatorio.'); return; }
 
     setSaving(true);
     try {
@@ -251,7 +250,7 @@ export default function EvidenciasEvaluado() {
       fd.append('ubicacion', formUbicacion.trim());
       if (formObservacion.trim()) fd.append('observacion', formObservacion.trim());
       fd.append('tipo', compromisos.find(c=>c.id===formCompromiso)?.tipo === 'comportamental' ? 'competencia' : 'compromiso');
-      fd.append('archivo', formArchivo);
+      if (formArchivo) fd.append('archivo', formArchivo);
 
       await api.postFormData('/evidencias', fd);
       toast.success('Evidencia registrada correctamente.');
@@ -477,7 +476,7 @@ export default function EvidenciasEvaluado() {
 
           {/* Archivo */}
           <div>
-            <label className="edl-label">Archivo de soporte (PDF, Word, Imagen) *</label>
+            <label className="edl-label">Archivo de soporte (PDF, Word, Imagen) <span className="text-gray-400 font-normal">(opcional)</span></label>
             <input
               id="archivo-ev"
               type="file"
@@ -501,7 +500,7 @@ export default function EvidenciasEvaluado() {
             onClick={guardar}
             disabled={
               saving || !formCompromiso || !formDescripcion.trim() ||
-              !formUbicacion.trim() || !formArchivo
+              !formUbicacion.trim()
             }
             className={`
               edl-btn-primary w-full flex items-center justify-center gap-2 gap-y-1 py-2.5
