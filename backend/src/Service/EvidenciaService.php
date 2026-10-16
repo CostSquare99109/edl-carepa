@@ -255,7 +255,7 @@ class EvidenciaService
   if (!$evidencia || empty($evidencia['archivo_path'])) {
    ResponseHelper::notFound('Archivo no disponible para esta evidencia');
   }
-  $rutaAbs = $rootDir . '/uploads/' . $evidencia['archivo_path'];
+  $rutaAbs = \App\Helper\UploadHelper::uploadDir() . '/' . ltrim($evidencia['archivo_path'], '/');
   if (!is_file($rutaAbs)) {
    ResponseHelper::notFound('Archivo fisico no encontrado en almacenamiento');
   }

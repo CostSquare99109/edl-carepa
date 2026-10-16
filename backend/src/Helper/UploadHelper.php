@@ -93,13 +93,22 @@ class UploadHelper
 		];
 	}
 
+		public static function uploadDir(): string
+	{
+		$dir = trim((string) Env::get('UPLOAD_DIR', ''));
+		if ($dir === '') {
+			$dir = EDL_ROOT . '/uploads';
+		}
+		return rtrim($dir, '/');
+	}
+
 	public static function guardar(array $file, string $subdirectorio = ''): string
 	{
 		if (empty($file['tmp_name']) || empty($file['name'])) {
 			ResponseHelper::error('Archivo invalido', 422);
 		}
 
-		$uploadDir = Env::get('UPLOAD_DIR', EDL_ROOT . '/uploads');
+		$uploadDir = self::uploadDir();
 		if ($subdirectorio) {
 			$uploadDir .= '/' . trim($subdirectorio, '/');
 		}
