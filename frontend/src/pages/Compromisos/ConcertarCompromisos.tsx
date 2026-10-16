@@ -630,7 +630,8 @@ async function handleConfirmar() {
   await api.put(`/compromisos/confirmar-concertacion/${eid}`);
 
   setConcertacionConfirmada(true);
- setMensaje({ tipo: 'ok', texto: 'Se registró la concertación de compromisos correctamente. El evaluado debe aceptar o rechazar los compromisos.' });
+ toast.success('Se registró la concertación de compromisos correctamente. El evaluado debe aceptar o rechazar los compromisos.');
+ navigate('/compromisos/concertar', { replace: true });
  } catch (err: any) {
  setMensaje({ tipo: 'error', texto: err.message || 'Error al guardar la concertacion.' });
  } finally {
