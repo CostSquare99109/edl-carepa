@@ -482,22 +482,24 @@ export default function EvidenciaList() {
                             periodo_id: String(periodoId),
                           })
                           if (tipo) qs.set('tipo_evaluacion', tipo)
-                          const data = await api.get(`/compromisos/buscar-evaluado?${qs.toString()}`) as { evaluado?: any }
-                          if (data.evaluado) {
+                          const data = await api.get(`/compromisos/buscar-evaluado?${qs.toString()}`) as any
+                          const evals = Array.isArray(data?.evaluaciones) ? data.evaluaciones : []
+                          if (data?.id) {
+                            const evaluacion = evals.find((e: any) => e.id === data.evaluacion_id) || evals[0]
                             const ev: EvaluadoSlim = {
-                              id: data.evaluado.id,
-                              documento: data.evaluado.documento,
-                              nombre_completo: `${data.evaluado.primer_nombre || ''} ${data.evaluado.primer_apellido || ''}`.trim(),
-                              denominacion_empleo: data.evaluado.denominacion_empleo || '',
-                              dependencia_nombre: data.evaluado.dependencia_nombre || '',
-                              evaluacion_id: data.evaluado.evaluacion_id || null,
-                              concertacion_id: data.evaluado.concertacion_id || null,
-                              evaluacion_tipo: data.evaluado.evaluacion_tipo || null,
+                              id: data.id,
+                              documento: data.documento,
+                              nombre_completo: data.nombre_completo || `${data.nombres || ''} ${data.apellidos || ''}`.trim(),
+                              denominacion_empleo: data.denominacion || '',
+                              dependencia_nombre: data.dependencia_nombre || '',
+                              evaluacion_id: data.evaluacion_id || null,
+                              concertacion_id: evaluacion?.concertacion_id || null,
+                              evaluacion_tipo: evaluacion?.tipo || null,
                             }
                             seleccionarEvaluado(ev)
                             toast.success('Evaluado encontrado')
                           } else {
-                            toast.error('No se encontró un evaluado con ese documento en el período seleccionado.')
+                            toast.error('No se encontró un evaluado con ese documento en el período y tipo de evaluación seleccionados.')
                           }
                         } catch (e) {
                           toast.error(e instanceof Error ? e.message : 'Error en la búsqueda')
