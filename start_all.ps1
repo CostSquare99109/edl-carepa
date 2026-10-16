@@ -1,3 +1,4 @@
+param([switch]$TestMode,[switch]$Daemon)
 param([switch]$TestMode)
 $ErrorActionPreference = 'Continue'
 $Root = $PSScriptRoot
@@ -37,7 +38,9 @@ Write-Host ''
 Write-Host 'Backend : http://localhost:8000' -ForegroundColor Yellow
 Write-Host 'Frontend: http://localhost:5174' -ForegroundColor Yellow
 Write-Host ''
-if (-not $TestMode) {
+if ($Daemon) {
+  Start-Sleep -Seconds 86400
+} elseif (-not $TestMode) {
   Write-Host 'Presiona Enter para detener ambos servidores...' -ForegroundColor Cyan
   Read-Host | Out-Null
 } else {
