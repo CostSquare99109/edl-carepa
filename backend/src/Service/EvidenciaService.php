@@ -153,7 +153,7 @@ class EvidenciaService
      SUM(CASE WHEN tipo = 'comportamental' THEN 1 ELSE 0 END) as lim_comp
     FROM compromisos
     WHERE concertacion_id = :cid
-      AND estado IN ('aprobado', 'en_progreso', 'cumplido')
+      AND estado IN ('aprobado', 'en_progreso', 'cumplido', 'aceptado_evaluado')
       AND eliminado_en IS NULL
    ");
    $stmtLim->execute(['cid' => $concertacionId]);
