@@ -9,17 +9,21 @@ use App\Helper\ResponseHelper;
 /**
  * Regla centralizada de inmutabilidad de evaluaciones (Fase F).
  *
- * Una evaluacion en estado terminal (calificada, cerrada, anulada,
- * aprobada_comision, rechazada_comision) no admite operaciones normales
- * de creacion, edicion, eliminacion, calificacion ni aprobacion de sus
- * compromisos. La lista de estados termina es la MISMA que ya usaba
- * CompromisoService::validarPropuestaPermitida (no se inventan estados).
+ * Una evaluacion en estado terminal (calificada, anulada, aprobada_comision,
+ * rechazada_comision) no admite operaciones normales de creacion, edicion,
+ * eliminacion, calificacion ni aprobacion de sus compromisos.
+ *
+ * 'cerrada' NO es terminal: es el estado posterior a la concertacion
+ * (compromisos firmados, pendiente de aceptacion del evaluado) durante el
+ * cual el evaluado acepta/rechaza y luego se registran evidencias y
+ * calificaciones. La aceptacion del evaluado mueve la evaluacion a
+ * 'en_proceso' y la fijacion unilateral tambien (Art. 33 Res. 1760/2010).
  *
  * Codigo HTTP: 400, el mismo que aplicaba la guardia preexistente.
  */
 final class EvaluacionInmutabilidad
 {
-    public const ESTADOS_TERMINALES = ['calificada', 'cerrada', 'anulada', 'aprobada_comision', 'rechazada_comision'];
+    public const ESTADOS_TERMINALES = ['calificada', 'anulada', 'aprobada_comision', 'rechazada_comision'];
 
     /** Acciones y su verbo en el mensaje (coherente con el mensaje preexistente). */
     private const MENSAJES = [

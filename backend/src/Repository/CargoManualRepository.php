@@ -132,7 +132,14 @@ class CargoManualRepository extends BaseRepository
   return $row ?: null;
  }
 
- public function asignarUsuario(int $usuarioId, int $cargoManualId, ?int $asignadoPor, ?string $observaciones): int
+ public function asignarUsuario(
+  int $usuarioId,
+  int $cargoManualId,
+  ?int $asignadoPor,
+  ?string $observaciones,
+  ?string $nivel = null,
+  ?string $naturaleza = null
+ ): int
  {
   $this->pdo->beginTransaction();
   try {
@@ -148,6 +155,19 @@ class CargoManualRepository extends BaseRepository
     VALUES (?, ?, CURDATE(), 1, ?, ?)
    ");
    $stmt->execute([$usuarioId, $cargoManualId, $asignadoPor, $observaciones]);
+
+   // R1: propagacion atomica de la copia materializada (usuarios.nivel /
+   // usuarios.naturaleza) desde el catalogo normativo cargos_manual.
+   // Dentro de la misma transaccion: si la propagacion falla, la
+   // asignacion completa se revierte y nunca queda drift parcial.
+   if ($nivel !== null || $naturaleza !== null) {
+    $stmt = $this->pdo->prepare("
+     UPDATE usuarios
+     SET nivel = COALESCE(?, nivel), naturaleza = COALESCE(?, naturaleza)
+     WHERE id = ? AND eliminado_en IS NULL
+    ");
+    $stmt->execute([$nivel, $naturaleza, $usuarioId]);
+   }
 
    $newId = (int) $this->pdo->lastInsertId();
    $this->pdo->commit();

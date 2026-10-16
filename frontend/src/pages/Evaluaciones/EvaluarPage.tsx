@@ -346,6 +346,15 @@ export default function EvaluarPage() {
     return Math.round((suma / valores.length) * 10) / 10;
   }
 
+  function calcularPuntajeDeCompromiso(comp: Compromiso): number {
+    const valores = (comp.conductas || [])
+      .map(c => conductasForm[c.id])
+      .filter((v): v is ValoracionFrecuencia => !!v);
+    if (valores.length === 0) return 0;
+    const suma = valores.reduce((acc, v) => acc + FRECUENCIA_PUNTAJE[v], 0);
+    return Math.round((suma / valores.length) * 10) / 10;
+  }
+
   function calcularNotaFuncional(): number {
     if (funcionales.length === 0) return 0;
     let sumaPonderada = 0;
@@ -477,13 +486,13 @@ export default function EvaluarPage() {
         }
       }
     }
-    const puntaje = calcularPuntajeComportamental();
-    if (puntaje <= 0) {
-      toast.error('Debe valorar las conductas de los compromisos comportamentales.');
-      return;
-    }
     try {
       for (const comp of comportamentales) {
+        const puntaje = calcularPuntajeDeCompromiso(comp);
+        if (puntaje <= 0) {
+          toast.error(`Debe valorar las conductas de "${comp.compromiso_competencia || comp.descripcion}".`);
+          return;
+        }
         const conductasArray = (comp.conductas || []).map(c => ({
           conducta_id: c.id,
           valoracion: conductasForm[c.id] || null,
@@ -491,18 +500,18 @@ export default function EvaluarPage() {
           impacto_excede_estipulado: impactoExcede[comp.id] || null,
           justificacion_excede: justificacionExcede[comp.id] || null,
         }));
-        await api.put(`/compromisos/${comp.id}/calificar`, {
-          puntaje,
+        await api.put(`/compromisos-comportamentales/${comp.id}/calificar`, {
+          calificacion: puntaje,
           observaciones: '',
           conductas: conductasArray,
           impacto_aporta_compromisos: impactoAporta[comp.id] || null,
           impacto_excede_estipulado: impactoExcede[comp.id] || null,
           justificacion_excede: justificacionExcede[comp.id] || null,
         });
+        setCompromisos(prev => prev.map(c =>
+          c.id === comp.id ? { ...c, puntaje, estado: 'cumplido' } : c
+        ));
       }
-      setCompromisos(prev => prev.map(c =>
-        c.tipo === 'comportamental' ? { ...c, puntaje, estado: 'cumplido' } : c
-      ));
       toast.success('Compromisos comportamentales calificados.');
     } catch (err: any) {
       toast.error(err.message || 'Error al calificar compromisos comportamentales');
@@ -519,7 +528,7 @@ export default function EvaluarPage() {
         return;
       }
     }
-    const puntaje = calcularPuntajeComportamental();
+    const puntaje = calcularPuntajeDeCompromiso(comp);
     if (puntaje <= 0) {
       toast.error('Debe valorar las conductas antes de calificar.');
       return;
@@ -533,8 +542,8 @@ export default function EvaluarPage() {
         impacto_excede_estipulado: impactoExcede[comp.id] || null,
         justificacion_excede: justificacionExcede[comp.id] || null,
       }));
-      await api.put(`/compromisos/${compId}/calificar`, {
-        puntaje,
+      await api.put(`/compromisos-comportamentales/${compId}/calificar`, {
+        calificacion: puntaje,
         observaciones: '',
         conductas: conductasArray,
         impacto_aporta_compromisos: impactoAporta[comp.id] || null,
@@ -703,7 +712,10 @@ export default function EvaluarPage() {
 
   const motivoBloqueo = useMemo(() => {
     if (!tipoEvaluacion) return 'Seleccione un tipo de evaluación';
-    if (['aprobada_comision', 'cerrada'].includes(String(selectedEvaluado?.evaluacion_estado || '').toLowerCase()))
+    const estadoEval = String(selectedEvaluado?.evaluacion_estado || '').toLowerCase();
+    if (estadoEval === 'cerrada')
+      return 'La evaluación está pendiente de aceptación del evaluado';
+    if (estadoEval === 'aprobada_comision')
       return 'La evaluación está en firme y no puede modificarse';
     if (compromisos.length > 0 && compromisos.some(c => c.puntaje === null)) {
       const sinCalificar = compromisos.filter(c => c.puntaje === null);
@@ -835,7 +847,7 @@ export default function EvaluarPage() {
                         <td className="py-3 px-3 text-center text-sm">
                           {ev.evaluacion_id && ev.evaluacion_id > 0 ? (
                             <Badge tone={
-                              ev.evaluacion_estado === 'cerrada' || ev.evaluacion_estado === 'aprobada_comision'
+                              ev.evaluacion_estado === 'aprobada_comision'
                                 ? 'success'
                                 : ev.evaluacion_estado === 'rechazada_comision'
                                   ? 'danger'
@@ -843,15 +855,19 @@ export default function EvaluarPage() {
                                     ? 'info'
                                     : 'warning'
                             }>
-                              {ev.evaluacion_estado === 'calificada' || ev.evaluacion_estado === 'en_proceso'
+                              {ev.evaluacion_estado === 'calificada'
                                 ? 'Calificado'
-                                : ev.evaluacion_estado === 'cerrada' || ev.evaluacion_estado === 'aprobada_comision'
-                                  ? 'Cerrado'
-                                  : ev.evaluacion_estado === 'rechazada_comision'
-                                    ? 'Rechazado'
-                                    : ev.evaluacion_estado === 'pendiente'
-                                      ? 'Pendiente'
-                                      : 'Sin calificar'}
+                                : ev.evaluacion_estado === 'en_proceso'
+                                  ? 'En proceso'
+                                  : ev.evaluacion_estado === 'aprobada_comision'
+                                    ? 'En firme'
+                                    : ev.evaluacion_estado === 'cerrada'
+                                      ? 'Pendiente aceptación'
+                                      : ev.evaluacion_estado === 'rechazada_comision'
+                                        ? 'Rechazado'
+                                        : ev.evaluacion_estado === 'pendiente'
+                                          ? 'Pendiente'
+                                          : 'Sin calificar'}
                             </Badge>
                           ) : (
                             <span className="text-inst-texto-claro text-xs">Sin calificar</span>

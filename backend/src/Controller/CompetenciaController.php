@@ -48,6 +48,17 @@ class CompetenciaController
         ResponseHelper::success($data);
     }
 
+    /**
+     * Competencias para concertar compromisos comportamentales:
+     * comunes (transversales) + nivel jerarquico del evaluado.
+     */
+    public function paraConcertacion(): void
+    {
+        $nivel = $_GET['nivel'] ?? null;
+        $data = $this->repo->paraConcertacion($nivel ? (string) $nivel : null);
+        ResponseHelper::success($data);
+    }
+
     public function niveles(): void
     {
         $data = $this->repo->niveles();

@@ -36,6 +36,7 @@ class EvaluacionRepository extends BaseRepository
  TRIM(CONCAT_WS(' ', ed.primer_nombre, ed.segundo_nombre, ed.primer_apellido, ed.segundo_apellido)) as evaluado_nombre,
  ed.documento as evaluado_documento,
  ed.dependencia_id as evaluado_dependencia_id,
+ ed.nivel as nivel,
  TRIM(CONCAT_WS(' ', evr.primer_nombre, evr.segundo_nombre, evr.primer_apellido, evr.segundo_apellido)) as evaluador_nombre,
  p.nombre as periodo_nombre,
   CASE

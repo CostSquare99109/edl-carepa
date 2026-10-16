@@ -337,10 +337,21 @@ if (empty($compromisos)) {
   AND tipo = 'comportamental'
   AND estado NOT IN ('aprobado', 'cumplido', 'incumplido', 'rechazado')
   ");
- $stmtCompP2->execute(['cid' => $concertacionId]);
+  $stmtCompP2->execute(['cid' => $concertacionId]);
 
- // Notificar al evaluado y al jefe de personal (Art. 33 Res. 1760/2010).
- $pdo = Database::getInstance();
+  // La fijacion unilateral abre el periodo de evaluacion (compromisos en firme):
+  // la evaluacion pasa a 'en_proceso' para habilitar evidencias y calificacion.
+  $stmtEvalEstado = $pdo->prepare("
+   UPDATE evaluaciones
+   SET estado = 'en_proceso', actualizado_en = NOW()
+   WHERE concertacion_id = :cid
+     AND estado IN ('pendiente', 'cerrada')
+     AND eliminado_en IS NULL
+  ");
+  $stmtEvalEstado->execute(['cid' => $concertacionId]);
+
+  // Notificar al evaluado y al jefe de personal (Art. 33 Res. 1760/2010).
+  $pdo = Database::getInstance();
  $mensaje = 'El evaluador ha fijado unilateralmente los compromisos de su evaluacion conforme al Art. 33 de la Resolucion 1760/2010, tras configurarse la causal: ' . $motivo . '. Puede presentar reclamacion ante la Comision de Personal dentro de los dos (2) dias habiles siguientes.';
  $stmtNotif = $pdo->prepare(
  "INSERT INTO notificaciones (usuario_id, tipo, titulo, mensaje, creado_en)

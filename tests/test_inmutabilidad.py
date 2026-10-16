@@ -59,50 +59,55 @@ def main():
     check('Fixture: crear evaluacion mutable', st in (200, 201) and r.get('data', {}).get('id'), str(r)[:120])
     eval_mutable = r['data']['id']
 
-    # --- reproducir escenario original del BUG P1 (Fase E): eval 10 CALIFICADA ---
+    # Fixture calificada vigente en el dump de desarrollo: evaluacion 26 (Lusely -> Yeison).
+    EVAL_CALIFICADA = 26
+    COMP_FUNC_CALIFICADA = 67    # compromiso funcional de la evaluacion 26
+    COMP_COMP_CALIFICADA = 69    # compromiso comportamental de la evaluacion 26
+
+    # --- reproducir escenario original del BUG P1 (Fase E): eval 26 CALIFICADA ---
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
     st, r = api('POST', '/compromisos-comportamentales',
-                {'evaluacion_id': 10, 'competencia_codigo': 'INS_DEC', 'conductas_json': [], 'es_propuesto_evaluado': 1},
+                {'evaluacion_id': EVAL_CALIFICADA, 'competencia_codigo': 'INS_DEC', 'conductas_json': [], 'es_propuesto_evaluado': 1},
                 tok=tok, csrf=csrf)
     check('BUG P1 repro: crear comportamental en calificada -> rechazado', st >= 400 and 'evaluacion esta' in r.get('message', ''), f'status={st} msg={r.get("message")}')
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
     st, r = api('POST', '/compromisos/funcional',
-                {'evaluacion_id': 10, 'descripcion': 'Verificar el cierre del proceso segun cronograma', 'meta_id': 1, 'peso': 10},
+                {'evaluacion_id': EVAL_CALIFICADA, 'descripcion': 'Verificar el cierre del proceso segun cronograma', 'meta_id': 1, 'peso': 10},
                 tok=tok, csrf=csrf)
     check('BUG P1 repro: crear funcional en calificada -> rechazado', st >= 400 and 'evaluacion esta' in r.get('message', ''), f'status={st} msg={r.get("message")}')
 
-    # --- C: crear funcional en calificada (eval 24) ---
+    # --- C: crear funcional en calificada (eval 26) ---
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
     st, r = api('POST', '/compromisos/funcional',
-                {'evaluacion_id': 24, 'descripcion': 'Elaborar el informe de cierre segun el calendario', 'meta_id': 1, 'peso': 10},
+                {'evaluacion_id': EVAL_CALIFICADA, 'descripcion': 'Elaborar el informe de cierre segun el calendario', 'meta_id': 1, 'peso': 10},
                 tok=tok, csrf=csrf)
     check('C: crear funcional en calificada -> rechazado', st >= 400, f'status={st}')
 
-    # --- D: crear comportamental en calificada (eval 24) ---
+    # --- D: crear comportamental en calificada (eval 26) ---
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
     st, r = api('POST', '/compromisos-comportamentales',
-                {'evaluacion_id': 24, 'competencia_codigo': 'COM_EFEC', 'conductas_json': [], 'es_propuesto_evaluado': 1},
+                {'evaluacion_id': EVAL_CALIFICADA, 'competencia_codigo': 'COM_EFEC', 'conductas_json': [], 'es_propuesto_evaluado': 1},
                 tok=tok, csrf=csrf)
     check('D: crear comportamental en calificada -> rechazado', st >= 400, f'status={st}')
 
-    # --- E: PUT compromiso de calificada (id 30, eval 24) ---
+    # --- E: PUT compromiso de calificada (id 67, eval 26) ---
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
-    st, r = api('PUT', '/compromisos/30', {'descripcion': 'tramo alterado'}, tok=tok, csrf=csrf)
+    st, r = api('PUT', f'/compromisos/{COMP_FUNC_CALIFICADA}', {'descripcion': 'tramo alterado'}, tok=tok, csrf=csrf)
     check('E: PUT compromiso en calificada -> rechazado (sin exito falso)', st >= 400, f'status={st} msg={r.get("message")}')
 
     # --- F: DELETE compromiso de calificada ---
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
-    st, r = api('DELETE', '/compromisos/funcional/30', tok=tok, csrf=csrf)
+    st, r = api('DELETE', f'/compromisos/funcional/{COMP_FUNC_CALIFICADA}', tok=tok, csrf=csrf)
     check('F: DELETE compromiso en calificada -> rechazado', st >= 400, f'status={st}')
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
-    st, r = api('DELETE', '/compromisos-comportamentales/34', tok=tok, csrf=csrf)
+    st, r = api('DELETE', f'/compromisos-comportamentales/{COMP_COMP_CALIFICADA}', tok=tok, csrf=csrf)
     check('F2: DELETE comportamental en calificada -> rechazado', st >= 400, f'status={st}')
 
     # --- A: crear funcional en mutable -> permitido ---
@@ -136,7 +141,7 @@ def main():
     check('H1: calificar compromiso en mutable -> permitido', st == 200, f'status={st} msg={r.get("message")}')
     _, r = api('GET', '/auth/csrf', tok=tok)
     csrf = r['data']['csrf_token']
-    st, r = api('PUT', '/compromisos-comportamentales/34/calificar', {'calificacion': 10}, tok=tok, csrf=csrf)
+    st, r = api('PUT', f'/compromisos-comportamentales/{COMP_COMP_CALIFICADA}/calificar', {'calificacion': 10}, tok=tok, csrf=csrf)
     check('H2: calificar comportamental en calificada -> ahora rechazado', st >= 400, f'status={st} msg={r.get("message")}')
 
     print(f'\n=== RESULTADO: {PASS} OK, {FAIL} FAIL ===')

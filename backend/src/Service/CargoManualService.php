@@ -61,18 +61,19 @@ class CargoManualService
   }
 
   $asignadoPor = (int) ($user['id'] ?? 0);
-  $newId = $this->repo->asignarUsuario($usuarioId, $cargoManualId, $asignadoPor ?: null, $observaciones);
-
-  try {
-   $stmt = Database::getInstance()->prepare("
-    UPDATE usuarios
-    SET nivel = ?, naturaleza = ?
-    WHERE id = ? AND eliminado_en IS NULL
-   ");
-   $stmt->execute([$cargo['nivel'], $cargo['naturaleza'], $usuarioId]);
-  } catch (\Throwable $e) {
-   // no fatal
-  }
+  // R1: la propagacion de la copia materializada (usuarios.nivel /
+  // usuarios.naturaleza) se ejecuta DENTRO de la transaccion de la
+  // asignacion (CargoManualRepository::asignarUsuario). Antes vivia en un
+  // try/catch silencioso post-commit: si el UPDATE fallaba quedaba drift
+  // usuarios.nivel != cargo.nivel (causa raiz de R1).
+  $newId = $this->repo->asignarUsuario(
+   $usuarioId,
+   $cargoManualId,
+   $asignadoPor ?: null,
+   $observaciones,
+   (string) $cargo['nivel'],
+   (string) $cargo['naturaleza']
+  );
 
   return [
    'id' => $newId,

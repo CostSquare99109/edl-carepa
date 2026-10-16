@@ -317,6 +317,7 @@ $r->put('/evaluaciones/{id}/calificacion-manual', [\App\Controller\EvaluacionCon
  $r->get('/competencias/decretos', [\App\Controller\CompetenciaController::class, 'decretos'], ['permiso:compromisos.listar']);
  $r->get('/competencias/comunes', [\App\Controller\CompetenciaController::class, 'comunes'], ['permiso:compromisos.listar']);
  $r->get('/competencias/por-nivel', [\App\Controller\CompetenciaController::class, 'porNivel'], ['permiso:compromisos.listar']);
+ $r->get('/competencias/para-concertacion', [\App\Controller\CompetenciaController::class, 'paraConcertacion'], ['permiso:compromisos.listar']);
  $r->get('/niveles-jerarquicos', [\App\Controller\CompetenciaController::class, 'niveles'], ['permiso:compromisos.listar']);
 
  }, [AuthMiddleware::class, CsrfMiddleware::class]);

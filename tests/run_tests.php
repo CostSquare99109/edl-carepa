@@ -1,5 +1,5 @@
 <?php
-$base = 'http://localhost:8000';
+$base = getenv('API_BASE') ?: 'http://localhost:8000';
 $pass = 0;
 $fail = 0;
 
@@ -125,7 +125,7 @@ $opts = [
     ]
 ];
 $ctx = stream_context_create($opts);
-$body = @file_get_contents('http://localhost:8000/api/v1/auth/logout', false, $ctx);
+$body = @file_get_contents($base . '/api/v1/auth/logout', false, $ctx);
 if ($body === false) {
     echo "  [FAIL] Logout: " . (error_get_last()['message'] ?? 'Network error') . "\n";
     $fail++;

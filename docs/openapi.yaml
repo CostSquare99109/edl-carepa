@@ -1,0 +1,209 @@
+openapi: 3.1.0
+info:
+  title: EDL Carepa API
+  version: 1.0.0
+  description: |
+    API REST para el sistema de Evaluación del Desempeno Laboral del
+    Municipio de Carepa. Basada en CNSC (Comisión Nacional del Servicio Civil).
+  contact:
+    name: TI Carepa
+servers:
+  - url: /api/v1
+    description: Mismo origen (Vite proxy en dev, Nginx en prod)
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        code: { type: string, enum: ["01", "02", "42", "43", "44", "45"] }
+        message: { type: string }
+        data: { type: object, additionalProperties: true }
+    Usuario:
+      type: object
+      properties:
+        id: { type: integer }
+        documento: { type: string }
+        email: { type: string, format: email }
+        primer_nombre: { type: string }
+        primer_apellido: { type: string }
+        dependencia_id: { type: integer, nullable: true }
+    Evaluacion:
+      type: object
+      properties:
+        id: { type: integer }
+        evaluado_id: { type: integer }
+        evaluador_id: { type: integer }
+        periodo_id: { type: integer }
+        tipo: { type: string, enum: [anual, parcial, eventual] }
+        estado: { type: string }
+        calificacion_definitiva: { type: number, format: decimal, nullable: true }
+        nivel_resultado: { type: string, nullable: true }
+    Compromiso:
+      type: object
+      properties:
+        id: { type: integer }
+        concertacion_id: { type: integer }
+        tipo: { type: string, enum: [funcional, comportamental] }
+        descripcion: { type: string }
+        peso: { type: number }
+        calificacion: { type: number, nullable: true }
+        estado: { type: string }
+
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login con documento + contraseña
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [documento, password]
+              properties:
+                documento: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Token JWT emitido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  usuario: { $ref: '#/components/schemas/Usuario' }
+                  roles: { type: array, items: { type: string } }
+
+  /auth/rol:
+    post:
+      tags: [Auth]
+      summary: Cambiar rol activo sin logout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rol]
+              properties:
+                rol: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /evaluaciones:
+    get:
+      tags: [Evaluaciones]
+      summary: Listar evaluaciones (paginado + filtros)
+      parameters:
+        - in: query
+          name: periodo_id
+          schema: { type: integer }
+        - in: query
+          name: evaluado_id
+          schema: { type: integer }
+        - in: query
+          name: estado
+          schema: { type: string }
+        - in: query
+          name: pagina
+          schema: { type: integer, default: 1 }
+      responses:
+        '200':
+          description: Listado paginado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Evaluacion' }
+                  total: { type: integer }
+                  pagina: { type: integer }
+                  por_pagina: { type: integer }
+                  total_paginas: { type: integer }
+        '401': { description: Sin token }
+
+  /evaluaciones/{id}:
+    get:
+      tags: [Evaluaciones]
+      summary: Obtener una evaluación con sus compromisos
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Evaluacion'
+                  - type: object
+                    properties:
+                      compromisos:
+                        type: array
+                        items: { $ref: '#/components/schemas/Compromiso' }
+        '404': { description: No encontrada }
+
+  /evaluaciones/pendientes-calificar:
+    get:
+      tags: [Evaluaciones]
+      summary: Evaluaciones que el usuario actual debe calificar
+      responses:
+        '200': { description: OK }
+
+  /compromisos:
+    get:
+      tags: [Compromisos]
+      summary: Listar compromisos (filtros: concertacion_id, tipo)
+      responses:
+        '200': { description: OK }
+
+  /compromisos/{id}:
+    patch:
+      tags: [Compromisos]
+      summary: Actualizar un compromiso
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200': { description: OK }
+
+  /reportes/evaluacion/{id}/pdf:
+    get:
+      tags: [Reportes]
+      summary: Descargar reporte PDF de una evaluación
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: PDF
+          content:
+            application/pdf: {}

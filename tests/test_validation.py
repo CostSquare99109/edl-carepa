@@ -4,9 +4,9 @@
 Requires backend on :8000. Tests focus on graceful error handling,
 not specific error codes (since permissions vary by user).
 """
-import json, urllib.request, urllib.error, sys, urllib.parse
+import json, urllib.request, urllib.error, sys, urllib.parse, os
 
-BASE = 'http://localhost:8000'
+BASE = os.environ.get('API_BASE', 'http://localhost:8000')
 API = BASE + '/api/v1'
 PASS = 0
 FAIL = 0

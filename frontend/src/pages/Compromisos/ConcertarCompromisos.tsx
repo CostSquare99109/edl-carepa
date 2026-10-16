@@ -45,10 +45,55 @@ interface CompetenciaComportamental {
 
 interface CompromisoComportamental {
  id?: number;
- competencia_id: number;
+ competencia_id: string;
  competencia_nombre: string;
  decreto: string;
  es_propuesto_jefe: boolean;
+}
+
+interface CompetenciaNivel {
+ nivel_codigo: string | null;
+ competencia_codigo: string;
+ competencia_nombre: string;
+ nombre_json: string;
+ decreto: string;
+ conducta_id: number | null;
+ conducta_texto: string | null;
+ conducta_orden: number | null;
+ origen?: 'comun' | 'nivel';
+}
+
+interface CompetenciaAgrupada {
+ competencia_codigo: string;
+ competencia_nombre: string;
+ nombre_json: string;
+ conductas: { id: number; texto: string; orden: number }[];
+}
+
+function agruparCompetencias(rows: CompetenciaNivel[]): Record<string, CompetenciaAgrupada> {
+ return rows.reduce<Record<string, CompetenciaAgrupada>>((acc, c) => {
+  if (!acc[c.competencia_codigo]) {
+   acc[c.competencia_codigo] = {
+    competencia_codigo: c.competencia_codigo,
+    competencia_nombre: c.competencia_nombre,
+    nombre_json: c.nombre_json,
+    conductas: [],
+   };
+  }
+  if (c.conducta_id) {
+   acc[c.competencia_codigo].conductas.push({
+    id: c.conducta_id,
+    texto: c.conducta_texto ?? '',
+    orden: c.conducta_orden ?? 0,
+   });
+  }
+  return acc;
+ }, {});
+}
+
+function normalizarNivel(nivel?: string | null): string {
+ if (!nivel) return '';
+ return nivel.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 }
 
 interface CompromisoPropuesto {
@@ -98,9 +143,11 @@ export default function ConcertarCompromisos() {
  // Compromisos comportamentales
  const [competencias, setCompetencias] = useState<CompetenciaComportamental[]>([]);
  const [comportamentales, setComportamentales] = useState<CompromisoComportamental[]>([]);
+ const [competenciasPorNivel, setCompetenciasPorNivel] = useState<CompetenciaNivel[]>([]);
+ const [cargandoCompetenciasNivel, setCargandoCompetenciasNivel] = useState(false);
  const [showModalComportamental, setShowModalComportamental] = useState(false);
- const [selectedCompetencias, setSelectedCompetencias] = useState<number[]>([]);
- const [propuestoJefeMap, setPropuestoJefeMap] = useState<Record<number, boolean>>({});
+ const [selectedCompetencias, setSelectedCompetencias] = useState<string[]>([]);
+ const [propuestoJefeMap, setPropuestoJefeMap] = useState<Record<string, boolean>>({});
 
  // Compromisos propuestos por el evaluado
  const [showModalPropuestos, setShowModalPropuestos] = useState(false);
@@ -143,7 +190,7 @@ export default function ConcertarCompromisos() {
        nombre_completo: evalRes.evaluado_nombre || evalRes.funcionario_nombre || '',
        primer_nombre: (evalRes.evaluado_nombre || evalRes.funcionario_nombre || '').split(' ')[0],
        nivel: evalRes.nivel || '',
-       denominacion: evalRes.denominacion || '',
+       denominacion: evalRes.denominacion || evalRes.evaluado_cargo || '',
        codigo: evalRes.codigo || '',
        grado: evalRes.grado || '',
        evaluacion_id: Number(evaluacionId),
@@ -294,7 +341,7 @@ export default function ConcertarCompromisos() {
   .filter((c: any) => !terminales.includes(c.estado))
   .map((c: any) => ({
   id: c.id,
-  competencia_id: c.competencia_codigo || 0,
+  competencia_id: c.competencia_codigo || '',
   competencia_nombre: c.competencia_nombre || c.descripcion,
   decreto: c.competencia_decreto || '',
   es_propuesto_jefe: !!c.propuesto_por_jefe_entidad,
@@ -435,22 +482,18 @@ function guardarComportamentales() {
   return;
  }
 
- const nuevos: CompromisoComportamental[] = selectedCompetencias.map(compCodigo => {
+ const nuevos: CompromisoComportamental[] = [];
+ for (const compCodigo of selectedCompetencias) {
   // Buscar en competenciasPorNivel (agrupado por competencia_codigo)
-  let compData: any = null;
-  for (const c of competenciasPorNivel) {
-   if (c.competencia_codigo === compCodigo) {
-    compData = c;
-    break;
-   }
-  }
-  if (!compData) return null;
-  return {
-   competencia_codigo: compData.competencia_codigo,
+  const compData = competenciasPorNivel.find(c => c.competencia_codigo === compCodigo);
+  if (!compData) continue;
+  nuevos.push({
+   competencia_id: compData.competencia_codigo,
    competencia_nombre: compData.competencia_nombre,
+   decreto: compData.decreto || '',
    es_propuesto_jefe: propuestoJefeMap[compData.competencia_codigo] || false,
-  };
- }).filter(Boolean);
+  });
+ }
 
  setComportamentales(nuevos);
  setShowModalComportamental(false);
@@ -872,12 +915,11 @@ async function handleConfirmar() {
  <button onClick={async () => {
   setCargandoCompetenciasNivel(true);
   try {
-   const nivelEvaluado = evaluado?.nivel?.toLowerCase() || "";
-   if (nivelEvaluado) {
-    const res = await api.get(`/competencias/por-nivel?nivel=${nivelEvaluado}`);
-    const data = res?.data || res || [];
-    setCompetenciasPorNivel(data);
-   }
+  const nivelEvaluado = normalizarNivel(evaluado?.nivel);
+  const query = nivelEvaluado ? `?nivel=${nivelEvaluado}` : '';
+  const res = await api.get<any>(`/competencias/para-concertacion${query}`);
+  const data = Array.isArray(res) ? res : (res?.data || []);
+  setCompetenciasPorNivel(data);
   } catch (err) {
    console.error("Error cargando competencias por nivel:", err);
   } finally {
@@ -1024,7 +1066,7 @@ async function handleConfirmar() {
  Seleccionar competencias comportamentales
  </h3>
  <p className="text-xs text-inst-texto-claro mb-4">
- Seleccione entre 3 y 5 competencias ({selectedCompetencias.length} seleccionadas)
+  Seleccione entre 3 y 5 competencias comunes o del nivel ({selectedCompetencias.length} seleccionadas)
  </p>
 
  {cargandoCompetenciasNivel && (
@@ -1045,25 +1087,10 @@ async function handleConfirmar() {
  {!cargandoCompetenciasNivel && competenciasPorNivel.length > 0 && (
   <div className="space-y-4">
    {(() => {
-    const grouped = competenciasPorNivel.reduce((acc, c) => {
-     if (!acc[c.competencia_codigo]) {
-      acc[c.competencia_codigo] = {
-       competencia_codigo: c.competencia_codigo,
-       competencia_nombre: c.competencia_nombre,
-       nombre_json: c.nombre_json,
-       conductas: []
-      };
-     }
-     if (c.conducta_id) {
-      acc[c.competencia_codigo].conductas.push({
-       id: c.conducta_id,
-       texto: c.conducta_texto,
-       orden: c.conducta_orden
-      });
-     }
-     return acc;
-    }, {});
-    return Object.values(grouped).map(comp => (
+    const comunes = agruparCompetencias(competenciasPorNivel.filter(c => c.origen === 'comun'));
+    const delNivel = agruparCompetencias(competenciasPorNivel.filter(c => c.origen !== 'comun'));
+    const renderGrupo = (grupo: Record<string, CompetenciaAgrupada>) =>
+     Object.values(grupo).map(comp => (
      <div key={comp.competencia_codigo} className="mb-4">
       <h5 className="text-sm font-bold text-inst-azul mb-2">{comp.nombre_json} ({comp.competencia_nombre})</h5>
       <div className="space-y-2">
@@ -1107,7 +1134,27 @@ async function handleConfirmar() {
        ))}
       </div>
      </div>
-    ));
+     ));
+    return (
+     <>
+      {Object.keys(comunes).length > 0 && (
+       <div>
+        <h4 className="text-xs font-bold text-inst-azul uppercase tracking-wide border-b border-inst-borde pb-1 mb-3">
+         Comunes (transversales)
+        </h4>
+        {renderGrupo(comunes)}
+       </div>
+      )}
+      {Object.keys(delNivel).length > 0 && (
+       <div>
+        <h4 className="text-xs font-bold text-inst-azul uppercase tracking-wide border-b border-inst-borde pb-1 mb-3">
+         Del nivel jerarquico{evaluado?.nivel ? ` (${evaluado.nivel})` : ''}
+        </h4>
+        {renderGrupo(delNivel)}
+       </div>
+      )}
+     </>
+    );
    })()}
   </div>
  )}

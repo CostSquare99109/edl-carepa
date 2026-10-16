@@ -1,0 +1,12 @@
+parameters:
+    level: 5
+    paths:
+        - src
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        # PDO statements: phpstan no entiende bindings nativos
+        - '#Property .* has no type specified#'
+        - '#Method .* has no return type specified#'
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon

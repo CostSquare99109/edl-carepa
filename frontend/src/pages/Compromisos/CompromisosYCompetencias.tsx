@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { Modal, Select, type SelectOption } from '../../components/ui';
 
 interface EvaluacionInfo {
  id: number;
@@ -28,13 +30,37 @@ interface Evaluado {
  evaluaciones: EvaluacionInfo[];
 }
 
+type AccionCompromiso = 'concertar' | 'ver' | 'propuestos' | 'ajustar';
+
+const TIPOS_EVALUACION: SelectOption[] = [
+ { value: 'parcial_primer_semestre', label: 'Parcial Primer Semestre' },
+ { value: 'parcial_segundo_semestre', label: 'Parcial Segundo Semestre' },
+];
+
+interface Periodo {
+ id: number;
+ nombre: string;
+ estado?: string;
+}
+
 export default function CompromisosYCompetencias() {
  const navigate = useNavigate();
+ const { usuario, rolActivo } = useAuth();
  const [documento, setDocumento] = useState('');
  const [loading, setLoading] = useState(false);
  const [evaluado, setEvaluado] = useState<Evaluado | null>(null);
  const [error, setError] = useState('');
  const [evaluacionSeleccionada, setEvaluacionSeleccionada] = useState<number>(0);
+ const [showCrearModal, setShowCrearModal] = useState(false);
+ const [accionPendiente, setAccionPendiente] = useState<AccionCompromiso | null>(null);
+ const [periodos, setPeriodos] = useState<Periodo[]>([]);
+ const [periodoId, setPeriodoId] = useState(0);
+ const [tipoEvaluacion, setTipoEvaluacion] = useState('parcial_primer_semestre');
+ const [creando, setCreando] = useState(false);
+ const [crearError, setCrearError] = useState('');
+
+ const esRolEvaluado = rolActivo === 'evaluado';
+ const esMismoEvaluado = !!(usuario && evaluado && usuario.id === evaluado.id);
 
  async function buscarEvaluado() {
   if (!documento.trim()) return;
@@ -62,40 +88,87 @@ export default function CompromisosYCompetencias() {
   }
  }
 
- function handleConcertar(evalId?: number) {
+ useEffect(() => {
+  if (!showCrearModal) return;
+  (async () => {
+   try {
+    const res: any = await api.get('/periodos?por_pagina=100');
+    const lista: Periodo[] = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+    setPeriodos(lista);
+    setPeriodoId(prev => prev > 0 ? prev : ((lista.find(p => p.estado === 'concertacion') || lista[0])?.id || 0));
+   } catch {
+    // silencioso: el usuario puede reintentar abriendo el modal de nuevo
+   }
+  })();
+ }, [showCrearModal]);
+
+ function irA(accion: AccionCompromiso, eid: number) {
+  if (!evaluado) return;
+  const state = { evaluado: { ...evaluado, evaluacion_id: eid } };
+  if (accion === 'concertar') navigate(`/dashboard/compromisos/concertar/${eid}`, { state });
+  else if (accion === 'ver') navigate(`/dashboard/compromisos/ver/${eid}`, { state });
+  else if (accion === 'propuestos') navigate(`/dashboard/compromisos/propuestos/${eid}`, { state });
+  else navigate(`/dashboard/compromisos/ajustar/${eid}`, { state });
+ }
+
+ function solicitarOpcion(accion: AccionCompromiso, evalId?: number) {
   if (!evaluado) return;
   const eid = evalId || evaluacionSeleccionada || evaluado.evaluacion_id;
-  if (!eid) return;
-  navigate(`/dashboard/compromisos/concertar/${eid}`, {
-   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
-  });
+  if (eid) {
+   irA(accion, eid);
+   return;
+  }
+  setAccionPendiente(accion);
+  setCrearError('');
+  setShowCrearModal(true);
+ }
+
+ function handleConcertar(evalId?: number) {
+  solicitarOpcion('concertar', evalId);
  }
 
  function handleVerCompromisos(evalId?: number) {
-  if (!evaluado) return;
-  const eid = evalId || evaluacionSeleccionada || evaluado.evaluacion_id;
-  if (!eid) return;
-  navigate(`/dashboard/compromisos/ver/${eid}`, {
-   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
-  });
+  solicitarOpcion('ver', evalId);
  }
 
  function handleVerPropuestos() {
-  if (!evaluado) return;
-  const eid = evaluacionSeleccionada || evaluado.evaluacion_id;
-  if (!eid) return;
-  navigate(`/dashboard/compromisos/propuestos/${eid}`, {
-   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
-  });
+  solicitarOpcion('propuestos');
  }
 
  function handleAjustar(evalId?: number) {
-  if (!evaluado) return;
-  const eid = evalId || evaluacionSeleccionada || evaluado.evaluacion_id;
-  if (!eid) return;
-  navigate(`/dashboard/compromisos/ajustar/${eid}`, {
-   state: { evaluado: { ...evaluado, evaluacion_id: eid } },
-  });
+  solicitarOpcion('ajustar', evalId);
+ }
+
+ async function crearEvaluacionYContinuar() {
+  if (!evaluado || !accionPendiente) return;
+  if (!periodoId) {
+   setCrearError('Seleccione un periodo de evaluacion');
+   return;
+  }
+  if (esRolEvaluado && !esMismoEvaluado) {
+   setCrearError('Como evaluado solo puede iniciar su propia evaluacion. Busque su propio numero de documento.');
+   return;
+  }
+  setCreando(true);
+  setCrearError('');
+  try {
+   let nuevoId = 0;
+   if (esRolEvaluado) {
+    const res: any = await api.post('/evaluaciones/iniciar', { periodo_id: periodoId, tipo: tipoEvaluacion });
+    const info = res?.evaluacion_id ? res : (res?.data || {});
+    nuevoId = info.evaluacion_id || 0;
+   } else {
+    const res: any = await api.post('/evaluaciones', { evaluado_id: evaluado.id, periodo_id: periodoId, tipo: tipoEvaluacion });
+    nuevoId = res?.id || res?.data?.id || 0;
+   }
+   if (!nuevoId) throw new Error('No se pudo crear la evaluacion');
+   setShowCrearModal(false);
+   irA(accionPendiente, nuevoId);
+  } catch (err: any) {
+   setCrearError(err.message || 'Error al crear la evaluacion');
+  } finally {
+   setCreando(false);
+  }
  }
 
  const evaluacionesDisponibles = evaluado?.evaluaciones?.filter(e => e.id > 0) || [];
@@ -233,6 +306,68 @@ export default function CompromisosYCompetencias() {
      </div>
     </div>
    )}
+
+   <Modal
+    open={showCrearModal}
+    onClose={() => { if (!creando) setShowCrearModal(false); }}
+    title="Crear evaluacion"
+    description={esRolEvaluado
+     ? 'No existe una evaluacion para usted en el periodo seleccionado. Se iniciara con el evaluador asignado a su dependencia.'
+     : `No hay evaluaciones registradas para ${evaluado?.nombre_completo || 'el evaluado'} en el periodo seleccionado. Cree una para continuar.`}
+   >
+    {esRolEvaluado && !esMismoEvaluado && (
+     <div className="mb-4 rounded border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-800 flex items-start gap-2">
+      <span className="material-icons text-base">warning</span>
+      <span>
+       Como evaluado solo puede iniciar su propia evaluacion. Busque su propio numero de documento
+       {usuario?.documento ? ` (${usuario.documento})` : ''}.
+      </span>
+     </div>
+    )}
+
+    <div className="space-y-4">
+     <Select
+      label="Periodo de evaluacion"
+      required
+      value={periodoId ? String(periodoId) : ''}
+      onChange={e => setPeriodoId(Number(e.target.value))}
+      options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
+      placeholder="Seleccione un periodo"
+     />
+     <Select
+      label="Tipo de evaluacion"
+      required
+      value={tipoEvaluacion}
+      onChange={e => setTipoEvaluacion(e.target.value)}
+      options={TIPOS_EVALUACION}
+     />
+    </div>
+
+    {crearError && (
+     <div className="mt-4 rounded border-l-4 border-red-500 bg-red-50 p-3 text-sm text-red-700 flex items-center gap-2">
+      <span className="material-icons text-base">error</span>
+      <span>{crearError}</span>
+     </div>
+    )}
+
+    <div className="flex gap-3 justify-end mt-5">
+     <button
+      onClick={crearEvaluacionYContinuar}
+      disabled={creando || !periodoId || (esRolEvaluado && !esMismoEvaluado)}
+      className="edl-btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+     >
+      <span className="material-icons text-lg">add_circle</span>
+      {creando ? 'Creando...' : 'Crear evaluacion y continuar'}
+     </button>
+     <button
+      onClick={() => setShowCrearModal(false)}
+      disabled={creando}
+      className="edl-btn-secondary"
+     >
+      Cancelar
+     </button>
+    </div>
+   </Modal>
   </div>
  );
 }

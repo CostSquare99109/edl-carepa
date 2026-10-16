@@ -28,8 +28,8 @@ else
 fi
 
 # 2. Backend PHP
-echo "[BE] Iniciando PHP backend en :8000..."
-nohup php -S localhost:8000 -t "$ROOT_DIR/backend/public" "$ROOT_DIR/backend/public/router.php" > "$LOG_DIR/php.log" 2>&1 &
+echo "[BE] Iniciando PHP backend en :8001..."
+nohup php -S localhost:8001 -t "$ROOT_DIR/backend/public" "$ROOT_DIR/backend/public/router.php" > "$LOG_DIR/php.log" 2>&1 &
 PHP_PID=$!
 echo "$PHP_PID" > "$PID_DIR/php.pid"
 
@@ -42,7 +42,7 @@ echo "$NODE_PID" > "$PID_DIR/node.pid"
 echo ""
 echo "=== Servicios iniciados ==="
 echo "  DB:      mysql (PID ${MYSQL_PID:-ya-corriendo})"
-echo "  Backend: http://localhost:8000 (PID $PHP_PID)"
+echo "  Backend: http://localhost:8001 (PID $PHP_PID)"
 echo "  Frontend: http://localhost:5174 (PID $NODE_PID)"
 echo ""
 echo "Logs: $LOG_DIR/"

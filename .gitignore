@@ -25,3 +25,12 @@ coverage/
 
 # Documentos auxiliares (inventario, auditorías efímeras)
 estructura.md
+
+# Herramientas locales / artefactos no versionables
+.kilo/
+.kimchi/
+__pycache__/
+*.pyc
+backups/
+.claude/settings.local.json
+DOC-20260507-WA0000.zip

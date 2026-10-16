@@ -5,7 +5,7 @@ Requires backend on :8000. Login uses admin/12345678.
 """
 import json, urllib.request, urllib.error, sys, time, os, base64, hmac, hashlib
 
-BASE = 'http://localhost:8000'
+BASE = os.environ.get('API_BASE', 'http://localhost:8000')
 API = BASE + '/api/v1'
 PASS = 0
 FAIL = 0

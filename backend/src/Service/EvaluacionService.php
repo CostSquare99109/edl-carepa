@@ -88,13 +88,14 @@ class EvaluacionService
   // Enriquecer con informacion del evaluado y evaluador
   $pdo = Database::getInstance();
   if (!empty($evaluacion['evaluado_id'])) {
-   $stmtE = $pdo->prepare("SELECT documento, CONCAT_WS(' ', primer_nombre, segundo_nombre, primer_apellido, segundo_apellido) as nombre, denominacion_empleo FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
+   $stmtE = $pdo->prepare("SELECT documento, CONCAT_WS(' ', primer_nombre, segundo_nombre, primer_apellido, segundo_apellido) as nombre, denominacion_empleo, nivel FROM usuarios WHERE id = ? AND eliminado_en IS NULL");
    $stmtE->execute([$evaluacion['evaluado_id']]);
    $evalInfo = $stmtE->fetch(\PDO::FETCH_ASSOC);
    if ($evalInfo) {
     $evaluacion['evaluado_documento'] = $evalInfo['documento'] ?? null;
     $evaluacion['evaluado_nombre'] = trim($evalInfo['nombre'] ?? '') ?: null;
     $evaluacion['evaluado_cargo'] = $evalInfo['denominacion_empleo'] ?? null;
+    $evaluacion['nivel'] = $evalInfo['nivel'] ?? null;
    }
   }
   if (!empty($evaluacion['evaluador_id'])) {

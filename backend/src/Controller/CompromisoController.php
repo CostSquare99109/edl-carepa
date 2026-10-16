@@ -330,7 +330,10 @@ class CompromisoController
             $desglose[$row['tipo']] = (int) $row['total'];
         }
 
-        $stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'cerrada', actualizado_en = NOW() WHERE id = :id");
+        // La aceptacion abre el periodo de evaluacion: 'en_proceso' habilita el
+        // registro de evidencias por el evaluado y la calificacion de los
+        // compromisos por el evaluador. 'cerrada' solo aplica antes de aceptar.
+        $stmtEval = $pdo->prepare("UPDATE evaluaciones SET estado = 'en_proceso', actualizado_en = NOW() WHERE id = :id");
         $stmtEval->execute(['id' => $evaluacionId]);
 
         $stmtNotif = $pdo->prepare("

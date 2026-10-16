@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Repository\UsuarioRepository;
 use App\Repository\EntidadRepository;
+use App\Repository\CargoManualRepository;
 use App\Helper\ValidatorHelper;
 use App\Helper\ResponseHelper;
 use App\Config\Database;
@@ -122,6 +123,28 @@ class UsuarioService
    'fecha_inicio_evaluacion', 'motivo_fecha_inicio_diferente',
   ];
  $datosFiltrados = array_intersect_key($datos, array_flip($permitidos));
+
+ // Invariante R1 (auditoria usuarios.nivel): usuarios.nivel es una copia
+ // materializada derivada del cargo vigente (cargos_manual, Decreto 159/2024).
+ // Con vinculo vigente el nivel lo fija el catalogo; el camino canonico para
+ // cambiarlo es POST /usuarios/{id}/cargo-manual (que propaga atomicamente).
+ // Rechazar la edicion directa incompatible (422) evita reintroducir el drift
+ // corregido por M007. Sin vinculo vigente el nivel editable es un valor
+ // provisional administrativo (poblacion B, fuera del alcance del auditor).
+ if (array_key_exists('nivel', $datosFiltrados)) {
+  $cargoVigente = (new CargoManualRepository())->cargoDeUsuario($id);
+  if ($cargoVigente !== null) {
+   if ((string) $cargoVigente['nivel'] !== (string) $datosFiltrados['nivel']) {
+    ResponseHelper::error(
+     'El nivel es derivado del cargo vigente del usuario y no puede editarse directamente. Para cambiarlo reasigne el cargo del usuario (asignacion de cargo del manual de funciones).',
+     422
+    );
+   }
+   // Valor identico al derivado: no escribir la copia materializada desde
+   // el cliente (fuente unica de verdad: cargos_manual via vinculo).
+   unset($datosFiltrados['nivel']);
+  }
+ }
 
  if (isset($datos['password'])) {
   $datosFiltrados['password_hash'] = password_hash($datos['password'], PASSWORD_BCRYPT);
