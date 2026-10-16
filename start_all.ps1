@@ -1,3 +1,4 @@
+param([switch]\$TestMode)
 $ErrorActionPreference = 'Continue'
 $Root = $PSScriptRoot
 if (-not $Root) { $Root = (Get-Location).Path }
@@ -36,8 +37,12 @@ Write-Host ''
 Write-Host 'Backend : http://localhost:8000' -ForegroundColor Yellow
 Write-Host 'Frontend: http://localhost:5174' -ForegroundColor Yellow
 Write-Host ''
-Write-Host 'Presiona Enter para detener ambos servidores...' -ForegroundColor Cyan
-Read-Host | Out-Null
+if (-not \$TestMode) {
+  Write-Host 'Presiona Enter para detener ambos servidores...' -ForegroundColor Cyan
+  Read-Host | Out-Null
+} else {
+  Start-Sleep -Seconds 12
+}
 
 foreach ($proc in @($backend, $frontendProc)) {
     if ($proc -and -not $proc.HasExited) {
