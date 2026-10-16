@@ -70,7 +70,7 @@ class EvidenciaRepository extends BaseRepository
                    ORDER BY ev3.id LIMIT 1) AS evaluacion_tipo,
                 u.primer_nombre AS reg_nombre,
                 u.primer_apellido AS reg_apellido
-            FROM evidences e
+            FROM evidencias e
             LEFT JOIN compromisos c ON c.id = e.compromiso_id
             LEFT JOIN periodos p ON p.id = e.periodo_id
             INNER JOIN usuarios u ON u.id = e.registrado_por
