@@ -432,7 +432,9 @@ async function verCompromisosPropuestos() {
    ? sumaPesosFuncionales - (funcionales[funcionalEditIndex]?.peso || 0) + fPeso
    : sumaPesosFuncionales + fPeso;
   if (nuevoTotal > 100) {
-   setMensaje({ tipo: 'error', texto: `El peso total de los compromisos funcionales no puede superar 100%. Actual: ${sumaPesosFuncionales}%, con este compromiso seria ${nuevoTotal}%.` });
+   const msgErr = `El peso total de los compromisos funcionales no puede superar 100%. Actual: ${sumaPesosFuncionales}%, con este compromiso seria ${nuevoTotal}%.`;
+   setMensaje({ tipo: 'error', texto: msgErr });
+   toast.error(msgErr);
    return;
   }
 
