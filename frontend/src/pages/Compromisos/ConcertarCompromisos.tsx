@@ -1094,8 +1094,7 @@ async function handleConfirmar() {
      <div key={comp.competencia_codigo} className="mb-4">
       <h5 className="text-sm font-bold text-inst-azul mb-2">{comp.nombre_json} ({comp.competencia_nombre})</h5>
       <div className="space-y-2">
-       {comp.conductas.map(cond => (
-        <label key={comp.competencia_codigo + "_" + cond.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-inst-gris">
+       <label key={comp.competencia_codigo} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-inst-gris">
          <input
           type="checkbox"
           checked={selectedCompetencias.includes(comp.competencia_codigo)}
@@ -1131,7 +1130,6 @@ async function handleConfirmar() {
           </label>
          )}
         </label>
-       ))}
       </div>
      </div>
      ));
