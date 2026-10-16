@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { api } from '../../lib/api';
+import { toast, Toaster } from 'sonner';
 import { Modal } from '../../components/ui/Modal';
 
 interface Evaluado {
@@ -411,6 +412,22 @@ async function verCompromisosPropuestos() {
    setMensaje({ tipo: 'error', texto: 'El peso no puede ser mayor a 100.' });
    return;
   }
+
+  // Validacion estructura CNSC: verbo + objeto + condicion de resultado
+  const VERBOS_CNSC = ['elaborar','redactar','realizar','ejecutar','implementar','gestionar','administrar','coordinar','supervisar','monitorear','analizar','evaluar','diseñar','planificar','planear','organizar','dirigir','producir','generar','desarrollar','construir','formular','proponer','presentar','entregar','tramitar','revisar','verificar','controlar','resolver','atender','brindar','prestar','mantener','actualizar','capacitar','formar','asesorar','apoyar','informar','reportar','consolidar','archivar','registrar','documentar','medir','calcular','levantar','inspeccionar','auditar','promover','difundir','socializar','articular','liderar','representar','convocar','participar'];
+  const PALABRAS_CONDICION = ['con','segun','cumpliendo','cumple','para','que','indicadores','semestral','mensual','anual','trimestral','plazo','meta','resultado','evidencia','cronograma','indicador','estandar','norma','procedimiento','protocolo','formato','reporte'];
+  const descNorm = fDescripcion.trim().toLowerCase();
+  const primeraLimpia = (descNorm.split(' ')[0] || '').replace(/[^a-záéíóúñü]/g, '');
+  const iniciaConVerbo = VERBOS_CNSC.includes(primeraLimpia);
+  const longitudOk = fDescripcion.trim().length >= 20;
+  const contieneCondicion = PALABRAS_CONDICION.some(p => descNorm.includes(p));
+  if (!longitudOk || (!iniciaConVerbo && !contieneCondicion)) {
+    const msg = `La descripcion del compromiso no cumple la estructura CNSC: verbo + objeto + condicion de resultado. Sugerencia: redactar iniciando con un verbo en infinitivo (Elaborar, Redactar, Gestionar, ...) y agregando la condicion de resultado esperada. Estado actual -> ${iniciaConVerbo ? 'OK' : 'falta verbo'} | ${contieneCondicion ? 'OK' : 'falta condicion de resultado'}`;
+    setMensaje({ tipo: 'error', texto: msg });
+    toast.error(msg);
+    return;
+  }
+
   const nuevoTotal = funcionalEditIndex !== null
    ? sumaPesosFuncionales - (funcionales[funcionalEditIndex]?.peso || 0) + fPeso
    : sumaPesosFuncionales + fPeso;
