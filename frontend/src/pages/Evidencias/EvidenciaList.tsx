@@ -496,13 +496,32 @@ export default function EvidenciaList() {
             description="Use el formulario lateral para registrar la primera evidencia."
           />
         ) : (
-          <DataTable<Evidencia>
-            columns={columns}
-            data={items}
-            rowKey={(ev) => ev.id}
-            ariaLabel="Lista de evidencias"
-            caption={`Evidencias de ${evaluado.nombre_completo}`}
-          />
+          <div className="space-y-4">
+            {items.filter(e => e.tipo === 'compromiso').length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-inst-azul mb-1">Compromisos funcionales</h4>
+                <DataTable<Evidencia>
+                  columns={columns}
+                  data={items.filter(e => e.tipo === 'compromiso')}
+                  rowKey={(ev) => ev.id}
+                  ariaLabel="Evidencias de compromisos funcionales"
+                  caption={`Evidencias funcionales de ${evaluado.nombre_completo}`}
+                />
+              </div>
+            )}
+            {items.filter(e => e.tipo === 'competencia').length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-inst-azul mb-1">Compromisos comportamentales</h4>
+                <DataTable<Evidencia>
+                  columns={columns}
+                  data={items.filter(e => e.tipo === 'competencia')}
+                  rowKey={(ev) => ev.id}
+                  ariaLabel="Evidencias de competencias comportamentales"
+                  caption={`Evidencias comportamentales de ${evaluado.nombre_completo}`}
+                />
+              </div>
+            )}
+          </div>
         )}
 
         {totalPages > 1 && !loading && items.length > 0 && (
