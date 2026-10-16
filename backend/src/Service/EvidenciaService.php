@@ -149,14 +149,19 @@ class EvidenciaService
    // Limite dinamico: numero de compromisos aprobados de ese tipo en la concertacion
    $stmtLim = $pdo->prepare("
     SELECT
-     SUM(CASE WHEN tipo = 'funcional' THEN 1 ELSE 0 END) as lim_func,
-     SUM(CASE WHEN tipo = 'comportamental' THEN 1 ELSE 0 END) as lim_comp
-    FROM compromisos
-    WHERE concertacion_id = :cid
-      AND estado IN ('aprobado', 'en_progreso', 'cumplido', 'aceptado_evaluado')
-      AND eliminado_en IS NULL
+     SUM(CASE WHEN c.tipo = 'funcional' THEN 1 ELSE 0 END) as lim_func,
+     SUM(CASE WHEN c.tipo = 'comportamental' THEN 1 ELSE 0 END) as lim_comp
+    FROM compromisos c
+    INNER JOIN concertaciones con ON con.id = c.concertacion_id
+    INNER JOIN evaluaciones ev ON ev.concertacion_id = con.id
+    WHERE con.evaluado_id = :uid
+      AND ev.periodo_id = :pid
+      AND c.estado IN ('aprobado', 'en_progreso', 'cumplido', 'aceptado_evaluado')
+      AND c.eliminado_en IS NULL
+      AND con.eliminado_en IS NULL
+      AND ev.eliminado_en IS NULL
    ");
-   $stmtLim->execute(['cid' => $concertacionId]);
+   $stmtLim->execute(['uid' => $user['id'], 'pid' => $periodoId]);
    $limites = $stmtLim->fetch(\PDO::FETCH_ASSOC);
    $limFunc = (int) ($limites['lim_func'] ?? 0);
    $limComp = (int) ($limites['lim_comp'] ?? 0);
