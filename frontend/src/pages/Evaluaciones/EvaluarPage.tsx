@@ -877,34 +877,7 @@ export default function EvaluarPage() {
                           {ev.evaluacion_id && ev.evaluacion_id > 0 && ev.calificacion_definitiva !== null ? (
                             <span className="font-mono font-bold text-lg text-inst-azul">{ev.calificacion_definitiva.toFixed(2)}%</span>
                           ) : ev.evaluacion_id && ev.evaluacion_id > 0 ? (
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              step={0.01}
-                              placeholder="0-100"
-                              value={calificacionesManuales[ev.id] ?? ''}
-                              onChange={e => {
-                                const val = e.target.value === '' ? undefined : Number(e.target.value);
-                                if (val !== undefined && (val < 0 || val > 100)) return;
-                                setCalificacionesManuales(prev => {
-                                  const next = { ...prev };
-                                  if (val !== undefined) {
-                                    next[ev.id] = val;
-                                  } else {
-                                    delete next[ev.id];
-                                  }
-                                  return next;
-                                });
-                              }}
-                              onBlur={() => {
-                                const val = calificacionesManuales[ev.id];
-                                if (val !== undefined && val !== null) {
-                                  guardarCalificacionManual(ev.evaluacion_id, val);
-                                }
-                              }}
-                              className="edl-input w-24 text-center text-sm mx-auto"
-                            />
+                            <span className="text-inst-texto-claro text-xs">—</span>
                           ) : (
                             <span className="text-inst-texto-claro text-xs">—</span>
                           )}
