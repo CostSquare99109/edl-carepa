@@ -601,6 +601,7 @@ async function handleConfirmar() {
 	try {
 	// 1. Guardar compromisos funcionales
   for (const f of funcionales) {
+  if (f.id) continue;
   await api.post('/compromisos/funcional', {
   evaluacion_id: eid,
   evaluado_id: evaluado.id,
