@@ -40,6 +40,13 @@ class EvidenciaRepository extends BaseRepository
             $params[] = $filtros['tipo'];
         }
 
+        // Filtro por semestre (tipo de evaluacion): "anual" no filtra (agrega ambos semestres)
+        if (!empty($filtros['tipo_evaluacion'])
+            && in_array($filtros['tipo_evaluacion'], ['parcial_primer_semestre', 'parcial_segundo_semestre'], true)) {
+            $conditions[] = "e.concertacion_id IN (SELECT ev2.concertacion_id FROM evaluaciones ev2 WHERE ev2.tipo = ? AND ev2.eliminado_en IS NULL AND ev2.concertacion_id IS NOT NULL)";
+            $params[] = $filtros['tipo_evaluacion'];
+        }
+
         // Filtro por evaluado: buscar evidencias donde la concertacion pertenece al evaluado
         if (!empty($filtros['evaluado_id'])) {
             $conditions[] = "e.concertacion_id IN (SELECT id FROM concertaciones WHERE evaluado_id = ? AND eliminado_en IS NULL)";
@@ -58,9 +65,12 @@ class EvidenciaRepository extends BaseRepository
                 c.descripcion AS compromiso_descripcion,
                 c.tipo AS compromiso_tipo,
                 p.nombre AS periodo_nombre,
+                (SELECT ev3.tipo FROM evaluaciones ev3
+                   WHERE ev3.concertacion_id = e.concertacion_id AND ev3.eliminado_en IS NULL
+                   ORDER BY ev3.id LIMIT 1) AS evaluacion_tipo,
                 u.primer_nombre AS reg_nombre,
                 u.primer_apellido AS reg_apellido
-            FROM evidencias e
+            FROM evidences e
             LEFT JOIN compromisos c ON c.id = e.compromiso_id
             LEFT JOIN periodos p ON p.id = e.periodo_id
             INNER JOIN usuarios u ON u.id = e.registrado_por

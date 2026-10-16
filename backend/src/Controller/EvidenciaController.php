@@ -58,35 +58,53 @@ class EvidenciaController
  ResponseHelper::success(null, 'La evidencia se elimino correctamente.');
  }
 
- public function compromisosEvaluado(): void
- {
- $evaluadoId = (int) ($_GET['evaluado_id'] ?? 0);
- $periodoId = (int) ($_GET['periodo_id'] ?? 0);
+public function compromisosEvaluado(): void
+  {
+  $evaluadoId = (int) ($_GET['evaluado_id'] ?? 0);
+  $periodoId = (int) ($_GET['periodo_id'] ?? 0);
+  $tipo = trim((string) ($_GET['tipo'] ?? ''));
+  $tipoValido = in_array($tipo, ['parcial_primer_semestre', 'parcial_segundo_semestre'], true) ? $tipo : null;
 
- if ($evaluadoId <= 0 || $periodoId <= 0) {
- ResponseHelper::error('evaluado_id y periodo_id son obligatorios', 422);
- }
+  if ($evaluadoId <= 0 || $periodoId <= 0) {
+  ResponseHelper::error('evaluado_id y periodo_id son obligatorios', 422);
+  }
 
- $pdo = \App\Config\Database::getInstance();
+  $pdo = \App\Config\Database::getInstance();
 
- $stmtCon = $pdo->prepare("SELECT id, periodo_id, evaluado_id FROM concertaciones WHERE evaluado_id = ? AND periodo_id = ? AND eliminado_en IS NULL LIMIT 1");
- $stmtCon->execute([$evaluadoId, $periodoId]);
- $con = $stmtCon->fetch();
+  // Resolver la evaluacion del periodo (y semestre si se especifico) para usar su concertacion
+  $sqlEval = "SELECT id, concertacion_id FROM evaluaciones
+     WHERE evaluado_id = ? AND periodo_id = ? AND eliminado_en IS NULL";
+  $paramsEval = [$evaluadoId, $periodoId];
+  if ($tipoValido) {
+  $sqlEval .= " AND tipo = ?";
+  $paramsEval[] = $tipoValido;
+  }
+  $sqlEval .= " ORDER BY id LIMIT 1";
+  $stmtEval = $pdo->prepare($sqlEval);
+  $stmtEval->execute($paramsEval);
+  $evaluacion = $stmtEval->fetch(\PDO::FETCH_ASSOC);
 
- if (!$con) {
- ResponseHelper::success(['data' => []]);
- }
+  $concertacionId = $evaluacion['concertacion_id'] ?? null;
+  if (!$concertacionId) {
+  $stmtCon = $pdo->prepare("SELECT id FROM concertaciones WHERE evaluado_id = ? AND periodo_id = ? AND eliminado_en IS NULL ORDER BY id LIMIT 1");
+  $stmtCon->execute([$evaluadoId, $periodoId]);
+  $concertacionId = $stmtCon->fetchColumn();
+  }
 
- $stmt = $pdo->prepare("
+  if (!$concertacionId) {
+  ResponseHelper::success(['data' => []]);
+  }
+
+  $stmt = $pdo->prepare("
  SELECT id, concertacion_id, tipo, descripcion, peso, estado, competencia_codigo, calificacion, propuesto_por_jefe_entidad, es_propuesto_evaluado
  FROM compromisos
  WHERE concertacion_id = ? AND eliminado_en IS NULL
  ORDER BY FIELD(tipo, 'funcional', 'comportamental'), id
  ");
- $stmt->execute([$con['id']]);
- $data = $stmt->fetchAll();
+  $stmt->execute([(int) $concertacionId]);
+  $data = $stmt->fetchAll();
 
- ResponseHelper::success(['data' => $data]);
+  ResponseHelper::success(['data' => $data]);
  }
 
  /**
@@ -95,24 +113,31 @@ class EvidenciaController
   */
  public function evaluadosAsignados(): void
  {
- $periodoId = (int) ($_GET['periodo_id'] ?? 0);
- $q = trim((string) ($_GET['q'] ?? ''));
+$periodoId = (int) ($_GET['periodo_id'] ?? 0);
+  $q = trim((string) ($_GET['q'] ?? ''));
+  $tipo = trim((string) ($_GET['tipo'] ?? ''));
+  $tipoValido = in_array($tipo, ['parcial_primer_semestre', 'parcial_segundo_semestre'], true) ? $tipo : null;
 
- if (!$periodoId) {
- ResponseHelper::success(['data' => []]);
+  if (!$periodoId) {
+  ResponseHelper::success(['data' => []]);
  return;
- }
+  }
 
- $user = \App\Middleware\AuthMiddleware::user();
- $evaluadorId = (int) $user['id'];
- $pdo = \App\Config\Database::getInstance();
+  $user = \App\Middleware\AuthMiddleware::user();
+  $evaluadorId = (int) $user['id'];
+  $pdo = \App\Config\Database::getInstance();
 
- $sql = "
- SELECT DISTINCT u.id, u.documento, u.primer_nombre, u.segundo_nombre,
+  // "anual" no restringe semestre: se toma la evaluacion mas antigua del periodo.
+  // Con semestre, se restringe tanto el subselect como el filtro externo.
+  $tipoSub = $tipoValido ? ' AND x.tipo = ?' : '';
+  $tipoOut = $tipoValido ? ' AND ev.tipo = ?' : '';
+
+  $sql = "
+ SELECT u.id, u.documento, u.primer_nombre, u.segundo_nombre,
    u.primer_apellido, u.segundo_apellido,
    u.denominacion_empleo, u.grado_empleo,
    d.nombre AS dependencia_nombre,
-   ev.id AS evaluacion_id, ev.concertacion_id
+   ev.id AS evaluacion_id, ev.concertacion_id, ev.tipo AS evaluacion_tipo
  FROM evaluaciones ev
  INNER JOIN usuarios u ON u.id = ev.evaluado_id
  LEFT JOIN dependencias d ON d.id = u.dependencia_id
@@ -121,8 +146,19 @@ class EvidenciaController
    AND ev.eliminado_en IS NULL
    AND u.eliminado_en IS NULL
    AND u.estado = 'activo'
+   AND ev.id = (
+     SELECT MIN(x.id) FROM evaluaciones x
+     WHERE x.evaluado_id = ev.evaluado_id
+       AND x.periodo_id = ev.periodo_id
+       AND x.evaluador_id = ev.evaluador_id
+       AND x.eliminado_en IS NULL{$tipoSub}
+   ){$tipoOut}
  ";
- $params = [$evaluadorId, $periodoId];
+  $params = [$evaluadorId, $periodoId];
+  if ($tipoValido) {
+  $params[] = $tipoValido;
+  $params[] = $tipoValido;
+  }
 
  if ($q !== '') {
  $sql .= " AND (u.documento LIKE ? OR CONCAT_WS(' ', u.primer_nombre, u.segundo_nombre, u.primer_apellido, u.segundo_apellido) LIKE ?)";
@@ -147,6 +183,7 @@ class EvidenciaController
  'dependencia_nombre' => $r['dependencia_nombre'],
  'evaluacion_id' => $r['evaluacion_id'] ? (int) $r['evaluacion_id'] : null,
  'concertacion_id' => $r['concertacion_id'] ? (int) $r['concertacion_id'] : null,
+ 'evaluacion_tipo' => $r['evaluacion_tipo'] ?? null,
  ];
  }, $rows);
 

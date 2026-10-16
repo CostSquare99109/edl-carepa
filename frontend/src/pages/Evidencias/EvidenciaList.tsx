@@ -25,6 +25,7 @@ interface Evidencia {
   registrado_nombre?: string
   creado_en: string
   periodo_nombre?: string
+  evaluacion_tipo?: string | null
 }
 
 interface EvaluadoSlim {
@@ -35,6 +36,29 @@ interface EvaluadoSlim {
   dependencia_nombre: string
   evaluacion_id: number | null
   concertacion_id: number | null
+  evaluacion_tipo?: string | null
+}
+
+const TIPOS_EVALUACION = [
+  { value: 'anual', label: 'Anual (1er y 2do semestre)' },
+  { value: 'parcial_primer_semestre', label: '1er Semestre' },
+  { value: 'parcial_segundo_semestre', label: '2do Semestre' },
+] as const
+
+const TIPO_LABEL: Record<string, string> = {
+  parcial_primer_semestre: '1er Semestre',
+  parcial_segundo_semestre: '2do Semestre',
+  parcial_eventual: 'Parcial eventual',
+  calificacion_extraordinaria: 'Calificacion extraordinaria',
+}
+
+function tipoBackend(tipo: string): string {
+  return tipo === 'anual' ? '' : tipo
+}
+
+function tipoLabel(tipo?: string | null): string {
+  if (!tipo) return 'Anual'
+  return TIPO_LABEL[tipo] || tipo
 }
 
 export default function EvidenciaList() {
@@ -46,6 +70,7 @@ export default function EvidenciaList() {
 
   const [periodos, setPeriodos] = useState<{ id: number; nombre: string }[]>([])
   const [periodoId, setPeriodoId] = useState(0)
+  const [tipoEvaluacion, setTipoEvaluacion] = useState<string>('anual')
 
   const [busquedaQ, setBusquedaQ] = useState('')
   const [resultados, setResultados] = useState<EvaluadoSlim[]>([])
@@ -89,14 +114,20 @@ export default function EvidenciaList() {
     }
     setLoading(true)
     try {
-      const res = await api.get<PaginatedData<Evidencia>>(
-        `/evidencias?evaluado_id=${evaluado.id}&periodo_id=${periodoId}&pagina=${pagina}&por_pagina=20`
-      )
+      const tipo = tipoBackend(tipoEvaluacion)
+      const qs = new URLSearchParams({
+        evaluado_id: String(evaluado.id),
+        periodo_id: String(periodoId),
+        pagina: String(pagina),
+        por_pagina: '20',
+      })
+      if (tipo) qs.set('tipo', tipo)
+      const res = await api.get<PaginatedData<Evidencia>>(`/evidencias?${qs.toString()}`)
       setItems(res.data || [])
       setTotal(res.total || 0)
     } catch {}
     setLoading(false)
-  }, [evaluado?.id, periodoId, pagina])
+  }, [evaluado?.id, periodoId, tipoEvaluacion, pagina])
 
   useEffect(() => { cargarEvidencias() }, [cargarEvidencias])
 
@@ -108,8 +139,11 @@ export default function EvidenciaList() {
     }
     setBuscandoEval(true)
     try {
+      const tipo = tipoBackend(tipoEvaluacion)
+      const qs = new URLSearchParams({ periodo_id: String(periodoId), q: encodeURIComponent(q) })
+      if (tipo) qs.set('tipo', tipo)
       const res = await api.get<{ data: EvaluadoSlim[] }>(
-        `/evaluadores/mis-evaluados?periodo_id=${periodoId}&q=${encodeURIComponent(q)}`
+        `/evaluadores/mis-evaluados?${qs.toString()}`
       )
       setResultados(res.data || [])
       setMostrarDrop(true)
@@ -117,7 +151,7 @@ export default function EvidenciaList() {
     } catch {
       setBuscandoEval(false)
     }
-  }, [periodoId])
+  }, [periodoId, tipoEvaluacion])
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -154,7 +188,13 @@ export default function EvidenciaList() {
         .then(res => setCompromisos(res.data || []))
         .catch(() => {})
     } else if (ev.concertacion_id) {
-      api.get<PaginatedData<Compromiso>>(`/evidencias/compromisos-evaluado?evaluado_id=${ev.id}&periodo_id=${periodoId}`)
+      const tipo = tipoBackend(tipoEvaluacion)
+      const qs = new URLSearchParams({
+        evaluado_id: String(ev.id),
+        periodo_id: String(periodoId),
+      })
+      if (tipo) qs.set('tipo', tipo)
+      api.get<PaginatedData<Compromiso>>(`/evidencias/compromisos-evaluado?${qs.toString()}`)
         .then(res => setCompromisos(res.data || []))
         .catch(() => {})
     }
@@ -293,7 +333,12 @@ export default function EvidenciaList() {
     {
       key: 'periodo',
       header: 'Período',
-      render: (ev) => <span className="text-xs">{ev.periodo_nombre || '-'}</span>,
+      render: (ev) => (
+        <span className="text-xs">
+          {ev.periodo_nombre || '-'}
+          <span className="block text-inst-texto-claro">{tipoLabel(ev.evaluacion_tipo)}</span>
+        </span>
+      ),
     },
     { key: 'registrado', header: 'Registrado por', render: (ev) => ev.registrado_nombre || '-' },
     { key: 'fecha', header: 'Fecha', render: (ev) => <span className="text-xs">{new Date(ev.creado_en).toLocaleDateString('es-CO')}</span> },
@@ -312,10 +357,10 @@ export default function EvidenciaList() {
         </p>
       </div>
 
-      {/* Periodo select */}
+      {/* Periodo + tipo de evaluacion */}
       <Card>
         <div className="flex flex-wrap items-end gap-4">
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-[220px]">
             <Select
               label="Período de evaluación *"
               value={periodoId || ''}
@@ -326,10 +371,29 @@ export default function EvidenciaList() {
               }}
               placeholder="Seleccione un período"
               options={periodos.map(p => ({ value: String(p.id), label: p.nombre }))}
-              helperText="Requerido para filtrar evaluados y compromisos"
+              helperText="Año del período de evaluación"
+            />
+          </div>
+          <div className="flex-1 min-w-[220px]">
+            <Select
+              label="Tipo de evaluación *"
+              value={tipoEvaluacion}
+              onChange={e => {
+                setTipoEvaluacion(e.target.value)
+                limpiarEvaluado()
+              }}
+              placeholder="Seleccione el tipo"
+              options={TIPOS_EVALUACION.map(t => ({ value: t.value, label: t.label }))}
+              helperText="Anual agrupa 1er y 2do semestre"
             />
           </div>
         </div>
+        {periodoId > 0 && (
+          <p className="mt-3 text-xs text-inst-texto-claro">
+            Mostrando evidencias de <strong>{periodos.find(p => p.id === periodoId)?.nombre}</strong> —{' '}
+            <strong>{tipoLabel(tipoBackend(tipoEvaluacion) || null)}</strong>
+          </p>
+        )}
       </Card>
 
       {/* Búsqueda de evaluados (solo evaluador: autocomplete; admin: documento exacto) */}
@@ -412,7 +476,13 @@ export default function EvidenciaList() {
                       onClick={async () => {
                         if (!busquedaQ.trim() || !periodoId) return
                         try {
-                          const data = await api.get(`/compromisos/buscar-evaluado?documento=${busquedaQ.trim()}&periodo_id=${periodoId}`) as { evaluado?: any }
+                          const tipo = tipoBackend(tipoEvaluacion)
+                          const qs = new URLSearchParams({
+                            documento: busquedaQ.trim(),
+                            periodo_id: String(periodoId),
+                          })
+                          if (tipo) qs.set('tipo', tipo)
+                          const data = await api.get(`/compromisos/buscar-evaluado?${qs.toString()}`) as { evaluado?: any }
                           if (data.evaluado) {
                             const ev: EvaluadoSlim = {
                               id: data.evaluado.id,
@@ -422,6 +492,7 @@ export default function EvidenciaList() {
                               dependencia_nombre: data.evaluado.dependencia_nombre || '',
                               evaluacion_id: data.evaluado.evaluacion_id || null,
                               concertacion_id: data.evaluado.concertacion_id || null,
+                              evaluacion_tipo: data.evaluado.evaluacion_tipo || null,
                             }
                             seleccionarEvaluado(ev)
                             toast.success('Evaluado encontrado')
@@ -461,6 +532,7 @@ export default function EvidenciaList() {
                 <div className="flex justify-between"><span className="text-inst-texto-claro">Cargo:</span><span className="font-medium text-right">{evaluado.denominacion_empleo || '—'}</span></div>
                 <div className="flex justify-between"><span className="text-inst-texto-claro">Dependencia:</span><span className="font-medium text-right">{evaluado.dependencia_nombre || '—'}</span></div>
                 <div className="flex justify-between"><span className="text-inst-texto-claro">Evaluador:</span><span className="font-medium text-right">{usuario?.nombre_completo || '—'}</span></div>
+                <div className="flex justify-between"><span className="text-inst-texto-claro">Período:</span><span className="font-medium text-right">{periodos.find(p => p.id === periodoId)?.nombre || '—'} · {tipoLabel(evaluado.evaluacion_tipo || tipoBackend(tipoEvaluacion) || null)}</span></div>
                 <div className="flex justify-between"><span className="text-inst-texto-claro">Compromisos:</span><span className="font-medium text-right">{compromisos.length}</span></div>
               </div>
               {!puedeCrear && (
@@ -487,7 +559,7 @@ export default function EvidenciaList() {
           <EmptyState
             icon={<span className="material-icons text-3xl">search</span>}
             title="Seleccione un evaluado"
-            description="Seleccione un período y busque un evaluado para ver sus evidencias."
+            description="Seleccione el período y el tipo de evaluación, y luego busque un evaluado para ver sus evidencias."
           />
         ) : items.length === 0 ? (
           <EmptyState

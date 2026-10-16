@@ -40,8 +40,10 @@ class CompromisoController
 
     public function buscarEvaluado(): void
     {
-        $documento = $_GET['documento'] ?? '';
-        $periodoId = isset($_GET['periodo_id']) ? (int) $_GET['periodo_id'] : 0;
+$documento = $_GET['documento'] ?? '';
+  $periodoId = isset($_GET['periodo_id']) ? (int) $_GET['periodo_id'] : 0;
+  $tipo = trim((string) ($_GET['tipo'] ?? ''));
+  $tipoValido = in_array($tipo, ['parcial_primer_semestre', 'parcial_segundo_semestre'], true) ? $tipo : null;
 
         if (empty($documento)) {
             ResponseHelper::error('El documento es requerido', 400);
@@ -68,10 +70,15 @@ class CompromisoController
 
         $params = ['doc' => $documento];
 
-        if ($periodoId > 0) {
-            $sql .= " AND (e.periodo_id = :periodo_id OR e.periodo_id IS NULL)";
-            $params['periodo_id'] = $periodoId;
-        }
+if ($periodoId > 0) {
+  $sql .= " AND (e.periodo_id = :periodo_id OR e.periodo_id IS NULL)";
+  $params['periodo_id'] = $periodoId;
+ }
+
+  if ($tipoValido) {
+  $sql .= " AND e.tipo = :tipo";
+  $params['tipo'] = $tipoValido;
+ }
 
         $sql .= " ORDER BY e.id DESC LIMIT 1";
 
