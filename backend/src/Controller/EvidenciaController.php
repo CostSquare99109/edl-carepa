@@ -62,7 +62,7 @@ public function compromisosEvaluado(): void
   {
   $evaluadoId = (int) ($_GET['evaluado_id'] ?? 0);
   $periodoId = (int) ($_GET['periodo_id'] ?? 0);
-  $tipo = trim((string) ($_GET['tipo'] ?? ''));
+  $tipo = trim((string) ($_GET['tipo_evaluacion'] ?? ''));
   $tipoValido = in_array($tipo, ['parcial_primer_semestre', 'parcial_segundo_semestre'], true) ? $tipo : null;
 
   if ($evaluadoId <= 0 || $periodoId <= 0) {
@@ -115,7 +115,7 @@ public function compromisosEvaluado(): void
  {
 $periodoId = (int) ($_GET['periodo_id'] ?? 0);
   $q = trim((string) ($_GET['q'] ?? ''));
-  $tipo = trim((string) ($_GET['tipo'] ?? ''));
+  $tipo = trim((string) ($_GET['tipo_evaluacion'] ?? ''));
   $tipoValido = in_array($tipo, ['parcial_primer_semestre', 'parcial_segundo_semestre'], true) ? $tipo : null;
 
   if (!$periodoId) {

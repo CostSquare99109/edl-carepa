@@ -42,7 +42,7 @@ class CompromisoController
     {
 $documento = $_GET['documento'] ?? '';
   $periodoId = isset($_GET['periodo_id']) ? (int) $_GET['periodo_id'] : 0;
-  $tipo = trim((string) ($_GET['tipo'] ?? ''));
+  $tipo = trim((string) ($_GET['tipo_evaluacion'] ?? ''));
   $tipoValido = in_array($tipo, ['parcial_primer_semestre', 'parcial_segundo_semestre'], true) ? $tipo : null;
 
         if (empty($documento)) {

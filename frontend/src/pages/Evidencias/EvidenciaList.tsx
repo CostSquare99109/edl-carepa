@@ -121,7 +121,7 @@ export default function EvidenciaList() {
         pagina: String(pagina),
         por_pagina: '20',
       })
-      if (tipo) qs.set('tipo', tipo)
+      if (tipo) qs.set('tipo_evaluacion', tipo)
       const res = await api.get<PaginatedData<Evidencia>>(`/evidencias?${qs.toString()}`)
       setItems(res.data || [])
       setTotal(res.total || 0)
@@ -141,7 +141,7 @@ export default function EvidenciaList() {
     try {
       const tipo = tipoBackend(tipoEvaluacion)
       const qs = new URLSearchParams({ periodo_id: String(periodoId), q: encodeURIComponent(q) })
-      if (tipo) qs.set('tipo', tipo)
+      if (tipo) qs.set('tipo_evaluacion', tipo)
       const res = await api.get<{ data: EvaluadoSlim[] }>(
         `/evaluadores/mis-evaluados?${qs.toString()}`
       )
@@ -193,7 +193,7 @@ export default function EvidenciaList() {
         evaluado_id: String(ev.id),
         periodo_id: String(periodoId),
       })
-      if (tipo) qs.set('tipo', tipo)
+      if (tipo) qs.set('tipo_evaluacion', tipo)
       api.get<PaginatedData<Compromiso>>(`/evidencias/compromisos-evaluado?${qs.toString()}`)
         .then(res => setCompromisos(res.data || []))
         .catch(() => {})
@@ -481,7 +481,7 @@ export default function EvidenciaList() {
                             documento: busquedaQ.trim(),
                             periodo_id: String(periodoId),
                           })
-                          if (tipo) qs.set('tipo', tipo)
+                          if (tipo) qs.set('tipo_evaluacion', tipo)
                           const data = await api.get(`/compromisos/buscar-evaluado?${qs.toString()}`) as { evaluado?: any }
                           if (data.evaluado) {
                             const ev: EvaluadoSlim = {
